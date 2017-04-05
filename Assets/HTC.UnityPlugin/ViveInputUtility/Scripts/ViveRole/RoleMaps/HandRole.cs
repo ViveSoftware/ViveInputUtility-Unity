@@ -188,7 +188,7 @@ namespace HTC.UnityPlugin.Vive
 
             while (role <= HandRole.Controller12 && deviceIndex < ViveRole.MAX_DEVICE_COUNT)
             {
-                while (RoleMap.IsRoleBound(role))
+                while (RoleMap.IsRoleMapped(role) || RoleMap.IsRoleBound(role))
                 {
                     if (++role > HandRole.Controller12) { return; }
                 }
