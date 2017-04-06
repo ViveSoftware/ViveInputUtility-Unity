@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
+    // ViveRoleProperty is a serializable class that preserve vive role using 2 strings.
+    // There also has a property drawer so you can use it as a serialized field in your MonoBevaviour.
+    // Note that when deserializing, result of type and value is based on the valid role info stored in ViveRoleEnum class
     [Serializable]
     public class ViveRoleProperty
     {
@@ -82,7 +85,8 @@ namespace HTC.UnityPlugin.Vive
 
         public void SetTypeDirty() { m_isTypeDirty = true; }
         public void SetValueDirty() { m_isValueDirty = true; }
-
+        
+        // update type and value if type string or value string is/are dirty
         private void Update()
         {
             if (!m_isTypeDirty && !m_isValueDirty) { return; }
@@ -164,8 +168,9 @@ namespace HTC.UnityPlugin.Vive
 
             TRole role;
             var roleInfo = ViveRoleEnum.GetInfo<TRole>();
-            if (m_roleType != typeof(TRole) || roleInfo.TryGetRoleByName(m_roleValueName, out role))
+            if (m_roleType != typeof(TRole) || !roleInfo.TryGetRoleByName(m_roleValueName, out role))
             {
+                // return invalid if role type not match or the value name not found in roleInfo
                 return roleInfo.InvalidRole;
             }
 
