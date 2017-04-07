@@ -17,6 +17,9 @@ namespace HTC.UnityPlugin.Pointer3D
         private static readonly List<Pointer3DRaycaster> processingRaycasters = new List<Pointer3DRaycaster>();
         private static int validEventDataId = PointerInputModule.kFakeTouchesId - 1;
 
+        private bool m_hasFocus;
+        private int m_processedFrame;
+
         // Pointer3DInputModule has it's own RaycasterManager and Pointer3DRaycaster doesn't share with other input modules.
         // So coexist with other input modules is by default and reasonable?
         public bool coexist = true;
@@ -48,13 +51,31 @@ namespace HTC.UnityPlugin.Pointer3D
         public override bool ShouldActivateModule()
         {
             if (!base.ShouldActivateModule()) { return false; }
+            // if coexist with other inputmodule is enabled, tell EventSystem not to active and let other module active first
             return !coexist;
         }
 
+        protected virtual void OnApplicationFocus(bool hasFocus)
+        {
+            m_hasFocus = hasFocus;
+        }
+#if UNITY_5_5_OR_NEWER
+        protected virtual void Update()
+        {
+            // EventSystem is paused when application lost focus, so force ProcessRaycast here
+            if (isActiveAndEnabled && !m_hasFocus)
+            {
+                if (EventSystem.current.currentInputModule == this || coexist)
+                {
+                    ProcessRaycast();
+                }
+            }
+        }
+#endif
         public override void UpdateModule()
         {
             Initialize();
-            if (coexist && isActiveAndEnabled)
+            if (isActiveAndEnabled && EventSystem.current.currentInputModule != this && coexist)
             {
                 ProcessRaycast();
             }
@@ -104,7 +125,8 @@ namespace HTC.UnityPlugin.Pointer3D
 
         public override void Process()
         {
-            if (!coexist && isActiveAndEnabled)
+            Initialize();
+            if (isActiveAndEnabled)
             {
                 ProcessRaycast();
             }
@@ -222,10 +244,12 @@ namespace HTC.UnityPlugin.Pointer3D
 
         protected virtual void ProcessRaycast()
         {
+            if (m_processedFrame == Time.frameCount) { return; }
+            m_processedFrame = Time.frameCount;
+
             // use another list to iterate raycasters
             // incase that raycasters may changed during this process cycle
             processingRaycasters.AddRange(raycasters);
-
             for (var i = processingRaycasters.Count - 1; i >= 0; --i)
             {
                 var raycaster = processingRaycasters[i];
