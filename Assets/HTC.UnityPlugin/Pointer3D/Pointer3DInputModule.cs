@@ -17,7 +17,9 @@ namespace HTC.UnityPlugin.Pointer3D
         private static readonly List<Pointer3DRaycaster> processingRaycasters = new List<Pointer3DRaycaster>();
         private static int validEventDataId = PointerInputModule.kFakeTouchesId - 1;
 
+#if UNITY_5_5_OR_NEWER
         private bool m_hasFocus;
+#endif
         private int m_processedFrame;
 
         // Pointer3DInputModule has it's own RaycasterManager and Pointer3DRaycaster doesn't share with other input modules.
@@ -54,12 +56,12 @@ namespace HTC.UnityPlugin.Pointer3D
             // if coexist with other inputmodule is enabled, tell EventSystem not to active and let other module active first
             return !coexist;
         }
-
+#if UNITY_5_5_OR_NEWER
         protected virtual void OnApplicationFocus(bool hasFocus)
         {
             m_hasFocus = hasFocus;
         }
-#if UNITY_5_5_OR_NEWER
+
         protected virtual void Update()
         {
             // EventSystem is paused when application lost focus, so force ProcessRaycast here

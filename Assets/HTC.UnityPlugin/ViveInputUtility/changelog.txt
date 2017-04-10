@@ -1,56 +1,64 @@
-﻿# Vive Input Utility for Unity - v1.6.0
+﻿# Vive Input Utility for Unity - v1.6.2
 Copyright (c) 2016-2017, HTC Corporation. All rights reserved.
+
+## Changes for v1.6.2:
+
+* Fix remapping errors from HandRoleHandler [issue#1](https://github.com/ViveSoftware/ViveInputUtility-Unity/issues/1)
+
+* Fix ViveRoleProperty.ToRole always returns Invalid [issue#6](https://github.com/ViveSoftware/ViveInputUtility-Unity/issues/6)
+
+* Fix ViveRaycaster not working when app loses focus [issue#7](https://github.com/ViveSoftware/ViveInputUtility-Unity/issues/7)
 
 
 ## Changes for v1.6.0:
 
 * New ViveRole System
-  - ViveRole is a mapping system that relate logic roles to OpenVR device indices.
-  - Each role has their own auto-mapping logic, and binding API allow user to customize the relation.
-    - Both mapping (role, device index) binding (role, device serial number) are one-on-one relation
-    - When a device serial number is binding to a role, it means that role is always mapping to the specific device
-    - If the bound device is disconnected, the bound role will not mapping to any device index (invalid).
-  - Currently there are 4 built-in roles:
-    - DeviceRole: role that mapping to all 16 devices, ordered exactly same as device index.
-    - HandRole: role related to standard Vive controllers, with basic RightHand/LeftHand recognition.
-    - TrackerRole: role related to Vive trackers, first conntected tracker will be mapping to Tracker1.
-    - BodyRole: role related to devices that tracking human limbs.
-  - Creating custom role in an instant by adding ViveRoleEnumAttribute to your enum type
-  - Customizing auto-mapping logic by implementing ViveRoleHandler\<EnumType\> and call ViveRole.AssignMapHandler()
+    - ViveRole is a mapping system that relate logic roles to OpenVR device indices.
+    - Each role has their own auto-mapping logic, and binding API allow user to customize the relation.
+        - Both mapping (role, device index) binding (role, device serial number) are one-on-one relation
+        - When a device serial number is binding to a role, it means that role is always mapping to the specific device
+        - If the bound device is disconnected, the bound role will not mapping to any device index (invalid).
+    - Currently there are 4 built-in roles:
+        - DeviceRole: role that mapping to all 16 devices, ordered exactly same as device index.
+        - HandRole: role related to standard Vive controllers, with basic RightHand/LeftHand recognition.
+        - TrackerRole: role related to Vive trackers, first conntected tracker will be mapping to Tracker1.
+        - BodyRole: role related to devices that tracking human limbs.
+    - Creating custom role in an instant by adding ViveRoleEnumAttribute to your enum type
+    - Customizing auto-mapping logic by implementing ViveRoleHandler\<EnumType\> and call ViveRole.AssignMapHandler()
 
 * New query APIs that accept any ViveRoles, ex.
-  - Use ViveRole.GetDeviceIndexEx(TrackerRole.Tracker1) to get tracker's device index.
-  - Use VivePose.GetPoseEx(TrackerRole.Tracker1) to get tracker's tracking data
-  - Use ViveInput.GetPressEx(TrackerRole.Tracker1, ControllerButton.Trigger) to get tracker's trigger event.
-  - Use ViveInput.AddListenerEx(TrackerRole.Tracker1, ControllerButton.Trigger, ButtonEventType.Press) to listen tracker's trigger event.
+    - Use ViveRole.GetDeviceIndexEx(TrackerRole.Tracker1) to get tracker's device index.
+    - Use VivePose.GetPoseEx(TrackerRole.Tracker1) to get tracker's tracking data
+    - Use ViveInput.GetPressEx(TrackerRole.Tracker1, ControllerButton.Trigger) to get tracker's trigger event.
+    - Use ViveInput.AddListenerEx(TrackerRole.Tracker1, ControllerButton.Trigger, ButtonEventType.Press) to listen tracker's trigger event.
 
 * New sample scene "RoleBindingExample"
-  - This sample scene demonstrate how to bind device a role and save/load those bindings
+    - This sample scene demonstrate how to bind device a role and save/load those bindings
 
 * New ViveRoleBindingsHelper helper component
-  - Adding this component to scene to auto-load bindings.
-  - Call function SaveRoleBindings(filePath) to save bindings manually.
-  - Call function LoadRoleBindings(filePath) to load bindings manually.
+    - Adding this component to scene to auto-load bindings.
+    - Call function SaveRoleBindings(filePath) to save bindings manually.
+    - Call function LoadRoleBindings(filePath) to load bindings manually.
 
 * New RenderModelHook helper component
-  - This script creates and handles SteamVR_RenderModel, so you can show render model specified by ViveRole insdead of device index.
+    - This script creates and handles SteamVR_RenderModel, so you can show render model specified by ViveRole insdead of device index.
 
 * New ExternalCameraHook helper component
-  - This script creates and handles SteamVR_ExternalCamera, and let camera tracking device specified by ViveRole insdead of device index.
-  - Setup step-by-step
+    - This script creates and handles SteamVR_ExternalCamera, and let camera tracking device specified by ViveRole insdead of device index.
+    - Setup step-by-step
 	1. Add a file called externalcamera.cfg in the root of your project. (the config file sample can be found [here](https://steamcommunity.com/app/358720/discussions/0/405694031549662100/))
     2. Add ExternalCameraHook component into your scene. (don't remove the auto-generated SteamVR_Render component)
 	3. Select ExternalCameraHook gameobject and set the device role in inspector. (or set in script, ex. ExternalCameraHook.viveRole.SetEx(TrackerRole.Tracker1))
-      - If you are using 3rd Vive standard controller as external camera, set to HandRole.Controller3 (recommended)
-	  - If you are using ViveTracker as external camera, set to TrackerRole.Tracker1 (recommended)
+          - If you are using 3rd Vive standard controller as external camera, set to HandRole.Controller3 (recommended)
+	    - If you are using ViveTracker as external camera, set to TrackerRole.Tracker1 (recommended)
     4. (Optional) Bind the external camera tracking device to the role
-	  1. Open "RoleBindingExample" scene
-	  2. Scan the specific device (for external camera)
-	  3. Bind to the specific role (ex. HandRole.Controller3 or TrackerRole.Tracker1)
-	  4. Save bindings
-	  5. Back to your project scene
-	  6. Add ViveRoleBindingsHelper component into your scene. (to load bindings automatically)
-	  7. Now external camera should always tracking at the device you wanted.
+	    1. Open "RoleBindingExample" scene
+	    2. Scan the specific device (for external camera)
+	    3. Bind to the specific role (ex. HandRole.Controller3 or TrackerRole.Tracker1)
+	    4. Save bindings
+	    5. Back to your project scene
+	    6. Add ViveRoleBindingsHelper component into your scene. (to load bindings automatically)
+	    7. Now external camera should always tracking at the device you wanted.
 
 
 ## Changes for v1.5.3:
@@ -59,8 +67,8 @@ Copyright (c) 2016-2017, HTC Corporation. All rights reserved.
 * Fix a bug in ColliderEventCaster that cause crash when disabling event caster and handling events at the same time.
 * Change default teleportButton in Teleportable to TeleportButton.Pad instead of TeleportButton.Trigger
 * Containers optimize
-  - Re-write IndexedTable, should be more efficient
-  - Add read-only interface
+    - Re-write IndexedTable, should be more efficient
+    - Add read-only interface
 
 
 ## Changes for v1.5.2:
@@ -71,25 +79,25 @@ Copyright (c) 2016-2017, HTC Corporation. All rights reserved.
 ## Changes for v1.5.1:
 
 * Update guide document
-  - Reveal used namespace in some example scripts.
-  - Add ready-to-used component list.
+    - Reveal used namespace in some example scripts.
+    - Add ready-to-used component list.
 
 * New controllers prefab that handles both hand EventRaycaster, ColliderEventCaster, guidelines and models
-  - Hide controllers' models when grabbing or dragging
-  - Enable EventRaycaster on pad touched, otherwise enable ColliderEventCaster
+    - Hide controllers' models when grabbing or dragging
+    - Enable EventRaycaster on pad touched, otherwise enable ColliderEventCaster
 
 * Pointer3D
-  - Expose Pointer3DRaycaster at Pointer3DEventData.raycaster, to get Raycaster from eventData easily.
-  - Move dragThreshold and clickInterval settings from Pointer3DInputModule to Pointer3DRaycaster.
-  - Re-design RaySegmentGenerator. Now RaycastMode setting is replaced by applying ProjectionGenerator & ProjectileGenerator component with Pointer3DRaycaster.
+    - Expose Pointer3DRaycaster at Pointer3DEventData.raycaster, to get Raycaster from eventData easily.
+    - Move dragThreshold and clickInterval settings from Pointer3DInputModule to Pointer3DRaycaster.
+    - Re-design RaySegmentGenerator. Now RaycastMode setting is replaced by applying ProjectionGenerator & ProjectileGenerator component with Pointer3DRaycaster.
     Add or enable only one generator at a time, or which generator used by the raycaster is unexpected.
     Also customize your own generators by implementing BaseRaySegmentGenerator.
 
 * ColliderEvent
-  - Now OnColliderEventClick won't invoke if caster has leaved the pressed object.
-  - Fix a bug in ColliderEventCaster that doesn't handle hovered colliders correctly.
-  - Fix a bug that ColliderEventCaster doesn't handle event correctly when disable.
-  - Add ColliderEventTrigger component, work just like built-in EventTrigger
+    - Now OnColliderEventClick won't invoke if caster has leaved the pressed object.
+    - Fix a bug in ColliderEventCaster that doesn't handle hovered colliders correctly.
+    - Fix a bug that ColliderEventCaster doesn't handle event correctly when disable.
+    - Add ColliderEventTrigger component, work just like built-in EventTrigger
 
 
 * Add Pointer3DEventData extensions
@@ -129,10 +137,10 @@ Copyright (c) 2016-2017, HTC Corporation. All rights reserved.
 ```
 
 * Improve BasicGrabbable component, and Draggable(in 3D Drag example) as well
-  - Now grabbed object can collide properly into other colliders.
-  - Now handles multiple grabbers.
-  - Add speed factor parameter to adjast grabbed object following speed.
-  - Add afterGrabbed & beforeRelease event handler.
+    - Now grabbed object can collide properly into other colliders.
+    - Now handles multiple grabbers.
+    - Add speed factor parameter to adjast grabbed object following speed.
+    - Add afterGrabbed & beforeRelease event handler.
 
 * Add dragging state material in MaterialChanger.
 
@@ -150,9 +158,9 @@ Copyright (c) 2016-2017, HTC Corporation. All rights reserved.
 ## Changes for v1.5.0:
 
 * Add new raycast mode for Pointer3DRaycaster
-  - Default : one simple raycast
-  - Projection : raycast in a constant distance then raycast toward gravity
-  - Projectile : raycast multiple times alone the projectile curve using initial velocity 
+    - Default : one simple raycast
+    - Projection : raycast in a constant distance then raycast toward gravity
+    - Projectile : raycast multiple times alone the projectile curve using initial velocity 
 
 * Add ViveInput.GetCurrentRawControllerState and ViveInput.GetPreviousRawControllerState.
 
@@ -165,21 +173,21 @@ Copyright (c) 2016-2017, HTC Corporation. All rights reserved.
 * EventCamera for Pointer3DRaycaster now place at root, instead of child of Pointer3DRaycaster.
 
 * New ColliderEventSyatem. Hover thins using collider (instead of raycast), send button events to them, handle events by EventSystem-like handlers.
-  - IColliderEventHoverEnterHandler
-  - IColliderEventHoverExitHandler
-  - IColliderEventPressDownHandler
-  - IColliderEventPressUpHandler
-  - IColliderEventPressEnterHandler
-  - IColliderEventPressExitHandler
-  - IColliderEventClickHandler
-  - IColliderEventDragStartHandler
-  - IColliderEventDragUpdateHandler
-  - IColliderEventDragEndHandler
-  - IColliderEventDropHandler
-  - IColliderEventAxisChangeHandler
+    - IColliderEventHoverEnterHandler
+    - IColliderEventHoverExitHandler
+    - IColliderEventPressDownHandler
+    - IColliderEventPressUpHandler
+    - IColliderEventPressEnterHandler
+    - IColliderEventPressExitHandler
+    - IColliderEventClickHandler
+    - IColliderEventDragStartHandler
+    - IColliderEventDragUpdateHandler
+    - IColliderEventDragEndHandler
+    - IColliderEventDropHandler
+    - IColliderEventAxisChangeHandler
 
 * New example scene to demonstrate how ColliderEvent works.
-  - Assets\HTC.UnityPlugin\ViveInputUtility\Examples\5.ColliderEvent\ColliderEvent.unity
+    - Assets\HTC.UnityPlugin\ViveInputUtility\Examples\5.ColliderEvent\ColliderEvent.unity
 
 * Update tutorial & guide document.
 
@@ -265,7 +273,7 @@ Copyright (c) 2016-2017, HTC Corporation. All rights reserved.
 * VivePose is now pure static class (Since Unity 5.3.5 fixed issue with double rendering of canvas on Vive VR, PoseUpdateMode is no longer needed).
 
 * New components CanvasRaycastMethod and CanvasRaycastTarget.
-  - CanvasRaycastMethod works like GraphicRaycastMethod, but use CanvasRaycastTarget component to target canvases, instead of asigning canvas property once at a time.
+    - CanvasRaycastMethod works like GraphicRaycastMethod, but use CanvasRaycastTarget component to target canvases, instead of asigning canvas property once at a time.
 
 
 ## Changes for v1.2.0:
