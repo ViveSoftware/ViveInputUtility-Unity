@@ -85,7 +85,7 @@ namespace HTC.UnityPlugin.Vive
 
         public void SetTypeDirty() { m_isTypeDirty = true; }
         public void SetValueDirty() { m_isValueDirty = true; }
-        
+
         // update type and value if type string or value string is/are dirty
         private void Update()
         {
@@ -100,13 +100,13 @@ namespace HTC.UnityPlugin.Vive
                 Type newType;
                 if (string.IsNullOrEmpty(m_roleTypeFullName) || !ViveRoleEnum.ValidViveRoleTable.TryGetValue(m_roleTypeFullName, out newType))
                 {
-                    newType = typeof(HandRole);
+                    newType = DefaultRoleType;
                 }
 
                 changed = ChangeProp.Set(ref m_roleType, newType);
             }
 
-            if (m_isValueDirty)
+            if (m_isValueDirty || changed)
             {
                 m_isValueDirty = false;
 
@@ -188,16 +188,20 @@ namespace HTC.UnityPlugin.Vive
         {
             Update();
 
-            if (m_roleType != typeof(TRole)) { return false; }
-
             var roleInfo = ViveRoleEnum.GetInfo<TRole>();
+            if (m_roleType != roleInfo.RoleEnumType) { return false; }
+
             return m_roleValue == roleInfo.ToRoleValue(role);
         }
 
         public static bool operator ==(ViveRoleProperty p1, ViveRoleProperty p2)
         {
             if (ReferenceEquals(p1, p2)) { return true; }
-            return p1 != null && p2 != null && p1.roleType == p2.roleType && p1.roleValue == p2.roleValue;
+            if (ReferenceEquals(p1, null)) { return false; }
+            if (ReferenceEquals(p2, null)) { return false; }
+            if (p1.roleType != p2.roleType) { return false; }
+            if (p1.roleValue != p2.roleValue) { return false; }
+            return true;
         }
 
         public static bool operator !=(ViveRoleProperty p1, ViveRoleProperty p2)
