@@ -13,9 +13,9 @@ public class Teleportable : MonoBehaviour
         Pad,
         Grip,
     }
-
-    public Transform target;
-    public Transform pivot;
+    
+    public Transform target;  // The actual transfrom that will be moved Ex. CameraRig
+    public Transform pivot;  // The actual pivot point that want to be teleported to the pointed location Ex. CameraHead
     public float fadeDuration = 0.3f;
 
     public TeleportButton teleportButton = TeleportButton.Pad;
@@ -40,7 +40,17 @@ public class Teleportable : MonoBehaviour
             }
         }
     }
-
+#if UNITY_EDITOR
+    private void Reset()
+    {
+        var mainCamTrans = Camera.main == null ? null : Camera.main.transform;
+        if (mainCamTrans != null && mainCamTrans.root != null && mainCamTrans != mainCamTrans.root)
+        {
+            pivot = mainCamTrans;
+            target = mainCamTrans.root;
+        }
+    }
+#endif
     public void OnPointerExit(PointerEventData eventData)
     {
         // skip if it was teleporting
