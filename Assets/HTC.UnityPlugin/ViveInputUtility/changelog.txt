@@ -1,5 +1,15 @@
-﻿# Vive Input Utility for Unity - v1.6.2
+﻿# Vive Input Utility for Unity - v1.6.3
 Copyright (c) 2016-2017, HTC Corporation. All rights reserved.
+
+
+## Changes for v1.6.3:
+
+* Fix ViveRoleProperty returns wrong type & value [issue#9](https://github.com/ViveSoftware/ViveInputUtility-Unity/issues/9)
+
+* Now Teleportable component will find target & pivot automatically [issue#8](https://github.com/ViveSoftware/ViveInputUtility-Unity/issues/8)
+
+* Remove warning in LineRenderer
+
 
 ## Changes for v1.6.2:
 
