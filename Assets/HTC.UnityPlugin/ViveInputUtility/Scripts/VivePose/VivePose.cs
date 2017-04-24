@@ -1,7 +1,8 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.PoseTracker;
+using HTC.UnityPlugin.Utility;
+using UnityEngine;
 using Valve.VR;
 
 namespace HTC.UnityPlugin.Vive
@@ -12,21 +13,32 @@ namespace HTC.UnityPlugin.Vive
         void OnNewPoses();
         void AfterNewPoses();
     }
-    
+
     /// <summary>
     /// To manage all NewPoseListeners
     /// </summary>
     public static partial class VivePose
     {
+        private static bool s_initialized;
         private static bool s_hasFocus;
 
         private static readonly Pose[] s_poses = new Pose[OpenVR.k_unMaxTrackedDeviceCount];
-        private static TrackedDevicePose_t[] s_rawPoses;
+        private static TrackedDevicePose_t[] s_rawPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        private static TrackedDevicePose_t[] s_rawGamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
 
         private static IndexedSet<INewPoseListener> s_listeners = new IndexedSet<INewPoseListener>();
 
         static VivePose()
         {
+            Initialize();
+        }
+
+        [RuntimeInitializeOnLoadMethod]
+        public static void Initialize()
+        {
+            if (s_initialized || !Application.isPlaying) { return; }
+            s_initialized = true;
+
             var system = OpenVR.System;
             if (system != null)
             {
@@ -37,17 +49,8 @@ namespace HTC.UnityPlugin.Vive
                 OnInputFocus(true);
             }
 
-            if (SteamVR_Render.instance != null)
-            {
-                OnNewPoses(SteamVR_Render.instance.poses);
-            }
-            else
-            {
-                OnNewPoses(new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount]);
-            }
-
             SteamVR_Events.InputFocusAction(OnInputFocus).Enable(true);
-            SteamVR_Events.NewPosesAction(OnNewPoses).Enable(true);
+            Camera.onPreCull += OnCameraPreCull;
         }
 
         public static bool AddNewPosesListener(INewPoseListener listener)
@@ -65,8 +68,18 @@ namespace HTC.UnityPlugin.Vive
             s_hasFocus = arg;
         }
 
-        private static void OnNewPoses(TrackedDevicePose_t[] arg)
+        private static void OnCameraPreCull(Camera cam)
         {
+            var compositor = OpenVR.Compositor;
+            if (compositor != null)
+            {
+                compositor.GetLastPoses(s_rawPoses, s_rawGamePoses);
+            }
+            else
+            {
+                for (int i = 0; i < OpenVR.k_unMaxTrackedDeviceCount; ++i) { s_rawPoses[i] = default(TrackedDevicePose_t); }
+            }
+
             var tempListeners = ListPool<INewPoseListener>.Get();
             tempListeners.AddRange(s_listeners);
 
@@ -75,7 +88,6 @@ namespace HTC.UnityPlugin.Vive
                 tempListeners[i].BeforeNewPoses();
             }
 
-            s_rawPoses = arg;
             for (int i = s_rawPoses.Length - 1; i >= 0; --i)
             {
                 if (!s_rawPoses[i].bDeviceIsConnected || !s_rawPoses[i].bPoseIsValid) { continue; }
