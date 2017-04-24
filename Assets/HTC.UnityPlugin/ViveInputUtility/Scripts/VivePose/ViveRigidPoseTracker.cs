@@ -1,10 +1,7 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.PoseTracker;
-using HTC.UnityPlugin.Utility;
-using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -18,15 +15,26 @@ namespace HTC.UnityPlugin.Vive
 
         private Rigidbody rigid;
         private Pose targetPose;
+        private bool m_snap;
 
+        [SerializeField]
+        private bool m_snapOnEnable = true;
         [Range(MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION)]
         public float followingDuration = DEFAULT_FOLLOWING_DURATION;
+
+        public bool snapOnEnable { get { return m_snapOnEnable; } set { m_snapOnEnable = value; } }
 
         protected override void Start()
         {
             base.Start();
             rigid = GetComponent<Rigidbody>();
             rigid.useGravity = false;
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            if (m_snapOnEnable) { m_snap = true; }
         }
 
         protected virtual void FixedUpdate()
@@ -65,7 +73,10 @@ namespace HTC.UnityPlugin.Vive
 
         public override void OnNewPoses()
         {
-            targetPose = VivePose.GetPoseEx(viveRole.roleType, viveRole.roleValue) * new Pose(posOffset, Quaternion.Euler(rotOffset));
+            var deviceIndex = viveRole.GetDeviceIndex();
+
+            // set targetPose to device pose
+            targetPose = VivePose.GetPose(deviceIndex) * new Pose(posOffset, Quaternion.Euler(rotOffset));
             ModifyPose(ref targetPose, origin);
 
             // transform to world space
@@ -76,15 +87,14 @@ namespace HTC.UnityPlugin.Vive
                 targetPose.pos.Scale(o.localScale);
             }
 
-            var poseValid = VivePose.IsValidEx(viveRole.roleType, viveRole.roleValue);
-
-            if (!isPoseValid && poseValid)
+            if (m_snap)
             {
+                m_snap = false;
                 transform.position = targetPose.pos;
                 transform.rotation = targetPose.rot;
             }
 
-            SetIsValid(poseValid);
+            SetIsValid(VivePose.IsValid(deviceIndex));
         }
     }
 }
