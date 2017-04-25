@@ -30,8 +30,8 @@ public class BasicGrabbable : MonoBehaviour
     [SerializeField]
     private ControllerButton m_grabButton = ControllerButton.Trigger;
 
-    public UnityEventGrabbable afterGrabbed;
-    public UnityEventGrabbable beforeRelease;
+    public UnityEventGrabbable afterGrabbed = new UnityEventGrabbable();
+    public UnityEventGrabbable beforeRelease = new UnityEventGrabbable();
 
     public ControllerButton grabButton
     {
@@ -59,34 +59,35 @@ public class BasicGrabbable : MonoBehaviour
         var grabberTransform = eventData.eventCaster.transform;
         return new Pose(grabberTransform);
     }
-
 #if UNITY_EDITOR
-
     protected virtual void OnValidate()
     {
         grabButton = m_grabButton;
     }
-
 #endif
-
     protected virtual void Start()
     {
         grabButton = m_grabButton;
     }
 
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
+        if (isGrabbed && beforeRelease != null)
+        {
+            beforeRelease.Invoke(this);
+        }
+
         eventList.Clear();
 
         var rigid = GetComponent<Rigidbody>();
-        if (!ReferenceEquals(rigid, null))
+        if (rigid != null)
         {
             rigid.velocity = Vector3.zero;
             rigid.angularVelocity = Vector3.zero;
         }
     }
 
-    public void OnColliderEventDragStart(ColliderButtonEventData eventData)
+    public virtual void OnColliderEventDragStart(ColliderButtonEventData eventData)
     {
         if (!eventData.IsViveButton(m_grabButton)) { return; }
 
@@ -98,72 +99,83 @@ public class BasicGrabbable : MonoBehaviour
 
         eventList.AddUniqueKey(eventData, offsetPose);
 
-        afterGrabbed.Invoke(this);
+        if (afterGrabbed != null)
+        {
+            afterGrabbed.Invoke(this);
+        }
     }
 
-    public void OnColliderEventDragFixedUpdate(ColliderButtonEventData eventData)
+    public virtual void OnColliderEventDragFixedUpdate(ColliderButtonEventData eventData)
     {
         if (eventData != grabbedEvent) { return; }
 
         var rigid = GetComponent<Rigidbody>();
-        if (ReferenceEquals(rigid, null)) { return; }
-
-        // if rigidbody exists, follow eventData caster using physics
-        var casterPose = GetEventPose(eventData);
-        var offsetPose = eventList.GetLastValue();
-        var targetPose = casterPose * offsetPose;
-
-        // applying velocity
-        var diffPos = targetPose.pos - rigid.position;
-        if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
+        if (rigid != null)
         {
-            rigid.velocity = Vector3.zero;
-        }
-        else
-        {
-            rigid.velocity = diffPos / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION);
-        }
+            // if rigidbody exists, follow eventData caster using physics
+            var casterPose = GetEventPose(eventData);
+            var offsetPose = eventList.GetLastValue();
+            var targetPose = casterPose * offsetPose;
 
-        // applying angular velocity
-        float angle;
-        Vector3 axis;
-        (targetPose.rot * Quaternion.Inverse(rigid.rotation)).ToAngleAxis(out angle, out axis);
-        while (angle > 360f) { angle -= 360f; }
+            // applying velocity
+            var diffPos = targetPose.pos - rigid.position;
+            if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
+            {
+                rigid.velocity = Vector3.zero;
+            }
+            else
+            {
+                rigid.velocity = diffPos / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION);
+            }
 
-        if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x))
-        {
-            rigid.angularVelocity = Vector3.zero;
-        }
-        else
-        {
-            angle *= Mathf.Deg2Rad / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION); // convert to radius speed
-            if (overrideMaxAngularVelocity && rigid.maxAngularVelocity < angle) { rigid.maxAngularVelocity = angle; }
-            rigid.angularVelocity = axis * angle;
+            // applying angular velocity
+            float angle;
+            Vector3 axis;
+            (targetPose.rot * Quaternion.Inverse(rigid.rotation)).ToAngleAxis(out angle, out axis);
+            while (angle > 360f) { angle -= 360f; }
+
+            if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x))
+            {
+                rigid.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                angle *= Mathf.Deg2Rad / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION); // convert to radius speed
+                if (overrideMaxAngularVelocity && rigid.maxAngularVelocity < angle) { rigid.maxAngularVelocity = angle; }
+                rigid.angularVelocity = axis * angle;
+            }
         }
     }
 
-    public void OnColliderEventDragUpdate(ColliderButtonEventData eventData)
+    public virtual void OnColliderEventDragUpdate(ColliderButtonEventData eventData)
     {
         if (eventData != grabbedEvent) { return; }
 
-        if (!ReferenceEquals(GetComponent<Rigidbody>(), null)) { return; }
+        if (GetComponent<Rigidbody>() == null)
+        {
+            // if rigidbody doesn't exist, just move to eventData caster's pose
+            var casterPose = GetEventPose(eventData);
+            var offsetPose = eventList.GetLastValue();
+            var targetPose = casterPose * offsetPose;
 
-        // if rigidbody doesn't exist, just move to eventData caster's pose
-        var casterPose = GetEventPose(eventData);
-        var offsetPose = eventList.GetLastValue();
-        var targetPose = casterPose * offsetPose;
-
-        transform.position = targetPose.pos;
-        transform.rotation = targetPose.rot;
+            transform.position = targetPose.pos;
+            transform.rotation = targetPose.rot;
+        }
     }
 
-    public void OnColliderEventDragEnd(ColliderButtonEventData eventData)
+    public virtual void OnColliderEventDragEnd(ColliderButtonEventData eventData)
     {
         var released = eventData == grabbedEvent;
-        if (released) { beforeRelease.Invoke(this); }
+        if (released && beforeRelease != null)
+        {
+            beforeRelease.Invoke(this);
+        }
 
         eventList.Remove(eventData);
 
-        if (released && isGrabbed) { afterGrabbed.Invoke(this); }
+        if (released && isGrabbed && afterGrabbed != null)
+        {
+            afterGrabbed.Invoke(this);
+        }
     }
 }

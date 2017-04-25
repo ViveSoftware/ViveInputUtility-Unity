@@ -36,11 +36,15 @@ public class PlayGroundManager : MonoBehaviour
             Pose pose;
             if (poseTable.TryGetValue(dt.GetInstanceID(), out pose))
             {
-                var rb = dt.GetComponent<Rigidbody>();
                 dt.position = pose.pos;
                 dt.rotation = pose.rot;
-                rb.velocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
+
+                var rb = dt.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
             }
         }
         draggablesCache.Clear();

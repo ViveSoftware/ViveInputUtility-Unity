@@ -1,6 +1,8 @@
 ﻿using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 // demonstrate of dragging things useing built in EventSystem handlers
@@ -10,6 +12,9 @@ public class Draggable : MonoBehaviour
     , IDragHandler
     , IEndDragHandler
 {
+    [Serializable]
+    public class UnityEventDraggable : UnityEvent<Draggable> { }
+
     public const float MIN_FOLLOWING_DURATION = 0.02f;
     public const float DEFAULT_FOLLOWING_DURATION = 0.04f;
     public const float MAX_FOLLOWING_DURATION = 0.5f;
@@ -21,6 +26,13 @@ public class Draggable : MonoBehaviour
     public float followingDuration = DEFAULT_FOLLOWING_DURATION;
     public bool overrideMaxAngularVelocity = true;
 
+    public UnityEventDraggable afterDragged = new UnityEventDraggable();
+    public UnityEventDraggable beforeRelease = new UnityEventDraggable();
+
+    public bool isDragged { get { return eventList.Count > 0; } }
+
+    public PointerEventData draggedEvent { get { return isDragged ? eventList.GetLastKey() : null; } }
+
     private Pose GetEventPose(PointerEventData eventData)
     {
         var cam = eventData.pointerPressRaycast.module.eventCamera;
@@ -28,12 +40,29 @@ public class Draggable : MonoBehaviour
         return new Pose(ray.origin, Quaternion.LookRotation(ray.direction, cam.transform.up));
     }
 
-    public void OnInitializePotentialDrag(PointerEventData eventData)
+    protected virtual void OnDisable()
+    {
+        if (isDragged && beforeRelease != null)
+        {
+            beforeRelease.Invoke(this);
+        }
+
+        eventList.Clear();
+
+        var rigid = GetComponent<Rigidbody>();
+        if (rigid != null)
+        {
+            rigid.velocity = Vector3.zero;
+            rigid.angularVelocity = Vector3.zero;
+        }
+    }
+
+    public virtual void OnInitializePotentialDrag(PointerEventData eventData)
     {
         eventData.useDragThreshold = false;
     }
 
-    public void OnBeginDrag(PointerEventData eventData)
+    public virtual void OnBeginDrag(PointerEventData eventData)
     {
         var casterPose = GetEventPose(eventData);
         var offsetPose = new Pose();
@@ -60,67 +89,84 @@ public class Draggable : MonoBehaviour
         }
 
         eventList.AddUniqueKey(eventData, offsetPose);
+
+        if (afterDragged != null)
+        {
+            afterDragged.Invoke(this);
+        }
     }
 
-    private void FixedUpdate()
+    protected virtual void FixedUpdate()
     {
-        PointerEventData eventData;
-        if (!eventList.TryGetLastKey(out eventData)) { return; }
+        if (!isDragged) { return; }
 
         var rigid = GetComponent<Rigidbody>();
-        if (ReferenceEquals(rigid, null)) { return; }
-
-        // if rigidbody exists, follow eventData caster using physics
-        var casterPose = GetEventPose(eventData);
-        var offsetPose = eventList.GetLastValue();
-        var targetPose = casterPose * offsetPose;
-
-        // applying velocity
-        var diffPos = targetPose.pos - rigid.position;
-        if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
+        if (rigid != null)
         {
-            rigid.velocity = Vector3.zero;
-        }
-        else
-        {
-            rigid.velocity = diffPos / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION);
-        }
+            // if rigidbody exists, follow eventData caster using physics
+            var casterPose = GetEventPose(draggedEvent);
+            var offsetPose = eventList.GetLastValue();
+            var targetPose = casterPose * offsetPose;
 
-        // applying angular velocity
-        float angle;
-        Vector3 axis;
-        (targetPose.rot * Quaternion.Inverse(rigid.rotation)).ToAngleAxis(out angle, out axis);
-        while (angle > 360f) { angle -= 360f; }
+            // applying velocity
+            var diffPos = targetPose.pos - rigid.position;
+            if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
+            {
+                rigid.velocity = Vector3.zero;
+            }
+            else
+            {
+                rigid.velocity = diffPos / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION);
+            }
 
-        if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x))
-        {
-            rigid.angularVelocity = Vector3.zero;
-        }
-        else
-        {
-            angle *= Mathf.Deg2Rad / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION); // convert to radius speed
-            if (overrideMaxAngularVelocity && rigid.maxAngularVelocity < angle) { rigid.maxAngularVelocity = angle; }
-            rigid.angularVelocity = axis * angle;
+            // applying angular velocity
+            float angle;
+            Vector3 axis;
+            (targetPose.rot * Quaternion.Inverse(rigid.rotation)).ToAngleAxis(out angle, out axis);
+            while (angle > 360f) { angle -= 360f; }
+
+            if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x))
+            {
+                rigid.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                angle *= Mathf.Deg2Rad / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION); // convert to radius speed
+                if (overrideMaxAngularVelocity && rigid.maxAngularVelocity < angle) { rigid.maxAngularVelocity = angle; }
+                rigid.angularVelocity = axis * angle;
+            }
         }
     }
 
-    public void OnDrag(PointerEventData eventData)
+    public virtual void OnDrag(PointerEventData eventData)
     {
-        if (eventList.Count == 0 || !ReferenceEquals(eventData, eventList.GetLastKey())) { return; }
+        if (eventData != draggedEvent) { return; }
 
-        if (!ReferenceEquals(GetComponent<Rigidbody>(), null)) { return; }
+        if (GetComponent<Rigidbody>() == null)
+        {
+            // if rigidbody doen't exist, just move transform to eventData caster's pose
+            var casterPose = GetEventPose(eventData);
+            var offsetPose = eventList.GetLastValue();
+            var targetPose = casterPose * offsetPose;
 
-        // if rigidbody doen't exist, just move transform to eventData caster's pose
-        var casterPose = GetEventPose(eventData);
-        var offsetPose = eventList.GetLastValue();
-        var targetPose = casterPose * offsetPose;
-
-        transform.position = targetPose.pos;
-        transform.rotation = targetPose.rot;
+            transform.position = targetPose.pos;
+            transform.rotation = targetPose.rot;
+        }
     }
 
-    public void OnEndDrag(PointerEventData eventData)
+    public virtual void OnEndDrag(PointerEventData eventData)
     {
+        var released = eventData == draggedEvent;
+        if (released && beforeRelease != null)
+        {
+            beforeRelease.Invoke(this);
+        }
+
         eventList.Remove(eventData);
+
+        if (released && isDragged && afterDragged != null)
+        {
+            afterDragged.Invoke(this);
+        }
     }
 }
