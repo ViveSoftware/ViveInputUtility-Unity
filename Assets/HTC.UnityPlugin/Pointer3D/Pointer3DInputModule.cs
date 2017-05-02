@@ -146,7 +146,10 @@ namespace HTC.UnityPlugin.Pointer3D
                 }
             }
 
-            eventSystem.SetSelectedGameObject(null, GetBaseEventData());
+            if (eventSystem != null)
+            {
+                eventSystem.SetSelectedGameObject(null, GetBaseEventData());
+            }
         }
 
         public static readonly Comparison<RaycastResult> defaultRaycastComparer = RaycastComparer;
@@ -485,7 +488,7 @@ namespace HTC.UnityPlugin.Pointer3D
             var selectHandlerGO = ExecuteEvents.GetEventHandler<ISelectHandler>(currentOverGo);
             // if we have clicked something new, deselect the old thing
             // leave 'selection handling' up to the press event though.
-            if (selectHandlerGO != eventSystem.currentSelectedGameObject)
+            if (eventSystem != null && selectHandlerGO != eventSystem.currentSelectedGameObject)
             {
                 eventSystem.SetSelectedGameObject(null, pointerEvent);
             }
