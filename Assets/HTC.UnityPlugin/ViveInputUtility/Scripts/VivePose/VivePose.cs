@@ -21,6 +21,7 @@ namespace HTC.UnityPlugin.Vive
     {
         private static bool s_initialized;
         private static bool s_hasFocus;
+        private static int s_updatedFrame = -1;
 
         private static readonly Pose[] s_poses = new Pose[OpenVR.k_unMaxTrackedDeviceCount];
         private static TrackedDevicePose_t[] s_rawPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
@@ -70,6 +71,8 @@ namespace HTC.UnityPlugin.Vive
 
         private static void OnCameraPreCull(Camera cam)
         {
+            if (!ChangeProp.Set(ref s_updatedFrame, Time.renderedFrameCount)) { return; }
+
             var compositor = OpenVR.Compositor;
             if (compositor != null)
             {
