@@ -11,6 +11,9 @@ namespace HTC.UnityPlugin.Vive
         ViveRoleProperty viveRole { get; }
     }
 
+    /// <summary>
+    /// This component sync its role to all child component with IViveRoleComponent interface
+    /// </summary>
     [ExecuteInEditMode]
     public class ViveRoleSetter : MonoBehaviour
     {

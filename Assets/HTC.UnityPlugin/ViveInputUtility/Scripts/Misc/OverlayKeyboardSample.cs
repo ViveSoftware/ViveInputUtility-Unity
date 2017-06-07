@@ -1,27 +1,33 @@
-﻿using System.Text;
+﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Valve.VR;
 
 [RequireComponent(typeof(InputField))]
 public class OverlayKeyboardSample : MonoBehaviour
     , ISelectHandler
     , IDeselectHandler
 {
-    private static OverlayKeyboardSample activeKeyboard;
-    private static StringBuilder strBuilder;
-
     public bool minimalMode;
+
+    public void OnSelect(BaseEventData eventData)
+    {
+        ShowKeyboard(this);
+    }
+
+    public void OnDeselect(BaseEventData eventData)
+    {
+        HideKeyboard();
+    }
+
+#if VIU_STEAMVR
+
+    private static OverlayKeyboardSample activeKeyboard;
+    private static System.Text.StringBuilder strBuilder;
 
     private InputField textEntry;
     private string text = "";
-
-    static OverlayKeyboardSample()
-    {
-        SteamVR_Events.SystemAction(EVREventType.VREvent_KeyboardCharInput, OnKeyboardCharInput).Enable(true);
-        SteamVR_Events.SystemAction(EVREventType.VREvent_KeyboardClosed, OnKeyboardClosed).Enable(true);
-    }
 
     protected virtual void Start()
     {
@@ -36,14 +42,10 @@ public class OverlayKeyboardSample : MonoBehaviour
         }
     }
 
-    public void OnSelect(BaseEventData eventData)
+    static OverlayKeyboardSample()
     {
-        ShowKeyboard(this);
-    }
-
-    public void OnDeselect(BaseEventData eventData)
-    {
-        HideKeyboard();
+        SteamVR_Events.System(Valve.VR.EVREventType.VREvent_KeyboardCharInput).AddListener(OnKeyboardCharInput);
+        SteamVR_Events.System(Valve.VR.EVREventType.VREvent_KeyboardClosed).AddListener(OnKeyboardClosed);
     }
 
     public static void ShowKeyboard(OverlayKeyboardSample caller)
@@ -80,7 +82,7 @@ public class OverlayKeyboardSample : MonoBehaviour
         activeKeyboard = null;
     }
 
-    private static void OnKeyboardCharInput(VREvent_t arg)
+    private static void OnKeyboardCharInput(Valve.VR.VREvent_t arg)
     {
         if (activeKeyboard == null) { return; }
 
@@ -101,7 +103,7 @@ public class OverlayKeyboardSample : MonoBehaviour
         var len = 0;
         for (; inputBytes[len] != 0 && len < 7; len++) ;
 
-        var input = Encoding.UTF8.GetString(inputBytes, 0, len);
+        var input = System.Text.Encoding.UTF8.GetString(inputBytes, 0, len);
 
         if (activeKeyboard.minimalMode)
         {
@@ -129,7 +131,7 @@ public class OverlayKeyboardSample : MonoBehaviour
             var vr = SteamVR.instance;
             if (vr != null)
             {
-                if (strBuilder == null) { strBuilder = new StringBuilder(1024); }
+                if (strBuilder == null) { strBuilder = new System.Text.StringBuilder(1024); }
 
                 vr.overlay.GetKeyboardText(strBuilder, 1024);
                 activeKeyboard.text = strBuilder.ToString();
@@ -140,8 +142,22 @@ public class OverlayKeyboardSample : MonoBehaviour
         }
     }
 
-    private static void OnKeyboardClosed(VREvent_t arg)
+    private static void OnKeyboardClosed(Valve.VR.VREvent_t arg)
     {
         activeKeyboard = null;
     }
+
+#else
+
+    protected virtual void Start()
+    {
+        Debug.LogWarning("SteamVR plugin not found! install it to enable OverlayKeyboard!");
+    }
+
+    protected virtual void OnDisable() { }
+
+    public static void ShowKeyboard(OverlayKeyboardSample caller) { }
+
+    public static void HideKeyboard() { }
+#endif
 }

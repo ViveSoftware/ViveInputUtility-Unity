@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using Valve.VR;
+using HTC.UnityPlugin.VRModuleManagement;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -27,7 +27,7 @@ namespace HTC.UnityPlugin.Vive
     {
         private bool IsTracker(uint deviceIndex)
         {
-            return ViveRole.GetDeviceClass(deviceIndex) == ETrackedDeviceClass.GenericTracker;
+            return ViveRole.GetDeviceClass(deviceIndex) == VRModuleDeviceClass.GenericTracker;
         }
 
         public override void OnInitialize()
@@ -37,13 +37,13 @@ namespace HTC.UnityPlugin.Vive
             MappingTrackers();
         }
 
-        public override void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected)
+        public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
         {
             if (RoleMap.IsDeviceBound(deviceSN)) { return; }
 
             if (connected)
             {
-                if (deviceClass != ETrackedDeviceClass.GenericTracker) { return; }
+                if (deviceClass != VRModuleDeviceClass.GenericTracker) { return; }
 
                 // find unmapped role
                 var role = RoleMap.RoleInfo.MinValidRole;
@@ -92,7 +92,7 @@ namespace HTC.UnityPlugin.Vive
                     if (++role > RoleMap.RoleInfo.MaxValidRole) { return; }
                 }
 
-                while (ViveRole.GetDeviceClass(index) != ETrackedDeviceClass.GenericTracker || RoleMap.IsDeviceMapped(index) || RoleMap.IsDeviceConnectedAndBound(index))
+                while (ViveRole.GetDeviceClass(index) != VRModuleDeviceClass.GenericTracker || RoleMap.IsDeviceMapped(index) || RoleMap.IsDeviceConnectedAndBound(index))
                 {
                     if (++index >= ViveRole.MAX_DEVICE_COUNT) { return; }
                 }

@@ -1,8 +1,10 @@
-﻿using HTC.UnityPlugin.Vive;
+﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+
+using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.IO;
 using UnityEngine;
-using Valve.VR;
 
 public class ViveRoleBindingsHelper : MonoBehaviour
 {
@@ -39,7 +41,7 @@ public class ViveRoleBindingsHelper : MonoBehaviour
         }
     }
 
-    public static void BindAllCurrentDeviceClassMappings(ETrackedDeviceClass deviceClass)
+    public static void BindAllCurrentDeviceClassMappings(VRModuleDeviceClass deviceClass)
     {
         for (int i = 0, imax = ViveRoleEnum.ValidViveRoleTable.Count; i < imax; ++i)
         {

@@ -15,7 +15,7 @@ namespace HTC.UnityPlugin.PoseTracker
             new Keyframe(1f, 0.99f, 0f, 0f),
         });
 
-        public float duration = 0.2f;
+        public float duration = 0.15f;
 
         private bool firstPose = true;
         private Pose prevPose;

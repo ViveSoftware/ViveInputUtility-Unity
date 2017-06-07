@@ -88,6 +88,11 @@ public class Draggable : MonoBehaviour
                 }
         }
 
+        if (eventData != draggedEvent && beforeRelease != null)
+        {
+            beforeRelease.Invoke(this);
+        }
+
         eventList.AddUniqueKey(eventData, offsetPose);
 
         if (afterDragged != null)
@@ -108,33 +113,8 @@ public class Draggable : MonoBehaviour
             var offsetPose = eventList.GetLastValue();
             var targetPose = casterPose * offsetPose;
 
-            // applying velocity
-            var diffPos = targetPose.pos - rigid.position;
-            if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
-            {
-                rigid.velocity = Vector3.zero;
-            }
-            else
-            {
-                rigid.velocity = diffPos / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION);
-            }
-
-            // applying angular velocity
-            float angle;
-            Vector3 axis;
-            (targetPose.rot * Quaternion.Inverse(rigid.rotation)).ToAngleAxis(out angle, out axis);
-            while (angle > 360f) { angle -= 360f; }
-
-            if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x))
-            {
-                rigid.angularVelocity = Vector3.zero;
-            }
-            else
-            {
-                angle *= Mathf.Deg2Rad / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION); // convert to radius speed
-                if (overrideMaxAngularVelocity && rigid.maxAngularVelocity < angle) { rigid.maxAngularVelocity = angle; }
-                rigid.angularVelocity = axis * angle;
-            }
+            Pose.SetRigidbodyVelocity(rigid, targetPose.pos, followingDuration);
+            Pose.SetRigidbodyAngularVelocity(rigid, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
         }
     }
 

@@ -1,6 +1,9 @@
-﻿using HTC.UnityPlugin.PoseTracker;
+﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+
+using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.VRModuleManagement;
 using System.IO;
 using UnityEngine;
 
@@ -13,8 +16,12 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener
     [SerializeField]
     private Transform m_origin;
     [SerializeField]
-    private string m_configPath = "./vive_external_camera.cfg";
+    private string m_configPath = "externalcamera.cfg";
 
+    public ViveRoleProperty viveRole { get { return m_viveRole; } }
+    public Transform origin { get { return m_origin; } set { m_origin = value; } }
+
+#if VIU_STEAMVR
     private SteamVR_ExternalCamera m_externalCamera;
     private bool m_isValid;
 
@@ -35,37 +42,35 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener
         }
     }
 
-    public ViveRoleProperty viveRole { get { return m_viveRole; } }
-    public Transform origin { get { return m_origin; } set { m_origin = value; } }
     public SteamVR_ExternalCamera externalCamera { get { return m_externalCamera; } }
-#if UNITY_EDITOR
-    private void Reset()
-    {
-        var renders = FindObjectsOfType<SteamVR_Render>();
-        if (renders == null || renders.Length == 0)
-        {
-            renders = new SteamVR_Render[] { gameObject.AddComponent<SteamVR_Render>() };
-        }
 
-        foreach(var render in renders)
-        {
-            m_configPath = render.externalCameraConfigPath;
-            render.externalCameraConfigPath = string.Empty;
-        }
-    }
-#endif
     protected virtual void Awake()
     {
-        if (SteamVR_Render.instance.externalCamera != null)
+        var oldExternalCam = SteamVR_Render.instance.externalCamera;
+        if (oldExternalCam != null)
         {
-            Debug.LogWarning("External camera already exist");
+            if (string.IsNullOrEmpty(m_configPath))
+            {
+                m_configPath = SteamVR_Render.instance.externalCameraConfigPath;
+            }
+
+            SteamVR_Render.instance.externalCameraConfigPath = string.Empty;
+
+            if (oldExternalCam.transform.parent != null && oldExternalCam.transform.parent.GetComponent<SteamVR_ControllerManager>() != null)
+            {
+                DestroyImmediate(oldExternalCam.transform.parent.gameObject);
+                SteamVR_Render.instance.externalCamera = null;
+            }
         }
     }
+
+    protected virtual void Start() { }
 
     protected virtual void OnEnable()
     {
         VivePose.AddNewPosesListener(this);
-        SetValid(m_isValid = VivePose.IsValidEx(viveRole.roleType, viveRole.roleValue));
+
+        SetValid(m_isValid = VRModule.GetCurrentDeviceState(viveRole.GetDeviceIndex()).isPoseValid && SteamVR_Render.Top() != null);
     }
 
     protected virtual void OnDisable()
@@ -78,11 +83,11 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener
 
     public virtual void OnNewPoses()
     {
-        var valid = VivePose.IsValidEx(viveRole.roleType, viveRole.roleValue);
+        var valid = VRModule.GetCurrentDeviceState(viveRole.GetDeviceIndex()).isPoseValid && SteamVR_Render.Top() != null;
 
         if (valid)
         {
-            TrackPose(VivePose.GetPoseEx(viveRole.roleType, viveRole.roleValue), m_origin);
+            TrackPose(VivePose.GetPose(viveRole.GetDeviceIndex()), m_origin);
         }
 
         if (ChangeProp.Set(ref m_isValid, valid))
@@ -100,17 +105,24 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener
             // don't know why SteamVR_ExternalCamera must be instantiated from the prefab
             // when create SteamVR_ExternalCamera using AddComponent, errors came out when disabling
             var prefab = Resources.Load<GameObject>("SteamVR_ExternalCamera");
-            var ctrlMgr = Instantiate(prefab);
-            var extCam = ctrlMgr.transform.GetChild(0);
-            extCam.gameObject.name = "External Camera";
-            extCam.SetParent(transform, false);
-            DestroyImmediate(extCam.GetComponent<SteamVR_TrackedObject>());
-            DestroyImmediate(ctrlMgr);
+            if (prefab == null)
+            {
+                Debug.LogError("SteamVR_ExternalCamera prefab not found!");
+            }
+            else
+            {
+                var ctrlMgr = Instantiate(prefab);
+                var extCam = ctrlMgr.transform.GetChild(0);
+                extCam.gameObject.name = "SteamVR External Camera";
+                extCam.SetParent(transform, false);
+                DestroyImmediate(extCam.GetComponent<SteamVR_TrackedObject>());
+                DestroyImmediate(ctrlMgr);
 
-            m_externalCamera = extCam.GetComponent<SteamVR_ExternalCamera>();
-            SteamVR_Render.instance.externalCamera = m_externalCamera;
-            m_externalCamera.configPath = m_configPath;
-            m_externalCamera.ReadConfig();
+                m_externalCamera = extCam.GetComponent<SteamVR_ExternalCamera>();
+                SteamVR_Render.instance.externalCamera = m_externalCamera;
+                m_externalCamera.configPath = m_configPath;
+                m_externalCamera.ReadConfig();
+            }
         }
 
         if (m_externalCamera != null)
@@ -118,4 +130,23 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener
             m_externalCamera.gameObject.SetActive(value);
         }
     }
+
+#else
+
+    public string configPath { get { return m_configPath; } set { m_configPath = value; } }
+
+    private void Awake() { }
+
+    protected virtual void Start()
+    {
+        Debug.LogWarning("SteamVR plugin not found! install it to enable ExternalCamera!");
+    }
+
+    public virtual void BeforeNewPoses() { }
+
+    public virtual void OnNewPoses() { }
+
+    public virtual void AfterNewPoses() { }
+
+#endif
 }

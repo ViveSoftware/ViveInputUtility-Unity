@@ -24,7 +24,7 @@ public class RoleMapStatusUIController : MonoBehaviour
             var type = ViveRoleEnum.ValidViveRoleTable.GetValueByIndex(i);
             dropdownSelectRole.options.Add(new Dropdown.OptionData(type.Name));
 
-            if (type == typeof(DeviceRole))
+            if (type == typeof(BodyRole))
             {
                 defaultSelectIndex = i;
             }

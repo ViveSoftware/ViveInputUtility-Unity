@@ -1,15 +1,32 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Valve.VR;
+using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
     public static partial class ViveRole
     {
+        public struct MappingChangedEventArg
+        {
+            public int roleValue;
+            public uint deviceIndex;
+            public bool mapped;
+            public bool unmapped { get { return !mapped; } set { mapped = !value; } }
+        }
+
+        public struct MappingChangedEventArg<TRole>
+        {
+            public TRole role;
+            public uint deviceIndex;
+            public bool mapped;
+            public bool unmapped { get { return !mapped; } set { mapped = !value; } }
+        }
+
         public interface IMap
         {
             ViveRoleEnum.IInfo RoleValueInfo { get; }
@@ -34,10 +51,15 @@ namespace HTC.UnityPlugin.Vive
             string GetBoundDeviceByRoleValue(int roleValue);
             int GetBoundRoleValueByDevice(string deviceSN);
             int GetBoundRoleValueByConnectedDevice(uint deviceSN);
+
+            void AddMappingChangedListener(UnityAction<MappingChangedEventArg> listener);
+            void RemoveMappingChangedListener(UnityAction<MappingChangedEventArg> listener);
         }
 
         private sealed class Map : IMap
         {
+            private class MappingChangedEvent : UnityEvent<MappingChangedEventArg> { }
+
             private readonly ViveRoleEnum.IInfo m_info;
             private IMapHandler m_handler;
 
@@ -48,6 +70,8 @@ namespace HTC.UnityPlugin.Vive
             // binding table
             private readonly string[] m_role2sn;
             private readonly Dictionary<string, int> m_sn2role;
+
+            private MappingChangedEvent m_mappingChangedlisteners = new MappingChangedEvent();
 
             public Map(Type roleType)
             {
@@ -86,7 +110,7 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
-            public void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected)
+            public void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
             {
                 var boundRoleValue = GetBoundRoleValueByDevice(deviceSN);
                 if (m_info.IsValidRoleValue(boundRoleValue)) // if device is bound
@@ -114,6 +138,10 @@ namespace HTC.UnityPlugin.Vive
                     m_handler.OnTrackedDeviceRoleChanged();
                 }
             }
+
+            public void AddMappingChangedListener(UnityAction<MappingChangedEventArg> listener) { m_mappingChangedlisteners.AddListener(listener); }
+
+            public void RemoveMappingChangedListener(UnityAction<MappingChangedEventArg> listener) { m_mappingChangedlisteners.RemoveListener(listener); }
 
             #region mapping
             public void MappingRoleValue(int roleValue, uint deviceIndex)
@@ -155,6 +183,13 @@ namespace HTC.UnityPlugin.Vive
             {
                 m_role2index[m_info.ToRoleOffset(roleValue)] = deviceIndex;
                 m_index2role[deviceIndex] = roleValue;
+
+                m_mappingChangedlisteners.Invoke(new MappingChangedEventArg()
+                {
+                    roleValue = roleValue,
+                    deviceIndex = deviceIndex,
+                    mapped = true,
+                });
             }
 
             // return true if role is ready for mapping
@@ -196,25 +231,30 @@ namespace HTC.UnityPlugin.Vive
                 return true;
             }
 
-            private void InternalUnmapping(int roleValue, uint deviceIndex)
-            {
-                m_role2index[m_info.ToRoleOffset(roleValue)] = INVALID_DEVICE_INDEX;
-                m_index2role[deviceIndex] = m_info.InvalidRoleValue;
-            }
-
             public void UnmappingAll()
             {
                 for (int i = m_role2index.Length - 1; i >= 0; --i)
                 {
                     if (!string.IsNullOrEmpty(m_role2sn[i])) { continue; } // skip bound role
 
-                    var mappedDeviceIndex = m_role2index[i];
-                    if (IsValidIndex(mappedDeviceIndex))
+                    if (IsValidIndex(m_role2index[i]))
                     {
-                        m_role2index[i] = INVALID_DEVICE_INDEX;
-                        m_index2role[mappedDeviceIndex] = m_info.InvalidRoleValue;
+                        InternalUnmapping(i + m_info.MinValidRoleValue, m_role2index[i]);
                     }
                 }
+            }
+
+            private void InternalUnmapping(int roleValue, uint deviceIndex)
+            {
+                m_role2index[m_info.ToRoleOffset(roleValue)] = INVALID_DEVICE_INDEX;
+                m_index2role[deviceIndex] = m_info.InvalidRoleValue;
+
+                m_mappingChangedlisteners.Invoke(new MappingChangedEventArg()
+                {
+                    roleValue = roleValue,
+                    deviceIndex = deviceIndex,
+                    mapped = false,
+                });
             }
 
             public bool IsRoleValueMapped(int roleValue)
@@ -449,14 +489,21 @@ namespace HTC.UnityPlugin.Vive
             string GetBoundDeviceByRole(TRole role);
             TRole GetBoundRoleByDevice(string deviceSN);
             TRole GetBoundRoleByConnectedDevice(uint deviceIndex);
+
+            void AddMappingChangedListener(UnityAction<MappingChangedEventArg<TRole>> listener);
+            void RemoveMappingChangedListener(UnityAction<MappingChangedEventArg<TRole>> listener);
         }
 
         private sealed class GenericMap<TRole> : IMap<TRole>
         {
+            private class MappingChangedEvent : UnityEvent<MappingChangedEventArg<TRole>> { }
+
             public static GenericMap<TRole> s_instance;
 
             private readonly ViveRoleEnum.IInfo<TRole> m_info;
             private readonly Map m_map;
+
+            private MappingChangedEvent m_mappingChangedlisteners = new MappingChangedEvent();
 
             public GenericMap()
             {
@@ -469,14 +516,31 @@ namespace HTC.UnityPlugin.Vive
                 }
                 else
                 {
-                    UnityEngine.Debug.LogWarning("duplicated instance for RoleInfo<" + typeof(TRole).Name + ">");
+                    Debug.LogWarning("duplicated instance for RoleInfo<" + typeof(TRole).Name + ">");
                 }
+
+                m_map.AddMappingChangedListener(OnMappingChanged);
             }
 
             public ViveRoleEnum.IInfo RoleValueInfo { get { return m_map.RoleValueInfo; } }
             public ViveRoleEnum.IInfo<TRole> RoleInfo { get { return m_info; } }
             public IMapHandler Handler { get { return m_map.Handler; } }
             public int BindingCount { get { return m_map.BindingCount; } }
+
+            private void OnMappingChanged(MappingChangedEventArg arg)
+            {
+                m_mappingChangedlisteners.Invoke(new MappingChangedEventArg<TRole>()
+                {
+                    role = m_info.ToRole(arg.roleValue),
+                    deviceIndex = arg.deviceIndex,
+                    mapped = arg.mapped,
+                });
+            }
+
+            public void AddMappingChangedListener(UnityAction<MappingChangedEventArg> listener) { m_map.AddMappingChangedListener(listener); }
+            public void RemoveMappingChangedListener(UnityAction<MappingChangedEventArg> listener) { m_map.AddMappingChangedListener(listener); }
+            public void AddMappingChangedListener(UnityAction<MappingChangedEventArg<TRole>> listener) { m_mappingChangedlisteners.AddListener(listener); }
+            public void RemoveMappingChangedListener(UnityAction<MappingChangedEventArg<TRole>> listener) { m_mappingChangedlisteners.AddListener(listener); }
 
             public void MappingRole(TRole role, uint deviceIndex) { m_map.MappingRoleValue(m_info.ToRoleValue(role), deviceIndex); }
             public void MappingRoleValue(int roleValue, uint deviceIndex) { m_map.MappingRoleValue(roleValue, deviceIndex); }
@@ -529,7 +593,7 @@ namespace HTC.UnityPlugin.Vive
                 var validateResult = ViveRoleEnum.ValidateViveRoleEnum(roleType);
                 if (validateResult != ViveRoleEnumValidateResult.Valid)
                 {
-                    UnityEngine.Debug.LogWarning(roleType.Name + " is not valid ViveRole type. " + validateResult);
+                    Debug.LogWarning(roleType.Name + " is not valid ViveRole type. " + validateResult);
                     return null;
                 }
 
@@ -553,7 +617,7 @@ namespace HTC.UnityPlugin.Vive
                 var validateResult = ViveRoleEnum.ValidateViveRoleEnum(roleEnumType);
                 if (validateResult != ViveRoleEnumValidateResult.Valid)
                 {
-                    UnityEngine.Debug.LogWarning(roleEnumType.Name + " is not valid ViveRole type. " + validateResult);
+                    Debug.LogWarning(roleEnumType.Name + " is not valid ViveRole type. " + validateResult);
                     return null;
                 }
 

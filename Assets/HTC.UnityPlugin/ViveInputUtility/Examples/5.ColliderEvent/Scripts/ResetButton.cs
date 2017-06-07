@@ -1,6 +1,5 @@
 ﻿using HTC.UnityPlugin.ColliderEvent;
 using HTC.UnityPlugin.Utility;
-using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,7 +13,7 @@ public class ResetButton : MonoBehaviour
     public Vector3 buttonDownDisplacement;
 
     [SerializeField]
-    private ControllerButton m_activeButton = ControllerButton.Trigger;
+    private ColliderButtonEventData.InputButton m_activeButton = ColliderButtonEventData.InputButton.Trigger;
 
     private Vector3 resetPosition;
     private Quaternion resetRotation;
@@ -23,7 +22,7 @@ public class ResetButton : MonoBehaviour
 
     private HashSet<ColliderButtonEventData> pressingEvents = new HashSet<ColliderButtonEventData>();
 
-    public ControllerButton activeButton
+    public ColliderButtonEventData.InputButton activeButton
     {
         get
         {
@@ -75,7 +74,7 @@ public class ResetButton : MonoBehaviour
 
     public void OnColliderEventPressEnter(ColliderButtonEventData eventData)
     {
-        if (eventData.IsViveButton(m_activeButton) && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
+        if (eventData.button == m_activeButton && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
         {
             buttonObject.position = buttonOriginPosition + buttonDownDisplacement;
         }

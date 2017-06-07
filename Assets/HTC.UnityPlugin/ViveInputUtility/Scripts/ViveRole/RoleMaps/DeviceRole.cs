@@ -1,7 +1,7 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
-using Valve.VR;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -79,7 +79,7 @@ namespace HTC.UnityPlugin.Vive
     {
         public override void OnInitialize() { Refresh(); }
 
-        public override void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected) { Refresh(); }
+        public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected) { Refresh(); }
 
         public override void OnBindingChanged(DeviceRole role, string deviceSN, bool bound) { Refresh(); }
 
@@ -93,7 +93,7 @@ namespace HTC.UnityPlugin.Vive
             var deviceIndex = 0u;
             for (; role <= DeviceRole.Device15 && deviceIndex < ViveRole.MAX_DEVICE_COUNT; ++role, ++deviceIndex)
             {
-                if (ViveRole.GetDeviceClass(deviceIndex) == ETrackedDeviceClass.Invalid) { continue; }
+                if (ViveRole.GetDeviceClass(deviceIndex) == VRModuleDeviceClass.Invalid) { continue; }
                 MappingRoleIfUnbound(role, deviceIndex);
             }
         }

@@ -1,8 +1,8 @@
-﻿using System.IO;
+﻿using HTC.UnityPlugin.VRModuleManagement;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using Valve.VR;
 
 public class SaveLoadBindingsUIController : MonoBehaviour
 {
@@ -52,8 +52,8 @@ public class SaveLoadBindingsUIController : MonoBehaviour
 
     public void BindAll()
     {
-        ViveRoleBindingsHelper.BindAllCurrentDeviceClassMappings(ETrackedDeviceClass.Controller);
-        ViveRoleBindingsHelper.BindAllCurrentDeviceClassMappings(ETrackedDeviceClass.GenericTracker);
+        ViveRoleBindingsHelper.BindAllCurrentDeviceClassMappings(VRModuleDeviceClass.Controller);
+        ViveRoleBindingsHelper.BindAllCurrentDeviceClassMappings(VRModuleDeviceClass.GenericTracker);
 
         if (OnBindAllComplete != null)
         {

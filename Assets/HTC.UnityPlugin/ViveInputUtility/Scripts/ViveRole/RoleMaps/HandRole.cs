@@ -1,7 +1,7 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
-using Valve.VR;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -58,8 +58,9 @@ namespace HTC.UnityPlugin.Vive
 
     public class HandRoleHandler : ViveRole.MapHandler<HandRole>
     {
+#if VIU_STEAMVR
         private uint[] m_sortedDevices = new uint[ViveRole.MAX_DEVICE_COUNT];
-
+#endif
         private bool handsAreMappedOrBound
         {
             get
@@ -74,9 +75,9 @@ namespace HTC.UnityPlugin.Vive
             MappingHandsAndOthers();
         }
 
-        public override void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected)
+        public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
         {
-            if (RoleMap.IsDeviceBound(deviceSN) || deviceClass != ETrackedDeviceClass.Controller) { return; }
+            if (RoleMap.IsDeviceBound(deviceSN) || deviceClass != VRModuleDeviceClass.Controller) { return; }
 
             if (!connected)
             {
@@ -120,7 +121,7 @@ namespace HTC.UnityPlugin.Vive
 
         private bool IsController(uint deviceIndex)
         {
-            return ViveRole.GetDeviceClass(deviceIndex) == ETrackedDeviceClass.Controller;
+            return ViveRole.GetDeviceClass(deviceIndex) == VRModuleDeviceClass.Controller;
         }
 
         // unmapping all and mapping only right/left hands
@@ -128,55 +129,58 @@ namespace HTC.UnityPlugin.Vive
         {
             UnmappingAll();
 
-            var system = OpenVR.System;
             var rightIndex = ViveRole.INVALID_DEVICE_INDEX;
             var leftIndex = ViveRole.INVALID_DEVICE_INDEX;
 
-            var trackedControllerCount = 0;
+            leftIndex = VRModule.GetLeftControllerDeviceIndex();
+            rightIndex = VRModule.GetRightControllerDeviceIndex();
 
-            if (system != null)
-            {
-                leftIndex = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
-                rightIndex = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+            if (RoleMap.IsDeviceMapped(leftIndex)) { leftIndex = ViveRole.INVALID_DEVICE_INDEX; }
+            if (RoleMap.IsDeviceMapped(rightIndex)) { rightIndex = ViveRole.INVALID_DEVICE_INDEX; }
 
-                if (RoleMap.IsDeviceMapped(leftIndex)) { leftIndex = ViveRole.INVALID_DEVICE_INDEX; }
-                if (RoleMap.IsDeviceMapped(rightIndex)) { rightIndex = ViveRole.INVALID_DEVICE_INDEX; }
-
-                trackedControllerCount = (int)system.GetSortedTrackedDeviceIndicesOfClass(ETrackedDeviceClass.Controller, m_sortedDevices, 0);
-            }
-
-            if (ViveRole.IsValidIndex(rightIndex))
+            if (ViveRole.IsValidIndex(rightIndex) && VRModule.GetCurrentDeviceState(rightIndex).isConnected)
             {
                 MappingRoleIfUnbound(HandRole.RightHand, rightIndex);
             }
 
-            if (ViveRole.IsValidIndex(leftIndex) && leftIndex != rightIndex)
+            if (ViveRole.IsValidIndex(leftIndex) && VRModule.GetCurrentDeviceState(leftIndex).isConnected && leftIndex != rightIndex)
             {
                 MappingRoleIfUnbound(HandRole.LeftHand, leftIndex);
             }
-
-            if (!RoleMap.IsRoleMapped(HandRole.RightHand) && !RoleMap.IsRoleBound(HandRole.RightHand))
+#if VIU_STEAMVR
+            // make sure right/left hand are mapped if there are other controllers connected
+            if (VRModule.activeModule == SupportedVRModule.SteamVR)
             {
-                // find most right side controller
-                for (var i = 0; i < trackedControllerCount; ++i)
+                var trackedControllerCount = 0;
+                var system = Valve.VR.OpenVR.System;
+                if (system != null)
                 {
-                    if (RoleMap.IsDeviceMapped(m_sortedDevices[i])) { continue; }
-                    MappingRole(HandRole.RightHand, m_sortedDevices[i]);
-                    break;
+                    trackedControllerCount = (int)system.GetSortedTrackedDeviceIndicesOfClass(Valve.VR.ETrackedDeviceClass.Controller, m_sortedDevices, 0);
+                }
+
+                if (!RoleMap.IsRoleMapped(HandRole.RightHand) && !RoleMap.IsRoleBound(HandRole.RightHand))
+                {
+                    // find most right side controller
+                    for (var i = 0; i < trackedControllerCount; ++i)
+                    {
+                        if (RoleMap.IsDeviceMapped(m_sortedDevices[i])) { continue; }
+                        MappingRole(HandRole.RightHand, m_sortedDevices[i]);
+                        break;
+                    }
+                }
+
+                if (!RoleMap.IsRoleMapped(HandRole.LeftHand) && !RoleMap.IsRoleBound(HandRole.LeftHand))
+                {
+                    // find most left side controller
+                    for (var i = trackedControllerCount - 1; i >= 0; --i)
+                    {
+                        if (RoleMap.IsDeviceMapped(m_sortedDevices[i])) { continue; }
+                        MappingRole(HandRole.LeftHand, m_sortedDevices[i]);
+                        break;
+                    }
                 }
             }
-
-            if (!RoleMap.IsRoleMapped(HandRole.LeftHand) && !RoleMap.IsRoleBound(HandRole.LeftHand))
-            {
-                // find most left side controller
-                for (var i = trackedControllerCount - 1; i >= 0; --i)
-                {
-                    if (RoleMap.IsDeviceMapped(m_sortedDevices[i])) { continue; }
-                    MappingRole(HandRole.LeftHand, m_sortedDevices[i]);
-                    break;
-                }
-            }
-
+#endif
             MappingOthers();
         }
 

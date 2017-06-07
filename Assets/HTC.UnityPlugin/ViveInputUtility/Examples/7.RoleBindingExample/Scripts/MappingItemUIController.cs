@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Valve.VR;
+using HTC.UnityPlugin.VRModuleManagement;
 
 public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
 {
@@ -103,7 +103,7 @@ public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
         textRoleName.text = m_map.RoleValueInfo.GetNameByRoleValue(m_roleValue);
 
         // update device icon
-        if (mappedDeviceClass == ETrackedDeviceClass.Invalid)
+        if (mappedDeviceClass == VRModuleDeviceClass.Invalid)
         {
             imgDeviceIcon.transform.parent.gameObject.SetActive(false);
         }

@@ -1,8 +1,8 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.VRModuleManagement;
 using System.Collections.Generic;
 using UnityEngine;
-using Valve.VR;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        public override void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected)
+        public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
         {
             if (connected)
             {
@@ -51,7 +51,7 @@ namespace HTC.UnityPlugin.Vive
         private bool IsControllerOrTracker(uint deviceIndex)
         {
             var deviceClass = ViveRole.GetDeviceClass(deviceIndex);
-            return deviceClass == ETrackedDeviceClass.Controller || deviceClass == ETrackedDeviceClass.GenericTracker;
+            return deviceClass == VRModuleDeviceClass.Controller || deviceClass == VRModuleDeviceClass.GenericTracker;
         }
 
         public void Refresh()

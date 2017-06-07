@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using Valve.VR;
+using HTC.UnityPlugin.VRModuleManagement;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -9,7 +9,7 @@ namespace HTC.UnityPlugin.Vive
         public interface IMapHandler
         {
             void OnInitialize();
-            void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected);
+            void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected);
             void OnTrackedDeviceRoleChanged();
             void OnBindingRoleValueChanged(int roleValue, string deviceSN, bool bound);
         }
@@ -27,7 +27,7 @@ namespace HTC.UnityPlugin.Vive
             public bool IsCurrentMapHandler { get { return m_map.Handler == this; } }
 
             public abstract void OnInitialize();
-            public abstract void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected);
+            public abstract void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected);
             public abstract void OnTrackedDeviceRoleChanged();
             public virtual void OnBindingRoleValueChanged(int roleValue, string deviceSN, bool bound) { OnBindingChanged(m_map.RoleInfo.ToRole(roleValue), deviceSN, bound); }
             public abstract void OnBindingChanged(TRole role, string deviceSN, bool bound);
