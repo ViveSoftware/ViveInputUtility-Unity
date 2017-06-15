@@ -1,6 +1,8 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+#if UNITY_5_6_OR_NEWER
 using UnityEngine.VR;
+#endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {

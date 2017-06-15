@@ -1,9 +1,10 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+#if VIU_OCULUSVR
 using HTC.UnityPlugin.PoseTracker;
-using HTC.UnityPlugin.Utility;
 using UnityEngine;
 using UnityEngine.VR;
+#endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -49,6 +50,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_node2class[(int)OVRPlugin.Node.TrackerThree] = VRModuleDeviceClass.TrackingReference;
         }
 
+        public override bool ShouldActiveModule() { return VRSettings.enabled && VRSettings.loadedDeviceName == "Oculus"; }
+
         public override void OnActivated()
         {
             m_prevTrackingSpace = OVRPlugin.GetTrackingOriginType();
@@ -73,7 +76,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        public override bool ShouldActiveModule() { return VRSettings.enabled && VRSettings.loadedDeviceName == "Oculus"; }
+        public override void Update()
+        {
+            // set physics update rate to vr render rate
+            if (VRModule.lockPhysicsUpdateRateToRenderFrequency && Time.timeScale > 0.0f)
+            {
+                // FIXME: VRDevice.refreshRate returns zero in Unity 5.6.0 or older version
+#if UNITY_5_6_1 || UNITY_2017 || UNITY_2017_1_OR_NEWER
+                Time.fixedDeltaTime = 1f / VRDevice.refreshRate;
+#else
+                Time.fixedDeltaTime = 1f / 90f;
+#endif
+            }
+        }
 
         public override uint GetLeftControllerDeviceIndex()
         {

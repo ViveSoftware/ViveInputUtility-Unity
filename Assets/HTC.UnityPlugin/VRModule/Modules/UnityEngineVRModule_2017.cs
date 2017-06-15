@@ -1,14 +1,16 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+#if UNITY_2017 || UNITY_2017_1_OR_NEWER
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VR;
+#endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-#if UNITY_2017_1_OR_NEWER
+#if UNITY_2017 || UNITY_2017_1_OR_NEWER
         private uint m_leftIndex = INVALID_DEVICE_INDEX;
         private uint m_rightIndex = INVALID_DEVICE_INDEX;
 

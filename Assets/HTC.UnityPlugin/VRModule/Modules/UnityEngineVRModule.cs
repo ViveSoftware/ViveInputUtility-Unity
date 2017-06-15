@@ -92,5 +92,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
             LoadTrackingSpaceType();
 #endif
         }
+
+        public override void Update()
+        {
+            // set physics update rate to vr render rate
+            if (VRModule.lockPhysicsUpdateRateToRenderFrequency && Time.timeScale > 0.0f)
+            {
+                // FIXME: VRDevice.refreshRate returns zero in Unity 5.6.0 or older version
+#if UNITY_5_6_1 || UNITY_2017 || UNITY_2017_1_OR_NEWER
+                Time.fixedDeltaTime = 1f / VRDevice.refreshRate;
+#else
+                Time.fixedDeltaTime = 1f / 90f;
+#endif
+            }
+        }
     }
 }

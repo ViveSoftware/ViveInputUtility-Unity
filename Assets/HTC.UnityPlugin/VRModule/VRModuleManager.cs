@@ -12,6 +12,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [SerializeField]
         private bool m_dontDestroyOnLoad = true;
         [SerializeField]
+        private bool m_lockPhysicsUpdateRateToRenderFrequency = true;
+        [SerializeField]
         private SelectVRModuleEnum m_selectModule = SelectVRModuleEnum.Auto;
         [SerializeField]
         private VRModuleTrackingSpaceType m_trackingSpaceType = VRModuleTrackingSpaceType.RoomScale;
@@ -65,14 +67,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             m_prevStates = new DeviceState[MAX_DEVICE_COUNT];
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i) { m_prevStates[i] = new DeviceState(i); }
-
-            // set physics update rate to vr render rate
-            // FIXME: VRDevice.refreshRate returns zero in Unity 5.6 or older version
-#if UNITY_2017_OR_NEWER
-            Time.fixedDeltaTime = 1f / VRDevice.refreshRate;
-#else
-            Time.fixedDeltaTime = 1f / 90f;
-#endif
 
             Camera.onPreCull += OnCameraPreCull;
         }
@@ -163,6 +157,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 m_moduleActivatedEvent.Invoke(m_activatedModule);
                 s_moduleActivatedEvent.Invoke(m_activatedModule);
+            }
+
+            // update module
+            if (currentSelectedModule != SupportedVRModule.Uninitialized)
+            {
+                m_activatedModuleBase.Update();
             }
         }
 

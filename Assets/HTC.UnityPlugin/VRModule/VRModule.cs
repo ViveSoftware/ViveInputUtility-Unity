@@ -35,6 +35,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public const uint MAX_DEVICE_COUNT = 16;
         public const uint INVALID_DEVICE_INDEX = 4294967295;
 
+        public static bool lockPhysicsUpdateRateToRenderFrequency
+        {
+            get
+            {
+                return Instance == null ? true : Instance.m_lockPhysicsUpdateRateToRenderFrequency;
+            }
+            set
+            {
+                if (Instance != null)
+                {
+                    Instance.m_lockPhysicsUpdateRateToRenderFrequency = value;
+                }
+            }
+        }
+
         public static SelectVRModuleEnum selectModule
         {
             get

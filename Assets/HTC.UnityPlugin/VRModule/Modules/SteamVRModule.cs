@@ -1,11 +1,11 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+#if VIU_STEAMVR
 using HTC.UnityPlugin.PoseTracker;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.VR;
-#if VIU_STEAMVR
 using Valve.VR;
 #endif
 
@@ -79,6 +79,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         break;
                 }
             }
+        }
+
+        public override void Update()
+        {
+            SteamVR_Render.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
         }
 
         public override bool HasInputFocus()

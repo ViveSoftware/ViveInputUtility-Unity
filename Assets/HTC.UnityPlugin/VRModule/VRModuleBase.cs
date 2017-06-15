@@ -27,6 +27,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public virtual uint GetLeftControllerDeviceIndex() { return INVALID_DEVICE_INDEX; }
             public virtual uint GetRightControllerDeviceIndex() { return INVALID_DEVICE_INDEX; }
             public virtual void UpdateTrackingSpaceType() { }
+            public virtual void Update() { }
 
             public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
             {
