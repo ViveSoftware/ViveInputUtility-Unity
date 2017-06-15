@@ -11,6 +11,7 @@ public class RenderModelHookEditor : Editor
     protected SerializedProperty deviceIndexProp;
     protected SerializedProperty applyTrackingProp;
     protected SerializedProperty originProp;
+    protected SerializedProperty overrideModelProp;
 
     protected virtual void OnEnable()
     {
@@ -22,6 +23,7 @@ public class RenderModelHookEditor : Editor
         deviceIndexProp = serializedObject.FindProperty("m_deviceIndex");
         applyTrackingProp = serializedObject.FindProperty("m_applyTracking");
         originProp = serializedObject.FindProperty("m_origin");
+        overrideModelProp = serializedObject.FindProperty("m_overrideModel");
     }
 
     public override void OnInspectorGUI()
@@ -33,6 +35,8 @@ public class RenderModelHookEditor : Editor
         GUI.enabled = false;
         EditorGUILayout.PropertyField(scriptProp);
         GUI.enabled = true;
+
+        EditorGUILayout.PropertyField(overrideModelProp);
 
         EditorGUILayout.PropertyField(modeProp);
 

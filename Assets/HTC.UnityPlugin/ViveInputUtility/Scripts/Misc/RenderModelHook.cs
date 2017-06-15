@@ -38,6 +38,17 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
         Device15,
     }
 
+    public enum OverrideModelEnum
+    {
+        DontOverride = VRModuleDeviceModel.Unknown,
+        ViveController = VRModuleDeviceModel.ViveController,
+        ViveTracker = VRModuleDeviceModel.ViveTracker,
+        ViveBaseStation = VRModuleDeviceModel.ViveBaseStation,
+        OculusTouchLeft = VRModuleDeviceModel.OculusTouchLeft,
+        OculusTouchRight = VRModuleDeviceModel.OculusTouchRight,
+        OculusSensor = VRModuleDeviceModel.OculusSensor,
+    }
+
     [SerializeField]
     private Mode m_mode = Mode.ViveRole;
     [SerializeField]
@@ -48,9 +59,13 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
     private Transform m_origin;
     [SerializeField]
     private Index m_deviceIndex = Index.Hmd;
+    [SerializeField]
+    private OverrideModelEnum m_overrideModel = OverrideModelEnum.DontOverride;
 
     private uint m_currentDeviceIndex = ViveRole.INVALID_DEVICE_INDEX;
     private SupportedVRModule m_currentActiveModule;
+    private VRModuleDeviceModel m_currentLoadedStaticModel;
+    private OverrideModelEnum m_currentOverrideModel;
     private GameObject m_modelObj;
 
     public ViveRoleProperty viveRole { get { return m_viveRole; } }
@@ -58,6 +73,8 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
     public Transform origin { get { return m_origin; } set { m_origin = value; } }
 
     public bool applyTracking { get { return m_applyTracking; } set { m_applyTracking = value; } }
+
+    public OverrideModelEnum overrideModel { get { return m_overrideModel; } set { m_overrideModel = value; } }
 
     protected virtual void OnEnable()
     {
@@ -114,7 +131,10 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
 
     private void UpdateModel()
     {
-        if (ChangeProp.Set(ref m_currentActiveModule, VRModule.activeModule))
+        var overrideModelChanged = ChangeProp.Set(ref m_currentOverrideModel, m_overrideModel);
+        var activeModuleChanged = ChangeProp.Set(ref m_currentActiveModule, VRModule.activeModule);
+
+        if (overrideModelChanged || (activeModuleChanged && m_currentOverrideModel == OverrideModelEnum.DontOverride))
         {
             if (m_modelObj != null)
             {
@@ -124,22 +144,29 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
             }
         }
 
-        switch (m_currentActiveModule)
+        if (m_currentOverrideModel == OverrideModelEnum.DontOverride)
         {
+            switch (m_currentActiveModule)
+            {
 #if VIU_STEAMVR
-            case SupportedVRModule.SteamVR:
-                UpdateSteamVRModel();
-                break;
+                case SupportedVRModule.SteamVR:
+                    UpdateSteamVRModel();
+                    break;
 #endif
-            case SupportedVRModule.Uninitialized:
-                if (m_modelObj != null)
-                {
-                    m_modelObj.SetActive(false);
-                }
-                break;
-            default:
-                UpdateDefaultModel();
-                break;
+                case SupportedVRModule.Uninitialized:
+                    if (m_modelObj != null)
+                    {
+                        m_modelObj.SetActive(false);
+                    }
+                    break;
+                default:
+                    UpdateDefaultModel();
+                    break;
+            }
+        }
+        else if (overrideModelChanged)
+        {
+            ReloadedStaticModel((VRModuleDeviceModel)m_currentOverrideModel);
         }
     }
 
@@ -183,31 +210,15 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
     }
 #endif
 
-    private VRModuleDeviceModel m_currentDefaultModel;
     private void UpdateDefaultModel()
     {
         if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
         {
             if (ViveRole.IsValidIndex(m_currentDeviceIndex))
             {
-                if (ChangeProp.Set(ref m_currentDefaultModel, VRModule.GetCurrentDeviceState(m_currentDeviceIndex).deviceModel) || m_modelObj == null)
+                if (ChangeProp.Set(ref m_currentLoadedStaticModel, VRModule.GetCurrentDeviceState(m_currentDeviceIndex).deviceModel) || m_modelObj == null)
                 {
-                    if (m_modelObj != null)
-                    {
-                        DestroyImmediate(m_modelObj);
-                        m_modelObj = null;
-                    }
-
-                    if (m_currentDefaultModel != VRModuleDeviceModel.Unknown)
-                    {
-                        var prefab = Resources.Load<GameObject>("Models/VIUModel" + m_currentDefaultModel.ToString());
-                        if (prefab != null)
-                        {
-                            m_modelObj = Instantiate(prefab);
-                            m_modelObj.transform.SetParent(transform, false);
-                            m_modelObj.gameObject.name = "VIUModel" + m_currentDefaultModel.ToString();
-                        }
-                    }
+                    ReloadedStaticModel(m_currentLoadedStaticModel);
                 }
                 else
                 {
@@ -218,6 +229,23 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
             {
                 m_modelObj.SetActive(false);
             }
+        }
+    }
+
+    private void ReloadedStaticModel(VRModuleDeviceModel model)
+    {
+        if (m_modelObj != null)
+        {
+            DestroyImmediate(m_modelObj);
+            m_modelObj = null;
+        }
+
+        var prefab = Resources.Load<GameObject>("Models/VIUModel" + model.ToString());
+        if (prefab != null)
+        {
+            m_modelObj = Instantiate(prefab);
+            m_modelObj.transform.SetParent(transform, false);
+            m_modelObj.gameObject.name = "VIUModel" + model.ToString();
         }
     }
 }
