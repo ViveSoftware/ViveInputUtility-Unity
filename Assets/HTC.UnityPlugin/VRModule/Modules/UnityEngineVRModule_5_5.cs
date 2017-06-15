@@ -9,7 +9,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-#if UNITY_5_5_OR_NEWER// && !UNITY_2017_OR_NEWER
+#if UNITY_5_5_OR_NEWER && !UNITY_2017_1_OR_NEWER
         private static readonly Regex m_viveRgx = new Regex("^.*(htc|vive|openvr).*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
@@ -24,39 +24,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private int m_leftJoystickNameIndex = -1;
         private int m_rightJoystickNameIndex = -1;
 
-        public override bool ShouldActiveModule() { return VRSettings.enabled; }
-
         public override uint GetLeftControllerDeviceIndex() { return m_leftIndex; }
 
         public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
-
-#if UNITY_5_6_OR_NEWER
-        private TrackingSpaceType prevTrackingSpace;
-
-        public override void OnActivated()
-        {
-            prevTrackingSpace = VRDevice.GetTrackingSpaceType();
-            UpdateTrackingSpaceType();
-        }
-
-        public override void OnDeactivated()
-        {
-            VRDevice.SetTrackingSpaceType(prevTrackingSpace);
-        }
-
-        public override void UpdateTrackingSpaceType()
-        {
-            switch (VRModule.trackingSpaceType)
-            {
-                case VRModuleTrackingSpaceType.Stationary:
-                    VRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
-                    break;
-                case VRModuleTrackingSpaceType.RoomScale:
-                    VRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale);
-                    break;
-            }
-        }
-#endif
 
         public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
         {

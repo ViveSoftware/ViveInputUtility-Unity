@@ -1,6 +1,5 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VR;
 
@@ -68,5 +67,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 11,
         };
 #endif
+
+        public UnityEngineVRModule()
+        {
+#if UNITY_2017_1_OR_NEWER
+            InputTracking.nodeAdded += OnNodeAdded;
+            InputTracking.nodeRemoved += OnNodeRemoved;
+#endif
+        }
+
+        public override bool ShouldActiveModule() { return VRSettings.enabled; }
+
+        public override void OnActivated()
+        {
+#if UNITY_5_6_OR_NEWER
+            SaveTrackingSpaceType();
+            UpdateTrackingSpaceType();
+#endif
+        }
+
+        public override void OnDeactivated()
+        {
+#if UNITY_5_6_OR_NEWER
+            LoadTrackingSpaceType();
+#endif
+        }
     }
 }
