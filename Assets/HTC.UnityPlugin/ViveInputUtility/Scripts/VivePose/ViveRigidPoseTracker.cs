@@ -41,8 +41,8 @@ namespace HTC.UnityPlugin.Vive
         {
             if (isPoseValid)
             {
-                Pose.SetRigidbodyVelocity(rigid, targetPose.pos, followingDuration);
-                Pose.SetRigidbodyAngularVelocity(rigid, targetPose.rot, followingDuration);
+                Pose.SetRigidbodyVelocity(rigid, rigid.position, targetPose.pos, followingDuration);
+                Pose.SetRigidbodyAngularVelocity(rigid, rigid.rotation, targetPose.rot, followingDuration);
             }
             else
             {

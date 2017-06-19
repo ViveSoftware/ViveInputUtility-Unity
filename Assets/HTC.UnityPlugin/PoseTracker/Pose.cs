@@ -152,26 +152,26 @@ namespace HTC.UnityPlugin.PoseTracker
             }
         }
 
-        // proper folloing duration is larger then 0.02 second, depends on the update rate
-        public static void SetRigidbodyVelocity(Rigidbody rigidbody, Vector3 targetWolrdPosition, float followingDuration)
+        // proper following duration is larger then 0.02 second, depends on the update rate
+        public static void SetRigidbodyVelocity(Rigidbody rigidbody, Vector3 from, Vector3 to, float duration)
         {
-            var diffPos = targetWolrdPosition - rigidbody.position;
+            var diffPos = to - from;
             if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
             {
                 rigidbody.velocity = Vector3.zero;
             }
             else
             {
-                rigidbody.velocity = diffPos / followingDuration;
+                rigidbody.velocity = diffPos / duration;
             }
         }
 
         // proper folloing duration is larger then 0.02 second, depends on the update rate
-        public static void SetRigidbodyAngularVelocity(Rigidbody rigidbody, Quaternion targetWorldRotation, float followingDuration, bool overrideMaxAngularVelocity = true)
+        public static void SetRigidbodyAngularVelocity(Rigidbody rigidbody, Quaternion from, Quaternion to, float duration, bool overrideMaxAngularVelocity = true)
         {
             float angle;
             Vector3 axis;
-            (targetWorldRotation * Quaternion.Inverse(rigidbody.rotation)).ToAngleAxis(out angle, out axis);
+            (to * Quaternion.Inverse(from)).ToAngleAxis(out angle, out axis);
             while (angle > 180f) { angle -= 360f; }
 
             if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x) || float.IsNaN(axis.y) || float.IsNaN(axis.z))
@@ -180,7 +180,7 @@ namespace HTC.UnityPlugin.PoseTracker
             }
             else
             {
-                angle *= Mathf.Deg2Rad / followingDuration; // convert to radius speed
+                angle *= Mathf.Deg2Rad / duration; // convert to radius speed
                 if (overrideMaxAngularVelocity && rigidbody.maxAngularVelocity < angle) { rigidbody.maxAngularVelocity = angle; }
                 rigidbody.angularVelocity = axis * angle;
             }

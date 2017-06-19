@@ -8,10 +8,10 @@ using UnityEngine;
 using UnityEngine.Events;
 
 public class BasicGrabbable : MonoBehaviour
-, IColliderEventDragStartHandler
-, IColliderEventDragFixedUpdateHandler
-, IColliderEventDragUpdateHandler
-, IColliderEventDragEndHandler
+    , IColliderEventDragStartHandler
+    , IColliderEventDragFixedUpdateHandler
+    , IColliderEventDragUpdateHandler
+    , IColliderEventDragEndHandler
 {
     [Serializable]
     public class UnityEventGrabbable : UnityEvent<BasicGrabbable> { }
@@ -29,12 +29,16 @@ public class BasicGrabbable : MonoBehaviour
     [Range(MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION)]
     public float followingDuration = DEFAULT_FOLLOWING_DURATION;
     public bool overrideMaxAngularVelocity = true;
+    public bool unblockableGrab = true;
 
     [SerializeField]
     private ColliderButtonEventData.InputButton m_grabButton = ColliderButtonEventData.InputButton.Trigger;
 
     public UnityEventGrabbable afterGrabbed = new UnityEventGrabbable();
     public UnityEventGrabbable beforeRelease = new UnityEventGrabbable();
+    public UnityEventGrabbable onDrop = new UnityEventGrabbable(); // change rigidbody drop velocity here
+
+    private Pose m_prevPose = Pose.identity; // last frame world pose
 
     public ColliderButtonEventData.InputButton grabButton
     {
@@ -57,6 +61,11 @@ public class BasicGrabbable : MonoBehaviour
 
     public ColliderButtonEventData grabbedEvent { get { return isGrabbed ? eventList.GetLastKey() : null; } }
 
+    // effected rigidbody
+    public Rigidbody rigid { get; set; }
+
+    private bool moveByVelocity { get { return !unblockableGrab && rigid != null && !rigid.isKinematic; } }
+
     private Pose GetEventPose(ColliderButtonEventData eventData)
     {
         var grabberTransform = eventData.eventCaster.transform;
@@ -68,6 +77,12 @@ public class BasicGrabbable : MonoBehaviour
         grabButton = m_grabButton;
     }
 #endif
+
+    protected virtual void Awake()
+    {
+        rigid = GetComponent<Rigidbody>();
+    }
+
     protected virtual void Start()
     {
         grabButton = m_grabButton;
@@ -82,12 +97,7 @@ public class BasicGrabbable : MonoBehaviour
 
         eventList.Clear();
 
-        var rigid = GetComponent<Rigidbody>();
-        if (rigid != null)
-        {
-            rigid.velocity = Vector3.zero;
-            rigid.angularVelocity = Vector3.zero;
-        }
+        DoDrop();
     }
 
     public virtual void OnColliderEventDragStart(ColliderButtonEventData eventData)
@@ -117,8 +127,7 @@ public class BasicGrabbable : MonoBehaviour
     {
         if (eventData != grabbedEvent) { return; }
 
-        var rigid = GetComponent<Rigidbody>();
-        if (rigid != null)
+        if (moveByVelocity)
         {
             // if rigidbody exists, follow eventData caster using physics
             var casterPose = GetEventPose(eventData);
@@ -128,8 +137,8 @@ public class BasicGrabbable : MonoBehaviour
             if (alignRotation) { offsetPose.rot = Quaternion.Euler(alignRotationOffset); }
 
             var targetPose = casterPose * offsetPose;
-            Pose.SetRigidbodyVelocity(rigid, targetPose.pos, followingDuration);
-            Pose.SetRigidbodyAngularVelocity(rigid, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
+            Pose.SetRigidbodyVelocity(rigid, rigid.position, targetPose.pos, followingDuration);
+            Pose.SetRigidbodyAngularVelocity(rigid, rigid.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
         }
     }
 
@@ -137,7 +146,7 @@ public class BasicGrabbable : MonoBehaviour
     {
         if (eventData != grabbedEvent) { return; }
 
-        if (GetComponent<Rigidbody>() == null)
+        if (!moveByVelocity)
         {
             // if rigidbody doesn't exist, just move to eventData caster's pose
             var casterPose = GetEventPose(eventData);
@@ -146,8 +155,15 @@ public class BasicGrabbable : MonoBehaviour
             if (alignPosition) { offsetPose.pos = alignPositionOffset; }
             if (alignRotation) { offsetPose.rot = Quaternion.Euler(alignRotationOffset); }
 
-            var targetPose = casterPose * offsetPose;
+            m_prevPose = new Pose(transform);
 
+            if (rigid != null)
+            {
+                rigid.velocity = Vector3.zero;
+                rigid.angularVelocity = Vector3.zero;
+            }
+
+            var targetPose = casterPose * offsetPose;
             transform.position = targetPose.pos;
             transform.rotation = targetPose.rot;
         }
@@ -156,6 +172,7 @@ public class BasicGrabbable : MonoBehaviour
     public virtual void OnColliderEventDragEnd(ColliderButtonEventData eventData)
     {
         var released = eventData == grabbedEvent;
+
         if (released && beforeRelease != null)
         {
             beforeRelease.Invoke(this);
@@ -163,9 +180,32 @@ public class BasicGrabbable : MonoBehaviour
 
         eventList.Remove(eventData);
 
-        if (released && isGrabbed && afterGrabbed != null)
+        if (isGrabbed)
         {
-            afterGrabbed.Invoke(this);
+            if (released && afterGrabbed != null)
+            {
+                afterGrabbed.Invoke(this);
+            }
+        }
+        else
+        {
+            DoDrop();
+        }
+    }
+
+    private void DoDrop()
+    {
+        if (!moveByVelocity && rigid != null && !rigid.isKinematic && m_prevPose != Pose.identity)
+        {
+            Pose.SetRigidbodyVelocity(rigid, m_prevPose.pos, transform.position, Time.deltaTime);
+            Pose.SetRigidbodyAngularVelocity(rigid, m_prevPose.rot, transform.rotation, Time.deltaTime, overrideMaxAngularVelocity);
+
+            m_prevPose = Pose.identity;
+        }
+
+        if (onDrop != null)
+        {
+            onDrop.Invoke(this);
         }
     }
 }

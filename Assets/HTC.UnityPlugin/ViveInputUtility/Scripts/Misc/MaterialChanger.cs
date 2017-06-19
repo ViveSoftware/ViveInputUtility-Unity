@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// This component shows the status that interacting with ColliderEventCaster
 public class MaterialChanger : MonoBehaviour
     , IColliderEventHoverEnterHandler
     , IColliderEventHoverExitHandler
