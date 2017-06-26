@@ -42,13 +42,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             protected void InvokeInputFocusEvent(bool value)
             {
                 if (Active) { Instance.m_onInputFocus.Invoke(value); }
-                s_onInputFocus.Invoke(value);
             }
 
             protected void InvokeControllerRoleChangedEvent()
             {
                 if (Active) { Instance.m_onControllerRoleChanged.Invoke(); }
-                s_onControllerRoleChanged.Invoke();
             }
 
             protected static void SetupKnownDeviceModel(IVRModuleDeviceStateRW deviceState)

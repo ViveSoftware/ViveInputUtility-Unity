@@ -22,18 +22,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [Serializable]
         public class ModuleDeactivatedEvent : UnityEvent<SupportedVRModule> { }
 
-        private static OnNewPosesEvent s_onNewPoses = new OnNewPosesEvent();
-        private static ControllerRoleChangedEvent s_onControllerRoleChanged = new ControllerRoleChangedEvent();
-        private static InputFocusEvent s_onInputFocus = new InputFocusEvent();
-        private static DeviceConnectedEvent s_onDeviceConnected = new DeviceConnectedEvent();
-        private static ModuleActivatedEvent s_moduleActivatedEvent = new ModuleActivatedEvent();
-        private static ModuleDeactivatedEvent s_moduleDeactivatedEvent = new ModuleDeactivatedEvent();
-
-        public static OnNewPosesEvent onNewPoses { get { Initialize(); return s_onNewPoses; } } // invoke by manager
-        public static ControllerRoleChangedEvent onControllerRoleChanged { get { Initialize(); return s_onControllerRoleChanged; } } // invoke by module
-        public static InputFocusEvent onInputFocus { get { Initialize(); return s_onInputFocus; } } // invoke by module
-        public static DeviceConnectedEvent onDeviceConnected { get { Initialize(); return s_onDeviceConnected; } } // invoke by manager
-        public static ModuleActivatedEvent onModuleActivatedEvent { get { Initialize(); return s_moduleActivatedEvent; } } // invoke by manager
-        public static ModuleDeactivatedEvent onModuleDeactivatedEvent { get { Initialize(); return s_moduleDeactivatedEvent; } } // invoke by manager
+        public static OnNewPosesEvent onNewPoses { get { return Instance == null ? null : Instance.m_onNewPoses; } } // invoke by manager
+        public static ControllerRoleChangedEvent onControllerRoleChanged { get { return Instance == null ? null : Instance.m_onControllerRoleChanged; } } // invoke by module
+        public static InputFocusEvent onInputFocus { get { return Instance == null ? null : Instance.m_onInputFocus; } } // invoke by module
+        public static DeviceConnectedEvent onDeviceConnected { get { return Instance == null ? null : Instance.m_onDeviceConnected; } } // invoke by manager
+        public static ModuleActivatedEvent onModuleActivatedEvent { get { return Instance == null ? null : Instance.m_moduleActivatedEvent; } } // invoke by manager
+        public static ModuleDeactivatedEvent onModuleDeactivatedEvent { get { return Instance == null ? null : Instance.m_moduleDeactivatedEvent; } } // invoke by manager
     }
 }

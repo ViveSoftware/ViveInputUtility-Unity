@@ -156,7 +156,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_activatedModuleBase.OnActivated();
 
                 m_moduleActivatedEvent.Invoke(m_activatedModule);
-                s_moduleActivatedEvent.Invoke(m_activatedModule);
             }
 
             // update module
@@ -189,13 +188,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (m_prevStates[i].isConnected != m_currStates[i].isConnected)
                 {
                     m_onDeviceConnected.Invoke(i, m_currStates[i].isConnected);
-                    s_onDeviceConnected.Invoke(i, m_currStates[i].isConnected);
                 }
             }
 
             // send new poses event
             m_onNewPoses.Invoke();
-            s_onNewPoses.Invoke();
         }
 
         private void CleanUp()
@@ -216,7 +213,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (m_prevStates[i].isConnected)
                 {
                     m_onDeviceConnected.Invoke(i, false);
-                    s_onDeviceConnected.Invoke(i, false);
                 }
             }
 
@@ -231,7 +227,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 deactivatedModuleBase.OnDeactivated();
 
                 m_moduleDeactivatedEvent.Invoke(deactivatedModule);
-                s_moduleDeactivatedEvent.Invoke(deactivatedModule);
             }
         }
     }
