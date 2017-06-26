@@ -22,8 +22,8 @@ namespace HTC.UnityPlugin.Vive
 
         private bool m_isTypeDirty = true;
         private bool m_isValueDirty = true;
-        private Type m_roleType;
-        private int m_roleValue;
+        private Type m_roleType = DefaultRoleType;
+        private int m_roleValue = DefaultRoleValue;
 
         public event Action Changed;
 
