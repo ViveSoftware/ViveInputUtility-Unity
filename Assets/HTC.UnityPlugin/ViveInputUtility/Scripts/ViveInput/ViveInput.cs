@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -88,18 +89,24 @@ namespace HTC.UnityPlugin.Vive
         private float m_clickInterval = 0.3f;
         [SerializeField]
         private bool m_dontDestroyOnLoad = true;
+        [SerializeField]
+        private UnityEvent m_onInputStateUpdated = new UnityEvent();
 
         public static float clickInterval
         {
             get { return Instance.m_clickInterval; }
             set { Instance.m_clickInterval = Mathf.Max(0f, value); }
         }
+
+        public static UnityEvent onInputStateUpdated { get { return Instance == null ? null : Instance.m_onInputStateUpdated; } }
+
 #if UNITY_EDITOR
         private void OnValidate()
         {
             m_clickInterval = Mathf.Max(m_clickInterval, 0f);
         }
 #endif
+
         protected override void OnSingletonBehaviourInitialized()
         {
             if (m_dontDestroyOnLoad && transform.parent == null)
@@ -123,6 +130,8 @@ namespace HTC.UnityPlugin.Vive
                     state.Update();
                 }
             }
+
+            if (m_onInputStateUpdated != null) { m_onInputStateUpdated.Invoke(); }
         }
 
         private static bool IsValidButton(ControllerButton button) { return button >= 0 && (int)button < CONTROLLER_BUTTON_COUNT; }
