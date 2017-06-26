@@ -9,10 +9,10 @@ namespace HTC.UnityPlugin.Utility
     {
         public static int GetMinValue(Type enumType)
         {
-            var result = int.MinValue;
+            var result = int.MaxValue;
             foreach (int value in Enum.GetValues(enumType))
             {
-                result = Mathf.Max(result, value);
+                result = Mathf.Min(result, value);
             }
 
             return result;
