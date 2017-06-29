@@ -155,7 +155,7 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 // record press down time and click count
-                var timeNow = Time.time;
+                var timeNow = Time.unscaledTime;
                 for (int button = 0; button < CONTROLLER_BUTTON_COUNT; ++button)
                 {
                     if (GetPressDown((ControllerButton)button))
@@ -446,7 +446,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (m_state.Update()) { return true; }
 
-                var timeNow = Time.time;
+                var timeNow = Time.unscaledTime;
                 for (ControllerButton button = 0; button < (ControllerButton)CONTROLLER_BUTTON_COUNT; ++button)
                 {
                     if (GetPress(button))

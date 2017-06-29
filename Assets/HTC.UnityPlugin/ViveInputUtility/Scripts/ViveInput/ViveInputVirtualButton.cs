@@ -162,7 +162,7 @@ namespace HTC.UnityPlugin.Vive
 
         private void OnInputStateUpdated()
         {
-            var timeNow = Time.time;
+            var timeNow = Time.unscaledTime;
 
             if (m_active)
             {
