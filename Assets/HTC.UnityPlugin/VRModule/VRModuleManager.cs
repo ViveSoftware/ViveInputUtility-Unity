@@ -7,6 +7,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public partial class VRModule : SingletonBehaviour<VRModule>
     {
+
+        private static DeviceState s_defaultState;
         private static readonly ModuleBase[] s_modules;
 
         [SerializeField]
@@ -19,7 +21,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private VRModuleTrackingSpaceType m_trackingSpaceType = VRModuleTrackingSpaceType.RoomScale;
 
         [SerializeField]
-        private OnNewPosesEvent m_onNewPoses = new OnNewPosesEvent();
+        private NewPosesEvent m_onNewPoses = new NewPosesEvent();
         [SerializeField]
         private ControllerRoleChangedEvent m_onControllerRoleChanged = new ControllerRoleChangedEvent();
         [SerializeField]
@@ -27,9 +29,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [SerializeField]
         private DeviceConnectedEvent m_onDeviceConnected = new DeviceConnectedEvent();
         [SerializeField]
-        private ModuleActivatedEvent m_moduleActivatedEvent = new ModuleActivatedEvent();
+        private ModuleActivatedEvent m_onModuleActivated = new ModuleActivatedEvent();
         [SerializeField]
-        private ModuleDeactivatedEvent m_moduleDeactivatedEvent = new ModuleDeactivatedEvent();
+        private ModuleDeactivatedEvent m_onModuleDeactivated = new ModuleDeactivatedEvent();
 
         private int m_poseUpdatedFrame = -1;
         private bool m_isUpdating = false;
@@ -39,8 +41,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private ModuleBase m_activatedModuleBase;
         private DeviceState[] m_prevStates;
         private DeviceState[] m_currStates;
-
-        private static DeviceState s_defaultState;
 
         static VRModule()
         {
@@ -71,7 +71,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Camera.onPreCull += OnCameraPreCull;
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             if (IsInstance)
             {
@@ -84,6 +84,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     CleanUp();
                 }
             }
+
+            base.OnDestroy();
         }
 
         private void OnCameraPreCull(Camera cam)
@@ -155,7 +157,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_activatedModuleBase = s_modules[(int)currentSelectedModule];
                 m_activatedModuleBase.OnActivated();
 
-                m_moduleActivatedEvent.Invoke(m_activatedModule);
+                VRModule.InvokeModuleActivatedEvent(m_activatedModule);
             }
 
             // update module
@@ -187,12 +189,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (m_prevStates[i].isConnected != m_currStates[i].isConnected)
                 {
-                    m_onDeviceConnected.Invoke(i, m_currStates[i].isConnected);
+                    VRModule.InvokeDeviceConnectedEvent(i, m_currStates[i].isConnected);
                 }
             }
 
             // send new poses event
-            m_onNewPoses.Invoke();
+            VRModule.InvokeNewPosesEvent();
         }
 
         private void CleanUp()
@@ -212,7 +214,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (m_prevStates[i].isConnected)
                 {
-                    m_onDeviceConnected.Invoke(i, false);
+                    VRModule.InvokeDeviceConnectedEvent(i, false);
                 }
             }
 
@@ -226,7 +228,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 deactivatedModuleBase.OnDeactivated();
 
-                m_moduleDeactivatedEvent.Invoke(deactivatedModule);
+                VRModule.InvokeModuleDeactivatedEvent(deactivatedModule);
             }
         }
     }

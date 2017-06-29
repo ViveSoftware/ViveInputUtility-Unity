@@ -113,7 +113,7 @@ namespace HTC.UnityPlugin.Vive
             if (Application.isPlaying && m_active && !m_updateActivated)
             {
                 // register update event
-                ViveInput.onInputStateUpdated.AddListener(OnInputStateUpdated);
+                ViveInput.onUpdate.AddListener(OnInputStateUpdated);
                 m_updateActivated = true;
             }
         }
@@ -245,7 +245,7 @@ namespace HTC.UnityPlugin.Vive
             else
             {
                 // unregister update event
-                ViveInput.onInputStateUpdated.RemoveListener(OnInputStateUpdated);
+                ViveInput.onUpdate.RemoveListener(OnInputStateUpdated);
                 m_updateActivated = false;
 
                 // clean up

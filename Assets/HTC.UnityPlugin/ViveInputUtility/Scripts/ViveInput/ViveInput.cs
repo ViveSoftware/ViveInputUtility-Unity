@@ -84,13 +84,14 @@ namespace HTC.UnityPlugin.Vive
 
         private static readonly CtrlState s_defaultState = new CtrlState();
         private static readonly IndexedTable<Type, ICtrlState[]> s_roleStateTable = new IndexedTable<Type, ICtrlState[]>();
+        private static readonly UnityEvent s_onUpdate = new UnityEvent();
 
         [SerializeField]
         private float m_clickInterval = 0.3f;
         [SerializeField]
         private bool m_dontDestroyOnLoad = true;
         [SerializeField]
-        private UnityEvent m_onInputStateUpdated = new UnityEvent();
+        private UnityEvent m_onUpdate = new UnityEvent();
 
         public static float clickInterval
         {
@@ -98,7 +99,7 @@ namespace HTC.UnityPlugin.Vive
             set { Instance.m_clickInterval = Mathf.Max(0f, value); }
         }
 
-        public static UnityEvent onInputStateUpdated { get { return Instance == null ? null : Instance.m_onInputStateUpdated; } }
+        public static UnityEvent onUpdate { get { Initialize(); return s_onUpdate; } }
 
 #if UNITY_EDITOR
         private void OnValidate()
@@ -131,7 +132,8 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
-            if (m_onInputStateUpdated != null) { m_onInputStateUpdated.Invoke(); }
+            s_onUpdate.Invoke();
+            m_onUpdate.Invoke();
         }
 
         private static bool IsValidButton(ControllerButton button) { return button >= 0 && (int)button < CONTROLLER_BUTTON_COUNT; }

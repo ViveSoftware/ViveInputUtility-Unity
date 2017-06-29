@@ -50,5 +50,13 @@ namespace HTC.UnityPlugin.Utility
         {
             s_isApplicationQuitting = true;
         }
+
+        protected virtual void OnDestroy()
+        {
+            if (!s_isApplicationQuitting && s_instance == this)
+            {
+                s_instance = null;
+            }
+        }
     }
 }

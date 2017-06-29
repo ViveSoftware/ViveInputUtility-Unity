@@ -33,12 +33,14 @@ namespace HTC.UnityPlugin.Vive
             VRModule.onNewPoses.AddListener(OnDeviceStateUpdated);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             if (IsInstance)
             {
                 VRModule.onNewPoses.RemoveListener(OnDeviceStateUpdated);
             }
+
+            base.OnDestroy();
         }
 
         public static bool AddNewPosesListener(INewPoseListener listener)
