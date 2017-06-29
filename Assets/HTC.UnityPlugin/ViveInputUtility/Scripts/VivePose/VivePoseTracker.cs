@@ -96,6 +96,8 @@ namespace HTC.UnityPlugin.Vive
         protected virtual void OnDisable()
         {
             VivePose.RemoveNewPosesListener(this);
+
+            SetIsValid(false);
         }
 
         public virtual void BeforeNewPoses() { }
