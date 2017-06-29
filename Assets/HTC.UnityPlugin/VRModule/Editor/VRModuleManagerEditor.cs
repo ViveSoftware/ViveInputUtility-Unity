@@ -30,6 +30,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         static VRModuleManagerEditor()
         {
             s_supportedSdkInfoList = new List<VrSdkInfo>();
+            s_supportedSdkInfoList.Add(new VrSdkInfo("VIU_PLUGIN", "HTC.UnityPlugin.Vive.ViveInput", "ViveInput.cs"));
             s_supportedSdkInfoList.Add(new VrSdkInfo("VIU_STEAMVR", "SteamVR", "SteamVR.cs"));
             s_supportedSdkInfoList.Add(new VrSdkInfo("VIU_OCULUSVR", "OVRInput", "OVRInput.cs"));
         }
