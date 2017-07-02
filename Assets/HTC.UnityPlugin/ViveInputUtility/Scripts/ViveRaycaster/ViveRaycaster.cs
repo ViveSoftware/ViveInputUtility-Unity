@@ -16,12 +16,15 @@ namespace HTC.UnityPlugin.Vive
         private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
         [SerializeField]
         [FormerlySerializedAs("m_mouseBtnLeft")]
+        [CustomOrderedEnum]
         private ControllerButton m_mouseButtonLeft = ControllerButton.Trigger;
         [SerializeField]
         [FormerlySerializedAs("m_mouseBtnMiddle")]
+        [CustomOrderedEnum]
         private ControllerButton m_mouseButtonMiddle = ControllerButton.Grip;
         [SerializeField]
         [FormerlySerializedAs("m_mouseBtnRight")]
+        [CustomOrderedEnum]
         private ControllerButton m_mouseButtonRight = ControllerButton.Pad;
         [SerializeField]
         [FormerlySerializedAs("m_buttonEvents")]
@@ -65,9 +68,10 @@ namespace HTC.UnityPlugin.Vive
             FilterOutAssignedButton();
 
             var mouseBtn = PointerEventData.InputButton.Middle + 1;
-            for (ControllerButton btn = 0; m_additionalButtons > 0u; ++btn, m_additionalButtons >>= 1)
+            var addBtns = m_additionalButtons;
+            for (ControllerButton btn = 0; addBtns > 0u; ++btn, addBtns >>= 1)
             {
-                if ((m_additionalButtons & 1u) == 0u) { continue; }
+                if ((addBtns & 1u) == 0u) { continue; }
 
                 buttonEventDataList.Add(new VivePointerEventData(this, EventSystem.current, btn, mouseBtn++));
             }

@@ -2,6 +2,7 @@
 
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
+using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -28,49 +29,49 @@ namespace HTC.UnityPlugin.Vive
         Device13,
         Device14,
         Device15,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.RightHand instead")]
         RightHand = Device1,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.LeftHand instead")]
         LeftHand,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller3 instead")]
         Controller3,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller4 instead")]
         Controller4,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller5 instead")]
         Controller5,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller6 instead")]
         Controller6,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller7 instead")]
         Controller7,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller8 instead")]
         Controller8,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller9 instead")]
         Controller9,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller10 instead")]
         Controller10,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller11 instead")]
         Controller11,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller12 instead")]
         Controller12,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller13 instead")]
         Controller13,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller14 instead")]
         Controller14,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller15 instead")]
         Controller15,
     }

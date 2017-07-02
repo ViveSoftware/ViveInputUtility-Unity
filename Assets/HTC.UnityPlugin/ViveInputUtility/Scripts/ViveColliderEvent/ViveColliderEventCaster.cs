@@ -12,12 +12,16 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
         [SerializeField]
+        [CustomOrderedEnum]
         private ControllerButton m_buttonTrigger = ControllerButton.Trigger;
         [SerializeField]
+        [CustomOrderedEnum]
         private ControllerButton m_buttonPadOrStick = ControllerButton.Pad;
         [SerializeField]
+        [CustomOrderedEnum]
         private ControllerButton m_buttonGripOrHandTrigger = ControllerButton.Grip;
         [SerializeField]
+        [CustomOrderedEnum]
         private ControllerButton m_buttonFunctionKey = ControllerButton.Menu;
         [SerializeField]
         [FormerlySerializedAs("m_buttonEvents")]
@@ -55,9 +59,10 @@ namespace HTC.UnityPlugin.Vive
             FilterOutAssignedButton();
 
             var eventBtn = ColliderButtonEventData.InputButton.GripOrHandTrigger + 1;
-            for (ControllerButton btn = 0; m_additionalButtons > 0u; ++btn, m_additionalButtons >>= 1)
+            var addBtns = m_additionalButtons;
+            for (ControllerButton btn = 0; addBtns > 0u; ++btn, addBtns >>= 1)
             {
-                if ((m_additionalButtons & 1u) == 0u) { continue; }
+                if ((addBtns & 1u) == 0u) { continue; }
 
                 buttonEventDataList.Add(new ViveColliderButtonEventData(this, btn, eventBtn++));
             }

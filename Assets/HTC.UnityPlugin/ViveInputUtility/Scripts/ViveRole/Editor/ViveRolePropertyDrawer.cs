@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -131,6 +132,7 @@ namespace HTC.UnityPlugin.Vive
             }
 
             // find current role value index
+            var enumInfo = EnumUtils.GetDisplayInfo(roleType);
             var roleTypeInfo = ViveRoleEnum.GetInfo(roleType);
             var roleValueIndex = roleTypeInfo.GetElementIndexByName(roleValueName);
             if (roleValueIndex < 0)
@@ -140,25 +142,14 @@ namespace HTC.UnityPlugin.Vive
 
             // draw pupup box, get new role type index / value index
             var newRoleTypeIndex = EditorGUI.Popup(enumTypeRect, roleTypeIndex, s_roleTypeNames);
-            var newRoleValueIndex = EditorGUI.Popup(enumValueRect, roleValueIndex, roleTypeInfo.RoleValueNames);
+            var newRoleValueIndex = EditorGUI.Popup(enumValueRect, roleValueIndex, enumInfo.displayedNames);
 
             // if new role index changed
-            var newRoleType = roleType;
-            var newRoleTypeInfo = roleTypeInfo;
-
-            if (newRoleTypeIndex != roleTypeIndex)
-            {
-                newRoleType = ViveRoleEnum.ValidViveRoleTable.GetValueByIndex(newRoleTypeIndex);
-                newRoleTypeInfo = ViveRoleEnum.GetInfo(newRoleType);
-                roleTypeProp.stringValue = ViveRoleEnum.ValidViveRoleTable.GetKeyByIndex(newRoleTypeIndex);
-            }
-
             if (newRoleTypeIndex != roleTypeIndex || newRoleValueIndex != roleValueIndex)
             {
-                if (newRoleValueIndex < 0 || newRoleValueIndex >= newRoleTypeInfo.ElementCount)
-                {
-                    newRoleValueIndex = newRoleTypeInfo.InvalidRoleValueIndex;
-                }
+                var newRoleType = ViveRoleEnum.ValidViveRoleTable.GetValueByIndex(newRoleTypeIndex);
+                var newRoleTypeInfo = ViveRoleEnum.GetInfo(newRoleType);
+                roleTypeProp.stringValue = ViveRoleEnum.ValidViveRoleTable.GetKeyByIndex(newRoleTypeIndex);
 
                 roleValueProp.stringValue = newRoleTypeInfo.GetNameByElementIndex(newRoleValueIndex);
             }
