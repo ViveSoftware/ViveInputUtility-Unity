@@ -54,8 +54,6 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
     [SerializeField]
     private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
     [SerializeField]
-    private bool m_applyTracking = false;
-    [SerializeField]
     private Transform m_origin;
     [SerializeField]
     private Index m_deviceIndex = Index.Hmd;
@@ -72,7 +70,7 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
 
     public Transform origin { get { return m_origin; } set { m_origin = value; } }
 
-    public bool applyTracking { get { return m_applyTracking; } set { m_applyTracking = value; } }
+    public bool applyTracking { get; set; }
 
     public OverrideModelEnum overrideModel { get { return m_overrideModel; } set { m_overrideModel = value; } }
 
@@ -96,7 +94,7 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
     {
         UpdateModel();
 
-        if (isActiveAndEnabled && m_applyTracking)
+        if (isActiveAndEnabled && applyTracking)
         {
             var deviceIndex = GetCurrentDeviceIndex();
             if (VivePose.IsValid(deviceIndex))

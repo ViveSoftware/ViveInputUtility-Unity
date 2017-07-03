@@ -9,8 +9,6 @@ public class RenderModelHookEditor : Editor
     protected SerializedProperty modeProp;
     protected SerializedProperty viveRoleProp;
     protected SerializedProperty deviceIndexProp;
-    protected SerializedProperty applyTrackingProp;
-    protected SerializedProperty originProp;
     protected SerializedProperty overrideModelProp;
 
     protected virtual void OnEnable()
@@ -21,8 +19,6 @@ public class RenderModelHookEditor : Editor
         modeProp = serializedObject.FindProperty("m_mode");
         viveRoleProp = serializedObject.FindProperty("m_viveRole");
         deviceIndexProp = serializedObject.FindProperty("m_deviceIndex");
-        applyTrackingProp = serializedObject.FindProperty("m_applyTracking");
-        originProp = serializedObject.FindProperty("m_origin");
         overrideModelProp = serializedObject.FindProperty("m_overrideModel");
     }
 
@@ -51,13 +47,6 @@ public class RenderModelHookEditor : Editor
             case (int)RenderModelHook.Mode.Disable:
             default:
                 break;
-        }
-
-        EditorGUILayout.PropertyField(applyTrackingProp);
-
-        if (applyTrackingProp.boolValue)
-        {
-            EditorGUILayout.PropertyField(originProp);
         }
 
         serializedObject.ApplyModifiedProperties();
