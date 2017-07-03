@@ -52,9 +52,9 @@ namespace HTC.UnityPlugin.Vive
 #endif
         protected void FilterOutAssignedButton()
         {
-            m_additionalButtons &= ~(1u << (int)m_mouseButtonLeft);
-            m_additionalButtons &= ~(1u << (int)m_mouseButtonMiddle);
-            m_additionalButtons &= ~(1u << (int)m_mouseButtonRight);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_mouseButtonLeft);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_mouseButtonMiddle);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_mouseButtonRight);
         }
 
         protected override void Start()

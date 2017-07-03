@@ -43,10 +43,10 @@ namespace HTC.UnityPlugin.Vive
 #endif
         protected void FilterOutAssignedButton()
         {
-            m_additionalButtons &= ~(1u << (int)m_buttonTrigger);
-            m_additionalButtons &= ~(1u << (int)m_buttonPadOrStick);
-            m_additionalButtons &= ~(1u << (int)m_buttonFunctionKey);
-            m_additionalButtons &= ~(1u << (int)m_buttonGripOrHandTrigger);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_buttonTrigger);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_buttonPadOrStick);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_buttonFunctionKey);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_buttonGripOrHandTrigger);
         }
 
         protected virtual void Start()

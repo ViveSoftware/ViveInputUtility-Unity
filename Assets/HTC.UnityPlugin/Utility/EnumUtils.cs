@@ -232,19 +232,6 @@ namespace HTC.UnityPlugin.Utility
 
                 return (int)realMask;
             }
-
-            public bool GetFlag(int maskField, int enumValue)
-            {
-                if (enumValue < 0 || enumValue >= MASK_FIELD_LENGTH) { return false; }
-                return (maskField & (1u << enumValue)) > 0u;
-            }
-
-            // return true if value changed
-            public bool SetFlag(int maskField, int enumValue)
-            {
-                if (enumValue < 0 || enumValue >= MASK_FIELD_LENGTH) { return false; }
-                return (maskField & (1u << enumValue)) > 0u;
-            }
         }
 
         private static Dictionary<Type, EnumDisplayInfo> s_enumInfoTable = new Dictionary<Type, EnumDisplayInfo>();
@@ -269,6 +256,24 @@ namespace HTC.UnityPlugin.Utility
         public static int GetMaxValue(Type enumType)
         {
             return GetDisplayInfo(enumType).maxValue;
+        }
+
+        public static bool GetFlag(uint maskField, int enumValue)
+        {
+            if (enumValue < 0 || enumValue >= MASK_FIELD_LENGTH) { return false; }
+            return (maskField & (1u << enumValue)) != 0u;
+        }
+
+        public static uint SetFlag(uint maskField, int enumValue)
+        {
+            if (enumValue < 0 || enumValue >= MASK_FIELD_LENGTH) { return maskField; }
+            return maskField | (1u << enumValue);
+        }
+
+        public static uint UnsetFlag(uint maskField, int enumValue)
+        {
+            if (enumValue < 0 || enumValue >= MASK_FIELD_LENGTH) { return maskField; }
+            return maskField & ~(1u << enumValue);
         }
     }
 }
