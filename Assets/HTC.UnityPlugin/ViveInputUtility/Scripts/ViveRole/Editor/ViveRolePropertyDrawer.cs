@@ -162,12 +162,12 @@ namespace HTC.UnityPlugin.Vive
             EditorGUI.EndProperty();
 
             // update target
-            if (newRoleTypeIndex != roleTypeIndex || newRoleValueIndex != roleValueIndex)
-            {
-                var target = GetTargetObjectOfProperty(property) as ViveRoleProperty;
-                if (newRoleTypeIndex != roleTypeIndex) { target.SetTypeDirty(); }
-                if (newRoleValueIndex != roleValueIndex) { target.SetValueDirty(); }
-            }
+            //if (newRoleTypeIndex != roleTypeIndex || newRoleValueIndex != roleValueIndex)
+            //{
+            //    var target = GetTargetObjectOfProperty(property) as ViveRoleProperty;
+            //    if (newRoleTypeIndex != roleTypeIndex) { target.SetTypeDirty(); }
+            //    if (newRoleValueIndex != roleValueIndex) { target.SetValueDirty(); }
+            //}
         }
     }
 }

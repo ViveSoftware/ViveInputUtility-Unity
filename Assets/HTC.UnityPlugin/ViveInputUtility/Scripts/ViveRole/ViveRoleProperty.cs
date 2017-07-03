@@ -10,7 +10,7 @@ namespace HTC.UnityPlugin.Vive
     // There also has a property drawer so you can use it as a serialized field in your MonoBevaviour.
     // Note that when deserializing, result of type and value is based on the valid role info stored in ViveRoleEnum class
     [Serializable]
-    public class ViveRoleProperty
+    public class ViveRoleProperty : ISerializationCallbackReceiver
     {
         public static readonly Type DefaultRoleType = typeof(DeviceRole);
         public static readonly int DefaultRoleValue = (int)DeviceRole.Hmd;
@@ -81,6 +81,14 @@ namespace HTC.UnityPlugin.Vive
             prop.m_roleTypeFullName = typeFullName;
             prop.m_roleValueName = valueName;
             return prop;
+        }
+
+        public void OnBeforeSerialize() { }
+
+        public void OnAfterDeserialize()
+        {
+            SetTypeDirty();
+            SetValueDirty();
         }
 
         public void SetTypeDirty() { m_isTypeDirty = true; }
