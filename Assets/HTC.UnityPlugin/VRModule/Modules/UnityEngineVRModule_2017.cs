@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VR;
+using HTC.UnityPlugin.Utility;
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -18,11 +19,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private bool[] m_nodeStatesValid = new bool[MAX_DEVICE_COUNT];
         private List<VRNodeState> m_nodeStateList = new List<VRNodeState>();
 
-        private void OnNodeAdded(VRNodeState nodeState)
-        {
-            //Debug.Log(Time.frameCount + " OnNodeAdded " + nodeState.nodeType + " tracked=" + nodeState.tracked + " id=" + (InputTracking.GetNodeName(nodeState.uniqueID) ?? string.Empty));
+        private IndexedSet<ulong> m_prevExistNodeUids = new IndexedSet<ulong>();
+        private IndexedSet<ulong> m_currExistNodeUids = new IndexedSet<ulong>();
 
-            switch (nodeState.nodeType)
+        public override uint GetLeftControllerDeviceIndex() { return m_leftIndex; }
+
+        public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
+
+        private static bool IsTrackingDeviceNode(VRNode nodeType)
+        {
+            switch (nodeType)
             {
                 case VRNode.Head:
                 case VRNode.RightHand:
@@ -30,24 +36,36 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRNode.GameController:
                 case VRNode.HardwareTracker:
                 case VRNode.TrackingReference:
-                    break;
+                    return true;
                 default:
-                    return;
+                    return false;
             }
+        }
 
-            if (m_node2Index.ContainsKey(nodeState.uniqueID))
+        private bool TryGetNodeDeviceIndex(VRNodeState nodeState, out uint deviceIndex)
+        {
+            // only tracking certain type of node (some nodes share same uniqueID)
+            if (!IsTrackingDeviceNode(nodeState.nodeType)) { deviceIndex = 0; return false; }
+            //Debug.Log(Time.frameCount + " TryGetNodeDeviceIndex " + nodeState.nodeType + " tracked=" + nodeState.tracked + " id=" + nodeState.uniqueID + " name=" + (InputTracking.GetNodeName(nodeState.uniqueID) ?? string.Empty));
+            if (!m_node2Index.TryGetValue(nodeState.uniqueID, out deviceIndex))
             {
-                Debug.LogError("Duplicate node added id:" + nodeState.uniqueID + " name:" + InputTracking.GetNodeName(nodeState.uniqueID));
-            }
-            else
-            {
+                // FIXME: 0ul is invalid id?
+                if (nodeState.uniqueID == 0ul) { return false; }
+
                 var validIndexFound = false;
 
-                if (nodeState.nodeType == VRNode.Head && !m_nodeStatesValid[0])
+                if (nodeState.nodeType == VRNode.Head)
                 {
+                    if (m_nodeStatesValid[0])
+                    {
+                        Debug.LogError("Multiple Head node found! drop node id:" + nodeState.uniqueID.ToString("X8") + " name:" + InputTracking.GetNodeName(nodeState.uniqueID));
+                        return false;
+                    }
+
                     validIndexFound = true;
                     m_nodeStatesValid[0] = true;
                     m_node2Index.Add(nodeState.uniqueID, 0u);
+                    deviceIndex = 0;
                 }
                 else
                 {
@@ -65,6 +83,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 case VRNode.LeftHand: m_leftIndex = i; break;
                             }
 
+                            deviceIndex = i;
+
                             break;
                         }
                     }
@@ -73,19 +93,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!validIndexFound)
                 {
                     Debug.LogWarning("VRNode added, but device index out of range, drop the node");
-                    return;
+                    return false;
                 }
+
+                //Debug.Log("Add node device index [" + deviceIndex + "] id=" + nodeState.uniqueID + " type=" + nodeState.nodeType);
             }
+
+            return true;
         }
 
-        private void OnNodeRemoved(VRNodeState nodeState)
+        private void RemoveNodeDeviceIndex(ulong uniqueID)
         {
-            //Debug.Log(Time.frameCount + " OnNodeRemoved " + nodeState.nodeType + " tracked=" + nodeState.tracked);
-
             var deviceIndex = INVALID_DEVICE_INDEX;
-            if (m_node2Index.TryGetValue(nodeState.uniqueID, out deviceIndex))
+            if (m_node2Index.TryGetValue(uniqueID, out deviceIndex))
             {
-                m_node2Index.Remove(nodeState.uniqueID);
+                m_node2Index.Remove(uniqueID);
                 m_nodeStatesValid[deviceIndex] = false;
 
                 if (deviceIndex == m_rightIndex) { m_rightIndex = INVALID_DEVICE_INDEX; }
@@ -93,20 +115,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        public override uint GetLeftControllerDeviceIndex() { return m_leftIndex; }
-
-        public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
-
         public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
         {
             InputTracking.GetNodeStates(m_nodeStateList);
 
             var rightIndex = INVALID_DEVICE_INDEX;
             var leftIndex = INVALID_DEVICE_INDEX;
+
             for (int i = 0, imax = m_nodeStateList.Count; i < imax; ++i)
             {
-                var deviceIndex = INVALID_DEVICE_INDEX;
-                if (!m_node2Index.TryGetValue(m_nodeStateList[i].uniqueID, out deviceIndex)) { continue; }
+                uint deviceIndex;
+                if (!TryGetNodeDeviceIndex(m_nodeStateList[i], out deviceIndex))
+                {
+                    continue;
+                }
+
+                m_prevExistNodeUids.Remove(m_nodeStateList[i].uniqueID);
+                m_currExistNodeUids.Add(m_nodeStateList[i].uniqueID);
 
                 var prevDeviceState = prevState[deviceIndex];
                 var currDeviceState = currState[deviceIndex];
@@ -142,7 +167,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (!prevDeviceState.isConnected)
                 {
-                    currDeviceState.deviceSerialID = InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty;
+                    // FIXME: getting wrong name in Unity 2017.1f1
+                    //currDeviceState.deviceSerialID = InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty;
+                    currDeviceState.deviceSerialID = VRDevice.model + " " + m_nodeStateList[i].uniqueID.ToString("X8") + " " + (InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty);
                     currDeviceState.deviceModelNumber = VRDevice.model + " " + m_nodeStateList[i].nodeType;
 
                     SetupKnownDeviceModel(currDeviceState);
@@ -159,15 +186,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 var rotation = default(Quaternion);
                 if (m_nodeStateList[i].TryGetRotation(out rotation)) { currDeviceState.rotation = rotation; }
-            }
-
-            // remove disconnected nodes
-            for (int i = 0; i < MAX_DEVICE_COUNT; ++i)
-            {
-                if (!m_nodeStatesValid[i] && currState[i].isConnected)
-                {
-                    currState[i].Reset();
-                }
             }
 
             if (VRModule.IsValidDeviceIndex(rightIndex))
@@ -194,11 +212,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState[leftIndex].SetAxisValue(VRModuleRawAxis.GripOrHandTrigger, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.LeftGripSqueeze]));
             }
 
+            // remove disconnected nodes
+            for (int i = m_prevExistNodeUids.Count - 1; i >= 0; --i)
+            {
+                if (currState[i].isConnected) { currState[i].Reset(); }
+                RemoveNodeDeviceIndex(m_prevExistNodeUids[i]);
+            }
+
+            var temp = m_prevExistNodeUids;
+            m_prevExistNodeUids = m_currExistNodeUids;
+            m_currExistNodeUids = temp;
+            m_currExistNodeUids.Clear();
+
             if (m_rightIndex != rightIndex || m_leftIndex != leftIndex)
             {
                 m_rightIndex = rightIndex;
                 m_leftIndex = leftIndex;
-                VRModule.onControllerRoleChanged.Invoke();
+                InvokeControllerRoleChangedEvent();
             }
         }
 #endif

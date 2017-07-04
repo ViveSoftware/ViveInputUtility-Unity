@@ -54,6 +54,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 "HTC_VIU_LeftGrip",
                 "HTC_VIU_RightGrip",
         };
+
 #if UNITY_EDITOR
         public static readonly int[] vrControllerAxisIDs = new int[]
         {
@@ -67,14 +68,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 11,
         };
 #endif
-
-        public UnityEngineVRModule()
-        {
-#if UNITY_2017_1_OR_NEWER
-            InputTracking.nodeAdded += OnNodeAdded;
-            InputTracking.nodeRemoved += OnNodeRemoved;
-#endif
-        }
 
         public override bool ShouldActiveModule() { return VRSettings.enabled; }
 
