@@ -185,15 +185,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         }
 
                         // update device input button
-                        currState[i].SetButtonPress(VRModuleRawButton.PadOrStickPress, (m_ctrlState.ulButtonPressed & (1ul << (int)EVRButtonId.k_EButton_SteamVR_Touchpad)) != 0ul);
-                        currState[i].SetButtonPress(VRModuleRawButton.PadOrStickTouch, (m_ctrlState.ulButtonTouched & (1ul << (int)EVRButtonId.k_EButton_SteamVR_Touchpad)) != 0ul);
-                        currState[i].SetButtonPress(VRModuleRawButton.FunctionKey, (m_ctrlState.ulButtonPressed & (1ul << (int)EVRButtonId.k_EButton_ApplicationMenu)) != 0ul);
+                        currState[i].buttonPressed = m_ctrlState.ulButtonPressed;
+                        currState[i].buttonTouched = m_ctrlState.ulButtonTouched;
 
                         // update device input axis
-                        currState[i].SetAxisValue(VRModuleRawAxis.PadOrStickX, m_ctrlState.rAxis0.x);
-                        currState[i].SetAxisValue(VRModuleRawAxis.PadOrStickY, m_ctrlState.rAxis0.y);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Trigger, m_ctrlState.rAxis1.x);
-                        currState[i].SetAxisValue(VRModuleRawAxis.GripOrHandTrigger, (m_ctrlState.ulButtonPressed & (1ul << (int)EVRButtonId.k_EButton_Grip)) != 0ul ? 1f : 0f);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis0X, m_ctrlState.rAxis0.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis0Y, m_ctrlState.rAxis0.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis1X, m_ctrlState.rAxis1.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis1Y, m_ctrlState.rAxis1.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis2X, m_ctrlState.rAxis2.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis2Y, m_ctrlState.rAxis2.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis3X, m_ctrlState.rAxis3.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis3Y, m_ctrlState.rAxis3.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis4X, m_ctrlState.rAxis4.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis4Y, m_ctrlState.rAxis4.y);
                     }
                 }
                 else

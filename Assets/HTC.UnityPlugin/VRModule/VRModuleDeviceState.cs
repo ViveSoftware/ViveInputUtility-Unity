@@ -31,17 +31,50 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public enum VRModuleRawButton
     {
-        PadOrStickPress,
-        PadOrStickTouch,
-        FunctionKey,
+        System = 0,
+        ApplicationMenu = 1,
+        Grip = 2,
+        DPadLeft = 3,
+        DPadUp = 4,
+        DPadRight = 5,
+        DPadDown = 6,
+        A = 7,
+        ProximitySensor = 31,
+        Axis0 = 32,
+        Axis1 = 33,
+        Axis2 = 34,
+        Axis3 = 35,
+        Axis4 = 36,
+
+        // alias
+        DashboardBack = 2, // Grip
+        Touchpad = 32, // Axis0
+        Trigger = 33, // Axis1
+        CapSenseGrip = 34, // Axis2
     }
 
     public enum VRModuleRawAxis
     {
-        PadOrStickX,
-        PadOrStickY,
-        Trigger,
-        GripOrHandTrigger,
+        Axis0X,
+        Axis0Y,
+        Axis1X,
+        Axis1Y,
+        Axis2X,
+        Axis2Y,
+        Axis3X,
+        Axis3Y,
+        Axis4X,
+        Axis4Y,
+
+        // alias
+        TouchpadX = Axis0X,
+        TouchpadY = Axis0Y,
+        Trigger = Axis1X,
+        CapSenseGrip = Axis2X,
+        IndexCurl = Axis3X,
+        MiddleCurl = Axis3Y,
+        RingCurl = Axis4X,
+        PinkyCurl = Axis4Y,
     }
 
     public interface IVRModuleDeviceStateRW
@@ -63,9 +96,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Quaternion rotation { get; set; }
         Pose pose { get; set; }
 
+        ulong buttonPressed { get; set; }
+        ulong buttonTouched { get; set; }
+        float[] axisValue { get; }
+
         bool GetButtonPress(VRModuleRawButton button);
+        bool GetButtonTouch(VRModuleRawButton button);
         float GetAxisValue(VRModuleRawAxis axis);
+
         void SetButtonPress(VRModuleRawButton button, bool value);
+        void SetButtonTouch(VRModuleRawButton button, bool value);
         void SetAxisValue(VRModuleRawAxis axis, float value);
         void Reset();
     }
@@ -89,7 +129,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Quaternion rotation { get; }
         Pose pose { get; }
 
+        ulong buttonPressed { get; }
+        ulong buttonTouched { get; }
+
         bool GetButtonPress(VRModuleRawButton button);
+        bool GetButtonTouch(VRModuleRawButton button);
         float GetAxisValue(VRModuleRawAxis axis);
     }
 
@@ -143,22 +187,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public Vector3 position { get { return m_position; } set { m_position = value; } }
             public Quaternion rotation { get { return m_rotation; } set { m_rotation = value; } }
             public Pose pose { get { return new Pose(m_position, m_rotation); } set { m_position = value.pos; m_rotation = value.rot; } }
+
             // device input state
             [SerializeField]
-            public bool[] m_buttonPress;
+            public ulong m_buttonPressed;
+            [SerializeField]
+            public ulong m_buttonTouched;
             [SerializeField]
             public float[] m_axisValue;
 
-            public bool GetButtonPress(VRModuleRawButton button) { return m_buttonPress[(int)button]; }
+            public ulong buttonPressed { get { return m_buttonPressed; } set { m_buttonPressed = value; } }
+            public ulong buttonTouched { get { return m_buttonTouched; } set { m_buttonTouched = value; } }
+            public float[] axisValue { get { return m_axisValue; } }
+
+            public bool GetButtonPress(VRModuleRawButton button) { return EnumUtils.GetFlag(m_buttonPressed, (int)button); }
+            public bool GetButtonTouch(VRModuleRawButton button) { return EnumUtils.GetFlag(m_buttonTouched, (int)button); }
             public float GetAxisValue(VRModuleRawAxis axis) { return m_axisValue[(int)axis]; }
 
-            public void SetButtonPress(VRModuleRawButton button, bool value) { m_buttonPress[(int)button] = value; }
+            public void SetButtonPress(VRModuleRawButton button, bool value) { m_buttonPressed = value ? EnumUtils.SetFlag(m_buttonPressed, (int)button) : EnumUtils.UnsetFlag(m_buttonPressed, (int)button); }
+            public void SetButtonTouch(VRModuleRawButton button, bool value) { m_buttonTouched = value ? EnumUtils.SetFlag(m_buttonTouched, (int)button) : EnumUtils.UnsetFlag(m_buttonTouched, (int)button); }
             public void SetAxisValue(VRModuleRawAxis axis, float value) { m_axisValue[(int)axis] = value; }
 
             public DeviceState(uint deviceIndex)
             {
                 this.deviceIndex = deviceIndex;
-                this.m_buttonPress = new bool[EnumUtils.GetMaxValue(typeof(VRModuleRawButton)) + 1];
                 this.m_axisValue = new float[EnumUtils.GetMaxValue(typeof(VRModuleRawAxis)) + 1];
                 Reset();
             }
@@ -177,8 +229,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 angularVelocity = state.angularVelocity;
                 pose = state.pose;
 
-                for (int i = m_buttonPress.Length - 1; i >= 0; --i) { m_buttonPress[i] = state.m_buttonPress[i]; }
-                for (int i = m_axisValue.Length - 1; i >= 0; --i) { m_axisValue[i] = state.m_axisValue[i]; }
+                m_buttonPressed = state.m_buttonPressed;
+                m_buttonTouched = state.m_buttonTouched;
+                Array.Copy(state.m_axisValue, m_axisValue, m_axisValue.Length);
             }
 
             public void Reset()
@@ -195,8 +248,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 angularVelocity = Vector3.zero;
                 pose = Pose.identity;
 
-                for (int i = m_buttonPress.Length - 1; i >= 0; --i) { m_buttonPress[i] = false; }
-                for (int i = m_axisValue.Length - 1; i >= 0; --i) { m_axisValue[i] = 0f; }
+                m_buttonPressed = 0ul;
+                m_buttonTouched = 0ul;
+                Array.Clear(m_axisValue, 0, m_axisValue.Length);
             }
         }
     }
