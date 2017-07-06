@@ -4,7 +4,6 @@ using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using UnityEngine;
-using UnityEngine.VR;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -61,9 +60,9 @@ namespace HTC.UnityPlugin.Vive
             private int updatedFrameCount = -1;
             private uint prevDeviceIndex;
             private VRModuleDeviceModel trackedDeviceModel = VRModuleDeviceModel.Unknown;
-
-            private readonly bool[] prevButtonPress = new bool[CONTROLLER_BUTTON_COUNT];
-            private readonly bool[] currButtonPress = new bool[CONTROLLER_BUTTON_COUNT];
+            
+            private uint prevButtonPressed;
+            private uint currButtonPressed;
 
             private readonly float[] prevAxisValue = new float[CONTROLLER_AXIS_COUNT];
             private readonly float[] currAxisValue = new float[CONTROLLER_AXIS_COUNT];
@@ -79,7 +78,6 @@ namespace HTC.UnityPlugin.Vive
 
             private const float hairDelta = 0.1f; // amount trigger must be pulled or released to change state
             private float hairTriggerLimit;
-            private float hairGripLimit;
 
             public RCtrlState(Type roleEnumType, int roleValue)
             {
@@ -103,45 +101,59 @@ namespace HTC.UnityPlugin.Vive
 
                 // copy to previous states
                 prevDeviceIndex = deviceIndex;
-                for (int i = CONTROLLER_BUTTON_COUNT - 1; i >= 0; --i) { prevButtonPress[i] = currButtonPress[i]; }
+                prevButtonPressed = currButtonPressed;
                 for (int i = CONTROLLER_AXIS_COUNT - 1; i >= 0; --i) { prevAxisValue[i] = currAxisValue[i]; }
 
-                trackedDeviceModel = currState.deviceModel;
+                // update button states
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Menu, currState.GetButtonPress(VRModuleRawButton.ApplicationMenu));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.MenuTouch, currState.GetButtonTouch(VRModuleRawButton.ApplicationMenu));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Trigger, currState.GetButtonPress(VRModuleRawButton.Trigger));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.TriggerTouch, currState.GetButtonTouch(VRModuleRawButton.Trigger));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Pad, currState.GetButtonPress(VRModuleRawButton.Touchpad));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.PadTouch, currState.GetButtonTouch(VRModuleRawButton.Touchpad));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Grip, currState.GetButtonPress(VRModuleRawButton.Grip));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.GripTouch, currState.GetButtonTouch(VRModuleRawButton.Grip));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.CapSenseGrip, currState.GetButtonPress(VRModuleRawButton.CapSenseGrip));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.CapSenseGripTouch, currState.GetButtonTouch(VRModuleRawButton.CapSenseGrip));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.AKey, currState.GetButtonPress(VRModuleRawButton.A));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.AKeyTouch, currState.GetButtonTouch(VRModuleRawButton.A));
+
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis3, currState.GetButtonPress(VRModuleRawButton.Axis3));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis3Touch, currState.GetButtonTouch(VRModuleRawButton.Axis3));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4, currState.GetButtonPress(VRModuleRawButton.Axis4));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4Touch, currState.GetButtonTouch(VRModuleRawButton.Axis4));
 
                 // update axis values
-                currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.PadOrStickX);
-                currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.PadOrStickY);
+                currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
                 currAxisValue[(int)ControllerAxis.Trigger] = currState.GetAxisValue(VRModuleRawAxis.Trigger);
-                currAxisValue[(int)ControllerAxis.Grip] = currState.GetAxisValue(VRModuleRawAxis.GripOrHandTrigger);
-
-                // update button states
-                currButtonPress[(int)ControllerButton.Pad] = currState.GetButtonPress(VRModuleRawButton.PadOrStickPress);
-                currButtonPress[(int)ControllerButton.PadTouch] = currState.GetButtonPress(VRModuleRawButton.PadOrStickTouch);
-                currButtonPress[(int)ControllerButton.Menu] = currState.GetButtonPress(VRModuleRawButton.FunctionKey);
+                currAxisValue[(int)ControllerAxis.CapSenseGrip] = currState.GetAxisValue(VRModuleRawAxis.CapSenseGrip);
+                currAxisValue[(int)ControllerAxis.IndexCurl] = currState.GetAxisValue(VRModuleRawAxis.IndexCurl);
+                currAxisValue[(int)ControllerAxis.MiddleCurl] = currState.GetAxisValue(VRModuleRawAxis.MiddleCurl);
+                currAxisValue[(int)ControllerAxis.RingCurl] = currState.GetAxisValue(VRModuleRawAxis.RingCurl);
+                currAxisValue[(int)ControllerAxis.PinkyCurl] = currState.GetAxisValue(VRModuleRawAxis.PinkyCurl);
 
                 // update hair trigger
-                currButtonPress[(int)ControllerButton.Trigger] = prevButtonPress[(int)ControllerButton.Trigger] ? currAxisValue[(int)ControllerAxis.Trigger] >= 0.45f : currAxisValue[(int)ControllerAxis.Trigger] >= 0.55f;
-                currButtonPress[(int)ControllerButton.FullTrigger] = currAxisValue[(int)ControllerAxis.Trigger] == 1f;
-                currButtonPress[(int)ControllerButton.HairTrigger] =
-                    prevButtonPress[(int)ControllerButton.HairTrigger] ?
-                        currAxisValue[(int)ControllerAxis.Trigger] >= (hairTriggerLimit - hairDelta) && currAxisValue[(int)ControllerAxis.Trigger] > 0.0f
-                        :
-                        currAxisValue[(int)ControllerAxis.Trigger] > (hairTriggerLimit + hairDelta) || currAxisValue[(int)ControllerAxis.Trigger] >= 1.0f
-                        ;
+                var currTriggerValue = currAxisValue[(int)ControllerAxis.Trigger];
 
-                hairTriggerLimit = currButtonPress[(int)ControllerButton.HairTrigger] ? Mathf.Max(hairTriggerLimit, currAxisValue[(int)ControllerAxis.Trigger]) : Mathf.Min(hairTriggerLimit, currAxisValue[(int)ControllerAxis.Trigger]);
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.FullTrigger, currTriggerValue == 1f);
+                if (EnumUtils.GetFlag(prevButtonPressed, (int)ControllerButton.HairTrigger))
+                {
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.HairTrigger, currTriggerValue >= (hairTriggerLimit - hairDelta) && currTriggerValue > 0.0f);
+                }
+                else
+                {
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.HairTrigger, currTriggerValue > (hairTriggerLimit + hairDelta) || currTriggerValue >= 1.0f);
+                }
 
-                // update hair grip
-                currButtonPress[(int)ControllerButton.Grip] = prevButtonPress[(int)ControllerButton.Grip] ? currAxisValue[(int)ControllerAxis.Grip] >= 0.45f : currAxisValue[(int)ControllerAxis.Grip] >= 0.55f;
-                currButtonPress[(int)ControllerButton.FullGrip] = currAxisValue[(int)ControllerAxis.Grip] == 1f;
-                currButtonPress[(int)ControllerButton.HairGrip] =
-                    prevButtonPress[(int)ControllerButton.HairGrip] ?
-                        currAxisValue[(int)ControllerAxis.Grip] >= (hairGripLimit - hairDelta) && currAxisValue[(int)ControllerAxis.Grip] > 0.0f
-                        :
-                        currAxisValue[(int)ControllerAxis.Grip] > (hairGripLimit + hairDelta) || currAxisValue[(int)ControllerAxis.Grip] >= 1.0f
-                        ;
-
-                hairGripLimit = currButtonPress[(int)ControllerButton.HairGrip] ? Mathf.Max(hairGripLimit, currAxisValue[(int)ControllerAxis.Grip]) : Mathf.Min(hairTriggerLimit, currAxisValue[(int)ControllerAxis.Grip]);
+                if (EnumUtils.GetFlag(currButtonPressed, (int)ControllerButton.HairTrigger))
+                {
+                    hairTriggerLimit = Mathf.Max(hairTriggerLimit, currTriggerValue);
+                }
+                else
+                {
+                    hairTriggerLimit = Mathf.Min(hairTriggerLimit, currTriggerValue);
+                }
 
                 // record pad down axis values
                 if (GetPressDown(ControllerButton.Pad))
@@ -269,17 +281,17 @@ namespace HTC.UnityPlugin.Vive
 
             public override bool GetPress(ControllerButton button, bool usePrevState = false)
             {
-                return IsValidButton(button) && (usePrevState ? prevButtonPress[(int)button] : currButtonPress[(int)button]);
+                return IsValidButton(button) && EnumUtils.GetFlag(usePrevState ? prevButtonPressed : currButtonPressed, (int)button);
             }
 
             public override bool GetPressDown(ControllerButton button)
             {
-                return IsValidButton(button) && !prevButtonPress[(int)button] && currButtonPress[(int)button];
+                return IsValidButton(button) && !EnumUtils.GetFlag(prevButtonPressed, (int)button) && EnumUtils.GetFlag(currButtonPressed, (int)button);
             }
 
             public override bool GetPressUp(ControllerButton button)
             {
-                return IsValidButton(button) && prevButtonPress[(int)button] && !currButtonPress[(int)button];
+                return IsValidButton(button) && EnumUtils.GetFlag(prevButtonPressed, (int)button) && !EnumUtils.GetFlag(currButtonPressed, (int)button);
             }
 
             public override float LastPressDownTime(ControllerButton button)

@@ -33,21 +33,50 @@ namespace HTC.UnityPlugin.Vive
     public enum ControllerButton
     {
         None = -1,
-        Trigger,
-        Pad,
-        Grip,
-        PadTouch,
-        Menu,
-        /// <summary>
-        /// Pressed if trigger button is pressing, unpressed if trigger button is releasing
-        /// </summary>
-        HairTrigger,
-        /// <summary>
-        /// Pressed if only trigger button is fully held(tirgger value equals to 1.0f)
-        /// </summary>
-        FullTrigger,
-        HairGrip,
-        FullGrip,
+
+        // classic buttons
+        Menu = 4,
+        MenuTouch = 7,
+        Trigger = 0, // on:0.55 off:0.45
+        TriggerTouch = 8, // on:0.25 off:0.20
+        Pad = 1,
+        PadTouch = 3,
+        Grip = 2,
+        GripTouch = 9,
+        CapSenseGrip = 10, // on:1.00 off:0.90 // Knuckles, Oculus Touch only
+        CapSenseGripTouch = 11, // on:0.25 off:0.20 // Knuckles, Oculus Touch only
+        AKey = 12, // Oculus Touch only, RightHandA or LeftHandX pressed
+        AKeyTouch = 13, // Oculus Touch only, RightHandA or LeftHandX touched
+
+        // button alias
+        OuterFaceButton = Menu, // 7
+        OuterFaceButtonTouch = MenuTouch, // 9
+        InnerFaceButton = Grip, // 2
+        InnerFaceButtonTouch = GripTouch, // 11
+        [HideInInspector]
+        Axis0 = Pad,
+        [HideInInspector]
+        Axis1 = Trigger,
+        [HideInInspector]
+        Axis2 = CapSenseGrip,
+        [HideInInspector]
+        Axis3 = 14,
+        [HideInInspector]
+        Axis4 = 15,
+        [HideInInspector]
+        Axis0Touch = PadTouch,
+        [HideInInspector]
+        Axis1Touch = TriggerTouch,
+        [HideInInspector]
+        Axis2Touch = CapSenseGripTouch,
+        [HideInInspector]
+        Axis3Touch = 16,
+        [HideInInspector]
+        Axis4Touch = 17,
+
+        // virtual buttons
+        HairTrigger = 5, // Pressed if trigger button is pressing, unpressed if trigger button is releasing
+        FullTrigger = 6, // on:1.00 off:1.00
     }
 
     public enum ControllerAxis
@@ -56,7 +85,11 @@ namespace HTC.UnityPlugin.Vive
         PadX,
         PadY,
         Trigger,
-        Grip,
+        CapSenseGrip, // Knuckles, Oculus Touch only
+        IndexCurl, // Knuckles only
+        MiddleCurl, // Knuckles only
+        RingCurl, // Knuckles only
+        PinkyCurl, // Knuckles only
     }
 
     public enum ScrollType

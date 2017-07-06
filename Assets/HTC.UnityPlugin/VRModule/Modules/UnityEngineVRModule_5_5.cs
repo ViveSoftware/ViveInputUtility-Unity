@@ -35,58 +35,64 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var joystickNames = default(string[]);
 
             // head
-            currState[m_headIndex].isConnected = VRDevice.isPresent;
+            var headCurrState = currState[m_headIndex];
+            var headPrevState = prevState[m_headIndex];
 
-            if (currState[m_headIndex].isConnected)
+            headCurrState.isConnected = VRDevice.isPresent;
+
+            if (headCurrState.isConnected)
             {
-                if (!prevState[m_headIndex].isConnected)
+                if (!headPrevState.isConnected)
                 {
-                    currState[m_headIndex].deviceClass = VRModuleDeviceClass.HMD;
-                    currState[m_headIndex].deviceSerialID = VRDevice.model + " HMD";
-                    currState[m_headIndex].deviceModelNumber = VRDevice.model + " HMD";
+                    headCurrState.deviceClass = VRModuleDeviceClass.HMD;
+                    headCurrState.deviceSerialID = VRDevice.model + " HMD";
+                    headCurrState.deviceModelNumber = VRDevice.model + " HMD";
 
                     if (m_viveRgx.IsMatch(VRDevice.model))
                     {
-                        currState[m_headIndex].deviceModel = VRModuleDeviceModel.ViveHMD;
+                        headCurrState.deviceModel = VRModuleDeviceModel.ViveHMD;
                     }
                     else if (m_oculusRgx.IsMatch(VRDevice.model))
                     {
-                        currState[m_headIndex].deviceModel = VRModuleDeviceModel.OculusHMD;
+                        headCurrState.deviceModel = VRModuleDeviceModel.OculusHMD;
                     }
                     else
                     {
-                        currState[m_headIndex].deviceModel = VRModuleDeviceModel.Unknown;
+                        headCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
                 }
 
-                currState[m_headIndex].position = InputTracking.GetLocalPosition(VRNode.Head);
-                currState[m_headIndex].rotation = InputTracking.GetLocalRotation(VRNode.Head);
-                currState[m_headIndex].isPoseValid = currState[m_headIndex].pose != Pose.identity && currState[m_headIndex].pose != prevState[m_headIndex].pose;
+                headCurrState.position = InputTracking.GetLocalPosition(VRNode.Head);
+                headCurrState.rotation = InputTracking.GetLocalRotation(VRNode.Head);
+                headCurrState.isPoseValid = headCurrState.pose != Pose.identity && headCurrState.pose != headPrevState.pose;
             }
             else
             {
-                if (prevState[m_headIndex].isConnected)
+                if (headPrevState.isConnected)
                 {
-                    currState[m_headIndex].Reset();
+                    headCurrState.Reset();
                 }
             }
 
             // right
-            currState[m_rightIndex].position = InputTracking.GetLocalPosition(VRNode.RightHand);
-            currState[m_rightIndex].rotation = InputTracking.GetLocalRotation(VRNode.RightHand);
-            currState[m_rightIndex].isPoseValid = currState[m_rightIndex].pose != Pose.identity && currState[m_rightIndex].pose != prevState[m_rightIndex].pose;
+            var rightCurrState = currState[m_rightIndex];
+            var rightPrevState = prevState[m_rightIndex];
+
+            rightCurrState.position = InputTracking.GetLocalPosition(VRNode.RightHand);
+            rightCurrState.rotation = InputTracking.GetLocalRotation(VRNode.RightHand);
+            rightCurrState.isPoseValid = rightCurrState.pose != Pose.identity && rightCurrState.pose != rightPrevState.pose;
 
             // right connected state
-            if (currState[m_rightIndex].isPoseValid)
+            if (rightCurrState.isPoseValid)
             {
-                if (!prevState[m_rightIndex].isConnected)
+                if (!rightPrevState.isConnected)
                 {
                     if (joystickNames == null) { joystickNames = Input.GetJoystickNames(); }
                     for (int i = joystickNames.Length - 1; i >= 0; --i)
                     {
                         if (!string.IsNullOrEmpty(joystickNames[i]) && m_rightRgx.IsMatch(joystickNames[i]))
                         {
-                            currState[m_rightIndex].isConnected = true;
+                            rightCurrState.isConnected = true;
                             m_rightJoystickName = joystickNames[i];
                             m_rightJoystickNameIndex = i;
                             break;
@@ -96,72 +102,98 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
             else
             {
-                if (prevState[m_rightIndex].isConnected)
+                if (rightPrevState.isConnected)
                 {
                     if (joystickNames == null) { joystickNames = Input.GetJoystickNames(); }
                     if (string.IsNullOrEmpty(joystickNames[m_rightJoystickNameIndex]))
                     {
-                        currState[m_rightIndex].isConnected = false;
+                        rightCurrState.isConnected = false;
                         m_rightJoystickName = string.Empty;
                         m_rightJoystickNameIndex = -1;
                     }
                 }
             }
             // right input state
-            if (currState[m_rightIndex].isConnected)
+            if (rightCurrState.isConnected)
             {
-                if (!prevState[m_rightIndex].isConnected)
+                if (!rightPrevState.isConnected)
                 {
-                    currState[m_rightIndex].deviceClass = VRModuleDeviceClass.Controller;
-                    currState[m_rightIndex].deviceSerialID = m_rightJoystickName;
-                    currState[m_rightIndex].deviceModelNumber = VRDevice.model + " Controller";
+                    rightCurrState.deviceClass = VRModuleDeviceClass.Controller;
+                    rightCurrState.deviceSerialID = m_rightJoystickName;
+                    rightCurrState.deviceModelNumber = VRDevice.model + " Controller";
 
                     if (m_viveRgx.IsMatch(VRDevice.model))
                     {
-                        currState[m_rightIndex].deviceModel = VRModuleDeviceModel.ViveController;
+                        rightCurrState.deviceModel = VRModuleDeviceModel.ViveController;
                     }
                     else if (m_oculusRgx.IsMatch(VRDevice.model))
                     {
-                        currState[m_rightIndex].deviceModel = VRModuleDeviceModel.OculusTouchRight;
+                        rightCurrState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
                     }
                     else
                     {
-                        currState[m_rightIndex].deviceModel = VRModuleDeviceModel.Unknown;
+                        rightCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
                 }
 
-                currState[m_rightIndex].SetButtonPress(VRModuleRawButton.PadOrStickPress, Input.GetKey(vrControllerButtonKeyCodes[(int)UnityVRControllerButton.RightTrackpadPress]));
-                currState[m_rightIndex].SetButtonPress(VRModuleRawButton.PadOrStickTouch, Input.GetKey(vrControllerButtonKeyCodes[(int)UnityVRControllerButton.RightTrackpadTouch]));
-                currState[m_rightIndex].SetButtonPress(VRModuleRawButton.FunctionKey, Input.GetKey(vrControllerButtonKeyCodes[(int)UnityVRControllerButton.RightMenuButtonPress]));
+                var rightMenuPress = Input.GetKey(ButtonKeyCode.RMenuPress);
+                var rightAButtonPress = Input.GetKey(ButtonKeyCode.RAKeyPress);
+                var rightPadPress = Input.GetKey(ButtonKeyCode.RPadPress);
 
-                currState[m_rightIndex].SetAxisValue(VRModuleRawAxis.PadOrStickX, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.RightTrackpadHorizontal]));
-                currState[m_rightIndex].SetAxisValue(VRModuleRawAxis.PadOrStickY, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.RightTrackpadVertical]));
-                currState[m_rightIndex].SetAxisValue(VRModuleRawAxis.Trigger, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.RightTriggerSqueeze]));
-                currState[m_rightIndex].SetAxisValue(VRModuleRawAxis.GripOrHandTrigger, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.RightGripSqueeze]));
+                var rightMenuTouch = Input.GetKey(ButtonKeyCode.RMenuTouch);
+                var rightAButtonTouch = Input.GetKey(ButtonKeyCode.RAKeyTouch);
+                var rightPadTouch = Input.GetKey(ButtonKeyCode.RPadTouch);
+                var rightTriggerTouch = Input.GetKey(ButtonKeyCode.RTriggerTouch);
+
+                var rightTrackpadX = Input.GetAxis(ButtonAxisName.RPadX);
+                var rightTrackpadY = Input.GetAxis(ButtonAxisName.RPadY);
+                var rightTrigger = Input.GetAxis(ButtonAxisName.RTrigger);
+                var rightGrip = Input.GetAxis(ButtonAxisName.RGrip);
+
+                rightCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, rightMenuPress);
+                rightCurrState.SetButtonPress(VRModuleRawButton.A, rightAButtonPress);
+                rightCurrState.SetButtonPress(VRModuleRawButton.Touchpad, rightPadPress);
+                rightCurrState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(rightPrevState.GetButtonPress(VRModuleRawButton.Trigger), rightTrigger, 0.55f, 0.45f));
+                rightCurrState.SetButtonPress(VRModuleRawButton.Grip, AxisToPress(rightPrevState.GetButtonPress(VRModuleRawButton.Grip), rightGrip, 0.55f, 0.45f));
+                rightCurrState.SetButtonPress(VRModuleRawButton.CapSenseGrip, AxisToPress(rightPrevState.GetButtonPress(VRModuleRawButton.CapSenseGrip), rightGrip, 0.55f, 0.45f));
+
+                rightCurrState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, rightMenuTouch);
+                rightCurrState.SetButtonTouch(VRModuleRawButton.A, rightAButtonTouch);
+                rightCurrState.SetButtonTouch(VRModuleRawButton.Touchpad, rightPadTouch);
+                rightCurrState.SetButtonTouch(VRModuleRawButton.Trigger, rightTriggerTouch);
+                rightCurrState.SetButtonTouch(VRModuleRawButton.CapSenseGrip, AxisToPress(rightPrevState.GetButtonTouch(VRModuleRawButton.CapSenseGrip), rightGrip, 0.25f, 0.20f));
+
+                rightCurrState.SetAxisValue(VRModuleRawAxis.TouchpadX, rightTrackpadX);
+                rightCurrState.SetAxisValue(VRModuleRawAxis.TouchpadY, rightTrackpadY);
+                rightCurrState.SetAxisValue(VRModuleRawAxis.Trigger, rightTrigger);
+                rightCurrState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, rightGrip);
             }
             else
             {
-                if (prevState[m_rightIndex].isConnected)
+                if (rightPrevState.isConnected)
                 {
-                    currState[m_rightIndex].Reset();
+                    rightCurrState.Reset();
                 }
             }
 
             // left
-            currState[m_leftIndex].position = InputTracking.GetLocalPosition(VRNode.LeftHand);
-            currState[m_leftIndex].rotation = InputTracking.GetLocalRotation(VRNode.LeftHand);
-            currState[m_leftIndex].isPoseValid = currState[m_leftIndex].pose != Pose.identity && currState[m_leftIndex].pose != prevState[m_leftIndex].pose;
+            var leftCurrState = currState[m_leftIndex];
+            var leftPrevState = prevState[m_leftIndex];
+
+            leftCurrState.position = InputTracking.GetLocalPosition(VRNode.LeftHand);
+            leftCurrState.rotation = InputTracking.GetLocalRotation(VRNode.LeftHand);
+            leftCurrState.isPoseValid = leftCurrState.pose != Pose.identity && leftCurrState.pose != leftPrevState.pose;
             // left connected state
-            if (currState[m_leftIndex].isPoseValid)
+            if (leftCurrState.isPoseValid)
             {
-                if (!prevState[m_leftIndex].isConnected)
+                if (!leftPrevState.isConnected)
                 {
                     if (joystickNames == null) { joystickNames = Input.GetJoystickNames(); }
                     for (int i = joystickNames.Length - 1; i >= 0; --i)
                     {
                         if (!string.IsNullOrEmpty(joystickNames[i]) && m_leftRgx.IsMatch(joystickNames[i]))
                         {
-                            currState[m_leftIndex].isConnected = true;
+                            leftCurrState.isConnected = true;
                             m_leftJoystickName = joystickNames[i];
                             m_leftJoystickNameIndex = i;
                             break;
@@ -171,54 +203,77 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
             else
             {
-                if (prevState[m_leftIndex].isConnected)
+                if (leftPrevState.isConnected)
                 {
                     if (joystickNames == null) { joystickNames = Input.GetJoystickNames(); }
                     if (string.IsNullOrEmpty(joystickNames[m_leftJoystickNameIndex]))
                     {
-                        currState[m_leftIndex].isConnected = false;
+                        leftCurrState.isConnected = false;
                         m_leftJoystickName = string.Empty;
                         m_leftJoystickNameIndex = -1;
                     }
                 }
             }
             // left input state
-            if (currState[m_leftIndex].isConnected)
+            if (leftCurrState.isConnected)
             {
-                if (!prevState[m_leftIndex].isConnected)
+                if (!leftPrevState.isConnected)
                 {
-                    currState[m_leftIndex].deviceClass = VRModuleDeviceClass.Controller;
-                    currState[m_leftIndex].deviceSerialID = m_leftJoystickName;
-                    currState[m_leftIndex].deviceModelNumber = VRDevice.model + " Controller";
+                    leftCurrState.deviceClass = VRModuleDeviceClass.Controller;
+                    leftCurrState.deviceSerialID = m_leftJoystickName;
+                    leftCurrState.deviceModelNumber = VRDevice.model + " Controller";
 
                     if (m_viveRgx.IsMatch(VRDevice.model))
                     {
-                        currState[m_leftIndex].deviceModel = VRModuleDeviceModel.ViveController;
+                        leftCurrState.deviceModel = VRModuleDeviceModel.ViveController;
                     }
                     else if (m_oculusRgx.IsMatch(VRDevice.model))
                     {
-                        currState[m_leftIndex].deviceModel = VRModuleDeviceModel.OculusTouchLeft;
+                        leftCurrState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
                     }
                     else
                     {
-                        currState[m_leftIndex].deviceModel = VRModuleDeviceModel.Unknown;
+                        leftCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
                 }
 
-                currState[m_leftIndex].SetButtonPress(VRModuleRawButton.PadOrStickPress, Input.GetKey(vrControllerButtonKeyCodes[(int)UnityVRControllerButton.LeftTrackpadPress]));
-                currState[m_leftIndex].SetButtonPress(VRModuleRawButton.PadOrStickTouch, Input.GetKey(vrControllerButtonKeyCodes[(int)UnityVRControllerButton.LeftTrackpadTouch]));
-                currState[m_leftIndex].SetButtonPress(VRModuleRawButton.FunctionKey, Input.GetKey(vrControllerButtonKeyCodes[(int)UnityVRControllerButton.LeftMenuButtonPress]));
+                var leftMenuPress = Input.GetKey(ButtonKeyCode.LMenuPress);
+                var leftAButtonPress = Input.GetKey(ButtonKeyCode.LAKeyPress);
+                var leftPadPress = Input.GetKey(ButtonKeyCode.LPadPress);
 
-                currState[m_leftIndex].SetAxisValue(VRModuleRawAxis.PadOrStickX, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.LeftTrackpadHorizontal]));
-                currState[m_leftIndex].SetAxisValue(VRModuleRawAxis.PadOrStickY, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.LeftTrackpadVertical]));
-                currState[m_leftIndex].SetAxisValue(VRModuleRawAxis.Trigger, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.LeftTriggerSqueeze]));
-                currState[m_leftIndex].SetAxisValue(VRModuleRawAxis.GripOrHandTrigger, Input.GetAxis(vrControllerAxisVirtualButtonNames[(int)UnityVRControllerAxis.LeftGripSqueeze]));
+                var leftMenuTouch = Input.GetKey(ButtonKeyCode.LMenuTouch);
+                var leftAButtonTouch = Input.GetKey(ButtonKeyCode.LAKeyTouch);
+                var leftPadTouch = Input.GetKey(ButtonKeyCode.LPadTouch);
+                var leftTriggerTouch = Input.GetKey(ButtonKeyCode.LTriggerTouch);
+
+                var leftTrackpadX = Input.GetAxis(ButtonAxisName.LPadX);
+                var leftTrackpadY = Input.GetAxis(ButtonAxisName.LPadY);
+                var leftTrigger = Input.GetAxis(ButtonAxisName.LTrigger);
+                var leftGrip = Input.GetAxis(ButtonAxisName.LGrip);
+
+                leftCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, leftMenuPress);
+                leftCurrState.SetButtonPress(VRModuleRawButton.A, leftAButtonPress);
+                leftCurrState.SetButtonPress(VRModuleRawButton.Touchpad, leftPadPress);
+                leftCurrState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(leftPrevState.GetButtonPress(VRModuleRawButton.Trigger), leftTrigger, 0.55f, 0.45f));
+                leftCurrState.SetButtonPress(VRModuleRawButton.Grip, AxisToPress(leftPrevState.GetButtonPress(VRModuleRawButton.Grip), leftGrip, 0.55f, 0.45f));
+                leftCurrState.SetButtonPress(VRModuleRawButton.CapSenseGrip, AxisToPress(leftPrevState.GetButtonPress(VRModuleRawButton.CapSenseGrip), leftGrip, 0.55f, 0.45f));
+
+                leftCurrState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, leftMenuTouch);
+                leftCurrState.SetButtonTouch(VRModuleRawButton.A, leftAButtonTouch);
+                leftCurrState.SetButtonTouch(VRModuleRawButton.Touchpad, leftPadTouch);
+                leftCurrState.SetButtonTouch(VRModuleRawButton.Trigger, leftTriggerTouch);
+                leftCurrState.SetButtonTouch(VRModuleRawButton.CapSenseGrip, AxisToPress(leftPrevState.GetButtonTouch(VRModuleRawButton.CapSenseGrip), leftGrip, 0.25f, 0.20f));
+
+                leftCurrState.SetAxisValue(VRModuleRawAxis.TouchpadX, leftTrackpadX);
+                leftCurrState.SetAxisValue(VRModuleRawAxis.TouchpadY, leftTrackpadY);
+                leftCurrState.SetAxisValue(VRModuleRawAxis.Trigger, leftTrigger);
+                leftCurrState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, leftGrip);
             }
             else
             {
-                if (prevState[m_leftIndex].isConnected)
+                if (leftPrevState.isConnected)
                 {
-                    currState[m_leftIndex].Reset();
+                    leftCurrState.Reset();
                 }
             }
         }

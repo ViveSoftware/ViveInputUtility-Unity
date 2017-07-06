@@ -140,29 +140,47 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         case VRModuleDeviceModel.OculusTouchLeft:
                             {
                                 var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.LTouch);
-                                // update left hand button state
-                                currState[i].SetButtonPress(VRModuleRawButton.PadOrStickPress, (ctrlState.Buttons & (uint)OVRInput.RawButton.LThumbstick) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.PadOrStickTouch, (ctrlState.Touches & (uint)OVRInput.RawButton.LThumbstick) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.FunctionKey, (ctrlState.Buttons & (uint)OVRInput.RawButton.X) != 0u);
-                                // update left hand axis value
-                                currState[i].SetAxisValue(VRModuleRawAxis.PadOrStickX, ctrlState.LThumbstick.x);
-                                currState[i].SetAxisValue(VRModuleRawAxis.PadOrStickY, ctrlState.LThumbstick.y);
+
+                                currState[i].SetButtonPress(VRModuleRawButton.ApplicationMenu, (ctrlState.Buttons & (uint)OVRInput.RawButton.Y) != 0u);
+                                currState[i].SetButtonPress(VRModuleRawButton.A, (ctrlState.Buttons & (uint)OVRInput.RawButton.X) != 0u);
+                                currState[i].SetButtonPress(VRModuleRawButton.Touchpad, (ctrlState.Buttons & (uint)OVRInput.RawButton.LThumbstick) != 0u);
+                                currState[i].SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(currState[i].GetButtonPress(VRModuleRawButton.Trigger), ctrlState.LIndexTrigger, 0.55f, 0.45f));
+                                currState[i].SetButtonPress(VRModuleRawButton.Grip, AxisToPress(currState[i].GetButtonPress(VRModuleRawButton.Grip), ctrlState.LHandTrigger, 0.55f, 0.45f));
+                                currState[i].SetButtonPress(VRModuleRawButton.CapSenseGrip, AxisToPress(currState[i].GetButtonPress(VRModuleRawButton.CapSenseGrip), ctrlState.LHandTrigger, 0.55f, 0.45f));
+
+                                currState[i].SetButtonTouch(VRModuleRawButton.ApplicationMenu, (ctrlState.Touches & (uint)OVRInput.RawTouch.Y) != 0u);
+                                currState[i].SetButtonTouch(VRModuleRawButton.A, (ctrlState.Touches & (uint)OVRInput.RawTouch.X) != 0u);
+                                currState[i].SetButtonTouch(VRModuleRawButton.Touchpad, (ctrlState.Touches & (uint)OVRInput.RawTouch.LThumbstick) != 0u);
+                                currState[i].SetButtonTouch(VRModuleRawButton.Trigger, (ctrlState.Buttons & (uint)OVRInput.RawTouch.LIndexTrigger) != 0u);
+                                currState[i].SetButtonTouch(VRModuleRawButton.CapSenseGrip, AxisToPress(currState[i].GetButtonTouch(VRModuleRawButton.CapSenseGrip), ctrlState.LHandTrigger, 0.25f, 0.20f));
+
+                                currState[i].SetAxisValue(VRModuleRawAxis.TouchpadX, ctrlState.LThumbstick.x);
+                                currState[i].SetAxisValue(VRModuleRawAxis.TouchpadY, ctrlState.LThumbstick.y);
                                 currState[i].SetAxisValue(VRModuleRawAxis.Trigger, ctrlState.LIndexTrigger);
-                                currState[i].SetAxisValue(VRModuleRawAxis.GripOrHandTrigger, ctrlState.LHandTrigger);
+                                currState[i].SetAxisValue(VRModuleRawAxis.CapSenseGrip, ctrlState.LHandTrigger);
                                 break;
                             }
                         case VRModuleDeviceModel.OculusTouchRight:
                             {
                                 var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.RTouch);
-                                // update right hand button state
-                                currState[i].SetButtonPress(VRModuleRawButton.PadOrStickPress, (ctrlState.Buttons & (uint)OVRInput.RawButton.RThumbstick) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.PadOrStickTouch, (ctrlState.Touches & (uint)OVRInput.RawButton.RThumbstick) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.FunctionKey, (ctrlState.Buttons & (uint)OVRInput.RawButton.A) != 0u);
-                                // update right hand axis value
-                                currState[i].SetAxisValue(VRModuleRawAxis.PadOrStickX, ctrlState.RThumbstick.x);
-                                currState[i].SetAxisValue(VRModuleRawAxis.PadOrStickY, ctrlState.RThumbstick.y);
+
+                                currState[i].SetButtonPress(VRModuleRawButton.ApplicationMenu, (ctrlState.Buttons & (uint)OVRInput.RawButton.B) != 0u);
+                                currState[i].SetButtonPress(VRModuleRawButton.A, (ctrlState.Buttons & (uint)OVRInput.RawButton.A) != 0u);
+                                currState[i].SetButtonPress(VRModuleRawButton.Touchpad, (ctrlState.Buttons & (uint)OVRInput.RawButton.RThumbstick) != 0u);
+                                currState[i].SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(currState[i].GetButtonPress(VRModuleRawButton.Trigger), ctrlState.RIndexTrigger, 0.55f, 0.45f));
+                                currState[i].SetButtonPress(VRModuleRawButton.Grip, AxisToPress(currState[i].GetButtonPress(VRModuleRawButton.Grip), ctrlState.RHandTrigger, 0.55f, 0.45f));
+                                currState[i].SetButtonPress(VRModuleRawButton.CapSenseGrip, AxisToPress(currState[i].GetButtonPress(VRModuleRawButton.CapSenseGrip), ctrlState.RHandTrigger, 0.55f, 0.45f));
+
+                                currState[i].SetButtonTouch(VRModuleRawButton.ApplicationMenu, (ctrlState.Touches & (uint)OVRInput.RawTouch.B) != 0u);
+                                currState[i].SetButtonTouch(VRModuleRawButton.A, (ctrlState.Touches & (uint)OVRInput.RawTouch.A) != 0u);
+                                currState[i].SetButtonTouch(VRModuleRawButton.Touchpad, (ctrlState.Touches & (uint)OVRInput.RawTouch.RThumbstick) != 0u);
+                                currState[i].SetButtonTouch(VRModuleRawButton.Trigger, (ctrlState.Buttons & (uint)OVRInput.RawTouch.RIndexTrigger) != 0u);
+                                currState[i].SetButtonTouch(VRModuleRawButton.CapSenseGrip, AxisToPress(currState[i].GetButtonTouch(VRModuleRawButton.CapSenseGrip), ctrlState.RHandTrigger, 0.25f, 0.20f));
+
+                                currState[i].SetAxisValue(VRModuleRawAxis.TouchpadX, ctrlState.RThumbstick.x);
+                                currState[i].SetAxisValue(VRModuleRawAxis.TouchpadY, ctrlState.RThumbstick.y);
                                 currState[i].SetAxisValue(VRModuleRawAxis.Trigger, ctrlState.RIndexTrigger);
-                                currState[i].SetAxisValue(VRModuleRawAxis.GripOrHandTrigger, ctrlState.RHandTrigger);
+                                currState[i].SetAxisValue(VRModuleRawAxis.CapSenseGrip, ctrlState.RHandTrigger);
                                 break;
                             }
                     }

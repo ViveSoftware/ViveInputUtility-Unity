@@ -10,7 +10,8 @@ namespace HTC.UnityPlugin.Utility
 {
     public static class EnumUtils
     {
-        public const int MASK_FIELD_LENGTH = sizeof(int) * 8;
+        public const int UINT_MASK_FIELD_LENGTH = sizeof(int) * 8;
+        public const int ULONG_MASK_FIELD_LENGTH = sizeof(long) * 8;
 
         // this class pares and stored the enum's names and values in different orders
         // 
@@ -155,7 +156,7 @@ namespace HTC.UnityPlugin.Utility
                         name2displayedIndex[displayedNamesList[index]] = index;
                     }
 
-                    if (value < 0 || value >= MASK_FIELD_LENGTH) { continue; }
+                    if (value < 0 || value >= UINT_MASK_FIELD_LENGTH) { continue; }
 
                     displayedMaskRawNamesList.Add(name);
                     displayedMaskNamesList.Add(name);
@@ -193,7 +194,7 @@ namespace HTC.UnityPlugin.Utility
                 var displayedMask = 0u;
                 var mask = 1u;
 
-                for (int value = 0; value < MASK_FIELD_LENGTH && realMask != 0; ++value, mask <<= 1)
+                for (int value = 0; value < UINT_MASK_FIELD_LENGTH && realMask != 0; ++value, mask <<= 1)
                 {
                     uint mk;
                     if ((realMask & mask) > 0 && value2displayedMaskField.TryGetValue(value, out mk))
@@ -260,20 +261,64 @@ namespace HTC.UnityPlugin.Utility
 
         public static bool GetFlag(uint maskField, int enumValue)
         {
-            if (enumValue < 0 || enumValue >= MASK_FIELD_LENGTH) { return false; }
+            if (enumValue < 0 || enumValue >= UINT_MASK_FIELD_LENGTH) { return false; }
             return (maskField & (1u << enumValue)) != 0u;
+        }
+
+        public static void SetFlag(ref uint maskField, int enumValue, bool value)
+        {
+            if (enumValue < 0 || enumValue >= UINT_MASK_FIELD_LENGTH) { return; }
+            if (value)
+            {
+                maskField |= (1u << enumValue);
+            }
+            else
+            {
+                maskField &= ~(1u << enumValue);
+            }
         }
 
         public static uint SetFlag(uint maskField, int enumValue)
         {
-            if (enumValue < 0 || enumValue >= MASK_FIELD_LENGTH) { return maskField; }
+            if (enumValue < 0 || enumValue >= UINT_MASK_FIELD_LENGTH) { return maskField; }
             return maskField | (1u << enumValue);
         }
 
         public static uint UnsetFlag(uint maskField, int enumValue)
         {
-            if (enumValue < 0 || enumValue >= MASK_FIELD_LENGTH) { return maskField; }
+            if (enumValue < 0 || enumValue >= UINT_MASK_FIELD_LENGTH) { return maskField; }
             return maskField & ~(1u << enumValue);
+        }
+
+        public static bool GetFlag(ulong maskField, int enumValue)
+        {
+            if (enumValue < 0 || enumValue >= ULONG_MASK_FIELD_LENGTH) { return false; }
+            return (maskField & (1ul << enumValue)) != 0ul;
+        }
+
+        public static void SetFlag(ref ulong maskField, int enumValue, bool value)
+        {
+            if (enumValue < 0 || enumValue >= UINT_MASK_FIELD_LENGTH) { return; }
+            if (value)
+            {
+                maskField |= (1u << enumValue);
+            }
+            else
+            {
+                maskField &= ~(1u << enumValue);
+            }
+        }
+
+        public static ulong SetFlag(ulong maskField, int enumValue)
+        {
+            if (enumValue < 0 || enumValue >= ULONG_MASK_FIELD_LENGTH) { return maskField; }
+            return maskField | (1ul << enumValue);
+        }
+
+        public static ulong UnsetFlag(ulong maskField, int enumValue)
+        {
+            if (enumValue < 0 || enumValue >= ULONG_MASK_FIELD_LENGTH) { return maskField; }
+            return maskField & ~(1ul << enumValue);
         }
     }
 }

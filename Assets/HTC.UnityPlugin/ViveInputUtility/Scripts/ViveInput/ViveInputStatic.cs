@@ -55,6 +55,11 @@ namespace HTC.UnityPlugin.Vive
             return ClickCountEx(role, button);
         }
 
+        public static float GetAxis(HandRole role, ControllerAxis axis, bool usePrevState = false)
+        {
+            return GetAxisEx(role, axis, usePrevState);
+        }
+
         /// <summary>
         /// Returns raw analog value of the trigger button on the controller identified by role
         /// </summary>
@@ -230,6 +235,11 @@ namespace HTC.UnityPlugin.Vive
             return ClickCountEx(role.roleType, role.roleValue, button);
         }
 
+        public static float GetAxis(ViveRoleProperty role, ControllerAxis axis, bool usePrevState = false)
+        {
+            return GetAxisEx(role.roleType, role.roleValue, axis, usePrevState);
+        }
+
         /// <summary>
         /// Returns raw analog value of the trigger button on the controller identified by role
         /// </summary>
@@ -382,6 +392,11 @@ namespace HTC.UnityPlugin.Vive
         public static int ClickCountEx<TRole>(TRole role, ControllerButton button)
         {
             return GetState(role).ClickCount(button);
+        }
+
+        public static float GetAxisEx<TRole>(TRole role, ControllerAxis axis, bool usePrevState = false)
+        {
+            return GetState(role).GetAxis(axis, usePrevState);
         }
 
         /// <typeparam name="TRole">
@@ -649,6 +664,11 @@ namespace HTC.UnityPlugin.Vive
         public static int ClickCountEx(Type roleType, int roleValue, ControllerButton button)
         {
             return GetState(roleType, roleValue).ClickCount(button);
+        }
+
+        public static float GetAxisEx(Type roleType, int roleValue, ControllerAxis axis, bool usePrevState = false)
+        {
+            return GetState(roleType, roleValue).GetAxis(axis, usePrevState);
         }
 
         /// <param name="roleType">

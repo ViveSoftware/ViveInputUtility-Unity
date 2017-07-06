@@ -2,6 +2,7 @@
 
 using HTC.UnityPlugin.Utility;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -95,6 +96,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
 
                 deviceState.deviceModel = VRModuleDeviceModel.Unknown;
+            }
+
+            public static bool AxisToPress(bool previousPressedState, float currentAxisValue, float onThreshold, float offThreshold)
+            {
+                return previousPressedState ? currentAxisValue > offThreshold : currentAxisValue >= onThreshold;
             }
         }
 

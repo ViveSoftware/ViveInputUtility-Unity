@@ -21,6 +21,7 @@ namespace HTC.UnityPlugin.Vive
         public class InputEntry
         {
             public ViveRoleProperty viveRole = ViveRoleProperty.New(HandRole.RightHand);
+            [CustomOrderedEnum]
             public ControllerButton button = ControllerButton.Trigger;
         }
 
