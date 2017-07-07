@@ -59,6 +59,8 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
     private Index m_deviceIndex = Index.Hmd;
     [SerializeField]
     private OverrideModelEnum m_overrideModel = OverrideModelEnum.DontOverride;
+    [SerializeField]
+    private Shader m_shader = null;
 
     private uint m_currentDeviceIndex = ViveRole.INVALID_DEVICE_INDEX;
     private SupportedVRModule m_currentActiveModule;
@@ -73,6 +75,8 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
     public bool applyTracking { get; set; }
 
     public OverrideModelEnum overrideModel { get { return m_overrideModel; } set { m_overrideModel = value; } }
+
+    public Shader shader { get { return m_shader; } set { m_shader = value; } }
 
     protected virtual void OnEnable()
     {
@@ -191,6 +195,9 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
                 m_modelObj.transform.SetParent(transform, false);
                 m_renderModel = m_modelObj.AddComponent<SteamVR_RenderModel>();
             }
+			if (m_shader != null) {
+                m_renderModel.shader = m_shader;
+			}
         }
 
         if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
@@ -244,6 +251,11 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
             m_modelObj = Instantiate(prefab);
             m_modelObj.transform.SetParent(transform, false);
             m_modelObj.gameObject.name = "VIUModel" + model.ToString();
+			if (m_shader != null) {
+				Transform child = m_modelObj.transform.GetChild (0);
+				Material mat = child.gameObject.GetComponent<Renderer> ().material;
+				mat.shader = m_shader;
+			}
         }
     }
 }

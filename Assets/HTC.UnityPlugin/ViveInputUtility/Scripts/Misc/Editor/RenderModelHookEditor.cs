@@ -10,6 +10,7 @@ public class RenderModelHookEditor : Editor
     protected SerializedProperty viveRoleProp;
     protected SerializedProperty deviceIndexProp;
     protected SerializedProperty overrideModelProp;
+	protected SerializedProperty shaderProp;
 
     protected virtual void OnEnable()
     {
@@ -20,6 +21,7 @@ public class RenderModelHookEditor : Editor
         viveRoleProp = serializedObject.FindProperty("m_viveRole");
         deviceIndexProp = serializedObject.FindProperty("m_deviceIndex");
         overrideModelProp = serializedObject.FindProperty("m_overrideModel");
+		shaderProp = serializedObject.FindProperty("m_shader");
     }
 
     public override void OnInspectorGUI()
@@ -33,6 +35,8 @@ public class RenderModelHookEditor : Editor
         GUI.enabled = true;
 
         EditorGUILayout.PropertyField(overrideModelProp);
+
+		EditorGUILayout.PropertyField(shaderProp);
 
         EditorGUILayout.PropertyField(modeProp);
 
