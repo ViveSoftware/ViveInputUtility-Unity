@@ -60,6 +60,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         headCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
+
+                    headCurrState.renderModelName = VRDevice.model + " " + headCurrState.deviceModel.ToString();
                 }
 
                 headCurrState.position = InputTracking.GetLocalPosition(VRNode.Head);
@@ -134,6 +136,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         rightCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
+
+                    rightCurrState.renderModelName = VRDevice.model + " " + rightCurrState.deviceModel.ToString();
                 }
 
                 var rightMenuPress = Input.GetKey(ButtonKeyCode.RMenuPress);
@@ -235,6 +239,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         leftCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
+
+                    leftCurrState.renderModelName = VRDevice.model + " " + leftCurrState.deviceModel.ToString();
                 }
 
                 var leftMenuPress = Input.GetKey(ButtonKeyCode.LMenuPress);

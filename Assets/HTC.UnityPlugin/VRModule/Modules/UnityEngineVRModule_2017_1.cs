@@ -174,6 +174,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     //currDeviceState.deviceSerialID = InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty;
                     currDeviceState.deviceSerialID = VRDevice.model + " " + m_nodeStateList[i].uniqueID.ToString("X8");
                     currDeviceState.deviceModelNumber = VRDevice.model + " " + m_nodeStateList[i].nodeType;
+                    currDeviceState.renderModelName = VRDevice.model + " " + m_nodeStateList[i].nodeType;
 
                     SetupKnownDeviceModel(currDeviceState);
                 }

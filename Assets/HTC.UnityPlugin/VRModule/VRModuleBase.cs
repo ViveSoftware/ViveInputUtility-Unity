@@ -15,6 +15,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_knucklesRgx = new Regex("^.*(knuckles).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
 
@@ -94,6 +95,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             return;
                     }
                 }
+                else if (deviceState.deviceClass == VRModuleDeviceClass.Controller && s_knucklesRgx.IsMatch(deviceState.deviceModelNumber))
+                {
+                    if (s_leftRgx.IsMatch(deviceState.renderModelName))
+                    {
+                        deviceState.deviceModel = VRModuleDeviceModel.KnucklesLeft;
+                        return;
+                    }
+                    else if (s_rightRgx.IsMatch(deviceState.renderModelName))
+                    {
+                        deviceState.deviceModel = VRModuleDeviceModel.KnucklesRight;
+                        return;
+                    }
+                }
+
 
                 deviceState.deviceModel = VRModuleDeviceModel.Unknown;
             }

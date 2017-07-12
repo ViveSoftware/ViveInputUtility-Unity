@@ -152,6 +152,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         currState[i].deviceClass = (VRModuleDeviceClass)system.GetTrackedDeviceClass(currState[i].deviceIndex);
                         currState[i].deviceSerialID = QueryDeviceStringProperty(system, currState[i].deviceIndex, ETrackedDeviceProperty.Prop_SerialNumber_String);
                         currState[i].deviceModelNumber = QueryDeviceStringProperty(system, currState[i].deviceIndex, ETrackedDeviceProperty.Prop_ModelNumber_String);
+                        currState[i].renderModelName = QueryDeviceStringProperty(system, currState[i].deviceIndex, ETrackedDeviceProperty.Prop_RenderModelName_String);
 
                         SetupKnownDeviceModel(currState[i]);
                     }
