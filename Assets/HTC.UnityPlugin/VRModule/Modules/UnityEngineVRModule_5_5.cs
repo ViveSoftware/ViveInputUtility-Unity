@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-#if UNITY_5_5_OR_NEWER && !(UNITY_2017 || UNITY_2017_1_OR_NEWER)
+#if UNITY_5_5_OR_NEWER && !UNITY_2017_1_OR_NEWER
 using HTC.UnityPlugin.PoseTracker;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -11,7 +11,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-#if UNITY_5_5_OR_NEWER && !(UNITY_2017 || UNITY_2017_1_OR_NEWER)
+#if UNITY_5_5_OR_NEWER && !UNITY_2017_1_OR_NEWER
         private static readonly Regex m_viveRgx = new Regex("^.*(htc|vive|openvr).*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);

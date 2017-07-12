@@ -1,7 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
-using UnityEngine.VR;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -105,22 +104,26 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 #endif
 
-        public override bool ShouldActiveModule() { return VRSettings.enabled; }
+#if UNITY_2017_2_OR_NEWER
+        public override bool ShouldActiveModule() { return UnityEngine.XR.XRSettings.enabled; }
+#else
+        public override bool ShouldActiveModule() { return UnityEngine.VR.VRSettings.enabled; }
+#endif
 
+#if UNITY_5_6_OR_NEWER
         public override void OnActivated()
         {
-#if UNITY_5_6_OR_NEWER
             SaveTrackingSpaceType();
             UpdateTrackingSpaceType();
-#endif
         }
+#endif
 
+#if UNITY_5_6_OR_NEWER
         public override void OnDeactivated()
         {
-#if UNITY_5_6_OR_NEWER
             LoadTrackingSpaceType();
-#endif
         }
+#endif
 
         public override void Update()
         {
@@ -128,8 +131,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (VRModule.lockPhysicsUpdateRateToRenderFrequency && Time.timeScale > 0.0f)
             {
                 // FIXME: VRDevice.refreshRate returns zero in Unity 5.6.0 or older version
-#if UNITY_5_6_1 || UNITY_2017 || UNITY_2017_1_OR_NEWER
-                Time.fixedDeltaTime = 1f / VRDevice.refreshRate;
+#if UNITY_2017_2_OR_NEWER
+                Time.fixedDeltaTime = 1f / UnityEngine.XR.XRDevice.refreshRate;
+#elif UNITY_5_6_OR_NEWER
+                Time.fixedDeltaTime = 1f / UnityEngine.VR.VRDevice.refreshRate;
 #else
                 Time.fixedDeltaTime = 1f / 90f;
 #endif

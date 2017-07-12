@@ -3,7 +3,11 @@
 #if VIU_OCULUSVR
 using HTC.UnityPlugin.PoseTracker;
 using UnityEngine;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR;
+#else
 using UnityEngine.VR;
+#endif
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
