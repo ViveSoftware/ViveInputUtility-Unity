@@ -145,10 +145,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var rightPadTouch = Input.GetKey(ButtonKeyCode.RPadTouch);
                 var rightTriggerTouch = Input.GetKey(ButtonKeyCode.RTriggerTouch);
 
-                var rightTrackpadX = Input.GetAxis(ButtonAxisName.RPadX);
-                var rightTrackpadY = Input.GetAxis(ButtonAxisName.RPadY);
-                var rightTrigger = Input.GetAxis(ButtonAxisName.RTrigger);
-                var rightGrip = Input.GetAxis(ButtonAxisName.RGrip);
+                var rightTrackpadX = Input.GetAxisRaw(ButtonAxisName.RPadX);
+                var rightTrackpadY = Input.GetAxisRaw(ButtonAxisName.RPadY);
+                var rightTrigger = Input.GetAxisRaw(ButtonAxisName.RTrigger);
+                var rightGrip = Input.GetAxisRaw(ButtonAxisName.RGrip);
 
                 rightCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, rightMenuPress);
                 rightCurrState.SetButtonPress(VRModuleRawButton.A, rightAButtonPress);
@@ -246,10 +246,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var leftPadTouch = Input.GetKey(ButtonKeyCode.LPadTouch);
                 var leftTriggerTouch = Input.GetKey(ButtonKeyCode.LTriggerTouch);
 
-                var leftTrackpadX = Input.GetAxis(ButtonAxisName.LPadX);
-                var leftTrackpadY = Input.GetAxis(ButtonAxisName.LPadY);
-                var leftTrigger = Input.GetAxis(ButtonAxisName.LTrigger);
-                var leftGrip = Input.GetAxis(ButtonAxisName.LGrip);
+                var leftTrackpadX = Input.GetAxisRaw(ButtonAxisName.LPadX);
+                var leftTrackpadY = Input.GetAxisRaw(ButtonAxisName.LPadY);
+                var leftTrigger = Input.GetAxisRaw(ButtonAxisName.LTrigger);
+                var leftGrip = Input.GetAxisRaw(ButtonAxisName.LGrip);
 
                 leftCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, leftMenuPress);
                 leftCurrState.SetButtonPress(VRModuleRawButton.A, leftAButtonPress);
