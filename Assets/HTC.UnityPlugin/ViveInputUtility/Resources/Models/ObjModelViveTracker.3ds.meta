@@ -1,19 +1,18 @@
 fileFormatVersion: 2
-guid: fed9233dbe667fe4b9eb0cba4cd64c02
-timeCreated: 1496563404
+guid: d9dbca04a00f854459e861b511befae7
+timeCreated: 1500023924
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
-    100000: default
-    100002: //RootNode
-    400000: default
-    400002: //RootNode
-    2300000: default
-    3300000: default
-    4300000: default
+    100000: //RootNode
+    400000: //RootNode
+    2300000: //RootNode
+    3300000: //RootNode
+    4300000: TRACKER-3D2.
+    4300002: ObjModelVive
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
@@ -39,7 +38,7 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
-    importBlendShapes: 1
+    importBlendShapes: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1

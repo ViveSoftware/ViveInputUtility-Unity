@@ -1,19 +1,17 @@
 fileFormatVersion: 2
-guid: a800bd0ea7485c04399c7f546eb4394f
-timeCreated: 1496563403
+guid: 0ddcf5f645666a340869303b08a09ff5
+timeCreated: 1500031073
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
-    100000: default
-    100002: //RootNode
-    400000: default
-    400002: //RootNode
-    2300000: default
-    3300000: default
-    4300000: default
+    100000: //RootNode
+    400000: //RootNode
+    2300000: //RootNode
+    3300000: //RootNode
+    4300000: ObjModelVive
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:

@@ -1,24 +1,17 @@
 fileFormatVersion: 2
-guid: 94319081b349b464596c5a889e606315
-timeCreated: 1496563402
+guid: ff56c2536aeacbf41ab97a4c016003e8
+timeCreated: 1500031075
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
     100000: //RootNode
-    100002: whole_model_group1
-    100004: default
     400000: //RootNode
-    400002: whole_model_group1
-    400004: default
-    2300000: whole_model_group1
-    2300002: default
-    3300000: whole_model_group1
-    3300002: default
-    4300000: whole_model_group1
-    4300002: default
+    2300000: //RootNode
+    3300000: //RootNode
+    4300000: ObjModelOcul
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
