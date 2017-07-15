@@ -23,7 +23,7 @@ namespace HTC.UnityPlugin.Vive
         private const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
         private const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
         private const string doNotShowKey = "ViveInputUtility.DoNotShowUpdate.v{0}";
-        private const double versionCheckIntervalMinutes = 1.0;
+        private const double versionCheckIntervalMinutes = 60.0;
 
         private static bool gotVersion = false;
         private static WWW www;

@@ -60,7 +60,7 @@ namespace HTC.UnityPlugin.Vive
             private int updatedFrameCount = -1;
             private uint prevDeviceIndex;
             private VRModuleDeviceModel trackedDeviceModel = VRModuleDeviceModel.Unknown;
-            
+
             private uint prevButtonPressed;
             private uint currButtonPressed;
 
@@ -103,6 +103,8 @@ namespace HTC.UnityPlugin.Vive
                 prevDeviceIndex = deviceIndex;
                 prevButtonPressed = currButtonPressed;
                 for (int i = CONTROLLER_AXIS_COUNT - 1; i >= 0; --i) { prevAxisValue[i] = currAxisValue[i]; }
+
+                trackedDeviceModel = currState.deviceModel;
 
                 // update button states
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Menu, currState.GetButtonPress(VRModuleRawButton.ApplicationMenu));
@@ -350,6 +352,8 @@ namespace HTC.UnityPlugin.Vive
                 {
                     switch (trackedDeviceModel)
                     {
+                        case VRModuleDeviceModel.KnucklesLeft:
+                        case VRModuleDeviceModel.KnucklesRight:
                         case VRModuleDeviceModel.ViveController:
                             mode = ScrollType.Trackpad; break;
                         case VRModuleDeviceModel.OculusTouchLeft:

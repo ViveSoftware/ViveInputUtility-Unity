@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-#if UNITY_5_5_OR_NEWER && !(UNITY_2017 || UNITY_2017_1_OR_NEWER)
+#if UNITY_5_5_OR_NEWER && !UNITY_2017_1_OR_NEWER
 using HTC.UnityPlugin.PoseTracker;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -11,7 +11,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-#if UNITY_5_5_OR_NEWER && !(UNITY_2017 || UNITY_2017_1_OR_NEWER)
+#if UNITY_5_5_OR_NEWER && !UNITY_2017_1_OR_NEWER
         private static readonly Regex m_viveRgx = new Regex("^.*(htc|vive|openvr).*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
@@ -60,6 +60,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         headCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
+
+                    headCurrState.renderModelName = VRDevice.model + " " + headCurrState.deviceModel.ToString();
                 }
 
                 headCurrState.position = InputTracking.GetLocalPosition(VRNode.Head);
@@ -134,6 +136,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         rightCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
+
+                    rightCurrState.renderModelName = VRDevice.model + " " + rightCurrState.deviceModel.ToString();
                 }
 
                 var rightMenuPress = Input.GetKey(ButtonKeyCode.RMenuPress);
@@ -145,10 +149,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var rightPadTouch = Input.GetKey(ButtonKeyCode.RPadTouch);
                 var rightTriggerTouch = Input.GetKey(ButtonKeyCode.RTriggerTouch);
 
-                var rightTrackpadX = Input.GetAxis(ButtonAxisName.RPadX);
-                var rightTrackpadY = Input.GetAxis(ButtonAxisName.RPadY);
-                var rightTrigger = Input.GetAxis(ButtonAxisName.RTrigger);
-                var rightGrip = Input.GetAxis(ButtonAxisName.RGrip);
+                var rightTrackpadX = Input.GetAxisRaw(ButtonAxisName.RPadX);
+                var rightTrackpadY = Input.GetAxisRaw(ButtonAxisName.RPadY);
+                var rightTrigger = Input.GetAxisRaw(ButtonAxisName.RTrigger);
+                var rightGrip = Input.GetAxisRaw(ButtonAxisName.RGrip);
 
                 rightCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, rightMenuPress);
                 rightCurrState.SetButtonPress(VRModuleRawButton.A, rightAButtonPress);
@@ -235,6 +239,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         leftCurrState.deviceModel = VRModuleDeviceModel.Unknown;
                     }
+
+                    leftCurrState.renderModelName = VRDevice.model + " " + leftCurrState.deviceModel.ToString();
                 }
 
                 var leftMenuPress = Input.GetKey(ButtonKeyCode.LMenuPress);
@@ -246,10 +252,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var leftPadTouch = Input.GetKey(ButtonKeyCode.LPadTouch);
                 var leftTriggerTouch = Input.GetKey(ButtonKeyCode.LTriggerTouch);
 
-                var leftTrackpadX = Input.GetAxis(ButtonAxisName.LPadX);
-                var leftTrackpadY = Input.GetAxis(ButtonAxisName.LPadY);
-                var leftTrigger = Input.GetAxis(ButtonAxisName.LTrigger);
-                var leftGrip = Input.GetAxis(ButtonAxisName.LGrip);
+                var leftTrackpadX = Input.GetAxisRaw(ButtonAxisName.LPadX);
+                var leftTrackpadY = Input.GetAxisRaw(ButtonAxisName.LPadY);
+                var leftTrigger = Input.GetAxisRaw(ButtonAxisName.LTrigger);
+                var leftGrip = Input.GetAxisRaw(ButtonAxisName.LGrip);
 
                 leftCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, leftMenuPress);
                 leftCurrState.SetButtonPress(VRModuleRawButton.A, leftAButtonPress);

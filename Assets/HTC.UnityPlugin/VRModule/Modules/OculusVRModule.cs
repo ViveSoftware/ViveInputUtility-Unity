@@ -3,7 +3,11 @@
 #if VIU_OCULUSVR
 using HTC.UnityPlugin.PoseTracker;
 using UnityEngine;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR;
+#else
 using UnityEngine.VR;
+#endif
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -123,6 +127,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         // FIXME: how to get product id from OVRPlugin?
                         currState[i].deviceSerialID = OVRPlugin.productName + " " + node.ToString();
                         currState[i].deviceModelNumber = OVRPlugin.productName + " " + node.ToString();
+                        currState[i].renderModelName = OVRPlugin.productName + " " + node.ToString();
 
                         SetupKnownDeviceModel(currState[i]);
                     }

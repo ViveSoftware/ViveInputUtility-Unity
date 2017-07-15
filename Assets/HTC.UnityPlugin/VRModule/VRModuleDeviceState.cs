@@ -27,6 +27,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusTouchLeft,
         OculusTouchRight,
         OculusSensor,
+        KnucklesLeft,
+        KnucklesRight,
     }
 
     public enum VRModuleRawButton
@@ -82,6 +84,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         uint deviceIndex { get; }
         string deviceSerialID { get; set; }
         string deviceModelNumber { get; set; }
+        string renderModelName { get; set; }
         VRModuleDeviceClass deviceClass { get; set; }
         VRModuleDeviceModel deviceModel { get; set; }
 
@@ -115,6 +118,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         uint deviceIndex { get; }
         string deviceSerialID { get; }
         string deviceModelNumber { get; }
+        string renderModelName { get; }
         VRModuleDeviceClass deviceClass { get; }
         VRModuleDeviceModel deviceModel { get; }
 
@@ -147,6 +151,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [SerializeField]
             private string m_deviceModelNumber;
             [SerializeField]
+            private string m_renderModelName;
+            [SerializeField]
             private VRModuleDeviceClass m_deviceClass;
             [SerializeField]
             private VRModuleDeviceModel m_deviceModel;
@@ -174,6 +180,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public uint deviceIndex { get; private set; }
             public string deviceSerialID { get { return m_deviceSerialID; } set { m_deviceSerialID = value; } }
             public string deviceModelNumber { get { return m_deviceModelNumber; } set { m_deviceModelNumber = value; } }
+            public string renderModelName { get { return m_renderModelName; } set { m_renderModelName = value; } }
             public VRModuleDeviceClass deviceClass { get { return m_deviceClass; } set { m_deviceClass = value; } }
             public VRModuleDeviceModel deviceModel { get { return m_deviceModel; } set { m_deviceModel = value; } }
             // device pose state
@@ -220,6 +227,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 deviceClass = state.deviceClass;
                 deviceSerialID = state.deviceSerialID;
                 deviceModelNumber = state.deviceModelNumber;
+                renderModelName = state.renderModelName;
                 isConnected = state.isConnected;
                 isPoseValid = state.isPoseValid;
                 isOutOfRange = state.isOutOfRange;
@@ -239,6 +247,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 deviceClass = VRModuleDeviceClass.Invalid;
                 deviceSerialID = string.Empty;
                 deviceModelNumber = string.Empty;
+                renderModelName = string.Empty;
                 isConnected = false;
                 isPoseValid = false;
                 isOutOfRange = false;

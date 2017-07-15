@@ -47,6 +47,8 @@ public class RenderModelHook : BasePoseTracker, INewPoseListener, IViveRoleCompo
         OculusTouchLeft = VRModuleDeviceModel.OculusTouchLeft,
         OculusTouchRight = VRModuleDeviceModel.OculusTouchRight,
         OculusSensor = VRModuleDeviceModel.OculusSensor,
+        KnucklesLeft = VRModuleDeviceModel.KnucklesLeft,
+        KnucklesRight = VRModuleDeviceModel.KnucklesRight,
     }
 
     [SerializeField]

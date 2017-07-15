@@ -1,17 +1,17 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-#if UNITY_2017 || UNITY_2017_1_OR_NEWER
+#if UNITY_2017_1_OR_NEWER && !UNITY_2017_2_OR_NEWER
+using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VR;
-using HTC.UnityPlugin.Utility;
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-#if UNITY_2017 || UNITY_2017_1_OR_NEWER
+#if UNITY_2017_1_OR_NEWER && !UNITY_2017_2_OR_NEWER
         private uint m_leftIndex = INVALID_DEVICE_INDEX;
         private uint m_rightIndex = INVALID_DEVICE_INDEX;
 
@@ -26,9 +26,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
 
-        private static bool IsTrackingDeviceNode(VRNode nodeType)
+        private bool IsTrackingDeviceNode(VRNodeState nodeState)
         {
-            switch (nodeType)
+            switch (nodeState.nodeType)
             {
                 case VRNode.Head:
                 case VRNode.RightHand:
@@ -45,7 +45,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private bool TryGetNodeDeviceIndex(VRNodeState nodeState, out uint deviceIndex)
         {
             // only tracking certain type of node (some nodes share same uniqueID)
-            if (!IsTrackingDeviceNode(nodeState.nodeType)) { deviceIndex = 0; return false; }
+            if (!IsTrackingDeviceNode(nodeState)) { deviceIndex = 0; return false; }
             //Debug.Log(Time.frameCount + " TryGetNodeDeviceIndex " + nodeState.nodeType + " tracked=" + nodeState.tracked + " id=" + nodeState.uniqueID + " name=" + (InputTracking.GetNodeName(nodeState.uniqueID) ?? string.Empty));
             if (!m_node2Index.TryGetValue(nodeState.uniqueID, out deviceIndex))
             {
@@ -58,7 +58,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     if (m_nodeStatesValid[0])
                     {
-                        Debug.LogError("Multiple Head node found! drop node id:" + nodeState.uniqueID.ToString("X8") + " name:" + InputTracking.GetNodeName(nodeState.uniqueID));
+                        //Debug.LogWarning("[" + Time.frameCount + "] Multiple Head node found! drop node id:" + nodeState.uniqueID.ToString("X8") + " type:" + nodeState.nodeType + " name:" + InputTracking.GetNodeName(nodeState.uniqueID) + " tracked=" + nodeState.tracked);
                         return false;
                     }
 
@@ -92,11 +92,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (!validIndexFound)
                 {
-                    Debug.LogWarning("VRNode added, but device index out of range, drop the node");
+                    Debug.LogWarning("[" + Time.frameCount + "] VRNode added, but device index out of range, drop the node id:" + nodeState.uniqueID.ToString("X8") + " type:" + nodeState.nodeType + " name:" + InputTracking.GetNodeName(nodeState.uniqueID) + " tracked=" + nodeState.tracked);
                     return false;
                 }
 
-                //Debug.Log("Add node device index [" + deviceIndex + "] id=" + nodeState.uniqueID + " type=" + nodeState.nodeType);
+                //Debug.Log("[" + Time.frameCount + "] Add node device index [" + deviceIndex + "] id=" + nodeState.uniqueID.ToString("X8") + " type=" + nodeState.nodeType + " tracked=" + nodeState.tracked);
             }
 
             return true;
@@ -117,7 +117,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
         {
-            InputTracking.GetNodeStates(m_nodeStateList);
+            if (VRSettings.isDeviceActive && VRDevice.isPresent)
+            {
+                InputTracking.GetNodeStates(m_nodeStateList);
+            }
 
             var rightIndex = INVALID_DEVICE_INDEX;
             var leftIndex = INVALID_DEVICE_INDEX;
@@ -169,8 +172,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     // FIXME: getting wrong name in Unity 2017.1f1
                     //currDeviceState.deviceSerialID = InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty;
-                    currDeviceState.deviceSerialID = VRDevice.model + " " + m_nodeStateList[i].uniqueID.ToString("X8") + " " + (InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty);
+                    currDeviceState.deviceSerialID = VRDevice.model + " " + m_nodeStateList[i].uniqueID.ToString("X8");
                     currDeviceState.deviceModelNumber = VRDevice.model + " " + m_nodeStateList[i].nodeType;
+                    currDeviceState.renderModelName = VRDevice.model + " " + m_nodeStateList[i].nodeType;
 
                     SetupKnownDeviceModel(currDeviceState);
                 }
@@ -188,6 +192,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (m_nodeStateList[i].TryGetRotation(out rotation)) { currDeviceState.rotation = rotation; }
             }
 
+            m_nodeStateList.Clear();
+
             if (VRModule.IsValidDeviceIndex(rightIndex))
             {
                 var rightCurrState = currState[m_rightIndex];
@@ -202,10 +208,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var rightPadTouch = Input.GetKey(ButtonKeyCode.RPadTouch);
                 var rightTriggerTouch = Input.GetKey(ButtonKeyCode.RTriggerTouch);
 
-                var rightTrackpadX = Input.GetAxis(ButtonAxisName.RPadX);
-                var rightTrackpadY = Input.GetAxis(ButtonAxisName.RPadY);
-                var rightTrigger = Input.GetAxis(ButtonAxisName.RTrigger);
-                var rightGrip = Input.GetAxis(ButtonAxisName.RGrip);
+                var rightTrackpadX = Input.GetAxisRaw(ButtonAxisName.RPadX);
+                var rightTrackpadY = Input.GetAxisRaw(ButtonAxisName.RPadY);
+                var rightTrigger = Input.GetAxisRaw(ButtonAxisName.RTrigger);
+                var rightGrip = Input.GetAxisRaw(ButtonAxisName.RGrip);
 
                 rightCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, rightMenuPress);
                 rightCurrState.SetButtonPress(VRModuleRawButton.A, rightAButtonPress);
@@ -240,10 +246,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var leftPadTouch = Input.GetKey(ButtonKeyCode.LPadTouch);
                 var leftTriggerTouch = Input.GetKey(ButtonKeyCode.LTriggerTouch);
 
-                var leftTrackpadX = Input.GetAxis(ButtonAxisName.LPadX);
-                var leftTrackpadY = Input.GetAxis(ButtonAxisName.LPadY);
-                var leftTrigger = Input.GetAxis(ButtonAxisName.LTrigger);
-                var leftGrip = Input.GetAxis(ButtonAxisName.LGrip);
+                var leftTrackpadX = Input.GetAxisRaw(ButtonAxisName.LPadX);
+                var leftTrackpadY = Input.GetAxisRaw(ButtonAxisName.LPadY);
+                var leftTrigger = Input.GetAxisRaw(ButtonAxisName.LTrigger);
+                var leftGrip = Input.GetAxisRaw(ButtonAxisName.LGrip);
 
                 leftCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, leftMenuPress);
                 leftCurrState.SetButtonPress(VRModuleRawButton.A, leftAButtonPress);

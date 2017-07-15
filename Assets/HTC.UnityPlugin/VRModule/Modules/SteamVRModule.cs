@@ -3,9 +3,7 @@
 #if VIU_STEAMVR
 using HTC.UnityPlugin.PoseTracker;
 using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.VR;
 using Valve.VR;
 #endif
 
@@ -26,8 +24,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool ShouldActiveModule()
         {
-#if UNITY_5_4_OR_NEWER
-            return VRSettings.enabled && VRSettings.loadedDeviceName == "OpenVR";
+#if UNITY_2017_2_OR_NEWER
+            return UnityEngine.XR.VRSettings.enabled && UnityEngine.XR.VRSettings.loadedDeviceName == "OpenVR";
+#elif UNITY_5_4_OR_NEWER
+            return UnityEngine.VR.VRSettings.enabled && UnityEngine.VR.VRSettings.loadedDeviceName == "OpenVR";
 #else
             return SteamVR.enabled;
 #endif
@@ -152,6 +152,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         currState[i].deviceClass = (VRModuleDeviceClass)system.GetTrackedDeviceClass(currState[i].deviceIndex);
                         currState[i].deviceSerialID = QueryDeviceStringProperty(system, currState[i].deviceIndex, ETrackedDeviceProperty.Prop_SerialNumber_String);
                         currState[i].deviceModelNumber = QueryDeviceStringProperty(system, currState[i].deviceIndex, ETrackedDeviceProperty.Prop_ModelNumber_String);
+                        currState[i].renderModelName = QueryDeviceStringProperty(system, currState[i].deviceIndex, ETrackedDeviceProperty.Prop_RenderModelName_String);
 
                         SetupKnownDeviceModel(currState[i]);
                     }

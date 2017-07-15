@@ -1,24 +1,17 @@
 fileFormatVersion: 2
-guid: ca15068bc88f4784cbdfd7e759397d22
-timeCreated: 1496563403
+guid: e3efa9e8706ee2249a74d62600c9c1de
+timeCreated: 1500031074
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
-    100000: lh_basestation_vive
-    100002: //RootNode
-    100004: default
-    400000: lh_basestation_vive
-    400002: //RootNode
-    400004: default
-    2300000: lh_basestation_vive
-    2300002: default
-    3300000: lh_basestation_vive
-    3300002: default
-    4300000: lh_basestation_vive
-    4300002: default
+    100000: //RootNode
+    400000: //RootNode
+    2300000: //RootNode
+    3300000: //RootNode
+    4300000: ObjModelVive
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
