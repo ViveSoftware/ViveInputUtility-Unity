@@ -113,9 +113,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 deviceState.deviceModel = VRModuleDeviceModel.Unknown;
             }
 
-            public static bool AxisToPress(bool previousPressedState, float currentAxisValue, float onThreshold, float offThreshold)
+            public static bool AxisToPress(bool previousPressedState, float currentAxisValue, float setThreshold, float unsetThreshold)
             {
-                return previousPressedState ? currentAxisValue > offThreshold : currentAxisValue >= onThreshold;
+                return previousPressedState ? currentAxisValue > unsetThreshold : currentAxisValue >= setThreshold;
             }
         }
 
