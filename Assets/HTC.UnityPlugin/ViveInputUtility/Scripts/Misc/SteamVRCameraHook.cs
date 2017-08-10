@@ -8,9 +8,9 @@ public class SteamVRCameraHook : MonoBehaviour
 #if VIU_STEAMVR
     private void Awake()
     {
-        if (VRModule.activeModule == SupportedVRModule.Uninitialized)
+        if (VRModule.activeModule == VRModuleActiveEnum.Uninitialized)
         {
-            VRModule.onModuleActivatedEvent.AddListener(OnModuleActivated);
+            VRModule.onActiveModuleChangedEvent.AddListener(OnModuleActivated);
         }
         else
         {
@@ -18,9 +18,9 @@ public class SteamVRCameraHook : MonoBehaviour
         }
     }
 
-    private void OnModuleActivated(SupportedVRModule activatedModule)
+    private void OnModuleActivated(VRModuleActiveEnum activatedModule)
     {
-        if (activatedModule == SupportedVRModule.SteamVR)
+        if (activatedModule == VRModuleActiveEnum.SteamVR)
         {
             var earsComp = default(SteamVR_Ears);
             for (int i = transform.childCount - 1; i >= 0; --i)
@@ -40,7 +40,7 @@ public class SteamVRCameraHook : MonoBehaviour
                 gameObject.AddComponent<SteamVR_Camera>();
             }
 
-            VRModule.onModuleActivatedEvent.RemoveListener(OnModuleActivated);
+            VRModule.onActiveModuleChangedEvent.RemoveListener(OnModuleActivated);
         }
     }
 #endif

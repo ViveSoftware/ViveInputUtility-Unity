@@ -1,22 +1,22 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
     public partial class VRModule : SingletonBehaviour<VRModule>
     {
-
-        private static DeviceState s_defaultState;
-        private static readonly ModuleBase[] s_modules;
+        private static readonly DeviceState s_defaultState;
+        private static readonly Dictionary<string, uint> s_deviceSerialNumberTable = new Dictionary<string, uint>((int)MAX_DEVICE_COUNT);
 
         [SerializeField]
         private bool m_dontDestroyOnLoad = true;
         [SerializeField]
         private bool m_lockPhysicsUpdateRateToRenderFrequency = true;
         [SerializeField]
-        private SelectVRModuleEnum m_selectModule = SelectVRModuleEnum.Auto;
+        private VRModuleSelectEnum m_selectModule = VRModuleSelectEnum.Auto;
         [SerializeField]
         private VRModuleTrackingSpaceType m_trackingSpaceType = VRModuleTrackingSpaceType.RoomScale;
 
@@ -29,28 +29,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [SerializeField]
         private DeviceConnectedEvent m_onDeviceConnected = new DeviceConnectedEvent();
         [SerializeField]
-        private ModuleActivatedEvent m_onModuleActivated = new ModuleActivatedEvent();
-        [SerializeField]
-        private ModuleDeactivatedEvent m_onModuleDeactivated = new ModuleDeactivatedEvent();
+        private ActiveModuleChangedEvent m_onActiveModuleChanged = new ActiveModuleChangedEvent();
 
         private int m_poseUpdatedFrame = -1;
         private bool m_isUpdating = false;
         private bool m_isDestoryed = false;
 
-        private SupportedVRModule m_activatedModule = SupportedVRModule.Uninitialized;
+        private ModuleBase[] m_modules;
+        private VRModuleActiveEnum m_activatedModule = VRModuleActiveEnum.Uninitialized;
         private ModuleBase m_activatedModuleBase;
         private DeviceState[] m_prevStates;
         private DeviceState[] m_currStates;
 
         static VRModule()
         {
-            s_modules = new ModuleBase[EnumUtils.GetMaxValue(typeof(SupportedVRModule)) + 1];
-            s_modules[(int)SupportedVRModule.None] = new DefaultModule();
-            //s_modules[(int)SupportedModule.Simulator] = new DefaultModule();
-            s_modules[(int)SupportedVRModule.UnityNativeVR] = new UnityEngineVRModule();
-            s_modules[(int)SupportedVRModule.SteamVR] = new SteamVRModule();
-            s_modules[(int)SupportedVRModule.OculusVR] = new OculusVRModule();
-
             s_defaultState = new DeviceState(INVALID_DEVICE_INDEX);
             s_defaultState.Reset();
         }
@@ -61,6 +53,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 DontDestroyOnLoad(gameObject);
             }
+
+            m_modules = new ModuleBase[EnumUtils.GetMaxValue(typeof(VRModuleActiveEnum)) + 1];
+            m_modules[(int)VRModuleActiveEnum.None] = new DefaultModule();
+            //s_modules[(int)SupportedModule.Simulator] = new DefaultModule();
+            m_modules[(int)VRModuleActiveEnum.UnityNativeVR] = new UnityEngineVRModule();
+            m_modules[(int)VRModuleActiveEnum.SteamVR] = new SteamVRModule();
+            m_modules[(int)VRModuleActiveEnum.OculusVR] = new OculusVRModule();
+
+            s_deviceSerialNumberTable.Clear();
 
             m_currStates = new DeviceState[MAX_DEVICE_COUNT];
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i) { m_currStates[i] = new DeviceState(i); }
@@ -97,7 +98,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (cam.depth == 0 && cam.name == "SceneCamera") { return; }
 #endif
             // update only once per frame
-            if (!ChangeProp.Set(ref m_poseUpdatedFrame, Time.renderedFrameCount)) { return; }
+            if (!ChangeProp.Set(ref m_poseUpdatedFrame, Time.frameCount)) { return; }
 
             m_isUpdating = true;
 
@@ -113,28 +114,28 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_isUpdating = false;
         }
 
-        private static SupportedVRModule GetSelectedModule(SelectVRModuleEnum select)
+        private VRModuleActiveEnum GetSelectedModule(VRModuleSelectEnum select)
         {
-            if (select == SelectVRModuleEnum.Auto)
+            if (select == VRModuleSelectEnum.Auto)
             {
-                for (int i = s_modules.Length - 1; i >= 0; --i)
+                for (int i = m_modules.Length - 1; i >= 0; --i)
                 {
-                    if (s_modules[i] != null && s_modules[i].ShouldActiveModule())
+                    if (m_modules[i] != null && m_modules[i].ShouldActiveModule())
                     {
-                        return (SupportedVRModule)i;
+                        return (VRModuleActiveEnum)i;
                     }
                 }
             }
-            else if ((int)select >= 0 && (int)select < s_modules.Length)
+            else if ((int)select >= 0 && (int)select < m_modules.Length)
             {
-                return (SupportedVRModule)select;
+                return (VRModuleActiveEnum)select;
             }
             else
             {
-                return SupportedVRModule.None;
+                return VRModuleActiveEnum.None;
             }
 
-            return SupportedVRModule.Uninitialized;
+            return VRModuleActiveEnum.Uninitialized;
         }
 
         private void UpdateActivatedModule()
@@ -144,24 +145,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (m_activatedModule == currentSelectedModule) { return; }
 
             // clean up if previous active module is not null
-            if (m_activatedModule != SupportedVRModule.Uninitialized)
+            if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
             {
                 CleanUp();
                 // m_activatedModule will reset to SupportedVRModule.Uninitialized after CleanUp()
             }
 
             // activate the selected module
-            if (currentSelectedModule != SupportedVRModule.Uninitialized)
+            if (currentSelectedModule != VRModuleActiveEnum.Uninitialized)
             {
                 m_activatedModule = currentSelectedModule;
-                m_activatedModuleBase = s_modules[(int)currentSelectedModule];
+                m_activatedModuleBase = m_modules[(int)currentSelectedModule];
                 m_activatedModuleBase.OnActivated();
 
-                VRModule.InvokeModuleActivatedEvent(m_activatedModule);
+                VRModule.InvokeActiveModuleChangedEvent(m_activatedModule);
             }
 
             // update module
-            if (currentSelectedModule != SupportedVRModule.Uninitialized)
+            if (currentSelectedModule != VRModuleActiveEnum.Uninitialized)
             {
                 m_activatedModuleBase.Update();
             }
@@ -189,6 +190,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (m_prevStates[i].isConnected != m_currStates[i].isConnected)
                 {
+                    if (m_currStates[i].isConnected)
+                    {
+                        try
+                        {
+                            s_deviceSerialNumberTable.Add(m_currStates[i].serialNumber, i);
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogError(m_currStates[i].serialNumber + ":" + e.ToString());
+                        }
+                    }
+                    else
+                    {
+                        s_deviceSerialNumberTable.Remove(m_prevStates[i].serialNumber);
+                    }
+
                     VRModule.InvokeDeviceConnectedEvent(i, m_currStates[i].isConnected);
                 }
             }
@@ -220,15 +237,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             if (m_activatedModuleBase != null)
             {
-                var deactivatedModule = m_activatedModule;
                 var deactivatedModuleBase = m_activatedModuleBase;
 
-                m_activatedModule = SupportedVRModule.Uninitialized;
+                m_activatedModule = VRModuleActiveEnum.Uninitialized;
                 m_activatedModuleBase = null;
 
                 deactivatedModuleBase.OnDeactivated();
 
-                VRModule.InvokeModuleDeactivatedEvent(deactivatedModule);
+                VRModule.InvokeActiveModuleChangedEvent(VRModuleActiveEnum.Uninitialized);
             }
         }
     }

@@ -125,8 +125,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         currState[i].deviceClass = s_node2class[(int)node];
                         // FIXME: how to get product id from OVRPlugin?
-                        currState[i].deviceSerialID = OVRPlugin.productName + " " + node.ToString();
-                        currState[i].deviceModelNumber = OVRPlugin.productName + " " + node.ToString();
+                        currState[i].serialNumber = OVRPlugin.productName + " " + node.ToString();
+                        currState[i].modelNumber = OVRPlugin.productName + " " + node.ToString();
                         currState[i].renderModelName = OVRPlugin.productName + " " + node.ToString();
 
                         SetupKnownDeviceModel(currState[i]);

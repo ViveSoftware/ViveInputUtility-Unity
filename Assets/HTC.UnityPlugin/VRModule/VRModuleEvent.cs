@@ -17,23 +17,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [Serializable]
         public class DeviceConnectedEvent : UnityEvent<uint, bool> { }
         [Serializable]
-        public class ModuleActivatedEvent : UnityEvent<SupportedVRModule> { }
-        [Serializable]
-        public class ModuleDeactivatedEvent : UnityEvent<SupportedVRModule> { }
+        public class ActiveModuleChangedEvent : UnityEvent<VRModuleActiveEnum> { }
 
         private readonly static NewPosesEvent s_onNewPoses = new NewPosesEvent();
         private readonly static ControllerRoleChangedEvent s_onControllerRoleChanged = new ControllerRoleChangedEvent();
         private readonly static InputFocusEvent s_onInputFocus = new InputFocusEvent();
         private readonly static DeviceConnectedEvent s_onDeviceConnected = new DeviceConnectedEvent();
-        private readonly static ModuleActivatedEvent s_onModuleActivated = new ModuleActivatedEvent();
-        private readonly static ModuleDeactivatedEvent s_onModuleDeactivated = new ModuleDeactivatedEvent();
+        private readonly static ActiveModuleChangedEvent s_onActiveModuleChanged = new ActiveModuleChangedEvent();
 
         public static NewPosesEvent onNewPoses { get { Initialize(); return s_onNewPoses; } } // invoke by manager
         public static ControllerRoleChangedEvent onControllerRoleChanged { get { Initialize(); return s_onControllerRoleChanged; } } // invoke by module
         public static InputFocusEvent onInputFocus { get { Initialize(); return s_onInputFocus; } } // invoke by module
         public static DeviceConnectedEvent onDeviceConnected { get { Initialize(); return s_onDeviceConnected; } } // invoke by manager
-        public static ModuleActivatedEvent onModuleActivatedEvent { get { Initialize(); return s_onModuleActivated; } } // invoke by manager
-        public static ModuleDeactivatedEvent onModuleDeactivatedEvent { get { Initialize(); return s_onModuleDeactivated; } } // invoke by manager
+        public static ActiveModuleChangedEvent onActiveModuleChangedEvent { get { Initialize(); return s_onActiveModuleChanged; } } // invoke by manager
 
         private static void InvokeNewPosesEvent()
         {
@@ -59,16 +55,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (Active) { Instance.m_onDeviceConnected.Invoke(deviceIndex, connected); }
         }
 
-        private static void InvokeModuleActivatedEvent(SupportedVRModule activatedModule)
+        private static void InvokeActiveModuleChangedEvent(VRModuleActiveEnum activeModule)
         {
-            s_onModuleActivated.Invoke(activatedModule);
-            if (Active) { Instance.m_onModuleActivated.Invoke(activatedModule); }
-        }
-
-        private static void InvokeModuleDeactivatedEvent(SupportedVRModule deactivatedModule)
-        {
-            s_onModuleDeactivated.Invoke(deactivatedModule);
-            if (Active) { Instance.m_onModuleDeactivated.Invoke(deactivatedModule); }
+            s_onActiveModuleChanged.Invoke(activeModule);
+            if (Active) { Instance.m_onActiveModuleChanged.Invoke(activeModule); }
         }
     }
 }

@@ -93,6 +93,7 @@ namespace HTC.UnityPlugin.Utility
                 if (type == null) { throw new ArgumentNullException("type"); }
                 if (!type.IsEnum) { throw new ArgumentException("Must be enum type", "type"); }
 
+                enumType = type;
                 rawNames = Enum.GetNames(type);
                 rawValues = Enum.GetValues(type) as int[];
                 rawValue2index = new Dictionary<int, int>();

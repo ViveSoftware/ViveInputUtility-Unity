@@ -417,7 +417,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static Vector3 GetVelocity(uint deviceIndex, Transform origin = null)
         {
-            if (!ViveRole.IsValidIndex(deviceIndex))
+            if (!VRModule.IsValidDeviceIndex(deviceIndex))
             {
                 return Vector3.zero;
             }
@@ -433,7 +433,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static Vector3 GetAngularVelocity(uint deviceIndex, Transform origin = null)
         {
-            if (!ViveRole.IsValidIndex(deviceIndex))
+            if (!VRModule.IsValidDeviceIndex(deviceIndex))
             {
                 return Vector3.zero;
             }
@@ -449,7 +449,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static Pose GetPose(uint deviceIndex, Transform origin = null)
         {
-            if (!ViveRole.IsValidIndex(deviceIndex))
+            if (!VRModule.IsValidDeviceIndex(deviceIndex))
             {
                 return default(Pose);
             }

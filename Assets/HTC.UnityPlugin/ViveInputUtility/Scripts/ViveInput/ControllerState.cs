@@ -94,7 +94,7 @@ namespace HTC.UnityPlugin.Vive
                 var deviceIndex = m_map.GetMappedDeviceByRoleValue(m_roleValue);
 
                 // treat this frame as updated if both prevDeviceIndex and currentDeviceIndex are invalid
-                if (!ViveRole.IsValidIndex(prevDeviceIndex) && !ViveRole.IsValidIndex(deviceIndex)) { return false; }
+                if (!VRModule.IsValidDeviceIndex(prevDeviceIndex) && !VRModule.IsValidDeviceIndex(deviceIndex)) { return false; }
 
                 // get device state
                 var currState = VRModule.GetCurrentDeviceState(deviceIndex);

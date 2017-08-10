@@ -2,7 +2,7 @@
 
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -12,20 +12,26 @@ namespace HTC.UnityPlugin.Vive
     /// </summary>
     public static partial class ViveRole
     {
+        [Obsolete("Use VRModule.MAX_DEVICE_COUNT instead")]
         public const uint MAX_DEVICE_COUNT = VRModule.MAX_DEVICE_COUNT;
+        [Obsolete("Use VRModule.INVALID_DEVICE_INDEX instead")]
         public const uint INVALID_DEVICE_INDEX = VRModule.INVALID_DEVICE_INDEX;
-
-        private readonly static Dictionary<string, uint> s_serialNum2device = new Dictionary<string, uint>((int)MAX_DEVICE_COUNT);
 
         public readonly static DeviceRoleHandler DefaultDeviceRoleHandler = new DeviceRoleHandler();
         public readonly static HandRoleHandler DefaultHandRoleHandler = new HandRoleHandler();
         public readonly static TrackerRoleHandler DefaultTrackerRoleHandler = new TrackerRoleHandler();
         public readonly static BodyRoleHandler DefaultBodyRoleHandler = new BodyRoleHandler();
 
-        static ViveRole()
+        private static bool s_initialized = false;
+
+        [RuntimeInitializeOnLoadMethod]
+        public static void Initialize()
         {
+            if (s_initialized || !Application.isPlaying) { return; }
+            s_initialized = true;
+
             // update the ViveRole system with initial connecting state
-            for (uint index = 0; index < MAX_DEVICE_COUNT; ++index)
+            for (uint index = 0; index < VRModule.MAX_DEVICE_COUNT; ++index)
             {
                 OnDeviceConnected(index, VivePose.IsConnected(index));
             }
@@ -44,26 +50,20 @@ namespace HTC.UnityPlugin.Vive
         {
             var prevState = VRModule.GetPreviousDeviceState(deviceIndex);
             var currState = VRModule.GetCurrentDeviceState(deviceIndex);
-            
+
             // update serial number table and model number table
             if (connected)
             {
-                s_serialNum2device[currState.deviceSerialID] = deviceIndex;
-
-                // inform all role map handlers that a device connected or disconnected
                 for (int i = s_mapTable.Count - 1; i >= 0; --i)
                 {
-                    s_mapTable.GetValueByIndex(i).OnConnectedDeviceChanged(deviceIndex, currState.deviceClass, currState.deviceSerialID, true);
+                    s_mapTable.GetValueByIndex(i).OnConnectedDeviceChanged(deviceIndex, currState.deviceClass, currState.serialNumber, true);
                 }
             }
             else
             {
-                s_serialNum2device.Remove(prevState.deviceSerialID);
-
-                // inform all role map handlers that a device connected or disconnected
                 for (int i = s_mapTable.Count - 1; i >= 0; --i)
                 {
-                    s_mapTable.GetValueByIndex(i).OnConnectedDeviceChanged(deviceIndex, prevState.deviceClass, prevState.deviceSerialID, false);
+                    s_mapTable.GetValueByIndex(i).OnConnectedDeviceChanged(deviceIndex, prevState.deviceClass, prevState.serialNumber, false);
                 }
             }
         }
@@ -76,21 +76,25 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
+        [Obsolete("Use VRModule.TryGetDeviceIndex instead")]
         public static bool TryGetDeviceIndexBySerialNumber(string serialNumber, out uint deviceIndex)
         {
-            return s_serialNum2device.TryGetValue(serialNumber, out deviceIndex);
+            return VRModule.TryGetConnectedDeviceIndex(serialNumber, out deviceIndex);
         }
 
+        [Obsolete("Use VRModule.GetCurrentDeviceState(deviceIndex).modelNumber instead")]
         public static string GetModelNumber(uint deviceIndex)
         {
-            return IsValidIndex(deviceIndex) ? VRModule.GetCurrentDeviceState(deviceIndex).deviceModelNumber : string.Empty;
+            return IsValidIndex(deviceIndex) ? VRModule.GetCurrentDeviceState(deviceIndex).modelNumber : string.Empty;
         }
 
+        [Obsolete("Use VRModule.GetCurrentDeviceState(deviceIndex).serialNumber instead")]
         public static string GetSerialNumber(uint deviceIndex)
         {
-            return IsValidIndex(deviceIndex) ? VRModule.GetCurrentDeviceState(deviceIndex).deviceSerialID : string.Empty;
+            return IsValidIndex(deviceIndex) ? VRModule.GetCurrentDeviceState(deviceIndex).serialNumber : string.Empty;
         }
 
+        [Obsolete("Use VRModule.GetCurrentDeviceState(deviceIndex).deviceClass instead")]
         public static VRModuleDeviceClass GetDeviceClass(uint deviceIndex)
         {
             return IsValidIndex(deviceIndex) ? VRModule.GetCurrentDeviceState(deviceIndex).deviceClass : VRModuleDeviceClass.Invalid;
@@ -138,9 +142,7 @@ namespace HTC.UnityPlugin.Vive
             return GetMap(type).GetMappedDeviceByRoleValue(roleValue);
         }
 
-        /// <summary>
-        /// Check if the device index is valid to be used
-        /// </summary>
-        public static bool IsValidIndex(uint index) { return index < MAX_DEVICE_COUNT; }
+        [Obsolete("Use VRModule.IsValidDeviceIndex instead")]
+        public static bool IsValidIndex(uint index) { return VRModule.IsValidDeviceIndex(index); }
     }
 }

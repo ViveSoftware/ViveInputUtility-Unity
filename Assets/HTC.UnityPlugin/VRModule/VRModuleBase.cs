@@ -53,7 +53,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             protected static void SetupKnownDeviceModel(IVRModuleDeviceStateRW deviceState)
             {
-                if (s_viveRgx.IsMatch(deviceState.deviceModelNumber))
+                if (s_viveRgx.IsMatch(deviceState.modelNumber))
                 {
                     switch (deviceState.deviceClass)
                     {
@@ -71,7 +71,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             return;
                     }
                 }
-                else if (s_oculusRgx.IsMatch(deviceState.deviceModelNumber))
+                else if (s_oculusRgx.IsMatch(deviceState.modelNumber))
                 {
                     switch (deviceState.deviceClass)
                     {
@@ -79,12 +79,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.OculusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            if (s_leftRgx.IsMatch(deviceState.deviceModelNumber))
+                            if (s_leftRgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
                                 return;
                             }
-                            else if (s_rightRgx.IsMatch(deviceState.deviceModelNumber))
+                            else if (s_rightRgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
                                 return;
@@ -95,7 +95,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             return;
                     }
                 }
-                else if (deviceState.deviceClass == VRModuleDeviceClass.Controller && s_knucklesRgx.IsMatch(deviceState.deviceModelNumber))
+                else if (deviceState.deviceClass == VRModuleDeviceClass.Controller && s_knucklesRgx.IsMatch(deviceState.modelNumber))
                 {
                     if (s_leftRgx.IsMatch(deviceState.renderModelName))
                     {

@@ -186,7 +186,7 @@ namespace HTC.UnityPlugin.Vive
                 s_roleStateTable[roleType] = stateList = new ICtrlState[info.ValidRoleLength];
             }
 
-            var roleOffset = info.ToRoleOffset(roleValue);
+            var roleOffset = info.RoleValueToRoleOffset(roleValue);
             if (stateList[roleOffset] == null)
             {
                 stateList[roleOffset] = new RCtrlState(roleType, roleValue);
@@ -208,7 +208,7 @@ namespace HTC.UnityPlugin.Vive
                 RGCtrolState<TRole>.s_roleStates = new RGCtrolState<TRole>[info.ValidRoleLength];
             }
 
-            var roleOffset = info.ToRoleOffsetFromRole(role);
+            var roleOffset = info.RoleToRoleOffset(role);
             if (RGCtrolState<TRole>.s_roleStates[roleOffset] == null)
             {
                 RGCtrolState<TRole>.s_roleStates[roleOffset] = new RGCtrolState<TRole>(role);

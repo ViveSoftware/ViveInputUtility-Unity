@@ -322,5 +322,10 @@ namespace HTC.UnityPlugin.Vive
             UpdateState();
             return m_lastPressDownTime;
         }
+
+        public void ToggleActive()
+        {
+            active = !active;
+        }
     }
 }

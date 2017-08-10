@@ -82,8 +82,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public interface IVRModuleDeviceStateRW
     {
         uint deviceIndex { get; }
-        string deviceSerialID { get; set; }
-        string deviceModelNumber { get; set; }
+        string serialNumber { get; set; }
+        string modelNumber { get; set; }
         string renderModelName { get; set; }
         VRModuleDeviceClass deviceClass { get; set; }
         VRModuleDeviceModel deviceModel { get; set; }
@@ -116,8 +116,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public interface IVRModuleDeviceState
     {
         uint deviceIndex { get; }
-        string deviceSerialID { get; }
-        string deviceModelNumber { get; }
+        string serialNumber { get; }
+        string modelNumber { get; }
         string renderModelName { get; }
         VRModuleDeviceClass deviceClass { get; }
         VRModuleDeviceModel deviceModel { get; }
@@ -147,9 +147,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private class DeviceState : IVRModuleDeviceState, IVRModuleDeviceStateRW
         {
             [SerializeField]
-            private string m_deviceSerialID;
+            private string m_serialNumber;
             [SerializeField]
-            private string m_deviceModelNumber;
+            private string m_modelNumber;
             [SerializeField]
             private string m_renderModelName;
             [SerializeField]
@@ -178,8 +178,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             // device property, changed only when connected or disconnected
             public uint deviceIndex { get; private set; }
-            public string deviceSerialID { get { return m_deviceSerialID; } set { m_deviceSerialID = value; } }
-            public string deviceModelNumber { get { return m_deviceModelNumber; } set { m_deviceModelNumber = value; } }
+            public string serialNumber { get { return m_serialNumber; } set { m_serialNumber = value; } }
+            public string modelNumber { get { return m_modelNumber; } set { m_modelNumber = value; } }
             public string renderModelName { get { return m_renderModelName; } set { m_renderModelName = value; } }
             public VRModuleDeviceClass deviceClass { get { return m_deviceClass; } set { m_deviceClass = value; } }
             public VRModuleDeviceModel deviceModel { get { return m_deviceModel; } set { m_deviceModel = value; } }
@@ -225,8 +225,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public void CopyFrom(DeviceState state)
             {
                 deviceClass = state.deviceClass;
-                deviceSerialID = state.deviceSerialID;
-                deviceModelNumber = state.deviceModelNumber;
+                serialNumber = state.serialNumber;
+                modelNumber = state.modelNumber;
                 renderModelName = state.renderModelName;
                 isConnected = state.isConnected;
                 isPoseValid = state.isPoseValid;
@@ -245,8 +245,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public void Reset()
             {
                 deviceClass = VRModuleDeviceClass.Invalid;
-                deviceSerialID = string.Empty;
-                deviceModelNumber = string.Empty;
+                serialNumber = string.Empty;
+                modelNumber = string.Empty;
                 renderModelName = string.Empty;
                 isConnected = false;
                 isPoseValid = false;

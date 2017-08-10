@@ -196,9 +196,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!prevDeviceState.isConnected)
                 {
                     // FIXME: getting wrong name in Unity 2017.1f1
-                    //currDeviceState.deviceSerialID = InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty;
-                    currDeviceState.deviceSerialID = XRDevice.model + " " + m_nodeStateList[i].uniqueID.ToString("X8");
-                    currDeviceState.deviceModelNumber = XRDevice.model + " " + m_nodeStateList[i].nodeType;
+                    //currDeviceState.serialNumber = InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty;
+                    currDeviceState.serialNumber = XRDevice.model + " " + m_nodeStateList[i].uniqueID.ToString("X8");
+                    currDeviceState.modelNumber = XRDevice.model + " " + m_nodeStateList[i].nodeType;
                     currDeviceState.renderModelName = VRDevice.model + " " + m_nodeStateList[i].nodeType;
 
                     SetupKnownDeviceModel(currDeviceState);

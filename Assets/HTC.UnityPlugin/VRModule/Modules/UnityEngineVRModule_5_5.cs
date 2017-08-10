@@ -45,8 +45,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!headPrevState.isConnected)
                 {
                     headCurrState.deviceClass = VRModuleDeviceClass.HMD;
-                    headCurrState.deviceSerialID = VRDevice.model + " HMD";
-                    headCurrState.deviceModelNumber = VRDevice.model + " HMD";
+                    headCurrState.serialNumber = VRDevice.model + " HMD";
+                    headCurrState.modelNumber = VRDevice.model + " HMD";
 
                     if (m_viveRgx.IsMatch(VRDevice.model))
                     {
@@ -121,8 +121,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!rightPrevState.isConnected)
                 {
                     rightCurrState.deviceClass = VRModuleDeviceClass.Controller;
-                    rightCurrState.deviceSerialID = m_rightJoystickName;
-                    rightCurrState.deviceModelNumber = VRDevice.model + " Controller";
+                    rightCurrState.serialNumber = m_rightJoystickName;
+                    rightCurrState.modelNumber = VRDevice.model + " Controller";
 
                     if (m_viveRgx.IsMatch(VRDevice.model))
                     {
@@ -224,8 +224,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!leftPrevState.isConnected)
                 {
                     leftCurrState.deviceClass = VRModuleDeviceClass.Controller;
-                    leftCurrState.deviceSerialID = m_leftJoystickName;
-                    leftCurrState.deviceModelNumber = VRDevice.model + " Controller";
+                    leftCurrState.serialNumber = m_leftJoystickName;
+                    leftCurrState.modelNumber = VRDevice.model + " Controller";
 
                     if (m_viveRgx.IsMatch(VRDevice.model))
                     {
