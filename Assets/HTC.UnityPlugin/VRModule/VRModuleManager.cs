@@ -68,7 +68,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             m_prevStates = new DeviceState[MAX_DEVICE_COUNT];
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i) { m_prevStates[i] = new DeviceState(i); }
-
+            
             Camera.onPreCull += OnCameraPreCull;
         }
 

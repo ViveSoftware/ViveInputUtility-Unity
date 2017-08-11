@@ -29,15 +29,15 @@ namespace HTC.UnityPlugin.Vive
             {
                 DontDestroyOnLoad(gameObject);
             }
-            
-            VRModule.onNewPoses.AddListener(OnDeviceStateUpdated);
+
+            VRModule.onNewPoses += OnDeviceStateUpdated;
         }
 
         protected override void OnDestroy()
         {
             if (IsInstance)
             {
-                VRModule.onNewPoses.RemoveListener(OnDeviceStateUpdated);
+                VRModule.onNewPoses -= OnDeviceStateUpdated;
             }
 
             base.OnDestroy();

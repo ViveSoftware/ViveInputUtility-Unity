@@ -16,7 +16,7 @@ public class DeviceInfoUIController : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (Application.isPlaying)
+        if (Application.isPlaying && VRModule.Active)
         {
             UpdateStatus();
         }

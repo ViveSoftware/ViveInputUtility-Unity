@@ -1,12 +1,10 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.PoseTracker;
-using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using HTC.UnityPlugin.VRModuleManagement;
 using System.IO;
 using UnityEngine;
-using System;
 
 // This script creates and handles SteamVR_ExternalCamera using viveRole property
 [DisallowMultipleComponent]
@@ -159,17 +157,6 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
         {
             TrackPose(VivePose.GetPose(m_viveRole.GetDeviceIndex()), m_origin);
         }
-        //var valid = VRModule.IsValidDeviceIndex(viveRole.GetDeviceIndex()) && SteamVR_Render.Top() != null;
-
-        //if (ChangeProp.Set(ref m_isValid, valid))
-        //{
-        //    SetValid(m_isValid);
-        //}
-
-        //if (valid && m_externalCamera != null && m_externalCamera.enabled)
-        //{
-        //    TrackPose(VivePose.GetPose(viveRole.GetDeviceIndex()), m_origin);
-        //}
     }
 
     public virtual void AfterNewPoses() { }

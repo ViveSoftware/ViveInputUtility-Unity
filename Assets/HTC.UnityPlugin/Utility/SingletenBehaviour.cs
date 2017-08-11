@@ -9,6 +9,8 @@ namespace HTC.UnityPlugin.Utility
         private static bool s_isApplicationQuitting = false;
         private static object s_lock = new object();
 
+        private bool m_initialized;
+
         public static bool Active { get { return !s_isApplicationQuitting && s_instance != null; } }
 
         public bool IsInstance { get { return this == Instance; } }
@@ -24,10 +26,12 @@ namespace HTC.UnityPlugin.Utility
 
         public static void Initialize()
         {
-            if (!Application.isPlaying || s_instance != null || s_isApplicationQuitting) { return; }
+            if (!Application.isPlaying || s_isApplicationQuitting) { return; }
 
             lock (s_lock)
             {
+                if (s_instance != null) { return; }
+
                 var instances = FindObjectsOfType<T>();
                 if (instances.Length > 0)
                 {
@@ -40,7 +44,11 @@ namespace HTC.UnityPlugin.Utility
                     s_instance = new GameObject("[" + typeof(T).Name + "]").AddComponent<T>();
                 }
 
-                s_instance.OnSingletonBehaviourInitialized();
+                if (!s_instance.m_initialized)
+                {
+                    s_instance.m_initialized = true;
+                    s_instance.OnSingletonBehaviourInitialized();
+                }
             }
         }
 

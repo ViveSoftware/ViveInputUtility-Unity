@@ -36,8 +36,8 @@ namespace HTC.UnityPlugin.Vive
                 OnDeviceConnected(index, VivePose.IsConnected(index));
             }
 
-            VRModule.onDeviceConnected.AddListener(OnDeviceConnected);
-            VRModule.onControllerRoleChanged.AddListener(OnTrackedDeviceRoleChanged);
+            VRModule.onDeviceConnected += OnDeviceConnected;
+            VRModule.onControllerRoleChanged += OnTrackedDeviceRoleChanged;
 
             // assign default role map handlers
             AssignMapHandler(DefaultDeviceRoleHandler);
