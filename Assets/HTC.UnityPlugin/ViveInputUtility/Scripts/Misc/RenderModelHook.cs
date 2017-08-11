@@ -82,7 +82,7 @@ public class RenderModelHook : MonoBehaviour, IViveRoleComponent
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (Application.isPlaying)
+        if (Application.isPlaying && VRModule.Active)
         {
             UpdateModel();
         }
@@ -91,7 +91,7 @@ public class RenderModelHook : MonoBehaviour, IViveRoleComponent
 
     protected virtual void OnEnable()
     {
-        VRModule.onActiveModuleChangedEvent.AddListener(UpdateModel);
+        VRModule.onActiveModuleChanged += UpdateModel;
         m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
 
         UpdateModel();
@@ -99,7 +99,7 @@ public class RenderModelHook : MonoBehaviour, IViveRoleComponent
 
     protected virtual void OnDisable()
     {
-        VRModule.onActiveModuleChangedEvent.RemoveListener(UpdateModel);
+        VRModule.onActiveModuleChanged -= UpdateModel;
         m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
 
         if (!m_isQuiting)

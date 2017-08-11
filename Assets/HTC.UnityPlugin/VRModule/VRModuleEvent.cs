@@ -19,45 +19,51 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [Serializable]
         public class ActiveModuleChangedEvent : UnityEvent<VRModuleActiveEnum> { }
 
-        private readonly static NewPosesEvent s_onNewPoses = new NewPosesEvent();
-        private readonly static ControllerRoleChangedEvent s_onControllerRoleChanged = new ControllerRoleChangedEvent();
-        private readonly static InputFocusEvent s_onInputFocus = new InputFocusEvent();
-        private readonly static DeviceConnectedEvent s_onDeviceConnected = new DeviceConnectedEvent();
-        private readonly static ActiveModuleChangedEvent s_onActiveModuleChanged = new ActiveModuleChangedEvent();
+        public delegate void NewPosesListener();
+        public delegate void ControllerRoleChangedListener();
+        public delegate void InputFocusListener(bool value);
+        public delegate void DeviceConnectedListener(uint deviceIndex, bool connected);
+        public delegate void ActiveModuleChangedListener(VRModuleActiveEnum activeModule);
 
-        public static NewPosesEvent onNewPoses { get { Initialize(); return s_onNewPoses; } } // invoke by manager
-        public static ControllerRoleChangedEvent onControllerRoleChanged { get { Initialize(); return s_onControllerRoleChanged; } } // invoke by module
-        public static InputFocusEvent onInputFocus { get { Initialize(); return s_onInputFocus; } } // invoke by module
-        public static DeviceConnectedEvent onDeviceConnected { get { Initialize(); return s_onDeviceConnected; } } // invoke by manager
-        public static ActiveModuleChangedEvent onActiveModuleChangedEvent { get { Initialize(); return s_onActiveModuleChanged; } } // invoke by manager
+        private static NewPosesListener s_onNewPoses;
+        private static ControllerRoleChangedListener s_onControllerRoleChanged;
+        private static InputFocusListener s_onInputFocus;
+        private static DeviceConnectedListener s_onDeviceConnected;
+        private static ActiveModuleChangedListener s_onActiveModuleChanged;
+
+        public static event NewPosesListener onNewPoses { add { s_onNewPoses += value; } remove { s_onNewPoses -= value; } } // invoke by manager
+        public static event ControllerRoleChangedListener onControllerRoleChanged { add { s_onControllerRoleChanged += value; } remove { s_onControllerRoleChanged -= value; } } // invoke by module
+        public static event InputFocusListener onInputFocus { add { s_onInputFocus += value; } remove { s_onInputFocus -= value; } } // invoke by module
+        public static event DeviceConnectedListener onDeviceConnected { add { s_onDeviceConnected += value; } remove { s_onDeviceConnected -= value; } }// invoke by manager
+        public static event ActiveModuleChangedListener onActiveModuleChanged { add { s_onActiveModuleChanged += value; } remove { s_onActiveModuleChanged -= value; } } // invoke by manager
 
         private static void InvokeNewPosesEvent()
         {
-            s_onNewPoses.Invoke();
+            if (s_onNewPoses != null) { s_onNewPoses(); }
             if (Active) { Instance.m_onNewPoses.Invoke(); }
         }
 
         private static void InvokeControllerRoleChangedEvent()
         {
-            s_onControllerRoleChanged.Invoke();
+            if (s_onControllerRoleChanged != null) { s_onControllerRoleChanged(); }
             if (Active) { Instance.m_onControllerRoleChanged.Invoke(); }
         }
 
         private static void InvokeInputFocusEvent(bool value)
         {
-            s_onInputFocus.Invoke(value);
+            if (s_onInputFocus != null) { s_onInputFocus(value); }
             if (Active) { Instance.m_onInputFocus.Invoke(value); }
         }
 
         private static void InvokeDeviceConnectedEvent(uint deviceIndex, bool connected)
         {
-            s_onDeviceConnected.Invoke(deviceIndex, connected);
+            if (s_onDeviceConnected != null) { s_onDeviceConnected(deviceIndex, connected); }
             if (Active) { Instance.m_onDeviceConnected.Invoke(deviceIndex, connected); }
         }
 
         private static void InvokeActiveModuleChangedEvent(VRModuleActiveEnum activeModule)
         {
-            s_onActiveModuleChanged.Invoke(activeModule);
+            if (s_onActiveModuleChanged != null) { s_onActiveModuleChanged(activeModule); }
             if (Active) { Instance.m_onActiveModuleChanged.Invoke(activeModule); }
         }
     }

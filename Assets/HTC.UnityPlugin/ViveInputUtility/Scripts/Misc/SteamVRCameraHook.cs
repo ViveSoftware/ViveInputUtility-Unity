@@ -10,7 +10,7 @@ public class SteamVRCameraHook : MonoBehaviour
     {
         if (VRModule.activeModule == VRModuleActiveEnum.Uninitialized)
         {
-            VRModule.onActiveModuleChangedEvent.AddListener(OnModuleActivated);
+            VRModule.onActiveModuleChanged += OnModuleActivated;
         }
         else
         {
@@ -40,7 +40,7 @@ public class SteamVRCameraHook : MonoBehaviour
                 gameObject.AddComponent<SteamVR_Camera>();
             }
 
-            VRModule.onActiveModuleChangedEvent.RemoveListener(OnModuleActivated);
+            VRModule.onActiveModuleChanged -= OnModuleActivated;
         }
     }
 #endif
