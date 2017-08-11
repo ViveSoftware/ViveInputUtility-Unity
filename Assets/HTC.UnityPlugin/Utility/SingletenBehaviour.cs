@@ -24,7 +24,7 @@ namespace HTC.UnityPlugin.Utility
 
         public static void Initialize()
         {
-            if (s_instance != null || s_isApplicationQuitting) { return; }
+            if (!Application.isPlaying || s_instance != null || s_isApplicationQuitting) { return; }
 
             lock (s_lock)
             {

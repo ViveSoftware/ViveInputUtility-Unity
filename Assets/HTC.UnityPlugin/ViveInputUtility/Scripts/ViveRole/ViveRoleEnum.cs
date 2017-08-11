@@ -41,7 +41,8 @@ namespace HTC.UnityPlugin.Vive
             int MinValidRoleValue { get; }
             int MaxValidRoleValue { get; }
 
-            int ToRoleOffset(int roleValue);
+            int RoleValueToRoleOffset(int roleValue);
+            int RoleOffsetToRoleValue(int roleOffset);
             string GetNameByRoleValue(int roleValue);
             string GetNameByElementIndex(int elementIndex);
             int GetRoleValueByElementIndex(int elementIndex);
@@ -52,19 +53,7 @@ namespace HTC.UnityPlugin.Vive
 
         private sealed class Info : IInfo
         {
-            private struct EnumValues
-            {
-                public string name;
-                public int value;
-            }
-
             private readonly EnumUtils.EnumDisplayInfo m_info;
-            //private readonly Type m_roleEnumType;
-
-            //private readonly IndexedSet<string> m_roleNameSet;
-            //private readonly IndexedTable<int, string> m_roleNameTable;
-            //private readonly string[] m_roleValueNames;
-            //private readonly int[] m_roleValues;
             private readonly bool[] m_roleValid;
 
             private readonly int m_invalidRoleValue;
@@ -79,44 +68,6 @@ namespace HTC.UnityPlugin.Vive
 
                 var attrs = roleEnumType.GetCustomAttributes(typeof(ViveRoleEnumAttribute), false) as ViveRoleEnumAttribute[];
                 m_invalidRoleValue = attrs[0].InvalidRoleValue;
-
-                ////m_roleValueNames = Enum.GetNames(roleEnumType);
-                ////m_roleValues = Enum.GetValues(roleEnumType) as int[];
-                //// remove name that shares same value with others
-                //var tempValues = new List<EnumValues>();
-                //for (int i = 0, imax = m_roleValues.Length; i < imax; ++i)
-                //{
-                //    // filter out obsolete member
-                //    var memInfo = m_roleEnumType.GetMember(m_roleValueNames[i]);
-                //    var attributes = memInfo[0].GetCustomAttributes(typeof(HideMamberAttribute), false);
-                //    if (attributes != null && attributes.Length > 0) { continue; }
-
-                //    tempValues.Add(new EnumValues()
-                //    {
-                //        value = m_roleValues[i],
-                //        name = m_roleValueNames[i],
-                //    });
-                //}
-                //// sort by value
-                //tempValues.Sort((e1, e2) =>
-                //{
-                //    if (e1.value < e2.value) { return -1; }
-                //    if (e1.value > e2.value) { return 1; }
-                //    return string.Compare(e1.name, e2.name);
-                //});
-
-                //m_roleNameSet = new IndexedSet<string>(m_roleValues.Length);
-                //m_roleNameTable = new IndexedTable<int, string>();
-                //m_roleValueNames = new string[tempValues.Count];
-                //m_roleValues = new int[tempValues.Count];
-                //for (int i = 0, imax = tempValues.Count; i < imax; ++i)
-                //{
-                //    m_roleValueNames[i] = tempValues[i].name;
-                //    m_roleValues[i] = tempValues[i].value;
-
-                //    m_roleNameSet.Add(tempValues[i].name);
-                //    m_roleNameTable.AddUniqueKey(tempValues[i].value, tempValues[i].name);
-                //}
 
                 m_minValidRoleValue = int.MaxValue;
                 m_maxValidRoleValue = int.MinValue;
@@ -142,7 +93,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (m_info.displayedValues[i] == m_invalidRoleValue) { continue; }
 
-                    m_roleValid[ToRoleOffset(m_info.displayedValues[i])] = true;
+                    m_roleValid[RoleValueToRoleOffset(m_info.displayedValues[i])] = true;
                 }
             }
 
@@ -156,7 +107,8 @@ namespace HTC.UnityPlugin.Vive
             public int MinValidRoleValue { get { return m_minValidRoleValue; } }
             public int MaxValidRoleValue { get { return m_maxValidRoleValue; } }
 
-            public int ToRoleOffset(int roleValue) { return roleValue - m_minValidRoleValue; }
+            public int RoleValueToRoleOffset(int roleValue) { return roleValue - m_minValidRoleValue; }
+            public int RoleOffsetToRoleValue(int roleOffset) { return roleOffset + m_minValidRoleValue; }
             public string GetNameByRoleValue(int roleValue) { int index; return m_info.value2displayedIndex.TryGetValue(roleValue, out index) ? m_info.displayedRawNames[index] : roleValue.ToString(); }
             public int GetElementIndexByName(string name) { int index; return m_info.name2displayedIndex.TryGetValue(name, out index) ? index : -1; }
             public string GetNameByElementIndex(int elementIndex) { return m_info.displayedRawNames[elementIndex]; }
@@ -181,7 +133,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (roleValue == m_invalidRoleValue) { return false; }
 
-                var roleOffset = ToRoleOffset(roleValue);
+                var roleOffset = RoleValueToRoleOffset(roleValue);
                 if (roleOffset < 0 || roleOffset >= m_roleValid.Length) { return false; }
 
                 return m_roleValid[roleOffset];
@@ -196,7 +148,8 @@ namespace HTC.UnityPlugin.Vive
 
             bool RoleEquals(TRole role1, TRole role2);
             int ToRoleValue(TRole role);
-            int ToRoleOffsetFromRole(TRole role);
+            int RoleToRoleOffset(TRole role);
+            TRole RoleOffsetToRole(int roleOffset);
             TRole ToRole(int roleValue);
             TRole GetRoleByElementIndex(int elementIndex);
             bool TryGetRoleByName(string name, out TRole role);
@@ -240,7 +193,7 @@ namespace HTC.UnityPlugin.Vive
                     }
                     else
                     {
-                        var offset = ToRoleOffset(roleValue);
+                        var offset = RoleValueToRoleOffset(roleValue);
                         m_roles[offset] = roleEnums[i];
                     }
                 }
@@ -272,7 +225,8 @@ namespace HTC.UnityPlugin.Vive
 
             public TRole InvalidRole { get { return m_invalidRole; } }
 
-            public int ToRoleOffset(int roleValue) { return m_info.ToRoleOffset(roleValue); }
+            public int RoleValueToRoleOffset(int roleValue) { return m_info.RoleValueToRoleOffset(roleValue); }
+            public int RoleOffsetToRoleValue(int roleOffset) { return m_info.RoleOffsetToRoleValue(roleOffset); }
             public string GetNameByRoleValue(int roleValue) { return m_info.GetNameByRoleValue(roleValue); }
             public int GetElementIndexByName(string name) { return m_info.GetElementIndexByName(name); }
             public string GetNameByElementIndex(int elementIndex) { return m_info.GetNameByElementIndex(elementIndex); }
@@ -282,8 +236,9 @@ namespace HTC.UnityPlugin.Vive
 
             public bool RoleEquals(TRole role1, TRole role2) { return EqualityComparer<TRole>.Default.Equals(role1, role2); }
             public int ToRoleValue(TRole role) { return EqualityComparer<TRole>.Default.GetHashCode(role); }
-            public int ToRoleOffsetFromRole(TRole role) { return ToRoleOffset(ToRoleValue(role)); }
-            public TRole ToRole(int roleValue) { return IsValidRoleValue(roleValue) ? m_roles[ToRoleOffset(roleValue)] : InvalidRole; }
+            public int RoleToRoleOffset(TRole role) { return RoleValueToRoleOffset(ToRoleValue(role)); }
+            public TRole RoleOffsetToRole(int roleOffset) { return ToRole(RoleOffsetToRoleValue(roleOffset)); }
+            public TRole ToRole(int roleValue) { return IsValidRoleValue(roleValue) ? m_roles[RoleValueToRoleOffset(roleValue)] : InvalidRole; }
             public TRole GetRoleByElementIndex(int elementIndex) { return m_nameTable.GetValueByIndex(elementIndex); }
             public bool TryGetRoleByName(string name, out TRole role) { return m_nameTable.TryGetValue(name, out role); }
             public bool IsValidRole(TRole role) { return IsValidRoleValue(ToRoleValue(role)); }

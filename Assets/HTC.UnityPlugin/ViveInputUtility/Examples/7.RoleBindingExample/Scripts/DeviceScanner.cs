@@ -1,5 +1,6 @@
 ﻿using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
@@ -23,11 +24,11 @@ public class DeviceScanner : MonoBehaviour, INewPoseListener
     public UnityEvent OnConnectedDeviceChanged = new UnityEvent();
     public UnityEventFloat OnScanning = new UnityEventFloat();
 
-    private bool[] deviceConnected = new bool[ViveRole.MAX_DEVICE_COUNT];
-    private uint sentDevice = ViveRole.INVALID_DEVICE_INDEX;
+    private bool[] deviceConnected = new bool[VRModule.MAX_DEVICE_COUNT];
+    private uint sentDevice = VRModule.INVALID_DEVICE_INDEX;
 
-    private uint previousScannedDevice = ViveRole.INVALID_DEVICE_INDEX;
-    private uint currentScannedDevice = ViveRole.INVALID_DEVICE_INDEX;
+    private uint previousScannedDevice = VRModule.INVALID_DEVICE_INDEX;
+    private uint currentScannedDevice = VRModule.INVALID_DEVICE_INDEX;
 
     private float lastScannedChangedTime;
     private bool connectedDeviceChanged;
@@ -55,9 +56,9 @@ public class DeviceScanner : MonoBehaviour, INewPoseListener
     public virtual void OnNewPoses()
     {
         previousScannedDevice = currentScannedDevice;
-        currentScannedDevice = ViveRole.INVALID_DEVICE_INDEX;
+        currentScannedDevice = VRModule.INVALID_DEVICE_INDEX;
 
-        for (uint i = 0; i < ViveRole.MAX_DEVICE_COUNT; ++i)
+        for (uint i = 0; i < VRModule.MAX_DEVICE_COUNT; ++i)
         {
             if (ChangeProp.Set(ref deviceConnected[i], VivePose.IsConnected(i)))
             {
@@ -67,7 +68,7 @@ public class DeviceScanner : MonoBehaviour, INewPoseListener
                 {
                     if (sentDevice == i)
                     {
-                        sentDevice = ViveRole.INVALID_DEVICE_INDEX;
+                        sentDevice = VRModule.INVALID_DEVICE_INDEX;
                     }
 
                     if (scannedReticle != null)
@@ -90,7 +91,7 @@ public class DeviceScanner : MonoBehaviour, INewPoseListener
             var hitCount = Physics.OverlapSphereNonAlloc(pose.pos, radius, hits);
             if (hitCount > 0 && hits[0].transform.IsChildOf(transform))
             {
-                if (!ViveRole.IsValidIndex(currentScannedDevice))
+                if (!VRModule.IsValidDeviceIndex(currentScannedDevice))
                 {
                     // not scanned any device yet this frame
                     currentScannedDevice = i;
@@ -98,7 +99,7 @@ public class DeviceScanner : MonoBehaviour, INewPoseListener
                 else
                 {
                     // multiple device scanned this frame
-                    currentScannedDevice = ViveRole.INVALID_DEVICE_INDEX;
+                    currentScannedDevice = VRModule.INVALID_DEVICE_INDEX;
                     break;
                 }
 
@@ -116,7 +117,7 @@ public class DeviceScanner : MonoBehaviour, INewPoseListener
 
     public void ClearScanned()
     {
-        OnDeviceScanned.Invoke(sentDevice = currentScannedDevice = ViveRole.INVALID_DEVICE_INDEX);
+        OnDeviceScanned.Invoke(sentDevice = currentScannedDevice = VRModule.INVALID_DEVICE_INDEX);
         scannedReticle.gameObject.SetActive(false);
     }
 
@@ -133,12 +134,12 @@ public class DeviceScanner : MonoBehaviour, INewPoseListener
         {
             OnScanning.Invoke(0f);
         }
-        else if (ViveRole.IsValidIndex(currentScannedDevice) && sentDevice != currentScannedDevice)
+        else if (VRModule.IsValidDeviceIndex(currentScannedDevice) && sentDevice != currentScannedDevice)
         {
             var scannedDuration = Time.time - lastScannedChangedTime;
             if (scannedDuration > scanDuration)
             {
-                if (!ViveRole.IsValidIndex(sentDevice) && scannedReticle != null)
+                if (!VRModule.IsValidDeviceIndex(sentDevice) && scannedReticle != null)
                 {
                     scannedReticle.gameObject.SetActive(true);
                     scannedReticle.position = VivePose.GetPose(currentScannedDevice, VROrigin).pos;

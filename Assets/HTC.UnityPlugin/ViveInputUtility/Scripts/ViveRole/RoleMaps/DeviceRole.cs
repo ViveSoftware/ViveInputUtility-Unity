@@ -78,24 +78,47 @@ namespace HTC.UnityPlugin.Vive
 
     public class DeviceRoleHandler : ViveRole.MapHandler<DeviceRole>
     {
-        public override void OnInitialize() { Refresh(); }
+        public override bool BlockBindings { get { return true; } }
 
-        public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected) { Refresh(); }
+        public override void OnAssignedAsCurrentMapHandler() { Refresh(); }
 
-        public override void OnBindingChanged(DeviceRole role, string deviceSN, bool bound) { Refresh(); }
+        public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
+        {
+            if (connected)
+            {
+                if (RoleMap.IsDeviceBound(deviceSN)) { return; }
+            }
+            else
+            {
+                return;
+            }
 
-        public override void OnTrackedDeviceRoleChanged() { Refresh(); }
+            Refresh();
+        }
+
+        public override void OnBindingChanged(string deviceSN, bool previousIsBound, DeviceRole previousRole, bool currentIsBound, DeviceRole currentRole)
+        {
+            uint deviceIndex;
+            if (!VRModule.TryGetConnectedDeviceIndex(deviceSN, out deviceIndex)) { return; }
+
+            Refresh();
+        }
 
         public void Refresh()
         {
-            UnmappingAll();
-
-            var role = DeviceRole.Hmd;
             var deviceIndex = 0u;
-            for (; role <= DeviceRole.Device15 && deviceIndex < ViveRole.MAX_DEVICE_COUNT; ++role, ++deviceIndex)
+            for (var role = RoleInfo.MinValidRole; role <= RoleInfo.MaxValidRole && deviceIndex < VRModule.MAX_DEVICE_COUNT; ++role, ++deviceIndex)
             {
-                if (ViveRole.GetDeviceClass(deviceIndex) == VRModuleDeviceClass.Invalid) { continue; }
-                MappingRoleIfUnbound(role, deviceIndex);
+                if (!RoleInfo.IsValidRole(role)) { continue; }
+
+                if (VRModule.GetCurrentDeviceState(deviceIndex).isConnected)
+                {
+                    MappingRoleIfUnbound(role, deviceIndex);
+                }
+                else
+                {
+                    UnmappingRole(role);
+                }
             }
         }
     }

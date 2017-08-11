@@ -453,22 +453,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!1 &138378
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 4
-  m_Component:
-  - 4: {fileID: 495006}
-  - 114: {fileID: 11410968}
-  m_Layer: 0
-  m_Name: ExternalCamera
-  m_TagString: MainCamera
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!1 &142646
 GameObject:
   m_ObjectHideFlags: 1
@@ -1558,7 +1542,7 @@ Transform:
   - {fileID: 420334}
   - {fileID: 441074}
   m_Father: {fileID: 498762}
-  m_RootOrder: 3
+  m_RootOrder: 2
 --- !u!4 &425908
 Transform:
   m_ObjectHideFlags: 1
@@ -1616,7 +1600,7 @@ Transform:
   - {fileID: 438626}
   - {fileID: 489070}
   m_Father: {fileID: 498762}
-  m_RootOrder: 2
+  m_RootOrder: 1
 --- !u!4 &430026
 Transform:
   m_ObjectHideFlags: 1
@@ -2269,19 +2253,6 @@ Transform:
   - {fileID: 437544}
   m_Father: {fileID: 471794}
   m_RootOrder: 0
---- !u!4 &495006
-Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 138378}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_Children: []
-  m_Father: {fileID: 498762}
-  m_RootOrder: 1
 --- !u!4 &495908
 Transform:
   m_ObjectHideFlags: 1
@@ -2351,7 +2322,6 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children:
   - {fileID: 431768}
-  - {fileID: 495006}
   - {fileID: 428236}
   - {fileID: 424710}
   m_Father: {fileID: 0}
@@ -2905,15 +2875,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  posOffset: {x: 0, y: 0, z: 0}
-  rotOffset: {x: 0, y: 0, z: 0}
   m_mode: 1
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11405572
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2928,6 +2898,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker3
+    m_roleValueInt: 0
 --- !u!114 &11405614
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2985,6 +2956,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   m_mouseButtonLeft: 0
   m_mouseButtonMiddle: 2
   m_mouseButtonRight: 1
@@ -3005,24 +2977,6 @@ MonoBehaviour:
   m_priority: 0
   positionThreshold: 0.0005
   rotationThreshold: 0.5
---- !u!114 &11410968
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 138378}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8deef80f4da8a44f858a453c0f74ecf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  posOffset: {x: 0, y: 0, z: 0}
-  rotOffset: {x: 0, y: 0, z: 0}
-  m_viveRole:
-    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
-    m_roleValueName: Controller3
-  m_origin: {fileID: 0}
-  m_configPath: 
 --- !u!114 &11411378
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3099,6 +3053,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3155,6 +3110,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3189,6 +3145,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
 --- !u!114 &11431902
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3206,6 +3163,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3286,6 +3244,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
 --- !u!114 &11442394
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3297,15 +3256,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  posOffset: {x: 0, y: 0, z: 0}
-  rotOffset: {x: 0, y: 0, z: 0}
   m_mode: 1
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker3
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11445368
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3366,6 +3325,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker3
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3405,6 +3365,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   m_mouseButtonLeft: 0
   m_mouseButtonMiddle: 2
   m_mouseButtonRight: 1
@@ -3445,6 +3406,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker2
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3468,6 +3430,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3524,6 +3487,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3554,15 +3518,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  posOffset: {x: 0, y: 0, z: 0}
-  rotOffset: {x: 0, y: 0, z: 0}
   m_mode: 1
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11460700
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3580,6 +3544,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3614,6 +3579,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3649,6 +3615,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker1
+    m_roleValueInt: 0
 --- !u!114 &11470256
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3666,6 +3633,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3722,6 +3690,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3800,15 +3769,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  posOffset: {x: 0, y: 0, z: 0}
-  rotOffset: {x: 0, y: 0, z: 0}
   m_mode: 1
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker1
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11482040
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3823,6 +3792,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   m_buttonTrigger: 0
   m_buttonPadOrStick: 1
   m_buttonGripOrHandTrigger: 2
@@ -3852,6 +3822,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   m_mouseButtonLeft: 0
   m_mouseButtonMiddle: 2
   m_mouseButtonRight: 1
@@ -3875,6 +3846,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -3905,15 +3877,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  posOffset: {x: 0, y: 0, z: 0}
-  rotOffset: {x: 0, y: 0, z: 0}
   m_mode: 1
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker2
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11487112
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3928,6 +3900,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker2
+    m_roleValueInt: 0
 --- !u!114 &11488408
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3956,6 +3929,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
     m_roleValueName: Tracker1
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3976,6 +3950,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   m_buttonTrigger: 0
   m_buttonPadOrStick: 1
   m_buttonGripOrHandTrigger: 2
@@ -4087,6 +4062,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   m_mouseButtonLeft: 0
   m_mouseButtonMiddle: 2
   m_mouseButtonRight: 1

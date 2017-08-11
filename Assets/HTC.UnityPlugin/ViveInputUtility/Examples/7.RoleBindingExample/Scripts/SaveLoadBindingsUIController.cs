@@ -1,4 +1,5 @@
-﻿using HTC.UnityPlugin.VRModuleManagement;
+﻿using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.VRModuleManagement;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
@@ -78,7 +79,11 @@ public class SaveLoadBindingsUIController : MonoBehaviour
             Directory.CreateDirectory(Path.GetDirectoryName(inputFilePath.text));
         }
 
-        ViveRoleBindingsHelper.SaveRoleBindings(inputFilePath.text, prettyPrint);
+        var bindingConfig = ViveRoleBindingsHelper.bindingConfig;
+        bindingConfig.apply_bindings_on_load = autoLoadBindings;
+        ViveRoleBindingsHelper.bindingConfig = bindingConfig;
+
+        ViveRoleBindingsHelper.SaveBindings(inputFilePath.text, prettyPrint);
 
         SaveConfig();
 
@@ -99,7 +104,9 @@ public class SaveLoadBindingsUIController : MonoBehaviour
             return;
         }
 
-        ViveRoleBindingsHelper.LoadRoleBindings(inputFilePath.text);
+        ViveRoleBindingsHelper.LoadBindings(inputFilePath.text);
+
+        autoLoadBindings = ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load;
 
         SaveConfig();
 
