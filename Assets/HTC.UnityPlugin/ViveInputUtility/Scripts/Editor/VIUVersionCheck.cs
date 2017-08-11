@@ -17,7 +17,6 @@ namespace HTC.UnityPlugin.Vive
             public string body;
         }
 
-        public static readonly Version currentVersion = new Version("1.7.0");
         public const string nextVersionCheckTimeKey = "ViveInputUtility.lastVersionCheckTime";
 
         private const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
@@ -42,6 +41,7 @@ namespace HTC.UnityPlugin.Vive
             if (EditorPrefs.HasKey(nextVersionCheckTimeKey) && DateTime.UtcNow < UtcDateTimeFromStr(EditorPrefs.GetString(nextVersionCheckTimeKey)))
             {
                 // cool down not ready, skip version check
+                //Debug.Log("Now: " + DateTime.UtcNow);
                 //Debug.Log("Next checking time: " + UtcDateTimeFromStr(EditorPrefs.GetString(nextVersionCheckTimeKey)));
             }
             else if (!gotVersion)
@@ -123,7 +123,7 @@ namespace HTC.UnityPlugin.Vive
                 return false;
             }
 
-            if (latestVersion <= currentVersion) { return false; }
+            if (latestVersion <= VIUVersion.current) { return false; }
 
             if (EditorPrefs.HasKey(string.Format(doNotShowKey, latestVersion.ToString()))) { return false; }
 
@@ -139,7 +139,7 @@ namespace HTC.UnityPlugin.Vive
 
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
             {
-                GUILayout.Label("Current version: " + currentVersion);
+                GUILayout.Label("Current version: " + VIUVersion.current);
                 GUILayout.Label("New version: " + latestVersion);
 
                 if (!string.IsNullOrEmpty(latestRepoInfo.body))
