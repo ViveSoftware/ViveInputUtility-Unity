@@ -16,6 +16,7 @@ namespace HTC.UnityPlugin.Vive
         {
             [FormerlySerializedAs("sn")]
             public string device_sn;
+            public VRModuleDeviceModel device_model;
             public string role_name;
             [FormerlySerializedAs("sv")]
             public int role_value;
@@ -35,15 +36,18 @@ namespace HTC.UnityPlugin.Vive
             public RoleData[] roles;
         }
 
-        public const string AUTO_LOAD_CONFIG_PATH = "viu_binding.cfg";
+        public const string AUTO_LOAD_CONFIG_PATH = "vive_role_bindings.cfg";
 
         private static bool s_isAutoLoaded;
-        private static BindingConfig s_bindingConfig;
+        private static BindingConfig s_bindingConfig = new BindingConfig()
+        {
+            apply_bindings_on_load = true,
+        };
 
         public static BindingConfig bindingConfig { get { return s_bindingConfig; } set { s_bindingConfig = value; } }
 
         [SerializeField]
-        private string m_viveRoleBindingsConfigPath = AUTO_LOAD_CONFIG_PATH; // "./vive_role_bindings.cfg"
+        private string m_viveRoleBindingsConfigPath = AUTO_LOAD_CONFIG_PATH;
 
         [RuntimeInitializeOnLoadMethod]
         private static void AutoLoadConfig()
@@ -64,15 +68,10 @@ namespace HTC.UnityPlugin.Vive
 
                 if (s_bindingConfig.apply_bindings_on_load)
                 {
-                    ApplyBindingConfigToRoleMap();
+                    var appliedCount = ApplyBindingConfigToRoleMap();
+
+                    Debug.Log("ViveRoleBindingsHelper: " + appliedCount + " bindings applied from " + configPath);
                 }
-            }
-            else
-            {
-                s_bindingConfig = new BindingConfig()
-                {
-                    apply_bindings_on_load = true,
-                };
             }
         }
 
@@ -120,6 +119,7 @@ namespace HTC.UnityPlugin.Vive
                     {
                         var binding = new Binding();
                         binding.device_sn = bindingTable.GetKeyByIndex(j);
+                        binding.device_model = VRModule.GetCurrentDeviceState(VRModule.GetConnectedDeviceIndex(binding.device_sn)).deviceModel; // save the device_model for better recognition of the device
                         binding.role_value = bindingTable.GetValueByIndex(j);
                         binding.role_name = roleMap.RoleValueInfo.GetNameByRoleValue(binding.role_value);
 
@@ -128,7 +128,7 @@ namespace HTC.UnityPlugin.Vive
 
                     if (filterUsed)
                     {
-                        // merge with existed role data
+                        // merge with existing role data
                         var roleDataIndex = roleDataList.FindIndex((item) => item.type == roleName);
                         if (roleDataIndex >= 0)
                         {
@@ -159,8 +159,9 @@ namespace HTC.UnityPlugin.Vive
             ListPool<RoleData>.Release(roleDataList);
         }
 
-        public static void ApplyBindingConfigToRoleMap(params Type[] roleTypeFilter)
+        public static int ApplyBindingConfigToRoleMap(params Type[] roleTypeFilter)
         {
+            var appliedCount = 0;
             var filterUsed = roleTypeFilter != null && roleTypeFilter.Length > 0;
 
             foreach (var roleData in s_bindingConfig.roles)
@@ -192,8 +193,11 @@ namespace HTC.UnityPlugin.Vive
                     }
 
                     roleMap.BindDeviceToRoleValue(binding.device_sn, roleValue);
+                    ++appliedCount;
                 }
             }
+
+            return appliedCount;
         }
 
         public static void SaveBindingConfigToFile(string configPath, bool prettyPrint = true)

@@ -287,7 +287,7 @@ namespace HTC.UnityPlugin.Utility
 
         private class Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
         {
-            private int iterator = 0;
+            private int iterator = -1;
             private IndexedTable<TKey, TValue> container;
 
             public Enumerator(IndexedTable<TKey, TValue> c) { container = c; }

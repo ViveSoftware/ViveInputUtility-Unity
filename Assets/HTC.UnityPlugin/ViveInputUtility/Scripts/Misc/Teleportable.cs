@@ -49,7 +49,7 @@ public class Teleportable : MonoBehaviour
 #endif
     private void FindTeleportPivotAndTarget()
     {
-        foreach (var cam in FindObjectsOfType<Camera>())
+        foreach (var cam in Camera.allCameras)
         {
             if (!cam.enabled) { continue; }
 #if UNITY_5_4_OR_NEWER
