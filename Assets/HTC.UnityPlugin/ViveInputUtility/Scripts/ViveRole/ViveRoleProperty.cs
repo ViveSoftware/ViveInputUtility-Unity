@@ -97,7 +97,7 @@ namespace HTC.UnityPlugin.Vive
                 if (wasEmpty && m_onDeviceIndexChanged != null && m_roleMap != null)
                 {
                     m_deviceIndex = m_roleMap.GetMappedDeviceByRoleValue(m_roleValue); // update deviceIndex before first time listening to MappingChanged event
-                    m_roleMap.OnRoleValueMappingChanged += OnMappingChanged;
+                    m_roleMap.onRoleValueMappingChanged += OnMappingChanged;
                 }
             }
             remove
@@ -108,7 +108,7 @@ namespace HTC.UnityPlugin.Vive
 
                 if (!wasEmpty && m_onDeviceIndexChanged == null && m_roleMap != null)
                 {
-                    m_roleMap.OnRoleValueMappingChanged -= OnMappingChanged;
+                    m_roleMap.onRoleValueMappingChanged -= OnMappingChanged;
                 }
             }
         }
@@ -198,15 +198,15 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (m_roleMap != null)
                     {
-                        m_roleMap.OnRoleValueMappingChanged -= OnMappingChanged;
+                        m_roleMap.onRoleValueMappingChanged -= OnMappingChanged;
                         m_roleMap = ViveRole.GetMap(m_roleType);
-                        m_roleMap.OnRoleValueMappingChanged += OnMappingChanged;
+                        m_roleMap.onRoleValueMappingChanged += OnMappingChanged;
                     }
                     else
                     {
                         m_roleMap = ViveRole.GetMap(m_roleType);
                         m_deviceIndex = m_roleMap.GetMappedDeviceByRoleValue(m_roleValue); // update deviceIndex before first time listening to MappingChanged event
-                        m_roleMap.OnRoleValueMappingChanged += OnMappingChanged;
+                        m_roleMap.onRoleValueMappingChanged += OnMappingChanged;
                     }
                 }
                 else

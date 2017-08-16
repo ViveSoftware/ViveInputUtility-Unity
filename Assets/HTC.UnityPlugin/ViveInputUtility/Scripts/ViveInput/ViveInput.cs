@@ -35,6 +35,7 @@ namespace HTC.UnityPlugin.Vive
         None = -1,
 
         // classic buttons
+        System = 14,
         Menu = 4,
         MenuTouch = 7,
         Trigger = 0, // on:0.55 off:0.45
