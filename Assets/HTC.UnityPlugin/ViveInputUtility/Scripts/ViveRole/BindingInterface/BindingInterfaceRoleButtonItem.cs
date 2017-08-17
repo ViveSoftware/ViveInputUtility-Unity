@@ -13,6 +13,8 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         [SerializeField]
         private Text m_textRoleName;
 
+        private bool m_disableEventOnce;
+
         public string roleName { get { return m_textRoleName.text; } set { m_textRoleName.text = value; } }
         public int roleValue { get; set; }
         public event Action<int> onValueChanged;
@@ -26,9 +28,22 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             }
         }
 
+        public void SetIsOnNoEvent()
+        {
+            if (!m_toggle.isOn)
+            {
+                m_disableEventOnce = true;
+                m_toggle.isOn = true;
+            }
+        }
+
         public void OnValueChanged(bool isOn)
         {
-            if (isOn)
+            if (m_disableEventOnce)
+            {
+                m_disableEventOnce = false;
+            }
+            else if (isOn)
             {
                 if (onValueChanged != null) { onValueChanged(roleValue); }
             }
