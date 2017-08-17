@@ -129,6 +129,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device11
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -240,6 +241,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device7
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -557,7 +559,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: ./vive_role_bindings.cfg
+  m_Text: 
 --- !u!1 &145679125
 GameObject:
   m_ObjectHideFlags: 0
@@ -581,7 +583,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 145679125}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
   m_Name: 
@@ -1504,6 +1506,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device11
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -1535,6 +1538,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device11
+    m_roleValueInt: 0
 --- !u!1 &330318637
 GameObject:
   m_ObjectHideFlags: 0
@@ -1647,6 +1651,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device4
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -1699,6 +1704,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device3
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -1730,6 +1736,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device3
+    m_roleValueInt: 0
 --- !u!1 &372549254
 GameObject:
   m_ObjectHideFlags: 0
@@ -2198,6 +2205,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device14
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -2229,6 +2237,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device14
+    m_roleValueInt: 0
 --- !u!1 &509518325
 GameObject:
   m_ObjectHideFlags: 0
@@ -2325,6 +2334,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Invalid
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -2404,6 +2414,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device13
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -2435,6 +2446,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device13
+    m_roleValueInt: 0
 --- !u!1 &602040283
 GameObject:
   m_ObjectHideFlags: 0
@@ -3852,6 +3864,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Hmd
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -3900,6 +3913,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device3
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -4089,6 +4103,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device5
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -4137,6 +4152,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device13
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -4438,6 +4454,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device2
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -4469,6 +4486,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device2
+    m_roleValueInt: 0
 --- !u!1 &1074699716
 GameObject:
   m_ObjectHideFlags: 0
@@ -4517,6 +4535,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device12
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -4548,6 +4567,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device12
+    m_roleValueInt: 0
 --- !u!1 &1112932265
 GameObject:
   m_ObjectHideFlags: 0
@@ -4882,6 +4902,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device9
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -4913,6 +4934,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device9
+    m_roleValueInt: 0
 --- !u!1 &1214135597
 GameObject:
   m_ObjectHideFlags: 0
@@ -5384,6 +5406,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device14
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -5432,6 +5455,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device8
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -5721,9 +5745,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputFilePath: {fileID: 2061238508}
   textConsole: {fileID: 1372024534}
-  filePathConfig: ./vive_role_bindings_cfg_path.cfg
+  filePathConfig: vive_role_bindings_cfg_path.cfg
   prettyPrint: 1
-  autoLoadBindings: 0
+  autoLoadBindings: 1
   OnBindAllComplete:
     m_PersistentCalls:
       m_Calls:
@@ -5878,6 +5902,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device8
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -5909,6 +5934,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device8
+    m_roleValueInt: 0
 --- !u!1 &1371699278
 GameObject:
   m_ObjectHideFlags: 0
@@ -6187,6 +6213,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device10
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -6218,6 +6245,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device10
+    m_roleValueInt: 0
 --- !u!1 &1410376712
 GameObject:
   m_ObjectHideFlags: 0
@@ -6262,6 +6290,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device9
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -6370,6 +6399,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device15
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -6401,6 +6431,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device15
+    m_roleValueInt: 0
 --- !u!1 &1473566316
 GameObject:
   m_ObjectHideFlags: 0
@@ -6445,6 +6476,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device2
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -6497,6 +6529,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device4
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -6528,6 +6561,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device4
+    m_roleValueInt: 0
 --- !u!1 &1516731609
 GameObject:
   m_ObjectHideFlags: 0
@@ -7505,6 +7539,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device15
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -7613,6 +7648,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device10
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -7665,6 +7701,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device1
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -7696,6 +7733,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device1
+    m_roleValueInt: 0
 --- !u!1 &1731114655
 GameObject:
   m_ObjectHideFlags: 0
@@ -8108,6 +8146,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device1
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -8375,6 +8414,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device6
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -8427,6 +8467,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device5
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -8458,6 +8499,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device5
+    m_roleValueInt: 0
 --- !u!1 &1814583815
 GameObject:
   m_ObjectHideFlags: 0
@@ -8869,6 +8911,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device12
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
   m_overrideModel: 0
@@ -9085,6 +9128,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device6
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -9116,6 +9160,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device6
+    m_roleValueInt: 0
 --- !u!1 &2032158392
 GameObject:
   m_ObjectHideFlags: 0
@@ -9232,6 +9277,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device7
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -9263,6 +9309,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Device7
+    m_roleValueInt: 0
 --- !u!1 &2061238507
 GameObject:
   m_ObjectHideFlags: 0
@@ -9341,7 +9388,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: ./vive_role_bindings.cfg
+  m_Text: 
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -9693,6 +9740,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Hmd
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -9724,6 +9772,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.DeviceRole
     m_roleValueName: Hmd
+    m_roleValueInt: 0
 --- !u!1 &2120079714
 GameObject:
   m_ObjectHideFlags: 0
