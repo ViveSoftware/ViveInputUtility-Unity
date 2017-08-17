@@ -53,7 +53,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             protected static void SetupKnownDeviceModel(IVRModuleDeviceStateRW deviceState)
             {
-                if (s_viveRgx.IsMatch(deviceState.modelNumber))
+                if (s_viveRgx.IsMatch(deviceState.modelNumber) || s_viveRgx.IsMatch(deviceState.renderModelName))
                 {
                     switch (deviceState.deviceClass)
                     {

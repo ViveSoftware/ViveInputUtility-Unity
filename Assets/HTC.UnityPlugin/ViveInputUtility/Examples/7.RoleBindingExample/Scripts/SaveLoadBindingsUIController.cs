@@ -93,11 +93,7 @@ public class SaveLoadBindingsUIController : MonoBehaviour
     {
         ViveRoleBindingsHelper.LoadBindingConfigFromRoleMap();
 
-        ViveRoleBindingsHelper.bindingConfig = new ViveRoleBindingsHelper.BindingConfig()
-        {
-            apply_bindings_on_load = autoLoadBindings,
-            roles = ViveRoleBindingsHelper.bindingConfig.roles,
-        };
+        ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load = autoLoadBindings;
 
         var configDir = Path.GetDirectoryName(inputFilePath.text);
         if (!string.IsNullOrEmpty(configDir) && !Directory.Exists(configDir))

@@ -121,18 +121,12 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     {
         m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
         OnDeviceIndexChanged(m_viveRole.GetDeviceIndex());
-
-        //VivePose.AddNewPosesListener(this);
-
-        //SetValid(m_isValid = VRModule.IsValidDeviceIndex(viveRole.GetDeviceIndex()) && SteamVR_Render.Top() != null);
     }
 
     protected virtual void OnDisable()
     {
         m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
         OnDeviceIndexChanged(VRModule.INVALID_DEVICE_INDEX);
-        //VivePose.RemoveNewPosesListener(this);
-        //SetValid(m_isValid = false);
     }
 
     private void OnDeviceIndexChanged(uint deviceIndex)
