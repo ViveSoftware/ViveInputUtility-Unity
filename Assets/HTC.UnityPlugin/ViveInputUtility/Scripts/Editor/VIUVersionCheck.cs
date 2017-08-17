@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -17,18 +18,24 @@ namespace HTC.UnityPlugin.Vive
             public string body;
         }
 
-        public const string nextVersionCheckTimeKey = "ViveInputUtility.lastVersionCheckTime";
+        public const string VIU_AUTO_BINDING_INTERFACE_SYMBOL = "VIU_AUTO_BINDING_INTERFACE";
 
-        private const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
-        private const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
-        private const string doNotShowKey = "ViveInputUtility.DoNotShowUpdate.v{0}";
-        private const double versionCheckIntervalMinutes = 60.0;
+        public const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
+        public const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
+        public const double versionCheckIntervalMinutes = 60.0;
 
-        private static bool gotVersion = false;
+        public const string nextVersionCheckTimeKey = "ViveInputUtility.LastVersionCheckTime";
+        public const string doNotShowUpdateKey = "ViveInputUtility.DoNotShowUpdate.v{0}";
+        public const string doNotShowSetupAutoBindUIKey = "ViveInputUtility.DoNotShowSetupAutoBindUI";
+
+        private static bool completeCheckVersionFlow = false;
         private static WWW www;
         private static RepoInfo latestRepoInfo;
         private static Version latestVersion;
         private static VIUVersionCheck window;
+
+        private static bool showNewVersionInfo = false;
+        private static bool showBindHotKeySetup = false;
 
         static VIUVersionCheck()
         {
@@ -38,20 +45,23 @@ namespace HTC.UnityPlugin.Vive
         // check vive input utility version on github
         private static void CheckVersion()
         {
-            if (EditorPrefs.HasKey(nextVersionCheckTimeKey) && DateTime.UtcNow < UtcDateTimeFromStr(EditorPrefs.GetString(nextVersionCheckTimeKey)))
+            if (!completeCheckVersionFlow)
             {
-                // cool down not ready, skip version check
-                //Debug.Log("Now: " + DateTime.UtcNow);
-                //Debug.Log("Next checking time: " + UtcDateTimeFromStr(EditorPrefs.GetString(nextVersionCheckTimeKey)));
-            }
-            else if (!gotVersion)
-            {
-                if (www == null)
+                if (www == null) // web request not running
                 {
+                    if (EditorPrefs.HasKey(nextVersionCheckTimeKey) && DateTime.UtcNow < UtcDateTimeFromStr(EditorPrefs.GetString(nextVersionCheckTimeKey)))
+                    {
+                        completeCheckVersionFlow = true;
+                        return;
+                    }
+
                     www = new WWW(lastestVersionUrl);
                 }
 
-                if (!www.isDone) { return; }
+                if (!www.isDone)
+                {
+                    return;
+                }
 
                 if (UrlSuccess(www))
                 {
@@ -60,16 +70,20 @@ namespace HTC.UnityPlugin.Vive
                     latestRepoInfo = JsonUtility.FromJson<RepoInfo>(www.text);
                 }
 
-                gotVersion = true;
+                showNewVersionInfo = ShouldDisplayNewUpdate();
 
                 www.Dispose();
                 www = null;
 
-                if (ShouldDisplay())
-                {
-                    window = GetWindow<VIUVersionCheck>(true, "Vive Input Utility");
-                    window.minSize = new Vector2(320, 440);
-                }
+                completeCheckVersionFlow = true;
+            }
+
+            showBindHotKeySetup = showNewVersionInfo || !EditorPrefs.HasKey(doNotShowSetupAutoBindUIKey);
+
+            if (showNewVersionInfo || showBindHotKeySetup)
+            {
+                window = GetWindow<VIUVersionCheck>(true, "Vive Input Utility");
+                window.minSize = new Vector2(320, 440);
             }
 
             EditorApplication.update -= CheckVersion;
@@ -109,7 +123,7 @@ namespace HTC.UnityPlugin.Vive
             return true;
         }
 
-        private static bool ShouldDisplay()
+        private static bool ShouldDisplayNewUpdate()
         {
             if (string.IsNullOrEmpty(latestRepoInfo.tag_name)) { return false; }
 
@@ -125,20 +139,35 @@ namespace HTC.UnityPlugin.Vive
 
             if (latestVersion <= VIUVersion.current) { return false; }
 
-            if (EditorPrefs.HasKey(string.Format(doNotShowKey, latestVersion.ToString()))) { return false; }
+            if (EditorPrefs.HasKey(string.Format(doNotShowUpdateKey, latestVersion.ToString()))) { return false; }
 
             return true;
         }
 
         private Vector2 scrollPosition;
-        private bool toggleState;
+        private bool toggleDoNotShowState = false;
+        private bool toggleAutoBindState = true;
 
         public void OnGUI()
         {
-            EditorGUILayout.HelpBox("A new version of the Vive Input Utility is available!", MessageType.Warning);
-
-            scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+            if (showBindHotKeySetup)
             {
+                if (toggleAutoBindState)
+                {
+                    EditorGUILayout.HelpBox("This project will enable auto binding interface! Press RightShift + B to open the binding interface in play mode", MessageType.Warning);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("This project will NOT enable auto binding interface! Copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode ", MessageType.Warning);
+                }
+
+                toggleAutoBindState = GUILayout.Toggle(toggleAutoBindState, "Enable Auto Binding Interface");
+            }
+
+            if (showNewVersionInfo)
+            {
+                EditorGUILayout.HelpBox("A new version of the Vive Input Utility is available!", MessageType.Warning);
+
                 GUILayout.Label("Current version: " + VIUVersion.current);
                 GUILayout.Label("New version: " + latestVersion);
 
@@ -147,32 +176,66 @@ namespace HTC.UnityPlugin.Vive
                     GUILayout.Label("Release notes:");
                     EditorGUILayout.HelpBox(latestRepoInfo.body, MessageType.Info);
                 }
-            }
-            GUILayout.EndScrollView();
 
-            GUILayout.FlexibleSpace();
-
-            if (GUILayout.Button("Get Latest Version"))
-            {
-                Application.OpenURL(pluginUrl);
-            }
-
-            EditorGUI.BeginChangeCheck();
-
-            var doNotShow = GUILayout.Toggle(toggleState, "Do not prompt for this version again.");
-            if (EditorGUI.EndChangeCheck())
-            {
-                toggleState = doNotShow;
-                var key = string.Format(doNotShowKey, latestVersion);
-                if (doNotShow)
+                if (GUILayout.Button("Get Latest Version"))
                 {
-                    EditorPrefs.SetBool(key, true);
+                    Application.OpenURL(pluginUrl);
+                }
+
+                EditorGUI.BeginChangeCheck();
+                var doNotShow = GUILayout.Toggle(toggleDoNotShowState, "Do not prompt for this version again.");
+                if (EditorGUI.EndChangeCheck())
+                {
+                    toggleDoNotShowState = doNotShow;
+                    var key = string.Format(doNotShowUpdateKey, latestVersion);
+                    if (doNotShow)
+                    {
+                        EditorPrefs.SetBool(key, true);
+                    }
+                    else
+                    {
+                        EditorPrefs.DeleteKey(key);
+                    }
+                }
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (showBindHotKeySetup)
+            {
+                EditorPrefs.SetBool(doNotShowSetupAutoBindUIKey, true);
+
+                var symbolChanged = false;
+                var scriptingDefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
+                var symbolsList = new List<string>(scriptingDefineSymbols.Split(';'));
+
+                if (toggleAutoBindState)
+                {
+                    if (!symbolsList.Contains(VIU_AUTO_BINDING_INTERFACE_SYMBOL))
+                    {
+                        symbolsList.Add(VIU_AUTO_BINDING_INTERFACE_SYMBOL);
+                        symbolChanged = true;
+                    }
                 }
                 else
                 {
-                    EditorPrefs.DeleteKey(key);
+                    if (symbolsList.RemoveAll(s => s == VIU_AUTO_BINDING_INTERFACE_SYMBOL) > 0)
+                    {
+                        symbolChanged = true;
+                    }
+                }
+
+                if (symbolChanged)
+                {
+                    EditorApplication.delayCall += GetSetSymbolsCallback(string.Join(";", symbolsList.ToArray()));
                 }
             }
+        }
+
+        private EditorApplication.CallbackFunction GetSetSymbolsCallback(string symbols)
+        {
+            return () => PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, symbols);
         }
     }
 }
