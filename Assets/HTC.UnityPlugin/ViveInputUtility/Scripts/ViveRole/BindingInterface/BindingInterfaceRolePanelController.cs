@@ -92,7 +92,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
                 {
                     if (m_roleButtonList[i].roleValue == boundRoleValue)
                     {
-                        m_roleButtonList[i].SetIsOn();
+                        m_roleButtonList[i].SetIsOnNoEvent();
                         validRoleFound = true;
                         break;
                     }
@@ -100,12 +100,12 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
                 if (!validRoleFound)
                 {
-                    m_roleButtonList[0].SetIsOn();
+                    m_roleButtonList[0].SetIsOnNoEvent();
                 }
             }
             else
             {
-                m_roleButtonList[0].SetIsOn();
+                m_roleButtonList[0].SetIsOnNoEvent();
             }
         }
     }

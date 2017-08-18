@@ -21,13 +21,9 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         [SerializeField]
         private InputField m_inputDeviceSN;
         [SerializeField]
-        private Text m_inputPlaceholder;
-        [SerializeField]
         private Image m_modelIcon;
         [SerializeField]
         private Button m_buttonCheck;
-        [SerializeField]
-        private GameObject m_buttonWarn;
         [SerializeField]
         private BindingInterfaceDeviceItem m_deviceItem;
         [SerializeField]
@@ -39,7 +35,6 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         private bool m_initialized;
         private bool m_trackingEnabled;
-        private string m_defaultPlaceholderText = string.Empty;
         private ViveRole.IMap m_selectedRoleMap;
 
         private IndexedTable<uint, BindingInterfaceDeviceItem> m_itemTable = new IndexedTable<uint, BindingInterfaceDeviceItem>();
@@ -49,8 +44,6 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         {
             if (m_initialized) { return; }
             m_initialized = true;
-
-            m_defaultPlaceholderText = m_inputPlaceholder.text;
 
             m_itemPool.Add(m_deviceItem);
 
@@ -66,6 +59,9 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             m_trackingEnabled = true;
 
             Initialize();
+
+            m_inputDeviceSN.text = string.Empty;
+            CheckInputDeviceSN(string.Empty);
 
             for (uint deviceIndex = 0; deviceIndex < VRModule.MAX_DEVICE_COUNT; ++deviceIndex)
             {
@@ -153,7 +149,8 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             var deviceState = VRModule.GetCurrentDeviceState(deviceIndex);
             var deviceSN = deviceState.serialNumber;
 
-            m_inputPlaceholder.text = deviceSN;
+            m_inputDeviceSN.text = deviceSN;
+            CheckInputDeviceSN(deviceSN);
 
             m_modelIcon.gameObject.SetActive(true);
             BindingInterfaceSpriteManager.SetupDeviceIcon(m_modelIcon, deviceState.deviceModel, true);
@@ -168,7 +165,9 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         {
             var deviceSN = VRModule.GetCurrentDeviceState(deviceIndex).serialNumber;
 
-            m_inputPlaceholder.text = m_defaultPlaceholderText;
+            m_inputDeviceSN.text = string.Empty;
+            CheckInputDeviceSN(string.Empty);
+
             m_modelIcon.gameObject.SetActive(false);
 
             if (m_onMouseExitDevice != null)
@@ -181,26 +180,12 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         {
             if (string.IsNullOrEmpty(inputStr))
             {
-                m_buttonCheck.gameObject.SetActive(true);
                 m_buttonCheck.interactable = false;
-                m_buttonWarn.SetActive(false);
-
                 m_modelIcon.gameObject.SetActive(false);
-            }
-            else if (!m_selectedRoleMap.IsDeviceBound(inputStr))
-            {
-                m_buttonCheck.gameObject.SetActive(true);
-                m_buttonCheck.interactable = true;
-                m_buttonWarn.SetActive(false);
-
-                m_modelIcon.gameObject.SetActive(true);
-                BindingInterfaceSpriteManager.SetupDeviceIcon(m_modelIcon, VRModuleDeviceModel.Unknown, false);
             }
             else
             {
-                m_buttonCheck.gameObject.SetActive(false);
-                m_buttonWarn.SetActive(true);
-
+                m_buttonCheck.interactable = true;
                 m_modelIcon.gameObject.SetActive(true);
                 uint deviceIndex;
                 if (VRModule.TryGetConnectedDeviceIndex(inputStr, out deviceIndex))
