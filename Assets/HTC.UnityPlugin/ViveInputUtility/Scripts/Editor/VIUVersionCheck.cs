@@ -158,7 +158,7 @@ namespace HTC.UnityPlugin.Vive
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox("This project will NOT enable auto binding interface! Copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode ", MessageType.Warning);
+                    EditorGUILayout.HelpBox("This project will NOT enable auto binding interface! Please enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script or copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode ", MessageType.Warning);
                 }
 
                 toggleAutoBindState = GUILayout.Toggle(toggleAutoBindState, "Enable Auto Binding Interface");
