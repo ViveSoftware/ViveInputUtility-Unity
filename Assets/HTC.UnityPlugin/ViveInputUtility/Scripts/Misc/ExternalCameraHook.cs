@@ -47,6 +47,10 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     }
 
     public SteamVR_ExternalCamera externalCamera { get { return m_externalCamera; } }
+    
+    public static ExternalCameraHook instance { get { return s_hook; } }
+
+    private bool isInstance { get { return this == s_hook; } }
 
     [RuntimeInitializeOnLoadMethod]
     private static void AutoLoadConfig()
@@ -119,14 +123,20 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
 
     protected virtual void OnEnable()
     {
-        m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
-        OnDeviceIndexChanged(m_viveRole.GetDeviceIndex());
+        if (isInstance)
+        {
+            m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
+            OnDeviceIndexChanged(m_viveRole.GetDeviceIndex());
+        }
     }
 
     protected virtual void OnDisable()
     {
-        m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
-        OnDeviceIndexChanged(VRModule.INVALID_DEVICE_INDEX);
+        if (isInstance)
+        {
+            m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
+            OnDeviceIndexChanged(VRModule.INVALID_DEVICE_INDEX);
+        }
     }
 
     private void OnDeviceIndexChanged(uint deviceIndex)
@@ -189,6 +199,7 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     }
 
 #else
+    public static ExternalCameraHook instance { get { return null; } }
 
     public string configPath { get { return m_configPath; } set { m_configPath = value; } }
 
