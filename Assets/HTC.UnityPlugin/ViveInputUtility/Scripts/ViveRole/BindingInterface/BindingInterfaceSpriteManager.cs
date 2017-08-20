@@ -76,25 +76,23 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         public static void SetupTrackingDeviceIcon(Image image, VRModuleDeviceModel deviceModel, bool bound)
         {
             string spriteName;
-            Vector3 scale = new Vector3(0.2326f, 0.2326f, 1f);
+            var scale = Vector3.one;
             switch (deviceModel)
             {
                 case VRModuleDeviceModel.ViveHMD:
                 case VRModuleDeviceModel.OculusHMD:
                     spriteName = "binding_ui_project_HMD";
-                    scale.Scale(new Vector3(1f, 1f, 1f));
                     break;
                 case VRModuleDeviceModel.KnucklesLeft:
                     spriteName = MODEL_PROJECT_SPRITE_PREFIX + VRModuleDeviceModel.KnucklesRight;
-                    scale.Scale(new Vector3(-1f, 1f, 1f));
+                    scale.x = -1f;
                     break;
                 case VRModuleDeviceModel.OculusTouchLeft:
                     spriteName = MODEL_PROJECT_SPRITE_PREFIX + VRModuleDeviceModel.OculusTouchRight;
-                    scale.Scale(new Vector3(-1f, 1f, 1f));
+                    scale.x = -1f;
                     break;
                 default:
                     spriteName = MODEL_PROJECT_SPRITE_PREFIX + deviceModel.ToString();
-                    scale.Scale(new Vector3(1f, 1f, 1f));
                     break;
             }
 
@@ -112,6 +110,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
                 var spriteRect = sprite.rect;
                 var spritePivot = sprite.pivot;
                 image.SetNativeSize();
+                image.rectTransform.sizeDelta *= 0.2326f;
                 image.rectTransform.pivot = new Vector2(spritePivot.x / spriteRect.width, spritePivot.y / spriteRect.height);
 
                 image.transform.localScale = scale;

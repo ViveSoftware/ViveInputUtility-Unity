@@ -13,6 +13,8 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         [SerializeField]
         private GameObject m_dirtySymble;
 
+        private bool m_exCamTrunedOff;
+
         private void Awake()
         {
             if (EventSystem.current == null)
@@ -29,14 +31,38 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             m_toggleApplyOnStart.isOn = ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load;
         }
 
+        private void OnDisable()
+        {
+            if (ExternalCameraHook.instance != null && !ExternalCameraHook.instance.enabled && m_exCamTrunedOff)
+            {
+                ExternalCameraHook.instance.enabled = true;
+            }
+
+            m_exCamTrunedOff = false;
+        }
+
+        private void Update()
+        {
+            if (ExternalCameraHook.instance != null && ExternalCameraHook.instance.enabled)
+            {
+                ExternalCameraHook.instance.enabled = false;
+                m_exCamTrunedOff = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                CloseBindingInterface();
+            }
+        }
+
         public void SetDirty()
         {
             m_dirtySymble.SetActive(true);
         }
 
-        public void ToggleBindingInterface()
+        public void CloseBindingInterface()
         {
-            ViveRoleBindingsHelper.ToggleBindingInterface();
+            ViveRoleBindingsHelper.DisableBindingInterface();
         }
 
         public void ReloadConfig()

@@ -13,6 +13,9 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 {
     public class BindingInterfaceDevicePanelController : MonoBehaviour
     {
+        private const float MIN_DEVICE_VIEW_SCALE = 0.01f;
+        private const float MAX_DEVICE_VIEW_SCALE = 5f;
+
         [Serializable]
         public class UnityEventString : UnityEvent<string> { }
 
@@ -27,6 +30,10 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         [SerializeField]
         private BindingInterfaceDeviceItem m_deviceItem;
         [SerializeField]
+        private float m_deviceViewMargin = 20f;
+        [SerializeField]
+        private bool m_showDebugBoundRect = false;
+        [SerializeField]
         private UnityEventString m_onSelectDevice = new UnityEventString();
         [SerializeField]
         private UnityEventString m_onMouseEnterDevice = new UnityEventString();
@@ -37,6 +44,9 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         private bool m_trackingEnabled;
         private ViveRole.IMap m_selectedRoleMap;
 
+        private RectTransform m_deviceView;
+        private float m_deviceViewMaskWidth;
+        private float m_deviceViewMaskHeight;
         private IndexedTable<uint, BindingInterfaceDeviceItem> m_itemTable = new IndexedTable<uint, BindingInterfaceDeviceItem>();
         private List<BindingInterfaceDeviceItem> m_itemPool = new List<BindingInterfaceDeviceItem>();
 
@@ -51,6 +61,11 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             m_deviceItem.onEnter += OnEnterDevice;
             m_deviceItem.onExit += OnExitDevice;
             m_deviceItem.gameObject.SetActive(false);
+
+            m_deviceView = m_deviceItem.transform.parent.GetComponent<RectTransform>();
+            var deviceViewMaskRect = m_deviceView.parent.GetComponent<RectTransform>().rect;
+            m_deviceViewMaskWidth = deviceViewMaskRect.width;
+            m_deviceViewMaskHeight = deviceViewMaskRect.height;
         }
 
         public void EnableTracking()
@@ -95,14 +110,77 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             DisableTracking();
         }
 
+        private Vector3[] m_itemCorners = new Vector3[4];
+        private Image m_bound;
         private void Update()
         {
             if (m_trackingEnabled)
             {
+                var boundRect = new Rect()
+                {
+                    xMin = float.MaxValue,
+                    xMax = float.MinValue,
+                    yMin = float.MaxValue,
+                    yMax = float.MinValue,
+                };
+
+                if (m_showDebugBoundRect && m_bound == null)
+                {
+                    var boundObj = new GameObject();
+                    boundObj.transform.SetParent(m_deviceView.transform, false);
+                    boundObj.transform.SetAsFirstSibling();
+                    m_bound = boundObj.AddComponent<Image>();
+                    m_bound.color = new Color(1f, 0f, 0f, 5f);
+                }
+
                 for (int i = 0, imax = m_itemTable.Count; i < imax; ++i)
                 {
-                    m_itemTable.GetValueByIndex(i).UpdatePosition();
+                    var item = m_itemTable.GetValueByIndex(i);
+
+                    if (!item.isDisplayed) { continue; }
+
+                    item.UpdatePosition();
+
+                    item.rectTransform.GetWorldCorners(m_itemCorners);
+
+                    for (int j = 0; j < 4; ++j)
+                    {
+                        m_itemCorners[j] = m_deviceView.InverseTransformPoint(m_itemCorners[j]);
+                    }
+
+                    boundRect.xMin = Mathf.Min(boundRect.xMin, m_itemCorners[0].x, m_itemCorners[1].x, m_itemCorners[2].x, m_itemCorners[3].x);
+                    boundRect.xMax = Mathf.Max(boundRect.xMax, m_itemCorners[0].x, m_itemCorners[1].x, m_itemCorners[2].x, m_itemCorners[3].x);
+                    boundRect.yMin = Mathf.Min(boundRect.yMin, m_itemCorners[0].y, m_itemCorners[1].y, m_itemCorners[2].y, m_itemCorners[3].y);
+                    boundRect.yMax = Mathf.Max(boundRect.yMax, m_itemCorners[0].y, m_itemCorners[1].y, m_itemCorners[2].y, m_itemCorners[3].y);
                 }
+                
+                // calculate view panel's scale to let view rect includes all devices
+                var innerWidth = m_deviceViewMaskWidth - (m_deviceViewMargin * 2f);
+                var innerHeight = m_deviceViewMaskHeight - (m_deviceViewMargin * 2f);
+                var maxBoundWidth = Mathf.Max(Mathf.Abs(boundRect.xMin), Mathf.Abs(boundRect.xMax)) * 2f;
+                var maxBoundHeight = Mathf.Max(Mathf.Abs(boundRect.yMin), Mathf.Abs(boundRect.yMax)) * 2f;
+
+                float scale;
+                if (innerWidth / innerHeight >= maxBoundWidth / maxBoundHeight)
+                {
+                    // if viewRect is wider then boundRect
+                    scale = innerHeight / maxBoundHeight;
+                }
+                else
+                {
+                    // if boundRect is wider then viewRect
+                    scale = innerWidth / maxBoundWidth;
+                }
+
+                scale = Mathf.Clamp(scale, MIN_DEVICE_VIEW_SCALE, MAX_DEVICE_VIEW_SCALE);
+
+                if (m_showDebugBoundRect)
+                {
+                    m_bound.rectTransform.sizeDelta = new Vector2(boundRect.width, boundRect.height);
+                    m_bound.rectTransform.localPosition = boundRect.center;
+                }
+
+                m_deviceView.localScale = new Vector3(scale, scale, 1f);
             }
         }
 

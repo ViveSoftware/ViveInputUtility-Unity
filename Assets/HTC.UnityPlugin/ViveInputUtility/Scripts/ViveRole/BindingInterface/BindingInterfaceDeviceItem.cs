@@ -17,6 +17,10 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         [SerializeField]
         private Button m_button;
 
+        public RectTransform rectTransform { get { return m_imageModel.rectTransform; } }
+
+        public bool isDisplayed { get { return m_imageModel.enabled; } }
+
         public bool isBound { get; set; }
 
         public uint deviceIndex { get; set; }
