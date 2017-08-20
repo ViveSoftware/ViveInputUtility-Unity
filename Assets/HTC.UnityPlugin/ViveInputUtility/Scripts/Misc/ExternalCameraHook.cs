@@ -22,8 +22,6 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     public ViveRoleProperty viveRole { get { return m_viveRole; } }
     public Transform origin { get { return m_origin; } set { m_origin = value; } }
 
-    public static ExternalCameraHook instance { get { return s_hook; } }
-
 #if VIU_STEAMVR
     private static bool s_isAutoLoaded;
     private static ExternalCameraHook s_hook;
@@ -49,8 +47,10 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     }
 
     public SteamVR_ExternalCamera externalCamera { get { return m_externalCamera; } }
+    
+    public static ExternalCameraHook instance { get { return s_hook; } }
 
-    public bool isInstance { get { return this == s_hook; } }
+    private bool isInstance { get { return this == s_hook; } }
 
     [RuntimeInitializeOnLoadMethod]
     private static void AutoLoadConfig()
@@ -199,6 +199,7 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     }
 
 #else
+    public static ExternalCameraHook instance { get { return null; } }
 
     public string configPath { get { return m_configPath; } set { m_configPath = value; } }
 
