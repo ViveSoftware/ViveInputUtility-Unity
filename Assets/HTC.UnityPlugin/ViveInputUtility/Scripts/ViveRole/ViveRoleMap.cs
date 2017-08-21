@@ -631,7 +631,7 @@ namespace HTC.UnityPlugin.Vive
             public int BindingCount { get { return m_map.BindingCount; } }
             public IIndexedTableReadOnly<string, int> BindingTable { get { return m_map.BindingTable; } }
 
-            public event UnityAction<IMap, MappingChangedEventArg> onRoleValueMappingChanged;
+            public event UnityAction<IMap, MappingChangedEventArg> onRoleValueMappingChanged { add { m_map.onRoleValueMappingChanged += value; } remove { m_map.onRoleValueMappingChanged -= value; } }
 
             public event UnityAction<IMap<TRole>, MappingChangedEventArg<TRole>> onRoleMappingChanged;
 
