@@ -62,6 +62,11 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private string m_overrideConfigPath = AUTO_LOAD_CONFIG_PATH;
 
+        static ViveRoleBindingsHelper()
+        {
+            SetDefaultInitGameObjectGetter(VRModule.GetInstanceGameObject);
+        }
+
         [RuntimeInitializeOnLoadMethod]
         public static void AutoLoadConfig()
         {

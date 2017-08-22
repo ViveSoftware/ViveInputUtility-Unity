@@ -23,6 +23,11 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private bool m_dontDestroyOnLoad = true;
 
+        static VivePose()
+        {
+            SetDefaultInitGameObjectGetter(VRModule.GetInstanceGameObject);
+        }
+
         protected override void OnSingletonBehaviourInitialized()
         {
             if (m_dontDestroyOnLoad && transform.parent == null)

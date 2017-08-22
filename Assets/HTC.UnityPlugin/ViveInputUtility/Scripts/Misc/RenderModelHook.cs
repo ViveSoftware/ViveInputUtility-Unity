@@ -82,7 +82,7 @@ public class RenderModelHook : MonoBehaviour, IViveRoleComponent
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (Application.isPlaying && VRModule.Active)
+        if (isActiveAndEnabled && Application.isPlaying && VRModule.Active)
         {
             UpdateModel();
         }
