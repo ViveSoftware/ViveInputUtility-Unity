@@ -291,7 +291,7 @@ namespace HTC.UnityPlugin.Vive
 
                 EditorGUI.BeginChangeCheck();
 
-#if VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL
+#if VIU_EXTERNAL_CAMERA_SWITCH
                 toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", true);
                 EditorGUILayout.HelpBox(s_enableExternalCamSwitcInfo, MessageType.Info);
 #else

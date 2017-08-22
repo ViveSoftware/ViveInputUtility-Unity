@@ -239,6 +239,8 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         Debug.LogWarning("SteamVR plugin not found! install it to enable ExternalCamera!");
     }
 
+    private void UpdateExCamActivity() { }
+
     public virtual void BeforeNewPoses() { }
 
     public virtual void OnNewPoses() { }
