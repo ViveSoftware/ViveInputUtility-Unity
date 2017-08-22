@@ -24,9 +24,13 @@ namespace HTC.UnityPlugin.Vive
         public const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
         public const double versionCheckIntervalMinutes = 60.0;
 
-        public const string nextVersionCheckTimeKey = "ViveInputUtility.LastVersionCheckTime";
-        public const string doNotShowUpdateKey = "ViveInputUtility.DoNotShowUpdate.v{0}";
-        public const string doNotShowSetupAutoBindUIKey = "ViveInputUtility.DoNotShowSetupAutoBindUI";
+        public readonly static string nextVersionCheckTimeKey = "ViveInputUtility." + PlayerSettings.productGUID + ".LastVersionCheckTime";
+        public readonly static string doNotShowUpdateKey = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowUpdate.v{0}";
+        public readonly static string doNotShowSetupAutoBindUIKey = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowSetupAutoBindUI";
+
+        private readonly static string s_enableAutoBindUIInfo = "This project will enable auto binding interface! Press RightShift + B to open the binding interface in play mode.";
+        private readonly static string s_disableAutoBindUIInfo = "This project will NOT enable auto binding interface! Please enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script, or copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode.";
+        private static bool s_waitingForCompile;
 
         private static bool completeCheckVersionFlow = false;
         private static WWW www;
@@ -40,6 +44,8 @@ namespace HTC.UnityPlugin.Vive
         static VIUVersionCheck()
         {
             EditorApplication.update += CheckVersion;
+            s_waitingForCompile = false;
+            EditorApplication.RepaintProjectWindow();
         }
 
         // check vive input utility version on github
@@ -154,11 +160,11 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (toggleAutoBindState)
                 {
-                    EditorGUILayout.HelpBox("This project will enable auto binding interface! Press RightShift + B to open the binding interface in play mode", MessageType.Warning);
+                    EditorGUILayout.HelpBox(s_enableAutoBindUIInfo, MessageType.Warning);
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox("This project will NOT enable auto binding interface! Please enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script or copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode ", MessageType.Warning);
+                    EditorGUILayout.HelpBox(s_disableAutoBindUIInfo, MessageType.Warning);
                 }
 
                 toggleAutoBindState = GUILayout.Toggle(toggleAutoBindState, "Enable Auto Binding Interface");
@@ -206,36 +212,70 @@ namespace HTC.UnityPlugin.Vive
             {
                 EditorPrefs.SetBool(doNotShowSetupAutoBindUIKey, true);
 
-                var symbolChanged = false;
-                var scriptingDefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
-                var symbolsList = new List<string>(scriptingDefineSymbols.Split(';'));
-
-                if (toggleAutoBindState)
-                {
-                    if (!symbolsList.Contains(VIU_AUTO_BINDING_INTERFACE_SYMBOL))
-                    {
-                        symbolsList.Add(VIU_AUTO_BINDING_INTERFACE_SYMBOL);
-                        symbolChanged = true;
-                    }
-                }
-                else
-                {
-                    if (symbolsList.RemoveAll(s => s == VIU_AUTO_BINDING_INTERFACE_SYMBOL) > 0)
-                    {
-                        symbolChanged = true;
-                    }
-                }
-
-                if (symbolChanged)
-                {
-                    EditorApplication.delayCall += GetSetSymbolsCallback(string.Join(";", symbolsList.ToArray()));
-                }
+                SetAutoBindingInterfaceSymbol(toggleAutoBindState);
             }
         }
 
-        private EditorApplication.CallbackFunction GetSetSymbolsCallback(string symbols)
+        private static void SetAutoBindingInterfaceSymbol(bool enable)
+        {
+            var symbolChanged = false;
+            var scriptingDefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
+            var symbolsList = new List<string>(scriptingDefineSymbols.Split(';'));
+
+            if (enable)
+            {
+                if (!symbolsList.Contains(VIU_AUTO_BINDING_INTERFACE_SYMBOL))
+                {
+                    symbolsList.Add(VIU_AUTO_BINDING_INTERFACE_SYMBOL);
+                    symbolChanged = true;
+                }
+            }
+            else
+            {
+                if (symbolsList.RemoveAll(s => s == VIU_AUTO_BINDING_INTERFACE_SYMBOL) > 0)
+                {
+                    symbolChanged = true;
+                }
+            }
+
+            if (symbolChanged)
+            {
+                EditorApplication.delayCall += GetSetSymbolsCallback(string.Join(";", symbolsList.ToArray()));
+            }
+        }
+
+        private static EditorApplication.CallbackFunction GetSetSymbolsCallback(string symbols)
         {
             return () => PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, symbols);
+        }
+
+        [PreferenceItem("Vive Input Utility")]
+        public static void OnVIUPreferenceGUI()
+        {
+            if (!s_waitingForCompile)
+            {
+                var toggleValue = false;
+                EditorGUI.BeginChangeCheck();
+
+#if VIU_AUTO_BINDING_INTERFACE
+                toggleValue = EditorGUILayout.Toggle("Enable Auto Binding Interface", true);
+                EditorGUILayout.HelpBox(s_enableAutoBindUIInfo, MessageType.Info);
+#else
+                toggleValue = EditorGUILayout.Toggle("Enable Auto Binding Interface", false);
+                EditorGUILayout.HelpBox(s_disableAutoBindUIInfo, MessageType.Info);
+#endif
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    s_waitingForCompile = true;
+                    SetAutoBindingInterfaceSymbol(toggleValue);
+                }
+            }
+            else
+            {
+                GUILayout.Space(30f);
+                GUILayout.Button("Re-compiling...");
+            }
         }
     }
 }
