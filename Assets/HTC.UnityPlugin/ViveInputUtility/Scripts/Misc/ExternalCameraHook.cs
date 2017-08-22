@@ -18,20 +18,42 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     private Transform m_origin;
     [SerializeField]
     private string m_configPath = AUTO_LOAD_CONFIG_PATH;
+    [SerializeField]
+    private bool m_toggleSwitch = true;
 
     public ViveRoleProperty viveRole { get { return m_viveRole; } }
+
     public Transform origin { get { return m_origin; } set { m_origin = value; } }
+
+    public bool toggleSwitch
+    {
+        get { return m_toggleSwitch; }
+        set
+        {
+            if (m_toggleSwitch != value)
+            {
+                m_toggleSwitch = value;
+                UpdateExCamActivity();
+            }
+        }
+    }
 
     static ExternalCameraHook()
     {
-        SetDefaultInitGameObjectGetter(VRModule.GetInstanceGameObject);
+        SetDefaultInitGameObjectGetter(DefaultInitGameObject);
+    }
+
+    private static GameObject DefaultInitGameObject()
+    {
+        var go = new GameObject("[ExternalCamera]");
+        go.transform.SetParent(VRModule.Instance.transform, false);
+        return go;
     }
 
 #if VIU_STEAMVR
     private static bool s_isAutoLoaded;
 
     private SteamVR_ExternalCamera m_externalCamera;
-    private bool m_isValid;
 
     public string configPath
     {
@@ -107,27 +129,50 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         }
     }
 
+#if UNITY_EDITOR
+    protected virtual void OnValidate()
+    {
+        UpdateExCamActivity();
+    }
+#endif
+
     protected virtual void OnEnable()
     {
-        if (Active && IsInstance)
+        if (IsInstance)
         {
             m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
-            OnDeviceIndexChanged(m_viveRole.GetDeviceIndex());
+            m_toggleSwitch = true;
+            UpdateExCamActivity();
         }
     }
 
     protected virtual void OnDisable()
     {
-        if (Active && IsInstance)
+        if (IsInstance)
         {
             m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
-            OnDeviceIndexChanged(VRModule.INVALID_DEVICE_INDEX);
+            UpdateExCamActivity();
         }
+    }
+
+    protected virtual void Update()
+    {
+#if VIU_EXTERNAL_CAMERA_SWITCH
+        if (Input.GetKeyDown(KeyCode.M) && Input.GetKey(KeyCode.RightShift))
+        {
+            toggleSwitch = !toggleSwitch;
+        }
+#endif
     }
 
     private void OnDeviceIndexChanged(uint deviceIndex)
     {
-        SetValid(VRModule.IsValidDeviceIndex(deviceIndex));
+        UpdateExCamActivity();
+    }
+
+    private void UpdateExCamActivity()
+    {
+        SetValid(enabled && m_toggleSwitch && VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()));
 
         if (m_externalCamera != null && m_externalCamera.gameObject.activeSelf)
         {

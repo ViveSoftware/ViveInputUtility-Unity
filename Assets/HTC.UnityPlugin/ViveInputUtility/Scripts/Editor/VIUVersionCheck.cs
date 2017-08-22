@@ -18,7 +18,8 @@ namespace HTC.UnityPlugin.Vive
             public string body;
         }
 
-        public const string VIU_AUTO_BINDING_INTERFACE_SYMBOL = "VIU_AUTO_BINDING_INTERFACE";
+        public const string VIU_BINDING_INTERFACE_SWITCH_SYMBOL = "VIU_BINDING_INTERFACE_SWITCH";
+        public const string VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL = "VIU_EXTERNAL_CAMERA_SWITCH";
 
         public const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
         public const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
@@ -26,10 +27,12 @@ namespace HTC.UnityPlugin.Vive
 
         public readonly static string nextVersionCheckTimeKey = "ViveInputUtility." + PlayerSettings.productGUID + ".LastVersionCheckTime";
         public readonly static string doNotShowUpdateKey = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowUpdate.v{0}";
-        public readonly static string doNotShowSetupAutoBindUIKey = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowSetupAutoBindUI";
+        public readonly static string doNotShowSetupSwitch = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowSetupSwitch";
 
-        private readonly static string s_enableAutoBindUIInfo = "This project will enable auto binding interface! Press RightShift + B to open the binding interface in play mode.";
-        private readonly static string s_disableAutoBindUIInfo = "This project will NOT enable auto binding interface! Please enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script, or copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode.";
+        private readonly static string s_enableBindUISwitchInfo = "This project will enable binding interface switch! Press RightShift + B to open the binding interface in play mode.";
+        private readonly static string s_disableBindUISwitchInfo = "This project will NOT enable binding interface switch! You can only enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script, or copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode.";
+        private readonly static string s_enableExternalCamSwitcInfo = "This project will enable external camera switch! Press RightShift + M to toggle the external camera view when external camera is enabled.";
+        private readonly static string s_disableExternalCamSwitcInfo = "This project will NOT enable external camera switch! Enable the switch let you toggle the external camera view by pressing RightShift + M when external camera is enabled.";
         private static bool s_waitingForCompile;
 
         private static bool completeCheckVersionFlow = false;
@@ -39,7 +42,7 @@ namespace HTC.UnityPlugin.Vive
         private static VIUVersionCheck window;
 
         private static bool showNewVersionInfo = false;
-        private static bool showBindHotKeySetup = false;
+        private static bool showSwitchSetup = false;
 
         static VIUVersionCheck()
         {
@@ -84,9 +87,9 @@ namespace HTC.UnityPlugin.Vive
                 completeCheckVersionFlow = true;
             }
 
-            showBindHotKeySetup = showNewVersionInfo || !EditorPrefs.HasKey(doNotShowSetupAutoBindUIKey);
+            showSwitchSetup = showNewVersionInfo || !EditorPrefs.HasKey(doNotShowSetupSwitch);
 
-            if (showNewVersionInfo || showBindHotKeySetup)
+            if (showNewVersionInfo || showSwitchSetup)
             {
                 window = GetWindow<VIUVersionCheck>(true, "Vive Input Utility");
                 window.minSize = new Vector2(320, 440);
@@ -152,22 +155,34 @@ namespace HTC.UnityPlugin.Vive
 
         private Vector2 scrollPosition;
         private bool toggleDoNotShowState = false;
-        private bool toggleAutoBindState = true;
+        private bool toggleBindUISwithState = true;
+        private bool toggleExCamSwithState = true;
 
         public void OnGUI()
         {
-            if (showBindHotKeySetup)
+            if (showSwitchSetup)
             {
-                if (toggleAutoBindState)
+                if (toggleBindUISwithState)
                 {
-                    EditorGUILayout.HelpBox(s_enableAutoBindUIInfo, MessageType.Warning);
+                    EditorGUILayout.HelpBox(s_enableBindUISwitchInfo, MessageType.Warning);
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox(s_disableAutoBindUIInfo, MessageType.Warning);
+                    EditorGUILayout.HelpBox(s_disableBindUISwitchInfo, MessageType.Warning);
                 }
 
-                toggleAutoBindState = GUILayout.Toggle(toggleAutoBindState, "Enable Auto Binding Interface");
+                toggleBindUISwithState = GUILayout.Toggle(toggleBindUISwithState, "Enable Binding Interface Switch");
+
+                if (toggleExCamSwithState)
+                {
+                    EditorGUILayout.HelpBox(s_enableExternalCamSwitcInfo, MessageType.Warning);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox(s_disableExternalCamSwitcInfo, MessageType.Warning);
+                }
+
+                toggleBindUISwithState = GUILayout.Toggle(toggleExCamSwithState, "Enable Binding Interface Switch");
             }
 
             if (showNewVersionInfo)
@@ -208,15 +223,16 @@ namespace HTC.UnityPlugin.Vive
 
         private void OnDestroy()
         {
-            if (showBindHotKeySetup)
+            if (showSwitchSetup)
             {
-                EditorPrefs.SetBool(doNotShowSetupAutoBindUIKey, true);
+                EditorPrefs.SetBool(doNotShowSetupSwitch, true);
 
-                SetAutoBindingInterfaceSymbol(toggleAutoBindState);
+                SetAutoBindingInterfaceSymbol(VIU_BINDING_INTERFACE_SWITCH_SYMBOL, toggleBindUISwithState);
+                SetAutoBindingInterfaceSymbol(VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL, toggleExCamSwithState);
             }
         }
 
-        private static void SetAutoBindingInterfaceSymbol(bool enable)
+        private static void SetAutoBindingInterfaceSymbol(string symbol, bool enable)
         {
             var symbolChanged = false;
             var scriptingDefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
@@ -224,15 +240,15 @@ namespace HTC.UnityPlugin.Vive
 
             if (enable)
             {
-                if (!symbolsList.Contains(VIU_AUTO_BINDING_INTERFACE_SYMBOL))
+                if (!symbolsList.Contains(symbol))
                 {
-                    symbolsList.Add(VIU_AUTO_BINDING_INTERFACE_SYMBOL);
+                    symbolsList.Add(symbol);
                     symbolChanged = true;
                 }
             }
             else
             {
-                if (symbolsList.RemoveAll(s => s == VIU_AUTO_BINDING_INTERFACE_SYMBOL) > 0)
+                if (symbolsList.RemoveAll(s => s == symbol) > 0)
                 {
                     symbolChanged = true;
                 }
@@ -254,21 +270,40 @@ namespace HTC.UnityPlugin.Vive
         {
             if (!s_waitingForCompile)
             {
-                var toggleValue = false;
+                bool toggleValue;
+
                 EditorGUI.BeginChangeCheck();
 
-#if VIU_AUTO_BINDING_INTERFACE
-                toggleValue = EditorGUILayout.Toggle("Enable Auto Binding Interface", true);
-                EditorGUILayout.HelpBox(s_enableAutoBindUIInfo, MessageType.Info);
+#if VIU_BINDING_INTERFACE_SWITCH
+                toggleValue = EditorGUILayout.Toggle("Enable Binding Interface Switch", true);
+                EditorGUILayout.HelpBox(s_enableBindUISwitchInfo, MessageType.Info);
 #else
-                toggleValue = EditorGUILayout.Toggle("Enable Auto Binding Interface", false);
-                EditorGUILayout.HelpBox(s_disableAutoBindUIInfo, MessageType.Info);
+                toggleValue = EditorGUILayout.Toggle("Enable Binding Interface Switch", false);
+                EditorGUILayout.HelpBox(s_disableBindUISwitchInfo, MessageType.Info);
 #endif
 
                 if (EditorGUI.EndChangeCheck())
                 {
                     s_waitingForCompile = true;
-                    SetAutoBindingInterfaceSymbol(toggleValue);
+                    SetAutoBindingInterfaceSymbol(VIU_BINDING_INTERFACE_SWITCH_SYMBOL, toggleValue);
+                    return;
+                }
+
+                EditorGUI.BeginChangeCheck();
+
+#if VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL
+                toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", true);
+                EditorGUILayout.HelpBox(s_enableExternalCamSwitcInfo, MessageType.Info);
+#else
+                toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", false);
+                EditorGUILayout.HelpBox(s_disableExternalCamSwitcInfo, MessageType.Info);
+#endif
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    s_waitingForCompile = true;
+                    SetAutoBindingInterfaceSymbol(VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL, toggleValue);
+                    return;
                 }
             }
             else
