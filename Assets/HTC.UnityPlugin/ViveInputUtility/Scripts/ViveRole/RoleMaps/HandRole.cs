@@ -245,7 +245,7 @@ namespace HTC.UnityPlugin.Vive
             }
 
             // if external camera is not mapped, try mapping first found tracker
-            if (!RoleMap.IsRoleMapped(HandRole.ExternalCamera) && VRModule.IsValidDeviceIndex(firstFoundTracker))
+            if (!RoleMap.IsRoleMapped(HandRole.ExternalCamera) && VRModule.IsValidDeviceIndex(firstFoundTracker) && !RoleMap.IsDeviceConnectedAndBound(firstFoundTracker))
             {
                 MappingRole(HandRole.ExternalCamera, firstFoundTracker);
             }
