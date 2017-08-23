@@ -43,8 +43,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         static VRModule()
         {
+            SetDefaultInitGameObjectGetter(GetDefaultInitGameObject);
+
             s_defaultState = new DeviceState(INVALID_DEVICE_INDEX);
             s_defaultState.Reset();
+        }
+
+        private static GameObject GetDefaultInitGameObject()
+        {
+            return new GameObject("[ViveInputUtility]");
+        }
+
+        public static GameObject GetInstanceGameObject()
+        {
+            return Instance.gameObject;
         }
 
         protected override void OnSingletonBehaviourInitialized()
@@ -68,7 +80,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             m_prevStates = new DeviceState[MAX_DEVICE_COUNT];
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i) { m_prevStates[i] = new DeviceState(i); }
-            
+
             Camera.onPreCull += OnCameraPreCull;
         }
 

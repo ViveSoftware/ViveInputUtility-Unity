@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.PoseTracker;
+using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using HTC.UnityPlugin.VRModuleManagement;
 using System.IO;
@@ -8,7 +8,7 @@ using UnityEngine;
 
 // This script creates and handles SteamVR_ExternalCamera using viveRole property
 [DisallowMultipleComponent]
-public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleComponent
+public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPoseListener, IViveRoleComponent
 {
     public const string AUTO_LOAD_CONFIG_PATH = "externalcamera.cfg";
 
@@ -18,16 +18,42 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     private Transform m_origin;
     [SerializeField]
     private string m_configPath = AUTO_LOAD_CONFIG_PATH;
+    [SerializeField]
+    private bool m_toggleSwitch = true;
 
     public ViveRoleProperty viveRole { get { return m_viveRole; } }
+
     public Transform origin { get { return m_origin; } set { m_origin = value; } }
+
+    public bool toggleSwitch
+    {
+        get { return m_toggleSwitch; }
+        set
+        {
+            if (m_toggleSwitch != value)
+            {
+                m_toggleSwitch = value;
+                UpdateExCamActivity();
+            }
+        }
+    }
+
+    static ExternalCameraHook()
+    {
+        SetDefaultInitGameObjectGetter(DefaultInitGameObject);
+    }
+
+    private static GameObject DefaultInitGameObject()
+    {
+        var go = new GameObject("[ExternalCamera]");
+        go.transform.SetParent(VRModule.Instance.transform, false);
+        return go;
+    }
 
 #if VIU_STEAMVR
     private static bool s_isAutoLoaded;
-    private static ExternalCameraHook s_hook;
 
     private SteamVR_ExternalCamera m_externalCamera;
-    private bool m_isValid;
 
     public string configPath
     {
@@ -47,10 +73,6 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     }
 
     public SteamVR_ExternalCamera externalCamera { get { return m_externalCamera; } }
-    
-    public static ExternalCameraHook instance { get { return s_hook; } }
-
-    private bool isInstance { get { return this == s_hook; } }
 
     [RuntimeInitializeOnLoadMethod]
     private static void AutoLoadConfig()
@@ -60,9 +82,9 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
 
         var configPath = AUTO_LOAD_CONFIG_PATH;
 
-        if (s_hook != null && !string.IsNullOrEmpty(s_hook.m_configPath))
+        if (Active && !string.IsNullOrEmpty(Instance.m_configPath))
         {
-            configPath = s_hook.m_configPath;
+            configPath = Instance.m_configPath;
         }
 
         if (File.Exists(configPath))
@@ -79,69 +101,78 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
                 }
             }
 
-            if (s_hook == null)
-            {
-                var hookObj = new GameObject("[ExternalCamera]");
-                s_hook = hookObj.AddComponent<ExternalCameraHook>();
-                s_hook.m_configPath = configPath;
+            Initialize();
+        }
+    }
 
-                // try find vr camera
-                if (SteamVR_Render.Top() != null)
+    protected override void OnSingletonBehaviourInitialized()
+    {
+        if (Instance.m_origin == null)
+        {
+            // try find vr camera
+            if (SteamVR_Render.Top() != null)
+            {
+                Instance.m_origin = SteamVR_Render.Top().transform.parent;
+            }
+            else
+            {
+                foreach (var cam in Camera.allCameras)
                 {
-                    s_hook.m_origin = SteamVR_Render.Top().transform.parent;
-                }
-                else
-                {
-                    foreach (var cam in Camera.allCameras)
-                    {
-                        if (!cam.enabled) { continue; }
+                    if (!cam.enabled) { continue; }
 #if UNITY_5_4_OR_NEWER
-                        // try find vr camera eye
-                        if (cam.stereoTargetEye != StereoTargetEyeMask.Both) { continue; }
+                    // try find vr camera eye
+                    if (cam.stereoTargetEye != StereoTargetEyeMask.Both) { continue; }
 #endif
-                        s_hook.m_origin = cam.transform.parent;
-                    }
+                    Instance.m_origin = cam.transform.parent;
                 }
             }
         }
     }
 
-    protected virtual void Awake()
+#if UNITY_EDITOR
+    protected virtual void OnValidate()
     {
-        if (s_hook != null)
-        {
-            Debug.LogWarning("Duplicate ExternalCameraHook found");
-        }
-        else
-        {
-            s_hook = this;
-            AutoLoadConfig();
-        }
+        UpdateExCamActivity();
     }
-
-    protected virtual void Start() { }
+#endif
 
     protected virtual void OnEnable()
     {
-        if (isInstance)
+        if (IsInstance)
         {
             m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
-            OnDeviceIndexChanged(m_viveRole.GetDeviceIndex());
+            m_toggleSwitch = true;
+            UpdateExCamActivity();
         }
     }
 
     protected virtual void OnDisable()
     {
-        if (isInstance)
+        if (IsInstance)
         {
             m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
-            OnDeviceIndexChanged(VRModule.INVALID_DEVICE_INDEX);
+            UpdateExCamActivity();
         }
+    }
+
+    protected virtual void Update()
+    {
+#if VIU_EXTERNAL_CAMERA_SWITCH
+        if (Input.GetKeyDown(KeyCode.M) && Input.GetKey(KeyCode.RightShift))
+        {
+            toggleSwitch = !toggleSwitch;
+        }
+#endif
     }
 
     private void OnDeviceIndexChanged(uint deviceIndex)
     {
-        SetValid(VRModule.IsValidDeviceIndex(deviceIndex));
+        UpdateExCamActivity();
+    }
+
+    private void UpdateExCamActivity()
+    {
+        SetValid(enabled && m_toggleSwitch && VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()));
 
         if (m_externalCamera != null && m_externalCamera.gameObject.activeSelf)
         {
@@ -157,9 +188,11 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
 
     public virtual void OnNewPoses()
     {
-        if (VivePose.IsValid(m_viveRole.GetDeviceIndex()))
+        var deviceIndex = m_viveRole.GetDeviceIndex();
+
+        if (VRModule.IsValidDeviceIndex(deviceIndex))
         {
-            TrackPose(VivePose.GetPose(m_viveRole.GetDeviceIndex()), m_origin);
+            VivePose.SetPose(transform, deviceIndex, m_origin);
         }
     }
 
@@ -199,22 +232,19 @@ public class ExternalCameraHook : BasePoseTracker, INewPoseListener, IViveRoleCo
     }
 
 #else
-    public static ExternalCameraHook instance { get { return null; } }
-
     public string configPath { get { return m_configPath; } set { m_configPath = value; } }
-
-    private void Awake() { }
 
     protected virtual void Start()
     {
         Debug.LogWarning("SteamVR plugin not found! install it to enable ExternalCamera!");
     }
 
+    private void UpdateExCamActivity() { }
+
     public virtual void BeforeNewPoses() { }
 
     public virtual void OnNewPoses() { }
 
     public virtual void AfterNewPoses() { }
-
 #endif
 }

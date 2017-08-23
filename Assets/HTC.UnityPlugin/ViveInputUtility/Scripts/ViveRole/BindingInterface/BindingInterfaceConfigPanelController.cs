@@ -33,9 +33,9 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         private void OnDisable()
         {
-            if (ExternalCameraHook.instance != null && !ExternalCameraHook.instance.enabled && m_exCamTrunedOff)
+            if (ExternalCameraHook.Active && !ExternalCameraHook.Instance.enabled && m_exCamTrunedOff)
             {
-                ExternalCameraHook.instance.enabled = true;
+                ExternalCameraHook.Instance.enabled = true;
             }
 
             m_exCamTrunedOff = false;
@@ -43,9 +43,9 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         private void Update()
         {
-            if (ExternalCameraHook.instance != null && ExternalCameraHook.instance.enabled)
+            if (ExternalCameraHook.Active && ExternalCameraHook.Instance.enabled)
             {
-                ExternalCameraHook.instance.enabled = false;
+                ExternalCameraHook.Instance.enabled = false;
                 m_exCamTrunedOff = true;
             }
 

@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+
+using System;
+using UnityEngine;
 
 namespace HTC.UnityPlugin.Utility
 {
@@ -8,6 +11,7 @@ namespace HTC.UnityPlugin.Utility
         private static T s_instance = null;
         private static bool s_isApplicationQuitting = false;
         private static object s_lock = new object();
+        private static Func<GameObject> s_defaultInitGOGetter;
 
         private bool m_initialized;
 
@@ -41,7 +45,19 @@ namespace HTC.UnityPlugin.Utility
 
                 if (s_instance == null)
                 {
-                    s_instance = new GameObject("[" + typeof(T).Name + "]").AddComponent<T>();
+                    GameObject defaultInitGO = null;
+
+                    if (s_defaultInitGOGetter != null)
+                    {
+                        defaultInitGO = s_defaultInitGOGetter();
+                    }
+
+                    if (defaultInitGO == null)
+                    {
+                        defaultInitGO = new GameObject("[" + typeof(T).Name + "]");
+                    }
+
+                    s_instance = defaultInitGO.AddComponent<T>();
                 }
 
                 if (!s_instance.m_initialized)
@@ -51,6 +67,11 @@ namespace HTC.UnityPlugin.Utility
                 }
             }
         }
+
+        /// <summary>
+        /// Must set before the instance being initialized
+        /// </summary>
+        public static void SetDefaultInitGameObjectGetter(Func<GameObject> getter) { s_defaultInitGOGetter = getter; }
 
         protected virtual void OnSingletonBehaviourInitialized() { }
 

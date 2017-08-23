@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.Vive
         public class BindingConfig
         {
             public bool apply_bindings_on_load = true;
-#if VIU_AUTO_BINDING_INTERFACE
+#if VIU_BINDING_INTERFACE_SWITCH
             public string toggle_interface_key_code = KeyCode.B.ToString(); // Default key to enable binding interface
 #else
             public string toggle_interface_key_code = KeyCode.None.ToString(); // Default key to enable binding interface
@@ -61,6 +61,11 @@ namespace HTC.UnityPlugin.Vive
 
         [SerializeField]
         private string m_overrideConfigPath = AUTO_LOAD_CONFIG_PATH;
+
+        static ViveRoleBindingsHelper()
+        {
+            SetDefaultInitGameObjectGetter(VRModule.GetInstanceGameObject);
+        }
 
         [RuntimeInitializeOnLoadMethod]
         public static void AutoLoadConfig()

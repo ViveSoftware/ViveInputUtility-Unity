@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
@@ -134,6 +135,11 @@ namespace HTC.UnityPlugin.Vive
         }
 
         public static event UnityAction onUpdate { add { s_onUpdate += value; } remove { s_onUpdate -= value; } }
+
+        static ViveInput()
+        {
+            SetDefaultInitGameObjectGetter(VRModule.GetInstanceGameObject);
+        }
 
 #if UNITY_EDITOR
         private void OnValidate()

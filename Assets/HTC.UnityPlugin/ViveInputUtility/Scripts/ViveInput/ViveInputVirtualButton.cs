@@ -111,11 +111,12 @@ namespace HTC.UnityPlugin.Vive
 
         private void TryListenUpdateEvent()
         {
-            if (Application.isPlaying && m_active && !m_updateActivated)
+            if (enabled && Application.isPlaying && m_active && !m_updateActivated)
             {
                 // register update event
                 ViveInput.onUpdate += OnInputStateUpdated;
                 m_updateActivated = true;
+                ViveInput.Initialize();
             }
         }
 
@@ -136,7 +137,7 @@ namespace HTC.UnityPlugin.Vive
 
                     for (int i = 0, imax = m_inputs.Count; i < imax; ++i)
                     {
-                        if (ViveInput.GetPressEx(m_inputs[i].viveRole.roleType, m_inputs[i].viveRole.roleValue, m_inputs[i].button))
+                        if (ViveInput.GetPress(m_inputs[i].viveRole, m_inputs[i].button))
                         {
                             m_currState = true;
                             break;
@@ -150,7 +151,7 @@ namespace HTC.UnityPlugin.Vive
 
                     for (int i = 0, imax = m_inputs.Count; i < imax; ++i)
                     {
-                        if (!ViveInput.GetPressEx(m_inputs[i].viveRole.roleType, m_inputs[i].viveRole.roleValue, m_inputs[i].button))
+                        if (!ViveInput.GetPress(m_inputs[i].viveRole, m_inputs[i].button))
                         {
                             m_currState = false;
                             break;
