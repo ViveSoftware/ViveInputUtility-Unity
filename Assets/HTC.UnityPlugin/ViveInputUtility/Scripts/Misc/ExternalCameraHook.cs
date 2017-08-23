@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -51,7 +52,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     }
 
 #if UNITY_EDITOR
-    protected virtual void OnValidate()
+    private void OnValidate()
     {
         UpdateExCamActivity();
     }
@@ -61,6 +62,8 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     private static bool s_isAutoLoaded;
 
     private SteamVR_ExternalCamera m_externalCamera;
+    private bool m_staticExCamEnabled;
+    private Pose m_staticExCamPose;
 
     public string configPath
     {
@@ -136,7 +139,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         }
     }
 
-    protected virtual void OnEnable()
+    private void OnEnable()
     {
         if (IsInstance)
         {
@@ -146,7 +149,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         }
     }
 
-    protected virtual void OnDisable()
+    private void OnDisable()
     {
         if (IsInstance)
         {
@@ -155,15 +158,21 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         }
     }
 
-    protected virtual void Update()
+#if VIU_EXTERNAL_CAMERA_SWITCH
+    private void Update()
     {
-#if VIU_EXCAM_QUAD_VIEW_SWITCH
         if (Input.GetKeyDown(KeyCode.M) && Input.GetKey(KeyCode.RightShift))
         {
+            if (!m_staticExCamEnabled && !VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()))
+            {
+                m_quadViewEnabled = false;
+                m_staticExCamEnabled = true;
+            }
+
             quadViewEnabled = !quadViewEnabled;
         }
-#endif
     }
+#endif
 
     private void OnDeviceIndexChanged(uint deviceIndex)
     {
@@ -172,14 +181,24 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
     private void UpdateExCamActivity()
     {
-        SetValid(enabled && m_quadViewEnabled && VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()));
-
-        if (m_externalCamera != null && m_externalCamera.gameObject.activeSelf)
+        if (!enabled)
         {
+            SetValid(false);
+            VivePose.RemoveNewPosesListener(this);
+        }
+        else if (VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()))
+        {
+            SetValid(m_quadViewEnabled);
+            VivePose.AddNewPosesListener(this);
+        }
+        else if (m_staticExCamEnabled)
+        {
+            SetValid(m_quadViewEnabled);
             VivePose.AddNewPosesListener(this);
         }
         else
         {
+            SetValid(false);
             VivePose.RemoveNewPosesListener(this);
         }
     }
@@ -192,7 +211,12 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
         if (VRModule.IsValidDeviceIndex(deviceIndex))
         {
-            VivePose.SetPose(transform, deviceIndex, m_origin);
+            m_staticExCamPose = VivePose.GetPose(deviceIndex);
+            Pose.SetPose(transform, m_staticExCamPose, m_origin);
+        }
+        else if (m_staticExCamEnabled)
+        {
+            Pose.SetPose(transform, m_staticExCamPose, m_origin);
         }
     }
 
@@ -222,6 +246,14 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
                 SteamVR_Render.instance.externalCamera = m_externalCamera;
                 m_externalCamera.configPath = m_configPath;
                 m_externalCamera.ReadConfig();
+
+                // set static position read from config file
+                var exCamConfig = m_externalCamera.config;
+                m_staticExCamPose = new Pose()
+                {
+                    pos = new Vector3(exCamConfig.x, exCamConfig.y, exCamConfig.z),
+                    rot = Quaternion.Euler(exCamConfig.rx, exCamConfig.ry, exCamConfig.rz),
+                };
             }
         }
 

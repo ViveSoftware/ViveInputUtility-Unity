@@ -19,7 +19,7 @@ namespace HTC.UnityPlugin.Vive
         }
 
         public const string VIU_BINDING_INTERFACE_SWITCH_SYMBOL = "VIU_BINDING_INTERFACE_SWITCH";
-        public const string VIU_EXCAM_QUAD_VIEW_SWITCH_SYMBOL = "VIU_EXCAM_QUAD_VIEW_SWITCH";
+        public const string VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL = "VIU_EXTERNAL_CAMERA_SWITCH";
 
         public const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
         public const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
@@ -31,8 +31,8 @@ namespace HTC.UnityPlugin.Vive
 
         private readonly static string s_enableBindUISwitchInfo = "This project will enable binding interface switch! Press RightShift + B to open the binding interface in play mode.";
         private readonly static string s_disableBindUISwitchInfo = "This project will NOT enable binding interface switch! You can only enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script, or copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode.";
-        private readonly static string s_enableExternalCamSwitcInfo = "This project will enable external camera quad view switch! Press RightShift + M to toggle the quad view when external camera is enabled.";
-        private readonly static string s_disableExternalCamSwitcInfo = "This project will NOT enable external camera quad view switch! Enable the switch let you toggle the quad view by pressing RightShift + M when external camera is enabled.";
+        private readonly static string s_enableExternalCamSwitcInfo = "This project will enable external camera switch! Press RightShift + M to toggle the quad view when external camera is enabled.";
+        private readonly static string s_disableExternalCamSwitcInfo = "This project will NOT enable external camera switch! Enable the switch let you toggle the quad view by pressing RightShift + M when external camera is enabled.";
         private static bool s_waitingForCompile;
 
         private static bool completeCheckVersionFlow = false;
@@ -229,7 +229,7 @@ namespace HTC.UnityPlugin.Vive
 
                 EditSymbols(
                     new EditSymbolArg() { symbol = VIU_BINDING_INTERFACE_SWITCH_SYMBOL, enable = toggleBindUISwithState },
-                    new EditSymbolArg() { symbol = VIU_EXCAM_QUAD_VIEW_SWITCH_SYMBOL, enable = toggleExCamSwithState }
+                    new EditSymbolArg() { symbol = VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL, enable = toggleExCamSwithState }
                 );
             }
         }
@@ -302,18 +302,18 @@ namespace HTC.UnityPlugin.Vive
 
                 EditorGUI.BeginChangeCheck();
 
-#if VIU_EXCAM_QUAD_VIEW_SWITCH
-                toggleValue = EditorGUILayout.Toggle("Enable External Camera Quad View Switch", true);
+#if VIU_EXTERNAL_CAMERA_SWITCH
+                toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", true);
                 EditorGUILayout.HelpBox(s_enableExternalCamSwitcInfo, MessageType.Info);
 #else
-                toggleValue = EditorGUILayout.Toggle("Enable External Camera Quad View Switch", false);
+                toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", false);
                 EditorGUILayout.HelpBox(s_disableExternalCamSwitcInfo, MessageType.Info);
 #endif
 
                 if (EditorGUI.EndChangeCheck())
                 {
                     s_waitingForCompile = true;
-                    EditSymbols(new EditSymbolArg() { symbol = VIU_EXCAM_QUAD_VIEW_SWITCH_SYMBOL, enable = toggleValue });
+                    EditSymbols(new EditSymbolArg() { symbol = VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL, enable = toggleValue });
                     return;
                 }
             }
