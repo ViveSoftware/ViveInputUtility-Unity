@@ -19,20 +19,20 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     [SerializeField]
     private string m_configPath = AUTO_LOAD_CONFIG_PATH;
     [SerializeField]
-    private bool m_toggleSwitch = true;
+    private bool m_quadViewEnabled = true;
 
     public ViveRoleProperty viveRole { get { return m_viveRole; } }
 
     public Transform origin { get { return m_origin; } set { m_origin = value; } }
 
-    public bool toggleSwitch
+    public bool quadViewEnabled
     {
-        get { return m_toggleSwitch; }
+        get { return m_quadViewEnabled; }
         set
         {
-            if (m_toggleSwitch != value)
+            if (m_quadViewEnabled != value)
             {
-                m_toggleSwitch = value;
+                m_quadViewEnabled = value;
                 UpdateExCamActivity();
             }
         }
@@ -49,6 +49,13 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         go.transform.SetParent(VRModule.Instance.transform, false);
         return go;
     }
+
+#if UNITY_EDITOR
+    protected virtual void OnValidate()
+    {
+        UpdateExCamActivity();
+    }
+#endif
 
 #if VIU_STEAMVR
     private static bool s_isAutoLoaded;
@@ -129,19 +136,12 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         }
     }
 
-#if UNITY_EDITOR
-    protected virtual void OnValidate()
-    {
-        UpdateExCamActivity();
-    }
-#endif
-
     protected virtual void OnEnable()
     {
         if (IsInstance)
         {
             m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
-            m_toggleSwitch = true;
+            m_quadViewEnabled = true;
             UpdateExCamActivity();
         }
     }
@@ -157,10 +157,10 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
     protected virtual void Update()
     {
-#if VIU_EXTERNAL_CAMERA_SWITCH
+#if VIU_EXCAM_QUAD_VIEW_SWITCH
         if (Input.GetKeyDown(KeyCode.M) && Input.GetKey(KeyCode.RightShift))
         {
-            toggleSwitch = !toggleSwitch;
+            quadViewEnabled = !quadViewEnabled;
         }
 #endif
     }
@@ -172,7 +172,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
     private void UpdateExCamActivity()
     {
-        SetValid(enabled && m_toggleSwitch && VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()));
+        SetValid(enabled && m_quadViewEnabled && VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()));
 
         if (m_externalCamera != null && m_externalCamera.gameObject.activeSelf)
         {
