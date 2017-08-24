@@ -223,7 +223,10 @@ public class RenderModelHook : MonoBehaviour, IViveRoleComponent
             }
             else
             {
-                m_modelObj.SetActive(false);
+                if (m_modelObj != null)
+                {
+                    m_modelObj.SetActive(false);
+                }
             }
         }
     }
@@ -261,11 +264,14 @@ public class RenderModelHook : MonoBehaviour, IViveRoleComponent
             m_modelObj = Instantiate(prefab);
             m_modelObj.transform.SetParent(transform, false);
             m_modelObj.gameObject.name = "VIUModel" + model.ToString();
+
             if (m_overrideShader != null)
             {
-                Transform child = m_modelObj.transform.GetChild(0);
-                Material mat = child.gameObject.GetComponent<Renderer>().material;
-                mat.shader = m_overrideShader;
+                var renderer = m_modelObj.GetComponentInChildren<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.material.shader = m_overrideShader;
+                }
             }
         }
     }
