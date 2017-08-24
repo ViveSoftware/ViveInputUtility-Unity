@@ -182,7 +182,7 @@ namespace HTC.UnityPlugin.Vive
                     EditorGUILayout.HelpBox(s_disableExternalCamSwitcInfo, MessageType.Warning);
                 }
 
-                toggleExCamSwithState = GUILayout.Toggle(toggleExCamSwithState, "Enable Binding Interface Switch");
+                toggleExCamSwithState = GUILayout.Toggle(toggleExCamSwithState, "Enable External Camera Switch");
             }
 
             if (showNewVersionInfo)
@@ -286,8 +286,8 @@ namespace HTC.UnityPlugin.Vive
                 EditorGUI.BeginChangeCheck();
 
 #if VIU_BINDING_INTERFACE_SWITCH
-                toggleValue = EditorGUILayout.Toggle("Enable Binding Interface Switch", true);
                 EditorGUILayout.HelpBox(s_enableBindUISwitchInfo, MessageType.Info);
+                toggleValue = EditorGUILayout.Toggle("Enable Binding Interface Switch", true);
 #else
                 toggleValue = EditorGUILayout.Toggle("Enable Binding Interface Switch", false);
                 EditorGUILayout.HelpBox(s_disableBindUISwitchInfo, MessageType.Info);
@@ -303,8 +303,8 @@ namespace HTC.UnityPlugin.Vive
                 EditorGUI.BeginChangeCheck();
 
 #if VIU_EXTERNAL_CAMERA_SWITCH
-                toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", true);
                 EditorGUILayout.HelpBox(s_enableExternalCamSwitcInfo, MessageType.Info);
+                toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", true);
 #else
                 toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", false);
                 EditorGUILayout.HelpBox(s_disableExternalCamSwitcInfo, MessageType.Info);
