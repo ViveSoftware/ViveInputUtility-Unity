@@ -25,9 +25,9 @@ namespace HTC.UnityPlugin.Vive
         public const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
         public const double versionCheckIntervalMinutes = 60.0;
 
-        public readonly static string nextVersionCheckTimeKey = "ViveInputUtility." + PlayerSettings.productGUID + ".LastVersionCheckTime";
-        public readonly static string doNotShowUpdateKey = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowUpdate.v{0}";
-        public readonly static string doNotShowSetupSwitch = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowSetupSwitch";
+        private static string nextVersionCheckTimeKey;
+        private static string doNotShowUpdateKey;
+        private static string doNotShowSetupSwitch;
 
         private readonly static string s_enableBindUISwitchInfo = "This project will enable binding interface switch! Press RightShift + B to open the binding interface in play mode.";
         private readonly static string s_disableBindUISwitchInfo = "This project will NOT enable binding interface switch! You can only enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script, or copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode.";
@@ -54,6 +54,10 @@ namespace HTC.UnityPlugin.Vive
         // check vive input utility version on github
         private static void CheckVersion()
         {
+            nextVersionCheckTimeKey = "ViveInputUtility." + PlayerSettings.productGUID + ".LastVersionCheckTime";
+            doNotShowUpdateKey = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowUpdate.v{0}";
+            doNotShowSetupSwitch = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowSetupSwitch";
+
             if (!completeCheckVersionFlow)
             {
                 if (www == null) // web request not running
@@ -289,8 +293,8 @@ namespace HTC.UnityPlugin.Vive
                 EditorGUILayout.HelpBox(s_enableBindUISwitchInfo, MessageType.Info);
                 toggleValue = EditorGUILayout.Toggle("Enable Binding Interface Switch", true);
 #else
-                toggleValue = EditorGUILayout.Toggle("Enable Binding Interface Switch", false);
                 EditorGUILayout.HelpBox(s_disableBindUISwitchInfo, MessageType.Info);
+                toggleValue = EditorGUILayout.Toggle("Enable Binding Interface Switch", false);
 #endif
 
                 if (EditorGUI.EndChangeCheck())
@@ -306,8 +310,8 @@ namespace HTC.UnityPlugin.Vive
                 EditorGUILayout.HelpBox(s_enableExternalCamSwitcInfo, MessageType.Info);
                 toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", true);
 #else
-                toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", false);
                 EditorGUILayout.HelpBox(s_disableExternalCamSwitcInfo, MessageType.Info);
+                toggleValue = EditorGUILayout.Toggle("Enable External Camera Switch", false);
 #endif
 
                 if (EditorGUI.EndChangeCheck())
