@@ -1,9 +1,9 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
 using System;
 using UnityEngine;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
