@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: e3efa9e8706ee2249a74d62600c9c1de
-timeCreated: 1500031074
+guid: 049146e7ae633314bac999005e1fefb9
+timeCreated: 1503689166
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -9,7 +9,8 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: ObjModelVive
+    4300000: ObjModelViveBaseStation.001
+    4300002: ObjModelViveBaseStation
   materials:
     importMaterials: 0
     materialName: 0
@@ -34,7 +35,7 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 100
     meshCompression: 0
     addColliders: 0
     importBlendShapes: 1

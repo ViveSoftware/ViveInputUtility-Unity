@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: ff56c2536aeacbf41ab97a4c016003e8
-timeCreated: 1500031075
+guid: 759bd215186979048815e5fcec79c48d
+timeCreated: 1503689425
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -9,7 +9,7 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: ObjModelOcul
+    4300000: ObjModelKnucklesRight
   materials:
     importMaterials: 0
     materialName: 0
@@ -34,7 +34,7 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 100
     meshCompression: 0
     addColliders: 0
     importBlendShapes: 1
