@@ -291,6 +291,10 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
                 item.RefreshDisplayInfo(roleMap);
             }
 
+            // FIXME: issue in 2017.2.0b2, item won't refresh at the first time, force refresh
+            m_bindingItem.transform.parent.gameObject.SetActive(false);
+            m_bindingItem.transform.parent.gameObject.SetActive(true);
+
             for (int max = m_bindingList.Count; bindingIndex < max; ++bindingIndex)
             {
                 m_bindingList[bindingIndex].gameObject.SetActive(false);
