@@ -62,7 +62,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     private static bool s_isAutoLoaded;
 
     private SteamVR_ExternalCamera m_externalCamera;
-    private bool m_staticExCamEnabled;
+    private bool m_staticExCamEnabled = false;
     private Pose m_staticExCamPose;
 
     public string configPath
