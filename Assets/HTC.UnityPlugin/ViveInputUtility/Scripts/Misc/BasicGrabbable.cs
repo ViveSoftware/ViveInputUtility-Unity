@@ -1,11 +1,11 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.ColliderEvent;
-using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 public class BasicGrabbable : MonoBehaviour
     , IColliderEventDragStartHandler

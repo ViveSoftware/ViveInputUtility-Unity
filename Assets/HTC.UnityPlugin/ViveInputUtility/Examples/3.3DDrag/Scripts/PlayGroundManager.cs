@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Pose = PlayGroundManager.Pose;
 
 public class PlayGroundManager : MonoBehaviour
 {

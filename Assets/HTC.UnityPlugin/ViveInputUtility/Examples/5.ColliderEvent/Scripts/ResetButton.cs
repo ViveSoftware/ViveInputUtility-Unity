@@ -1,8 +1,8 @@
 ﻿using HTC.UnityPlugin.ColliderEvent;
-using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
 using UnityEngine;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 public class ResetButton : MonoBehaviour
     , IColliderEventPressUpHandler

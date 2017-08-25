@@ -1,9 +1,9 @@
-﻿using HTC.UnityPlugin.PoseTracker;
-using HTC.UnityPlugin.Utility;
+﻿using HTC.UnityPlugin.Utility;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 // demonstrate of dragging things useing built in EventSystem handlers
 public class Draggable : MonoBehaviour
