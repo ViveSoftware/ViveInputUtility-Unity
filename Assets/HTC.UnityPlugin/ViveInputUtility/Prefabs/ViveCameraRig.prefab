@@ -1,5 +1,21 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &101730
+GameObject:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 458504}
+  - 114: {fileID: 11406716}
+  m_Layer: 0
+  m_Name: Model
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &116882
 GameObject:
   m_ObjectHideFlags: 0
@@ -29,7 +45,7 @@ GameObject:
   - 114: {fileID: 11464814}
   - 114: {fileID: 11456816}
   m_Layer: 0
-  m_Name: LeftHand
+  m_Name: Tracker3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,6 +60,22 @@ GameObject:
   m_Component:
   - 4: {fileID: 477402}
   - 114: {fileID: 11401166}
+  m_Layer: 0
+  m_Name: Model
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &139784
+GameObject:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 484838}
+  - 114: {fileID: 11460048}
   m_Layer: 0
   m_Name: Model
   m_TagString: Untagged
@@ -68,6 +100,23 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &167866
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 475928}
+  - 114: {fileID: 11474168}
+  - 114: {fileID: 11451248}
+  m_Layer: 0
+  m_Name: Tracker2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &175660
 GameObject:
   m_ObjectHideFlags: 0
@@ -78,6 +127,23 @@ GameObject:
   - 4: {fileID: 463184}
   m_Layer: 0
   m_Name: ViveCameraRig
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &181226
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 418338}
+  - 114: {fileID: 11458044}
+  - 114: {fileID: 11472306}
+  m_Layer: 0
+  m_Name: Tracker1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -99,6 +165,39 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &188906
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 470082}
+  - 114: {fileID: 11422458}
+  - 114: {fileID: 11489386}
+  m_Layer: 0
+  m_Name: LeftHand
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &192544
+GameObject:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 454686}
+  - 114: {fileID: 11401118}
+  m_Layer: 0
+  m_Name: Model
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!4 &404836
 Transform:
   m_ObjectHideFlags: 1
@@ -112,6 +211,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 463184}
   m_RootOrder: 0
+--- !u!4 &418338
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 181226}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Children:
+  - {fileID: 484838}
+  m_Father: {fileID: 463184}
+  m_RootOrder: 3
 --- !u!4 &430650
 Transform:
   m_ObjectHideFlags: 1
@@ -139,6 +252,32 @@ Transform:
   m_Children: []
   m_Father: {fileID: 475582}
   m_RootOrder: 0
+--- !u!4 &454686
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 192544}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Children: []
+  m_Father: {fileID: 475928}
+  m_RootOrder: 0
+--- !u!4 &458504
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 101730}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Children: []
+  m_Father: {fileID: 470082}
+  m_RootOrder: 0
 --- !u!4 &463184
 Transform:
   m_ObjectHideFlags: 1
@@ -152,9 +291,26 @@ Transform:
   m_Children:
   - {fileID: 404836}
   - {fileID: 430650}
+  - {fileID: 470082}
+  - {fileID: 418338}
+  - {fileID: 475928}
   - {fileID: 475582}
   m_Father: {fileID: 0}
   m_RootOrder: 0
+--- !u!4 &470082
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 188906}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Children:
+  - {fileID: 458504}
+  m_Father: {fileID: 463184}
+  m_RootOrder: 2
 --- !u!4 &475582
 Transform:
   m_ObjectHideFlags: 1
@@ -168,7 +324,21 @@ Transform:
   m_Children:
   - {fileID: 451864}
   m_Father: {fileID: 463184}
-  m_RootOrder: 2
+  m_RootOrder: 5
+--- !u!4 &475928
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 167866}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Children:
+  - {fileID: 454686}
+  m_Father: {fileID: 463184}
+  m_RootOrder: 4
 --- !u!4 &477402
 Transform:
   m_ObjectHideFlags: 1
@@ -181,6 +351,19 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children: []
   m_Father: {fileID: 430650}
+  m_RootOrder: 0
+--- !u!4 &484838
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 139784}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Children: []
+  m_Father: {fileID: 418338}
   m_RootOrder: 0
 --- !u!20 &2071970
 Camera:
@@ -216,6 +399,26 @@ Camera:
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
   m_StereoMirrorMode: 0
+--- !u!114 &11401118
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 192544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_mode: 1
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker2
+    m_roleValueInt: 0
+  m_origin: {fileID: 0}
+  m_deviceIndex: 0
+  m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11401166
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -227,15 +430,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  posOffset: {x: 0, y: 0, z: 0}
-  rotOffset: {x: 0, y: 0, z: 0}
   m_mode: 1
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
-  m_applyTracking: 0
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
+  m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
+--- !u!114 &11406716
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 101730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_mode: 1
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: LeftHand
+    m_roleValueInt: 0
+  m_origin: {fileID: 0}
+  m_deviceIndex: 0
+  m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11413550
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -247,6 +470,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcf697fb9de885d47b4c990c8a58936a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &11422458
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 188906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 387fb5d74b1a932479013876b27a0e1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: LeftHand
+    m_roleValueInt: 0
 --- !u!114 &11436490
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -261,6 +499,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
 --- !u!114 &11450602
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -278,6 +517,31 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
+  onIsValidChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: HTC.UnityPlugin.Vive.VivePoseTracker+UnityEventBool, Assembly-CSharp,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  role: -2
+--- !u!114 &11451248
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 167866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fdc450c311d1e94291658aa5ec57b9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker2
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -299,14 +563,50 @@ MonoBehaviour:
   rotOffset: {x: 0, y: 0, z: 0}
   origin: {fileID: 0}
   m_viveRole:
-    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
-    m_roleValueName: LeftHand
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker3
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls: []
     m_TypeName: HTC.UnityPlugin.Vive.VivePoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   role: -2
+--- !u!114 &11458044
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 181226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 387fb5d74b1a932479013876b27a0e1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker1
+    m_roleValueInt: 1
+--- !u!114 &11460048
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 139784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_mode: 1
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker1
+    m_roleValueInt: 0
+  m_origin: {fileID: 0}
+  m_deviceIndex: 0
+  m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11460300
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -318,15 +618,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f62138db21b7ec439beba5c9b61c2d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  posOffset: {x: 0, y: 0, z: 0}
-  rotOffset: {x: 0, y: 0, z: 0}
   m_mode: 1
   m_viveRole:
-    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
-    m_roleValueName: LeftHand
-  m_applyTracking: 0
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker3
+    m_roleValueInt: 0
   m_origin: {fileID: 0}
   m_deviceIndex: 0
+  m_overrideModel: 0
+  m_overrideShader: {fileID: 0}
 --- !u!114 &11464814
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -339,8 +639,72 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker3
+    m_roleValueInt: 3
+--- !u!114 &11472306
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 181226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fdc450c311d1e94291658aa5ec57b9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker1
+    m_roleValueInt: 0
+  onIsValidChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: HTC.UnityPlugin.Vive.VivePoseTracker+UnityEventBool, Assembly-CSharp,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  role: -2
+--- !u!114 &11474168
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 167866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 387fb5d74b1a932479013876b27a0e1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackerRole
+    m_roleValueName: Tracker2
+    m_roleValueInt: 2
+--- !u!114 &11489386
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 188906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fdc450c311d1e94291658aa5ec57b9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  origin: {fileID: 0}
+  m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
+  onIsValidChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: HTC.UnityPlugin.Vive.VivePoseTracker+UnityEventBool, Assembly-CSharp,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  role: -2
 --- !u!124 &12406598
 Behaviour:
   m_ObjectHideFlags: 1
