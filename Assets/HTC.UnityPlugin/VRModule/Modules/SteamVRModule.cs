@@ -25,7 +25,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override bool ShouldActiveModule()
         {
 #if UNITY_2017_2_OR_NEWER
-            return UnityEngine.XR.VRSettings.enabled && UnityEngine.XR.VRSettings.loadedDeviceName == "OpenVR";
+            return UnityEngine.XR.XRSettings.enabled && UnityEngine.XR.XRSettings.loadedDeviceName == "OpenVR";
 #elif UNITY_5_4_OR_NEWER
             return UnityEngine.VR.VRSettings.enabled && UnityEngine.VR.VRSettings.loadedDeviceName == "OpenVR";
 #else
