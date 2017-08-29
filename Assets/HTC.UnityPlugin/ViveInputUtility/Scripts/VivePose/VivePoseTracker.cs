@@ -20,7 +20,7 @@ namespace HTC.UnityPlugin.Vive
         public Transform origin;
 
         [SerializeField]
-        private ViveRoleProperty m_viveRole = ViveRoleProperty.New();
+        private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
 
         public UnityEventBool onIsValidChanged;
 
@@ -45,7 +45,7 @@ namespace HTC.UnityPlugin.Vive
 
         protected virtual void Start()
         {
-            SetIsValid(VivePose.IsValidEx(viveRole.roleType, viveRole.roleValue), true);
+            SetIsValid(VivePose.IsValid(m_viveRole), true);
         }
 #if UNITY_EDITOR
         protected virtual void OnValidate()
@@ -75,13 +75,13 @@ namespace HTC.UnityPlugin.Vive
                 if (Application.isPlaying)
                 {
                     roleValueProp.intValue = (int)DeviceRole.Invalid;
-                    viveRole.Set(newRoleType, newRoleValue);
+                    m_viveRole.Set(newRoleType, newRoleValue);
                 }
                 else
                 {
                     roleValueProp.intValue = (int)DeviceRole.Invalid;
                     serializedObject.ApplyModifiedProperties();
-                    viveRole.Set(newRoleType, newRoleValue);
+                    m_viveRole.Set(newRoleType, newRoleValue);
                     serializedObject.Update();
                 }
             }
@@ -96,13 +96,15 @@ namespace HTC.UnityPlugin.Vive
         protected virtual void OnDisable()
         {
             VivePose.RemoveNewPosesListener(this);
+
+            SetIsValid(false);
         }
 
         public virtual void BeforeNewPoses() { }
 
         public virtual void OnNewPoses()
         {
-            var deviceIndex = viveRole.GetDeviceIndex();
+            var deviceIndex = m_viveRole.GetDeviceIndex();
 
             var valid = VivePose.IsValid(deviceIndex);
 

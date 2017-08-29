@@ -1,7 +1,7 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.PoseTracker;
 using UnityEngine;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -41,34 +41,20 @@ namespace HTC.UnityPlugin.Vive
         {
             if (isPoseValid)
             {
-                // applying velocity
-                var diffPos = targetPose.pos - rigid.position;
-                if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
-                {
-                    rigid.velocity = Vector3.zero;
-                }
-                else
-                {
-                    rigid.velocity = diffPos / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION);
-                }
-
-                // applying angular velocity
-                float angle;
-                Vector3 axis;
-                (targetPose.rot * Quaternion.Inverse(rigid.rotation)).ToAngleAxis(out angle, out axis);
-                while (angle > 360f) { angle -= 360f; }
-
-                if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x))
-                {
-                    rigid.angularVelocity = Vector3.zero;
-                }
-                else
-                {
-                    angle *= Mathf.Deg2Rad / Mathf.Clamp(followingDuration, MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION); // convert to radius speed
-                    if (rigid.maxAngularVelocity < angle) { rigid.maxAngularVelocity = angle; }
-                    rigid.angularVelocity = axis * angle;
-                }
+                Pose.SetRigidbodyVelocity(rigid, rigid.position, targetPose.pos, followingDuration);
+                Pose.SetRigidbodyAngularVelocity(rigid, rigid.rotation, targetPose.rot, followingDuration);
             }
+            else
+            {
+                rigid.velocity = Vector3.zero;
+                rigid.angularVelocity = Vector3.zero;
+            }
+        }
+
+        protected override void OnDisable()
+        {
+            rigid.velocity = Vector3.zero;
+            rigid.angularVelocity = Vector3.zero;
         }
 
         public override void OnNewPoses()

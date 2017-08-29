@@ -1,14 +1,15 @@
-﻿using System.IO;
+﻿using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.VRModuleManagement;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using Valve.VR;
 
 public class SaveLoadBindingsUIController : MonoBehaviour
 {
     public InputField inputFilePath;
     public Text textConsole;
-    public string filePathConfig = "./vive_role_bindings_cfg_path.cfg";
+    public string filePathConfig = "vive_role_bindings_cfg_path.cfg";
     public bool prettyPrint = true;
     public bool autoLoadBindings = true;
     public UnityEvent OnBindAllComplete = new UnityEvent();
@@ -18,19 +19,32 @@ public class SaveLoadBindingsUIController : MonoBehaviour
 
     public void Awake()
     {
-        LoadConfig();
-
-        if (autoLoadBindings)
+        if (!LoadConfigPath() || string.IsNullOrEmpty(inputFilePath.text))
         {
-            LoadBindings();
+            inputFilePath.text = ViveRoleBindingsHelper.AUTO_LOAD_CONFIG_PATH;
+        }
+
+        if (!string.IsNullOrEmpty(inputFilePath.text) && File.Exists(inputFilePath.text))
+        {
+            ViveRoleBindingsHelper.LoadBindingConfigFromFile(inputFilePath.text);
+
+            autoLoadBindings = ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load;
+
+            if (autoLoadBindings)
+            {
+                ViveRoleBindingsHelper.ApplyBindingConfigToRoleMap();
+            }
         }
     }
 
-    public void SaveConfig()
+    private void SaveConfigPath()
     {
-        if (!Directory.Exists(Path.GetDirectoryName(filePathConfig)))
+        if (string.IsNullOrEmpty(filePathConfig)) { return; }
+
+        var pathConfigDir = Path.GetDirectoryName(filePathConfig);
+        if (!string.IsNullOrEmpty(pathConfigDir) && !Directory.Exists(pathConfigDir))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(filePathConfig));
+            Directory.CreateDirectory(pathConfigDir);
         }
 
         using (var outputFile = new StreamWriter(filePathConfig))
@@ -39,21 +53,25 @@ public class SaveLoadBindingsUIController : MonoBehaviour
         }
     }
 
-    public void LoadConfig()
+    private bool LoadConfigPath()
     {
-        if (File.Exists(filePathConfig))
+        if (!string.IsNullOrEmpty(filePathConfig) && File.Exists(filePathConfig))
         {
             using (var inputFile = new StreamReader(filePathConfig))
             {
                 inputFilePath.text = inputFile.ReadLine();
             }
+
+            return true;
         }
+
+        return false;
     }
 
     public void BindAll()
     {
-        ViveRoleBindingsHelper.BindAllCurrentDeviceClassMappings(ETrackedDeviceClass.Controller);
-        ViveRoleBindingsHelper.BindAllCurrentDeviceClassMappings(ETrackedDeviceClass.GenericTracker);
+        ViveRoleBindingsHelper.BindAllCurrentDeviceClassMappings(VRModuleDeviceClass.Controller);
+        ViveRoleBindingsHelper.BindAllCurrentDeviceClassMappings(VRModuleDeviceClass.GenericTracker);
 
         if (OnBindAllComplete != null)
         {
@@ -73,14 +91,19 @@ public class SaveLoadBindingsUIController : MonoBehaviour
 
     public void SaveBindings()
     {
-        if (!Directory.Exists(Path.GetDirectoryName(inputFilePath.text)))
+        ViveRoleBindingsHelper.LoadBindingConfigFromRoleMap();
+
+        ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load = autoLoadBindings;
+
+        var configDir = Path.GetDirectoryName(inputFilePath.text);
+        if (!string.IsNullOrEmpty(configDir) && !Directory.Exists(configDir))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(inputFilePath.text));
+            Directory.CreateDirectory(configDir);
         }
 
-        ViveRoleBindingsHelper.SaveRoleBindings(inputFilePath.text, prettyPrint);
+        ViveRoleBindingsHelper.SaveBindingConfigToFile(inputFilePath.text, prettyPrint);
 
-        SaveConfig();
+        SaveConfigPath();
 
         textConsole.text = "Bindings Save Complete...";
 
@@ -99,9 +122,12 @@ public class SaveLoadBindingsUIController : MonoBehaviour
             return;
         }
 
-        ViveRoleBindingsHelper.LoadRoleBindings(inputFilePath.text);
+        ViveRoleBindingsHelper.LoadBindingConfigFromFile(inputFilePath.text);
+        ViveRoleBindingsHelper.ApplyBindingConfigToRoleMap();
 
-        SaveConfig();
+        autoLoadBindings = ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load;
+
+        SaveConfigPath();
 
         textConsole.text = "Bindings Load Complete...";
 

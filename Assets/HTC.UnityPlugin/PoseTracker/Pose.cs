@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using System;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.PoseTracker
@@ -7,6 +8,7 @@ namespace HTC.UnityPlugin.PoseTracker
     /// <summary>
     /// Describe a pose by position and rotation
     /// </summary>
+    [Serializable]
     public struct Pose
     {
         public Vector3 pos;
@@ -25,7 +27,7 @@ namespace HTC.UnityPlugin.PoseTracker
 
         public Pose(Transform t, bool useLocal = false)
         {
-            if(t == null)
+            if (t == null)
             {
                 pos = Vector3.zero;
                 rot = Quaternion.identity;
@@ -40,56 +42,6 @@ namespace HTC.UnityPlugin.PoseTracker
                 pos = t.localPosition;
                 rot = t.localRotation;
             }
-        }
-
-        public Pose(Valve.VR.HmdMatrix34_t pose)
-        {
-            var m = Matrix4x4.identity;
-
-            m[0, 0] = pose.m0;
-            m[0, 1] = pose.m1;
-            m[0, 2] = -pose.m2;
-            m[0, 3] = pose.m3;
-
-            m[1, 0] = pose.m4;
-            m[1, 1] = pose.m5;
-            m[1, 2] = -pose.m6;
-            m[1, 3] = pose.m7;
-
-            m[2, 0] = -pose.m8;
-            m[2, 1] = -pose.m9;
-            m[2, 2] = pose.m10;
-            m[2, 3] = -pose.m11;
-
-            pos = GetPosition(m);
-            rot = GetRotation(m);
-        }
-
-        private static Vector3 GetPosition(Matrix4x4 matrix)
-        {
-            var x = matrix.m03;
-            var y = matrix.m13;
-            var z = matrix.m23;
-
-            return new Vector3(x, y, z);
-        }
-
-        private static Quaternion GetRotation(Matrix4x4 matrix)
-        {
-            Quaternion q = new Quaternion();
-            q.w = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 + matrix.m11 + matrix.m22)) / 2;
-            q.x = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 - matrix.m11 - matrix.m22)) / 2;
-            q.y = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 + matrix.m11 - matrix.m22)) / 2;
-            q.z = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 - matrix.m11 + matrix.m22)) / 2;
-            q.x = _copysign(q.x, matrix.m21 - matrix.m12);
-            q.y = _copysign(q.y, matrix.m02 - matrix.m20);
-            q.z = _copysign(q.z, matrix.m10 - matrix.m01);
-            return q;
-        }
-
-        private static float _copysign(float sizeval, float signval)
-        {
-            return Mathf.Sign(signval) == 1 ? Mathf.Abs(sizeval) : -Mathf.Abs(sizeval);
         }
 
         public override bool Equals(object o)
@@ -109,12 +61,19 @@ namespace HTC.UnityPlugin.PoseTracker
 
         public static bool operator ==(Pose a, Pose b)
         {
-            return a.pos == b.pos && a.rot == b.rot;
+            return
+                a.pos.x == b.pos.x &&
+                a.pos.y == b.pos.y &&
+                a.pos.z == b.pos.z &&
+                a.rot.x == b.rot.x &&
+                a.rot.y == b.rot.y &&
+                a.rot.z == b.rot.z &&
+                a.rot.w == b.rot.w;
         }
 
         public static bool operator !=(Pose a, Pose b)
         {
-            return a.pos != b.pos || a.rot != b.rot;
+            return !(a == b);
         }
 
         public static Pose operator *(Pose a, Pose b)
@@ -193,10 +152,54 @@ namespace HTC.UnityPlugin.PoseTracker
             }
         }
 
+        // proper following duration is larger then 0.02 second, depends on the update rate
+        public static void SetRigidbodyVelocity(Rigidbody rigidbody, Vector3 from, Vector3 to, float duration)
+        {
+            var diffPos = to - from;
+            if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
+            {
+                rigidbody.velocity = Vector3.zero;
+            }
+            else
+            {
+                rigidbody.velocity = diffPos / duration;
+            }
+        }
+
+        // proper folloing duration is larger then 0.02 second, depends on the update rate
+        public static void SetRigidbodyAngularVelocity(Rigidbody rigidbody, Quaternion from, Quaternion to, float duration, bool overrideMaxAngularVelocity = true)
+        {
+            float angle;
+            Vector3 axis;
+            (to * Quaternion.Inverse(from)).ToAngleAxis(out angle, out axis);
+            while (angle > 180f) { angle -= 360f; }
+
+            if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x) || float.IsNaN(axis.y) || float.IsNaN(axis.z))
+            {
+                rigidbody.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                angle *= Mathf.Deg2Rad / duration; // convert to radius speed
+                if (overrideMaxAngularVelocity && rigidbody.maxAngularVelocity < angle) { rigidbody.maxAngularVelocity = angle; }
+                rigidbody.angularVelocity = axis * angle;
+            }
+        }
+
         public static Pose FromToPose(Pose from, Pose to)
         {
             var invRot = Quaternion.Inverse(from.rot);
             return new Pose(invRot * (to.pos - from.pos), invRot * to.rot);
+        }
+
+        public override string ToString()
+        {
+            return "p" + pos.ToString() + "r" + rot.ToString();
+        }
+
+        public string ToString(string format)
+        {
+            return "p" + pos.ToString(format) + "r" + rot.ToString(format);
         }
     }
 }

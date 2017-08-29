@@ -1,29 +1,28 @@
 ﻿using HTC.UnityPlugin.ColliderEvent;
 using HTC.UnityPlugin.Utility;
-using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
 using UnityEngine;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 public class ResetButton : MonoBehaviour
     , IColliderEventPressUpHandler
     , IColliderEventPressEnterHandler
     , IColliderEventPressExitHandler
 {
-    public Transform effectTarget;
+    public Transform[] effectTargets;
     public Transform buttonObject;
     public Vector3 buttonDownDisplacement;
 
     [SerializeField]
-    private ControllerButton m_activeButton = ControllerButton.Trigger;
+    private ColliderButtonEventData.InputButton m_activeButton = ColliderButtonEventData.InputButton.Trigger;
 
-    private Vector3 resetPosition;
-    private Quaternion resetRotation;
+    private Pose[] resetPoses;
 
     private Vector3 buttonOriginPosition;
 
     private HashSet<ColliderButtonEventData> pressingEvents = new HashSet<ColliderButtonEventData>();
 
-    public ControllerButton activeButton
+    public ColliderButtonEventData.InputButton activeButton
     {
         get
         {
@@ -42,8 +41,11 @@ public class ResetButton : MonoBehaviour
 
     private void Start()
     {
-        resetPosition = effectTarget.position;
-        resetRotation = effectTarget.rotation;
+        resetPoses = new Pose[effectTargets.Length];
+        for (int i = 0; i < effectTargets.Length; ++i)
+        {
+            resetPoses[i] = new Pose(effectTargets[i]);
+        }
 
         buttonOriginPosition = buttonObject.position;
     }
@@ -57,25 +59,28 @@ public class ResetButton : MonoBehaviour
     {
         if (pressingEvents.Contains(eventData) && pressingEvents.Count == 1)
         {
-            var rigid = effectTarget.GetComponent<Rigidbody>();
-            if (rigid != null)
+            for (int i = 0; i < effectTargets.Length; ++i)
             {
-                rigid.MovePosition(resetPosition);
-                rigid.MoveRotation(resetRotation);
-                rigid.velocity = Vector3.zero;
-                //rigid.angularVelocity = Vector3.zero;
-            }
-            else
-            {
-                effectTarget.position = resetPosition;
-                effectTarget.rotation = resetRotation;
+                var rigid = effectTargets[i].GetComponent<Rigidbody>();
+                if (rigid != null)
+                {
+                    rigid.MovePosition(resetPoses[i].pos);
+                    rigid.MoveRotation(resetPoses[i].rot);
+                    rigid.velocity = Vector3.zero;
+                    //rigid.angularVelocity = Vector3.zero;
+                }
+                else
+                {
+                    effectTargets[i].position = resetPoses[i].pos;
+                    effectTargets[i].rotation = resetPoses[i].rot;
+                }
             }
         }
     }
 
     public void OnColliderEventPressEnter(ColliderButtonEventData eventData)
     {
-        if (eventData.IsViveButton(m_activeButton) && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
+        if (eventData.button == m_activeButton && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
         {
             buttonObject.position = buttonOriginPosition + buttonDownDisplacement;
         }

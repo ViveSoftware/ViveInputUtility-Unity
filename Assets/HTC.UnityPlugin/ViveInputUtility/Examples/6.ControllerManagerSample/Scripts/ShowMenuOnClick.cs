@@ -12,7 +12,7 @@ public class ShowMenuOnClick : MonoBehaviour
     public GameObject effectMenu;
     public ControllerManagerSample controllerManager;
     [SerializeField]
-    private ControllerButton m_activeButton = ControllerButton.Trigger;
+    private ColliderButtonEventData.InputButton m_activeButton = ColliderButtonEventData.InputButton.Trigger;
 
     public Transform buttonObject;
     public Vector3 buttonDownDisplacement;
@@ -22,7 +22,7 @@ public class ShowMenuOnClick : MonoBehaviour
 
     private HashSet<ColliderButtonEventData> pressingEvents = new HashSet<ColliderButtonEventData>();
 
-    public ControllerButton activeButton
+    public ColliderButtonEventData.InputButton activeButton
     {
         get
         {
@@ -73,7 +73,7 @@ public class ShowMenuOnClick : MonoBehaviour
 
     public void OnColliderEventPressEnter(ColliderButtonEventData eventData)
     {
-        if (eventData.IsViveButton(m_activeButton) && eventData.clickingHandlers.Contains(gameObject) && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
+        if (eventData.button == m_activeButton && eventData.clickingHandlers.Contains(gameObject) && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
         {
             buttonObject.position = buttonOriginPosition + buttonDownDisplacement;
         }

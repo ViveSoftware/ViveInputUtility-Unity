@@ -1,8 +1,9 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using UnityEngine;
-using Valve.VR;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -10,7 +11,7 @@ namespace HTC.UnityPlugin.Vive
     /// To provide static APIs to retrieve controller's button status
     /// </summary>
     [DisallowMultipleComponent]
-    public partial class ViveInput : MonoBehaviour
+    public partial class ViveInput : SingletonBehaviour<ViveInput>
     {
         #region origin
         /// <summary>
@@ -52,6 +53,11 @@ namespace HTC.UnityPlugin.Vive
         public static int ClickCount(HandRole role, ControllerButton button)
         {
             return ClickCountEx(role, button);
+        }
+
+        public static float GetAxis(HandRole role, ControllerAxis axis, bool usePrevState = false)
+        {
+            return GetAxisEx(role, axis, usePrevState);
         }
 
         /// <summary>
@@ -106,6 +112,11 @@ namespace HTC.UnityPlugin.Vive
         public static Vector2 GetPadTouchDelta(HandRole role)
         {
             return GetPadTouchDeltaEx(role);
+        }
+
+        public static Vector2 GetScrollDelta(HandRole role, ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY)
+        {
+            return GetScrollDeltaEx(role, scrollType, scale, xAxis, yAxis);
         }
 
         /// <summary>
@@ -180,19 +191,144 @@ namespace HTC.UnityPlugin.Vive
         {
             TriggerHapticPulseEx(role, durationMicroSec);
         }
-
-        public static VRControllerState_t GetCurrentRawControllerState(HandRole role)
-        {
-            return GetCurrentRawControllerStateEx(role);
-        }
-
-        public static VRControllerState_t GetPreviousRawControllerState(HandRole role)
-        {
-            return GetPreviousRawControllerStateEx(role);
-        }
         #endregion origin
 
-        #region extend generic
+        #region general role property
+        /// <summary>
+        /// Returns true while the button on the controller identified by role is held down
+        /// </summary>
+        public static bool GetPress(ViveRoleProperty role, ControllerButton button)
+        {
+            return GetPressEx(role.roleType, role.roleValue, button);
+        }
+
+        /// <summary>
+        /// Returns true during the frame the user pressed down the button on the controller identified by role
+        /// </summary>
+        public static bool GetPressDown(ViveRoleProperty role, ControllerButton button)
+        {
+            return GetPressDownEx(role.roleType, role.roleValue, button);
+        }
+
+        /// <summary>
+        /// Returns true during the frame the user releases the button on the controller identified by role
+        /// </summary>
+        public static bool GetPressUp(ViveRoleProperty role, ControllerButton button)
+        {
+            return GetPressUpEx(role.roleType, role.roleValue, button);
+        }
+
+        /// <summary>
+        /// Returns time of the last frame that user pressed down the button on the controller identified by role
+        /// </summary>
+        public static float LastPressDownTime(ViveRoleProperty role, ControllerButton button)
+        {
+            return LastPressDownTimeEx(role.roleType, role.roleValue, button);
+        }
+
+        /// <summary>
+        /// Return amount of clicks in a row for the button on the controller identified by role
+        /// Set ViveInput.clickInterval to configure click interval
+        /// </summary>
+        public static int ClickCount(ViveRoleProperty role, ControllerButton button)
+        {
+            return ClickCountEx(role.roleType, role.roleValue, button);
+        }
+
+        public static float GetAxis(ViveRoleProperty role, ControllerAxis axis, bool usePrevState = false)
+        {
+            return GetAxisEx(role.roleType, role.roleValue, axis, usePrevState);
+        }
+
+        /// <summary>
+        /// Returns raw analog value of the trigger button on the controller identified by role
+        /// </summary>
+        public static float GetTriggerValue(ViveRoleProperty role, bool usePrevState = false)
+        {
+            return GetTriggerValueEx(role.roleType, role.roleValue, usePrevState);
+        }
+
+        /// <summary>
+        /// Returns raw analog value of the touch pad  on the controller identified by role
+        /// </summary>
+        public static Vector2 GetPadAxis(ViveRoleProperty role, bool usePrevState = false)
+        {
+            return GetPadAxisEx(role.roleType, role.roleValue, usePrevState);
+        }
+
+        /// <summary>
+        /// Returns raw analog value of the touch pad on the controller identified by role if pressed,
+        /// otherwise, returns Vector2.zero
+        /// </summary>
+        public static Vector2 GetPadPressAxis(ViveRoleProperty role)
+        {
+            return GetPadPressAxisEx(role.roleType, role.roleValue);
+        }
+
+        /// <summary>
+        /// Returns raw analog value of the touch pad on the controller identified by role if touched,
+        /// otherwise, returns Vector2.zero
+        /// </summary>
+        public static Vector2 GetPadTouchAxis(ViveRoleProperty role)
+        {
+            return GetPadTouchAxisEx(role.roleType, role.roleValue);
+        }
+
+        public static Vector2 GetPadPressVector(ViveRoleProperty role)
+        {
+            return GetPadPressVectorEx(role.roleType, role.roleValue);
+        }
+
+        public static Vector2 GetPadTouchVector(ViveRoleProperty role)
+        {
+            return GetPadTouchVectorEx(role.roleType, role.roleValue);
+        }
+
+        public static Vector2 GetPadPressDelta(ViveRoleProperty role)
+        {
+            return GetPadPressDeltaEx(role.roleType, role.roleValue);
+        }
+
+        public static Vector2 GetPadTouchDelta(ViveRoleProperty role)
+        {
+            return GetPadTouchDeltaEx(role.roleType, role.roleValue);
+        }
+
+        public static Vector2 GetScrollDelta(ViveRoleProperty role, ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY)
+        {
+            return GetScrollDeltaEx(role.roleType, role.roleValue, scrollType, scale, xAxis, yAxis);
+        }
+
+        public static void AddListener(ViveRoleProperty role, ControllerButton button, Action callback)
+        {
+            AddListenerEx(role.roleType, role.roleValue, button, ButtonEventType.Press, callback);
+        }
+
+        public static void RemoveListener(ViveRoleProperty role, ControllerButton button, Action callback)
+        {
+            RemoveListenerEx(role.roleType, role.roleValue, button, ButtonEventType.Press, callback);
+        }
+
+        public static void AddListener(ViveRoleProperty role, ControllerButton button, RoleValueEventListener callback)
+        {
+            AddListenerEx(role.roleType, role.roleValue, button, ButtonEventType.Press, callback);
+        }
+
+        public static void RemoveListener(ViveRoleProperty role, ControllerButton button, RoleValueEventListener callback)
+        {
+            RemoveListenerEx(role.roleType, role.roleValue, button, ButtonEventType.Press, callback);
+        }
+
+        /// <summary>
+        /// Trigger vibration of the controller identified by role
+        /// </summary>
+        public static void TriggerHapticPulse(ViveRoleProperty role, ushort durationMicroSec = 500)
+        {
+            TriggerHapticPulseEx(role.roleType, role.roleValue, durationMicroSec);
+        }
+        #endregion
+
+        #region extend generic role
         /// <typeparam name="TRole">
         /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
         /// Use ViveRole.ValidateViveRoleEnum() to validate role type
@@ -258,6 +394,11 @@ namespace HTC.UnityPlugin.Vive
             return GetState(role).ClickCount(button);
         }
 
+        public static float GetAxisEx<TRole>(TRole role, ControllerAxis axis, bool usePrevState = false)
+        {
+            return GetState(role).GetAxis(axis, usePrevState);
+        }
+
         /// <typeparam name="TRole">
         /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
         /// Use ViveRole.ValidateViveRoleEnum() to validate role type
@@ -268,7 +409,7 @@ namespace HTC.UnityPlugin.Vive
         /// </param>
         public static float GetTriggerValueEx<TRole>(TRole role, bool usePrevState = false)
         {
-            return GetState(role).GetTriggerValue(usePrevState);
+            return GetState(role).GetAxis(ControllerAxis.Trigger, usePrevState);
         }
 
         /// <typeparam name="TRole">
@@ -281,7 +422,7 @@ namespace HTC.UnityPlugin.Vive
         /// </param>
         public static Vector2 GetPadAxisEx<TRole>(TRole role, bool usePrevState = false)
         {
-            return GetState(role).GetAxis(usePrevState);
+            return GetState(role).GetPadAxis(usePrevState);
         }
 
         /// <typeparam name="TRole">
@@ -295,7 +436,7 @@ namespace HTC.UnityPlugin.Vive
         public static Vector2 GetPadPressAxisEx<TRole>(TRole role)
         {
             var handState = GetState(role);
-            return handState.GetPress(ControllerButton.Pad) ? handState.GetAxis() : Vector2.zero;
+            return handState.GetPress(ControllerButton.Pad) ? handState.GetPadAxis() : Vector2.zero;
         }
 
         /// <typeparam name="TRole">
@@ -309,7 +450,7 @@ namespace HTC.UnityPlugin.Vive
         public static Vector2 GetPadTouchAxisEx<TRole>(TRole role)
         {
             var handState = GetState(role);
-            return handState.GetPress(ControllerButton.PadTouch) ? handState.GetAxis() : Vector2.zero;
+            return handState.GetPress(ControllerButton.PadTouch) ? handState.GetPadAxis() : Vector2.zero;
         }
 
         /// <typeparam name="TRole">
@@ -351,7 +492,7 @@ namespace HTC.UnityPlugin.Vive
             var handState = GetState(role);
             if (handState.GetPress(ControllerButton.Pad) && !handState.GetPressDown(ControllerButton.Pad))
             {
-                return handState.GetAxis() - handState.GetAxis(true);
+                return handState.GetPadAxis() - handState.GetPadAxis(true);
             }
             return Vector2.zero;
         }
@@ -369,9 +510,22 @@ namespace HTC.UnityPlugin.Vive
             var handState = GetState(role);
             if (handState.GetPress(ControllerButton.PadTouch) && !handState.GetPressDown(ControllerButton.PadTouch))
             {
-                return handState.GetAxis() - handState.GetAxis(true);
+                return handState.GetPadAxis() - handState.GetPadAxis(true);
             }
             return Vector2.zero;
+        }
+
+        /// <typeparam name="TRole">
+        /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
+        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
+        /// </typeparam>
+        /// <param name="role">
+        /// TRole can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
+        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
+        /// </param>
+        public static Vector2 GetScrollDeltaEx<TRole>(TRole role, ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY)
+        {
+            return GetState(role).GetScrollDelta(scrollType, scale, xAxis, yAxis);
         }
 
         /// <typeparam name="TRole">
@@ -462,41 +616,11 @@ namespace HTC.UnityPlugin.Vive
         /// </param>
         public static void TriggerHapticPulseEx<TRole>(TRole role, ushort durationMicroSec = 500)
         {
-            var system = OpenVR.System;
-            if (system != null)
-            {
-                system.TriggerHapticPulse(ViveRole.GetDeviceIndexEx(role), (uint)EVRButtonId.k_EButton_SteamVR_Touchpad - (uint)EVRButtonId.k_EButton_Axis0, (char)durationMicroSec);
-            }
-        }
-
-        /// <typeparam name="TRole">
-        /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
-        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
-        /// </typeparam>
-        /// <param name="role">
-        /// TRole can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
-        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
-        /// </param>
-        public static VRControllerState_t GetCurrentRawControllerStateEx<TRole>(TRole role)
-        {
-            return GetState(role).GetCurrentRawState();
-        }
-
-        /// <typeparam name="TRole">
-        /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
-        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
-        /// </typeparam>
-        /// <param name="role">
-        /// TRole can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
-        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
-        /// </param>
-        public static VRControllerState_t GetPreviousRawControllerStateEx<TRole>(TRole role)
-        {
-            return GetState(role).GetPreviousRawState();
+            VRModule.TriggerViveControllerHaptic(ViveRole.GetDeviceIndexEx(role), durationMicroSec);
         }
         #endregion extend generic
 
-        #region extend general
+        #region extend property role type & value
         /// <param name="roleType">
         /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
         /// Use ViveRole.ValidateViveRoleEnum() to validate role type
@@ -542,13 +666,18 @@ namespace HTC.UnityPlugin.Vive
             return GetState(roleType, roleValue).ClickCount(button);
         }
 
+        public static float GetAxisEx(Type roleType, int roleValue, ControllerAxis axis, bool usePrevState = false)
+        {
+            return GetState(roleType, roleValue).GetAxis(axis, usePrevState);
+        }
+
         /// <param name="roleType">
         /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
         /// Use ViveRole.ValidateViveRoleEnum() to validate role type
         /// </param>
         public static float GetTriggerValueEx(Type roleType, int roleValue, bool usePrevState = false)
         {
-            return GetState(roleType, roleValue).GetTriggerValue(usePrevState);
+            return GetState(roleType, roleValue).GetAxis(ControllerAxis.Trigger, usePrevState);
         }
 
         /// <param name="roleType">
@@ -557,7 +686,7 @@ namespace HTC.UnityPlugin.Vive
         /// </param>
         public static Vector2 GetPadAxisEx(Type roleType, int roleValue, bool usePrevState = false)
         {
-            return GetState(roleType, roleValue).GetAxis(usePrevState);
+            return GetState(roleType, roleValue).GetPadAxis(usePrevState);
         }
 
         /// <param name="roleType">
@@ -567,7 +696,7 @@ namespace HTC.UnityPlugin.Vive
         public static Vector2 GetPadPressAxisEx(Type roleType, int roleValue)
         {
             var handState = GetState(roleType, roleValue);
-            return handState.GetPress(ControllerButton.Pad) ? handState.GetAxis() : Vector2.zero;
+            return handState.GetPress(ControllerButton.Pad) ? handState.GetPadAxis() : Vector2.zero;
         }
 
         /// <param name="roleType">
@@ -577,7 +706,7 @@ namespace HTC.UnityPlugin.Vive
         public static Vector2 GetPadTouchAxisEx(Type roleType, int roleValue)
         {
             var handState = GetState(roleType, roleValue);
-            return handState.GetPress(ControllerButton.PadTouch) ? handState.GetAxis() : Vector2.zero;
+            return handState.GetPress(ControllerButton.PadTouch) ? handState.GetPadAxis() : Vector2.zero;
         }
 
         /// <param name="roleType">
@@ -607,7 +736,7 @@ namespace HTC.UnityPlugin.Vive
             var handState = GetState(roleType, roleValue);
             if (handState.GetPress(ControllerButton.Pad) && !handState.GetPressDown(ControllerButton.Pad))
             {
-                return handState.GetAxis() - handState.GetAxis(true);
+                return handState.GetPadAxis() - handState.GetPadAxis(true);
             }
             return Vector2.zero;
         }
@@ -621,9 +750,14 @@ namespace HTC.UnityPlugin.Vive
             var handState = GetState(roleType, roleValue);
             if (handState.GetPress(ControllerButton.PadTouch) && !handState.GetPressDown(ControllerButton.PadTouch))
             {
-                return handState.GetAxis() - handState.GetAxis(true);
+                return handState.GetPadAxis() - handState.GetPadAxis(true);
             }
             return Vector2.zero;
+        }
+
+        public static Vector2 GetScrollDeltaEx(Type roleType, int roleValue, ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY)
+        {
+            return GetState(roleType, roleValue).GetScrollDelta(scrollType, scale, xAxis, yAxis);
         }
 
         /// <param name="roleType">
@@ -668,29 +802,7 @@ namespace HTC.UnityPlugin.Vive
         /// </param>
         public static void TriggerHapticPulseEx(Type roleType, int roleValue, ushort durationMicroSec = 500)
         {
-            var system = OpenVR.System;
-            if (system != null)
-            {
-                system.TriggerHapticPulse(ViveRole.GetDeviceIndexEx(roleType, roleValue), (uint)EVRButtonId.k_EButton_SteamVR_Touchpad - (uint)EVRButtonId.k_EButton_Axis0, (char)durationMicroSec);
-            }
-        }
-
-        /// <param name="roleType">
-        /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
-        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
-        /// </param>
-        public static VRControllerState_t GetCurrentRawControllerStateEx(Type roleType, int roleValue)
-        {
-            return GetState(roleType, roleValue).GetCurrentRawState();
-        }
-
-        /// <param name="roleType">
-        /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
-        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
-        /// </param>
-        public static VRControllerState_t GetPreviousRawControllerStateEx(Type roleType, int roleValue)
-        {
-            return GetState(roleType, roleValue).GetPreviousRawState();
+            VRModule.TriggerViveControllerHaptic(ViveRole.GetDeviceIndexEx(roleType, roleValue), durationMicroSec);
         }
         #endregion extend general
     }

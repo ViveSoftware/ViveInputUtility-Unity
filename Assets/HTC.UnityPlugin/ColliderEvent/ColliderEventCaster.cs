@@ -2,7 +2,6 @@
 
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -225,8 +224,8 @@ namespace HTC.UnityPlugin.ColliderEvent
             for (int i = 0, imax = axisEventDataList.Count; i < imax; ++i)
             {
                 var eventData = axisEventDataList[i];
-
-                if (!eventData.IsValueChangedThisFrame()) { continue; }
+                
+                if ((eventData.v4 = eventData.GetDelta()) == Vector4.zero) { continue; }
 
                 var handlers = GetAxisHandlers(i);
 

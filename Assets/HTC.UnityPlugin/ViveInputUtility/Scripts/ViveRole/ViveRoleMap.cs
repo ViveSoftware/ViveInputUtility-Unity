@@ -1,27 +1,45 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Valve.VR;
+using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
     public static partial class ViveRole
     {
+        public struct MappingChangedEventArg
+        {
+            public int roleValue;
+            public uint previousDeviceIndex;
+            public uint currentDeviceIndex;
+        }
+
+        public struct MappingChangedEventArg<TRole>
+        {
+            public TRole role;
+            public uint previousDeviceIndex;
+            public uint currentDeviceIndex;
+        }
+
         public interface IMap
         {
             ViveRoleEnum.IInfo RoleValueInfo { get; }
             IMapHandler Handler { get; }
             int BindingCount { get; }
+            IIndexedTableReadOnly<string, int> BindingTable { get; }
 
             bool IsRoleValueMapped(int roleValue);
             bool IsDeviceMapped(uint deviceIndex);
             uint GetMappedDeviceByRoleValue(int roleValue);
             int GetMappedRoleValueByDevice(uint deviceIndex);
 
+            [Obsolete("Use BindDeviceToRoleValue instead")]
             void BindRoleValue(int roleValue, string deviceSN);
+            void BindDeviceToRoleValue(string deviceSN, int roleValue);
             void BindAll();
             bool UnbindRoleValue(int roleValue); // return true if role is ready for bind
             bool UnbindDevice(string deviceSN); // return true if device is ready for bind
@@ -32,37 +50,45 @@ namespace HTC.UnityPlugin.Vive
             bool IsDeviceBound(string deviceSN);
             bool IsDeviceConnectedAndBound(uint deviceIndex);
             string GetBoundDeviceByRoleValue(int roleValue);
+            /// <summary>
+            /// Should use IsDeviceBound to validate deviceSN before calling this function
+            /// </summary>
             int GetBoundRoleValueByDevice(string deviceSN);
-            int GetBoundRoleValueByConnectedDevice(uint deviceSN);
+            /// <summary>
+            /// Should use IsDeviceConnectedAndBound to validate deviceIndex before calling this function
+            /// </summary>
+            int GetBoundRoleValueByConnectedDevice(uint deviceIndex);
+
+            event UnityAction<IMap, MappingChangedEventArg> onRoleValueMappingChanged;
         }
 
         private sealed class Map : IMap
         {
             private readonly ViveRoleEnum.IInfo m_info;
             private IMapHandler m_handler;
+            private bool m_lockInternalMapping;
 
             // mapping table
             private readonly uint[] m_role2index;
             private readonly int[] m_index2role;
 
             // binding table
-            private readonly string[] m_role2sn;
-            private readonly Dictionary<string, int> m_sn2role;
+            private readonly IndexedSet<uint>[] m_roleBoundDevices; // connected devices only
+            private readonly IndexedTable<string, int> m_sn2role;
 
             public Map(Type roleType)
             {
                 m_info = ViveRoleEnum.GetInfo(roleType);
 
                 m_role2index = new uint[m_info.ValidRoleLength];
-                m_index2role = new int[MAX_DEVICE_COUNT];
+                m_index2role = new int[VRModule.MAX_DEVICE_COUNT];
 
-                m_role2sn = new string[m_info.ValidRoleLength];
-                m_sn2role = new Dictionary<string, int>(Mathf.Min(m_info.ValidRoleLength, (int)MAX_DEVICE_COUNT));
+                m_roleBoundDevices = new IndexedSet<uint>[m_info.ValidRoleLength];
+                m_sn2role = new IndexedTable<string, int>(Mathf.Min(m_info.ValidRoleLength, (int)VRModule.MAX_DEVICE_COUNT));
 
                 for (int i = 0; i < m_role2index.Length; ++i)
                 {
-                    m_role2index[i] = INVALID_DEVICE_INDEX;
-                    m_role2sn[i] = string.Empty;
+                    m_role2index[i] = VRModule.INVALID_DEVICE_INDEX;
                 }
 
                 for (int i = 0; i < m_index2role.Length; ++i)
@@ -73,31 +99,60 @@ namespace HTC.UnityPlugin.Vive
 
             public ViveRoleEnum.IInfo RoleValueInfo { get { return m_info; } }
             public int BindingCount { get { return m_sn2role.Count; } }
+            public IIndexedTableReadOnly<string, int> BindingTable { get { return m_sn2role.ReadOnly; } }
 
             public IMapHandler Handler
             {
                 get { return m_handler; }
                 set
                 {
-                    if (ChangeProp.Set(ref m_handler, value) && m_handler != null)
+                    if (m_handler == value) { return; }
+
+                    if (m_handler != null)
                     {
-                        m_handler.OnInitialize();
+                        m_handler.OnDivestedOfCurrentMapHandler();
+                        m_handler = null;
+                    }
+
+                    if (value != null)
+                    {
+                        if (value.BlockBindings)
+                        {
+                            UnbindAll();
+                        }
+
+                        m_handler = value;
+                        m_handler.OnAssignedAsCurrentMapHandler();
                     }
                 }
             }
 
-            public void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected)
+            public event UnityAction<IMap, MappingChangedEventArg> onRoleValueMappingChanged;
+
+            private string DeviceSN(uint deviceIndex) { return VRModule.GetCurrentDeviceState(deviceIndex).serialNumber; }
+
+            public void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
             {
-                var boundRoleValue = GetBoundRoleValueByDevice(deviceSN);
-                if (m_info.IsValidRoleValue(boundRoleValue)) // if device is bound
+                if (connected)
                 {
-                    if (connected)
+                    if (IsDeviceBound(deviceSN))
                     {
-                        InternalMapping(boundRoleValue, deviceIndex);
+                        InternalInsertRoleBoundDevice(deviceSN, deviceIndex, GetBoundRoleValueByDevice(deviceSN));
                     }
-                    else
+                }
+                else
+                {
+                    if (IsDeviceMapped(deviceIndex))
                     {
-                        InternalUnmapping(boundRoleValue, deviceIndex);
+                        if (IsDeviceBound(deviceSN))
+                        {
+                            InternalRemoveRoleBoundDevice(deviceSN, deviceIndex, GetBoundRoleValueByDevice(deviceSN));
+                        }
+
+                        if (IsDeviceMapped(deviceIndex))
+                        {
+                            InternalUnmapping(GetMappedRoleValueByDevice(deviceIndex), deviceIndex);
+                        }
                     }
                 }
 
@@ -115,6 +170,251 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
+            #region retrieve state
+            public bool IsRoleValueMapped(int roleValue)
+            {
+                if (!m_info.IsValidRoleValue(roleValue)) { return false; }
+                return IsRoleOffsetMapped(m_info.RoleValueToRoleOffset(roleValue));
+            }
+
+            public bool IsRoleOffsetMapped(int roleOffset)
+            {
+                return VRModule.IsValidDeviceIndex(m_role2index[roleOffset]);
+            }
+
+            public bool IsDeviceMapped(uint deviceIndex)
+            {
+                return VRModule.IsValidDeviceIndex(deviceIndex) && m_info.IsValidRoleValue(m_index2role[deviceIndex]);
+            }
+
+            public bool IsRoleValueBound(int roleValue)
+            {
+                if (!m_info.IsValidRoleValue(roleValue)) { return false; }
+
+                var roleOffset = m_info.RoleValueToRoleOffset(roleValue);
+                return m_roleBoundDevices[roleOffset] != null && m_roleBoundDevices[roleOffset].Count > 0;
+            }
+
+            public bool IsDeviceBound(string deviceSN)
+            {
+                return string.IsNullOrEmpty(deviceSN) ? false : m_sn2role.ContainsKey(deviceSN);
+            }
+
+            public bool IsDeviceConnectedAndBound(uint deviceIndex)
+            {
+                return IsDeviceBound(DeviceSN(deviceIndex));
+            }
+
+            public uint GetMappedDeviceByRoleValue(int roleValue)
+            {
+                if (m_info.IsValidRoleValue(roleValue))
+                {
+                    return m_role2index[m_info.RoleValueToRoleOffset(roleValue)];
+                }
+                else
+                {
+                    return VRModule.INVALID_DEVICE_INDEX;
+                }
+            }
+
+            public int GetMappedRoleValueByDevice(uint deviceIndex)
+            {
+                if (VRModule.IsValidDeviceIndex(deviceIndex))
+                {
+                    return m_index2role[deviceIndex];
+                }
+                else
+                {
+                    return m_info.InvalidRoleValue;
+                }
+            }
+
+            public string GetBoundDeviceByRoleValue(int roleValue)
+            {
+                if (!IsRoleValueBound(roleValue)) { return string.Empty; }
+                return DeviceSN(GetMappedDeviceByRoleValue(roleValue));
+            }
+
+            public int GetBoundRoleValueByDevice(string deviceSN)
+            {
+                return m_sn2role[deviceSN];
+            }
+
+            public int GetBoundRoleValueByConnectedDevice(uint deviceIndex)
+            {
+                return GetBoundRoleValueByDevice(DeviceSN(deviceIndex));
+            }
+            #endregion retrieve state
+
+            #region internal operation
+            // both roleValue and deviceIndex must be valid
+            // ignore binding state
+            private void InternalMapping(int roleValue, uint deviceIndex)
+            {
+                if (m_lockInternalMapping) { throw new Exception("Recursive calling InternalMapping"); }
+                m_lockInternalMapping = true;
+
+                var previousRoleValue = m_index2role[deviceIndex];
+                if (roleValue == previousRoleValue)
+                {
+                    m_lockInternalMapping = false;
+                    return;
+                }
+
+                if (m_info.IsValidRoleValue(previousRoleValue))
+                {
+                    m_lockInternalMapping = false;
+                    InternalUnmapping(previousRoleValue, deviceIndex);
+                    m_lockInternalMapping = true;
+                }
+
+                var roleOffset = m_info.RoleValueToRoleOffset(roleValue);
+                var previousDeviceIndex = m_role2index[roleOffset];
+                var eventArg = new MappingChangedEventArg()
+                {
+                    roleValue = roleValue,
+                    previousDeviceIndex = previousDeviceIndex,
+                    currentDeviceIndex = deviceIndex,
+                };
+
+                m_role2index[roleOffset] = deviceIndex;
+                m_index2role[deviceIndex] = roleValue;
+
+                if (VRModule.IsValidDeviceIndex(previousDeviceIndex))
+                {
+                    m_index2role[previousDeviceIndex] = m_info.InvalidRoleValue;
+                }
+
+                if (onRoleValueMappingChanged != null)
+                {
+                    onRoleValueMappingChanged(this, eventArg);
+                }
+
+                m_lockInternalMapping = false;
+            }
+
+            // both roleValue and deviceIndex must be valid
+            // ignore binding state
+            private void InternalUnmapping(int roleValue, uint deviceIndex)
+            {
+                if (m_lockInternalMapping) { throw new Exception("Recursive calling InternalMapping"); }
+                m_lockInternalMapping = true;
+
+                var roleOffset = m_info.RoleValueToRoleOffset(roleValue);
+                var eventArg = new MappingChangedEventArg()
+                {
+                    roleValue = roleValue,
+                    previousDeviceIndex = deviceIndex,
+                    currentDeviceIndex = VRModule.INVALID_DEVICE_INDEX,
+                };
+
+                m_role2index[roleOffset] = VRModule.INVALID_DEVICE_INDEX;
+                m_index2role[deviceIndex] = m_info.InvalidRoleValue;
+
+                if (onRoleValueMappingChanged != null)
+                {
+                    onRoleValueMappingChanged(this, eventArg);
+                }
+
+                m_lockInternalMapping = false;
+            }
+
+            // device must be valid and connected and have bound role value
+            // device must not exist in role bound devices
+            // boundRoleValue can be whether valid or not
+            private void InternalInsertRoleBoundDevice(string deviceSN, uint deviceIndex, int boundRoleValue)
+            {
+                if (m_info.IsValidRoleValue(boundRoleValue))
+                {
+                    var roleBoundDevices = InternalGetRoleBoundDevices(boundRoleValue);
+
+                    roleBoundDevices.Add(deviceIndex); // if key already added here, means that this device already in role bound devices
+
+                    InternalMapping(boundRoleValue, deviceIndex);
+                }
+            }
+
+            // device must be valid and connected and have bound role value
+            // device must already exist in role bound devices
+            // boundRoleValue can be whether valid or not
+            private void InternalRemoveRoleBoundDevice(string deviceSN, uint deviceIndex, int boundRoleValue)
+            {
+                if (m_info.IsValidRoleValue(boundRoleValue))
+                {
+                    var roleBoundDevices = InternalGetRoleBoundDevices(boundRoleValue);
+
+                    if (!roleBoundDevices.Remove(deviceIndex))
+                    {
+                        throw new Exception("device([" + deviceIndex + "]" + deviceSN + ") has not been InternalMappingRoleBoundDevice");
+                    }
+
+                    if (roleBoundDevices.Count > 0)
+                    {
+                        InternalMapping(boundRoleValue, roleBoundDevices[0]);
+                    }
+                }
+            }
+
+            // deviceSN must be valid
+            // device can be whether bound or not
+            // device can be whether connected or not
+            private void InternalBind(string deviceSN, int roleValue)
+            {
+                var deviceIndex = VRModule.GetConnectedDeviceIndex(deviceSN);
+
+                bool previousIsBound = false;
+                int previousBoundRoleValue = m_info.InvalidRoleValue;
+                if (m_sn2role.TryGetValue(deviceSN, out previousBoundRoleValue))
+                {
+                    if (previousBoundRoleValue == roleValue) { return; }
+
+                    previousIsBound = true;
+
+                    m_sn2role.Remove(deviceSN);
+
+                    if (VRModule.IsValidDeviceIndex(deviceIndex))
+                    {
+                        InternalRemoveRoleBoundDevice(deviceSN, deviceIndex, previousBoundRoleValue);
+                    }
+                }
+
+                m_sn2role[deviceSN] = roleValue;
+
+                if (VRModule.IsValidDeviceIndex(deviceIndex))
+                {
+                    InternalInsertRoleBoundDevice(deviceSN, deviceIndex, roleValue);
+                }
+
+                if (m_handler != null)
+                {
+                    m_handler.OnBindingRoleValueChanged(deviceSN, previousIsBound, previousBoundRoleValue, true, roleValue);
+                }
+            }
+
+            // deviceSN must be valid
+            // device must be bound
+            // device can be whether connected or not
+            private void InternalUnbind(string deviceSN, int boundRoleValue)
+            {
+                var deviceIndex = VRModule.GetConnectedDeviceIndex(deviceSN);
+
+                if (!m_sn2role.Remove(deviceSN))
+                {
+                    throw new Exception("device([" + deviceIndex + "]" + deviceSN + ") already unbound");
+                }
+
+                if (VRModule.IsValidDeviceIndex(deviceIndex))
+                {
+                    InternalRemoveRoleBoundDevice(deviceSN, deviceIndex, boundRoleValue);
+                }
+
+                if (m_handler != null)
+                {
+                    m_handler.OnBindingRoleValueChanged(deviceSN, true, boundRoleValue, false, m_info.InvalidRoleValue);
+                }
+            }
+            #endregion internal operation
+
             #region mapping
             public void MappingRoleValue(int roleValue, uint deviceIndex)
             {
@@ -123,19 +423,9 @@ namespace HTC.UnityPlugin.Vive
                     throw new ArgumentException("Cannot mapping invalid roleValue(" + m_info.RoleEnumType.Name + "[" + roleValue + "])");
                 }
 
-                if (!IsValidIndex(deviceIndex))
+                if (!VRModule.IsValidDeviceIndex(deviceIndex))
                 {
                     throw new ArgumentException("Cannot mapping invalid deviceIndex(" + deviceIndex + ")");
-                }
-
-                if (IsRoleValueMapped(roleValue))
-                {
-                    throw new ArgumentException("roleValue(" + m_info.RoleEnumType.Name + "[" + roleValue + "]) is already mapped, unmapping first.");
-                }
-
-                if (IsDeviceMapped(deviceIndex))
-                {
-                    throw new ArgumentException("deviceIndex(" + deviceIndex + ") is already mapped, unmapping first");
                 }
 
                 if (IsRoleValueBound(roleValue))
@@ -151,28 +441,16 @@ namespace HTC.UnityPlugin.Vive
                 InternalMapping(roleValue, deviceIndex);
             }
 
-            private void InternalMapping(int roleValue, uint deviceIndex)
-            {
-                m_role2index[m_info.ToRoleOffset(roleValue)] = deviceIndex;
-                m_index2role[deviceIndex] = roleValue;
-            }
-
             // return true if role is ready for mapping
             public bool UnmappingRoleValue(int roleValue)
             {
-                if (!m_info.IsValidRoleValue(roleValue)) { return false; }
-
-                var roleOffset = m_info.ToRoleOffset(roleValue);
+                // is mapped?
+                if (!IsRoleValueMapped(roleValue)) { return false; }
 
                 // is bound?
-                if (!string.IsNullOrEmpty(m_role2sn[roleOffset])) { return false; }
+                if (IsRoleValueBound(roleValue)) { return false; }
 
-                // is mapped?
-                var deviceIndex = m_role2index[roleOffset];
-                if (IsValidIndex(deviceIndex))
-                {
-                    InternalUnmapping(roleValue, deviceIndex);
-                }
+                InternalUnmapping(roleValue, GetMappedDeviceByRoleValue(roleValue));
 
                 return true;
             }
@@ -180,154 +458,86 @@ namespace HTC.UnityPlugin.Vive
             // return true if device is ready for mapping
             public bool UnmappingDevice(uint deviceIndex)
             {
-                if (!IsValidIndex(deviceIndex)) { return false; }
+                // is mapped?
+                if (!IsDeviceMapped(deviceIndex)) { return false; }
 
                 // is bound?
-                var deviceSN = GetSerialNumber(deviceIndex);
-                if (!string.IsNullOrEmpty(deviceSN) && m_sn2role.ContainsKey(deviceSN)) { return false; }
+                if (IsDeviceConnectedAndBound(deviceIndex)) { return false; }
 
-                // is mapped?
-                var roleValue = m_index2role[deviceIndex];
-                if (m_info.IsValidRoleValue(roleValue))
-                {
-                    InternalUnmapping(roleValue, deviceIndex);
-                }
+                InternalUnmapping(GetMappedRoleValueByDevice(deviceIndex), deviceIndex);
 
                 return true;
             }
 
-            private void InternalUnmapping(int roleValue, uint deviceIndex)
-            {
-                m_role2index[m_info.ToRoleOffset(roleValue)] = INVALID_DEVICE_INDEX;
-                m_index2role[deviceIndex] = m_info.InvalidRoleValue;
-            }
-
             public void UnmappingAll()
             {
-                for (int i = m_role2index.Length - 1; i >= 0; --i)
+                for (int roleValue = m_info.MinValidRoleValue; roleValue <= m_info.MaxValidRoleValue; ++roleValue)
                 {
-                    if (!string.IsNullOrEmpty(m_role2sn[i])) { continue; } // skip bound role
+                    if (!m_info.IsValidRoleValue(roleValue)) { continue; }
 
-                    var mappedDeviceIndex = m_role2index[i];
-                    if (IsValidIndex(mappedDeviceIndex))
-                    {
-                        m_role2index[i] = INVALID_DEVICE_INDEX;
-                        m_index2role[mappedDeviceIndex] = m_info.InvalidRoleValue;
-                    }
-                }
-            }
-
-            public bool IsRoleValueMapped(int roleValue)
-            {
-                return m_info.IsValidRoleValue(roleValue) && IsValidIndex(m_role2index[m_info.ToRoleOffset(roleValue)]);
-            }
-
-            public bool IsDeviceMapped(uint deviceIndex)
-            {
-                return IsValidIndex(deviceIndex) && m_info.IsValidRoleValue(m_index2role[deviceIndex]);
-            }
-
-            public uint GetMappedDeviceByRoleValue(int roleValue)
-            {
-                if (m_info.IsValidRoleValue(roleValue))
-                {
-                    return m_role2index[m_info.ToRoleOffset(roleValue)];
-                }
-                else
-                {
-                    return INVALID_DEVICE_INDEX;
-                }
-            }
-
-            public int GetMappedRoleValueByDevice(uint deviceIndex)
-            {
-                if (IsValidIndex(deviceIndex))
-                {
-                    return m_index2role[deviceIndex];
-                }
-                else
-                {
-                    return m_info.InvalidRoleValue;
+                    UnmappingRoleValue(roleValue);
                 }
             }
             #endregion mapping
 
             #region bind
+            [Obsolete("Use BindDeviceToRoleValue instead")]
             public void BindRoleValue(int roleValue, string deviceSN)
             {
-                if (!m_info.IsValidRoleValue(roleValue))
-                {
-                    throw new ArgumentException("roleValue must be valid value. Use IInfo.IsValidRoleValue to validate."); ;
-                }
+                BindDeviceToRoleValue(deviceSN, roleValue);
+            }
 
+            public void BindDeviceToRoleValue(string deviceSN, int roleValue)
+            {
                 if (string.IsNullOrEmpty(deviceSN))
                 {
                     throw new ArgumentException("deviceSN cannot be null or empty.");
                 }
 
-                if (IsRoleValueBound(roleValue))
-                {
-                    throw new ArgumentException("roleValue(" + roleValue + ") is already bound, unbind first.");
-                }
+                if (m_handler != null && m_handler.BlockBindings) { return; }
 
-                if (IsDeviceBound(deviceSN))
-                {
-                    throw new ArgumentException("deviceSN(" + deviceSN + ") is already bound, unbind first.");
-                }
-
-                UnmappingRoleValue(roleValue);
-
-                uint deviceIndex;
-                if (TryGetDeviceIndexBySerialNumber(deviceSN, out deviceIndex))
-                {
-                    UnmappingDevice(deviceIndex);
-                    InternalMapping(roleValue, deviceIndex);
-                }
-
-                InternalBind(roleValue, deviceSN);
-            }
-
-            private void InternalBind(int roleValue, string deviceSN)
-            {
-                m_sn2role[deviceSN] = roleValue;
-                m_role2sn[m_info.ToRoleOffset(roleValue)] = deviceSN;
-
-                if (m_handler != null)
-                {
-                    m_handler.OnBindingRoleValueChanged(roleValue, deviceSN, true);
-                }
+                InternalBind(deviceSN, roleValue);
             }
 
             // bind all mapped roles & devices
             public void BindAll()
             {
-                for (int i = m_role2sn.Length - 1; i >= 0; --i)
+                if (m_handler != null && m_handler.BlockBindings) { return; }
+
+                for (int roleValue = m_info.MinValidRoleValue; roleValue <= m_info.MaxValidRoleValue; ++roleValue)
                 {
-                    if (!string.IsNullOrEmpty(m_role2sn[i]) || !IsValidIndex(m_role2index[i])) { continue; }
+                    if (!m_info.IsValidRoleValue(roleValue)) { continue; }
 
-                    // if role is unbound but mapped
-                    var roleValue = i + m_info.MinValidRoleValue;
-                    var deviceSN = GetSerialNumber(m_role2index[i]);
-                    m_sn2role[deviceSN] = roleValue;
-                    m_role2sn[i] = deviceSN;
-
-                    if (m_handler != null)
+                    if (IsRoleValueMapped(roleValue) && !IsRoleValueBound(roleValue))
                     {
-                        m_handler.OnBindingRoleValueChanged(roleValue, deviceSN, true);
+                        InternalBind(DeviceSN(GetMappedDeviceByRoleValue(roleValue)), roleValue);
                     }
                 }
             }
 
             public bool UnbindRoleValue(int roleValue)
             {
-                if (!m_info.IsValidRoleValue(roleValue)) { return false; }
+                if (!IsRoleValueBound(roleValue)) { return false; }
 
-                // is bound?
-                var roleOffset = m_info.ToRoleOffset(roleValue);
-                var deviceSN = m_role2sn[roleOffset];
-                if (!string.IsNullOrEmpty(deviceSN))
+                var roleBoundDevices = InternalGetRoleBoundDevices(roleValue);
+                var boundDeviceIndex = GetMappedDeviceByRoleValue(roleValue);
+
+                // unbind other bound device first, to avoid redundent mapping changes event
+                while (roleBoundDevices.Count > 1)
                 {
-                    InternalUnbind(roleValue, deviceSN);
+                    for (int i = roleBoundDevices.Count - 1; i >= 0; --i)
+                    {
+                        if (roleBoundDevices[i] != boundDeviceIndex)
+                        {
+                            InternalUnbind(DeviceSN(roleBoundDevices[i]), roleValue);
+                            break;
+                        }
+                    }
+                };
+
+                if (roleBoundDevices.Count == 1)
+                {
+                    InternalUnbind(DeviceSN(boundDeviceIndex), roleValue);
                 }
 
                 return true;
@@ -335,101 +545,37 @@ namespace HTC.UnityPlugin.Vive
 
             public bool UnbindDevice(string deviceSN)
             {
-                if (string.IsNullOrEmpty(deviceSN)) { return false; }
+                if (!IsDeviceBound(deviceSN)) { return false; }
 
-                // is bound
-                int roleValue;
-                if (m_sn2role.TryGetValue(deviceSN, out roleValue))
-                {
-                    InternalUnbind(roleValue, deviceSN);
-                }
+                InternalUnbind(deviceSN, GetBoundRoleValueByDevice(deviceSN));
 
                 return true;
             }
 
             public bool UnbindConnectedDevice(uint deviceIndex)
             {
-                return UnbindDevice(GetSerialNumber(deviceIndex));
-            }
-
-            private void InternalUnbind(int roleValue, string deviceSN)
-            {
-                m_role2sn[m_info.ToRoleOffset(roleValue)] = string.Empty;
-                m_sn2role.Remove(deviceSN);
-
-                if (m_handler != null)
-                {
-                    m_handler.OnBindingRoleValueChanged(roleValue, deviceSN, false);
-                }
+                return UnbindDevice(DeviceSN(deviceIndex));
             }
 
             public void UnbindAll()
             {
-                if (m_handler == null)
+                for (var roleValue = m_info.MinValidRoleValue; roleValue <= m_info.MaxValidRoleValue; ++roleValue)
                 {
-                    for (int i = m_role2sn.Length - 1; i >= 0; --i) { m_role2sn[i] = string.Empty; }
-                    m_sn2role.Clear();
-                    return;
-                }
-                else
-                {
-                    for (int i = m_role2sn.Length - 1; i >= 0; --i)
-                    {
-                        var boundDeviceSN = m_role2sn[i];
-                        if (string.IsNullOrEmpty(boundDeviceSN)) { continue; }
-
-                        m_role2sn[i] = string.Empty;
-                        m_sn2role.Remove(boundDeviceSN);
-
-                        m_handler.OnBindingRoleValueChanged(i + m_info.MinValidRoleValue, boundDeviceSN, false);
-                    }
+                    UnbindRoleValue(roleValue);
                 }
             }
 
-            public bool IsRoleValueBound(int roleValue)
+            // roleValue must be valid
+            private IndexedSet<uint> InternalGetRoleBoundDevices(int roleValue)
             {
-                return m_info.IsValidRoleValue(roleValue) && !string.IsNullOrEmpty(m_role2sn[m_info.ToRoleOffset(roleValue)]);
-            }
+                var roleOffset = m_info.RoleValueToRoleOffset(roleValue);
 
-            public bool IsDeviceBound(string deviceSN)
-            {
-                return string.IsNullOrEmpty(deviceSN) ? false : m_sn2role.ContainsKey(deviceSN);
-            }
-
-            public bool IsDeviceConnectedAndBound(uint deviceIndex)
-            {
-                return IsDeviceBound(GetSerialNumber(deviceIndex));
-            }
-
-
-            public string GetBoundDeviceByRoleValue(int roleValue)
-            {
-                if (m_info.IsValidRoleValue(roleValue))
+                if (m_roleBoundDevices[roleOffset] == null)
                 {
-                    return m_role2sn[m_info.ToRoleOffset(roleValue)];
+                    m_roleBoundDevices[roleOffset] = new IndexedSet<uint>();
                 }
-                else
-                {
-                    return string.Empty;
-                }
-            }
 
-            public int GetBoundRoleValueByDevice(string deviceSN)
-            {
-                int roleValue;
-                if (!string.IsNullOrEmpty(deviceSN) && m_sn2role.TryGetValue(deviceSN, out roleValue))
-                {
-                    return roleValue;
-                }
-                else
-                {
-                    return m_info.InvalidRoleValue;
-                }
-            }
-
-            public int GetBoundRoleValueByConnectedDevice(uint deviceIndex)
-            {
-                return GetBoundRoleValueByDevice(GetSerialNumber(deviceIndex));
+                return m_roleBoundDevices[roleOffset];
             }
             #endregion bind
         }
@@ -442,13 +588,17 @@ namespace HTC.UnityPlugin.Vive
             uint GetMappedDeviceByRole(TRole role);
             TRole GetMappedRoleByDevice(uint deviceIndex);
 
+            [Obsolete("Use BindDeviceToRole instead")]
             void BindRole(TRole role, string deviceSN);
+            void BindDeviceToRole(string deviceSN, TRole role);
             bool UnbindRole(TRole role); // return true if role is ready for bind
 
             bool IsRoleBound(TRole role);
             string GetBoundDeviceByRole(TRole role);
             TRole GetBoundRoleByDevice(string deviceSN);
             TRole GetBoundRoleByConnectedDevice(uint deviceIndex);
+
+            event UnityAction<IMap<TRole>, MappingChangedEventArg<TRole>> onRoleMappingChanged;
         }
 
         private sealed class GenericMap<TRole> : IMap<TRole>
@@ -469,14 +619,34 @@ namespace HTC.UnityPlugin.Vive
                 }
                 else
                 {
-                    UnityEngine.Debug.LogWarning("duplicated instance for RoleInfo<" + typeof(TRole).Name + ">");
+                    Debug.LogWarning("duplicated instance for RoleInfo<" + typeof(TRole).Name + ">");
                 }
+
+                m_map.onRoleValueMappingChanged += OnMappingChanged;
             }
 
             public ViveRoleEnum.IInfo RoleValueInfo { get { return m_map.RoleValueInfo; } }
             public ViveRoleEnum.IInfo<TRole> RoleInfo { get { return m_info; } }
             public IMapHandler Handler { get { return m_map.Handler; } }
             public int BindingCount { get { return m_map.BindingCount; } }
+            public IIndexedTableReadOnly<string, int> BindingTable { get { return m_map.BindingTable; } }
+
+            public event UnityAction<IMap, MappingChangedEventArg> onRoleValueMappingChanged { add { m_map.onRoleValueMappingChanged += value; } remove { m_map.onRoleValueMappingChanged -= value; } }
+
+            public event UnityAction<IMap<TRole>, MappingChangedEventArg<TRole>> onRoleMappingChanged;
+
+            private void OnMappingChanged(IMap map, MappingChangedEventArg arg)
+            {
+                if (onRoleMappingChanged != null)
+                {
+                    onRoleMappingChanged(this, new MappingChangedEventArg<TRole>()
+                    {
+                        role = m_info.ToRole(arg.roleValue),
+                        previousDeviceIndex = arg.previousDeviceIndex,
+                        currentDeviceIndex = arg.currentDeviceIndex,
+                    });
+                }
+            }
 
             public void MappingRole(TRole role, uint deviceIndex) { m_map.MappingRoleValue(m_info.ToRoleValue(role), deviceIndex); }
             public void MappingRoleValue(int roleValue, uint deviceIndex) { m_map.MappingRoleValue(roleValue, deviceIndex); }
@@ -493,8 +663,12 @@ namespace HTC.UnityPlugin.Vive
             public uint GetMappedDeviceByRoleValue(int roleValue) { return m_map.GetMappedDeviceByRoleValue(roleValue); }
             public int GetMappedRoleValueByDevice(uint deviceIndex) { return m_map.GetMappedRoleValueByDevice(deviceIndex); }
 
-            public void BindRole(TRole role, string deviceSN) { m_map.BindRoleValue(m_info.ToRoleValue(role), deviceSN); }
-            public void BindRoleValue(int roleValue, string deviceSN) { m_map.BindRoleValue(roleValue, deviceSN); }
+            [Obsolete("Use BindDeviceToRole instead")]
+            public void BindRole(TRole role, string deviceSN) { m_map.BindDeviceToRoleValue(deviceSN, m_info.ToRoleValue(role)); }
+            [Obsolete("Use BindDeviceToRoleValue instead")]
+            public void BindRoleValue(int roleValue, string deviceSN) { m_map.BindDeviceToRoleValue(deviceSN, roleValue); }
+            public void BindDeviceToRole(string deviceSN, TRole role) { m_map.BindDeviceToRoleValue(deviceSN, m_info.ToRoleValue(role)); }
+            public void BindDeviceToRoleValue(string deviceSN, int roleValue) { m_map.BindDeviceToRoleValue(deviceSN, roleValue); }
             public void BindAll() { m_map.BindAll(); }
             public bool UnbindRole(TRole role) { return m_map.UnbindRoleValue(m_info.ToRoleValue(role)); }
             public bool UnbindRoleValue(int roleValue) { return m_map.UnbindRoleValue(roleValue); }
@@ -529,7 +703,7 @@ namespace HTC.UnityPlugin.Vive
                 var validateResult = ViveRoleEnum.ValidateViveRoleEnum(roleType);
                 if (validateResult != ViveRoleEnumValidateResult.Valid)
                 {
-                    UnityEngine.Debug.LogWarning(roleType.Name + " is not valid ViveRole type. " + validateResult);
+                    Debug.LogWarning(roleType.Name + " is not valid ViveRole type. " + validateResult);
                     return null;
                 }
 
@@ -553,7 +727,7 @@ namespace HTC.UnityPlugin.Vive
                 var validateResult = ViveRoleEnum.ValidateViveRoleEnum(roleEnumType);
                 if (validateResult != ViveRoleEnumValidateResult.Valid)
                 {
-                    UnityEngine.Debug.LogWarning(roleEnumType.Name + " is not valid ViveRole type. " + validateResult);
+                    Debug.LogWarning(roleEnumType.Name + " is not valid ViveRole type. " + validateResult);
                     return null;
                 }
 
@@ -570,6 +744,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static void AssignMapHandler<TRole>(MapHandler<TRole> mapHandler)
         {
+            Initialize();
             GetInternalMap(typeof(TRole)).Handler = mapHandler;
         }
     }

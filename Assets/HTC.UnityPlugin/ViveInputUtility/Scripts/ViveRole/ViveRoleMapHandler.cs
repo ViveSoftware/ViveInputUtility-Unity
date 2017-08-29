@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using Valve.VR;
+using HTC.UnityPlugin.VRModuleManagement;
+using System;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -8,10 +9,12 @@ namespace HTC.UnityPlugin.Vive
     {
         public interface IMapHandler
         {
-            void OnInitialize();
-            void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected);
+            bool BlockBindings { get; }
+            void OnAssignedAsCurrentMapHandler();
+            void OnDivestedOfCurrentMapHandler();
+            void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected);
             void OnTrackedDeviceRoleChanged();
-            void OnBindingRoleValueChanged(int roleValue, string deviceSN, bool bound);
+            void OnBindingRoleValueChanged(string deviceSN, bool previousIsBound, int previousRoleValue, bool currentIsBound, int currentRoleValue);
         }
 
         public abstract class MapHandler<TRole> : IMapHandler
@@ -24,13 +27,20 @@ namespace HTC.UnityPlugin.Vive
             }
 
             public IMap<TRole> RoleMap { get { return m_map; } }
+            public ViveRoleEnum.IInfo<TRole> RoleInfo { get { return m_map.RoleInfo; } }
             public bool IsCurrentMapHandler { get { return m_map.Handler == this; } }
+            public virtual bool BlockBindings { get { return false; } }
 
-            public abstract void OnInitialize();
-            public abstract void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected);
-            public abstract void OnTrackedDeviceRoleChanged();
-            public virtual void OnBindingRoleValueChanged(int roleValue, string deviceSN, bool bound) { OnBindingChanged(m_map.RoleInfo.ToRole(roleValue), deviceSN, bound); }
-            public abstract void OnBindingChanged(TRole role, string deviceSN, bool bound);
+            public virtual void OnAssignedAsCurrentMapHandler() { }
+            public virtual void OnDivestedOfCurrentMapHandler() { }
+            public virtual void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected) { }
+            public virtual void OnTrackedDeviceRoleChanged() { }
+            public virtual void OnBindingChanged(string deviceSN, bool previousIsBound, TRole previousRole, bool currentIsBound, TRole currentRole) { }
+
+            public void OnBindingRoleValueChanged(string deviceSN, bool previousIsBound, int previousRoleValue, bool currentIsBound, int currentRoleValue)
+            {
+                OnBindingChanged(deviceSN, previousIsBound, m_map.RoleInfo.ToRole(previousRoleValue), currentIsBound, m_map.RoleInfo.ToRole(currentRoleValue));
+            }
 
             protected void MappingRole(TRole role, uint deviceIndex)
             {

@@ -1,23 +1,24 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.PoseTracker;
+using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using UnityEngine;
-using Valve.VR;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 namespace HTC.UnityPlugin.Vive
 {
     /// <summary>
     /// To provide static APIs to retrieve devices' tracking status
     /// </summary>
-    public static partial class VivePose
+    public partial class VivePose : SingletonBehaviour<VivePose>
     {
         #region origin
         /// <summary>
         /// Returns true if input focus captured by current process
         /// Usually the process losses focus when player switch to deshboard by clicking Steam button
         /// </summary>
-        public static bool HasFocus() { return s_hasFocus; }
+        public static bool HasFocus() { return VRModule.HasInputFocus(); }
 
         /// <summary>
         /// Returns true if the process has focus and the device identified by role is connected / has tracking
@@ -110,6 +111,54 @@ namespace HTC.UnityPlugin.Vive
             SetPose(target, ViveRole.GetDeviceIndexEx(role), origin);
         }
         #endregion origin
+
+        #region general role property
+        /// <summary>
+        /// Returns true if the process has focus and the device identified by role is connected / has tracking
+        /// </summary>
+        public static bool IsValid(ViveRoleProperty role)
+        {
+            return IsValid(role.GetDeviceIndex());
+        }
+
+        /// <summary>
+        /// Returns true if the device identified by role is connected.
+        /// </summary>
+        public static bool IsConnected(ViveRoleProperty role)
+        {
+            return IsConnected(role.GetDeviceIndex());
+        }
+
+        /// <summary>
+        /// Returns true if tracking data of the device identified by role has valid value.
+        /// </summary>
+        public static bool HasTracking(ViveRoleProperty role)
+        {
+            return HasTracking(role.GetDeviceIndex());
+        }
+
+        public static bool IsOutOfRange(ViveRoleProperty role) { return IsOutOfRange(role.GetDeviceIndex()); }
+        public static bool IsCalibrating(ViveRoleProperty role) { return IsCalibrating(role.GetDeviceIndex()); }
+        public static bool IsUninitialized(ViveRoleProperty role) { return IsUninitialized(role.GetDeviceIndex()); }
+        public static Vector3 GetVelocity(ViveRoleProperty role, Transform origin = null) { return GetVelocity(role.GetDeviceIndex(), origin); }
+        public static Vector3 GetAngularVelocity(ViveRoleProperty role, Transform origin = null) { return GetAngularVelocity(role.GetDeviceIndex(), origin); }
+
+        /// <summary>
+        /// Returns tracking pose of the device identified by role
+        /// </summary>
+        public static Pose GetPose(ViveRoleProperty role, Transform origin = null)
+        {
+            return GetPose(role.GetDeviceIndex(), origin);
+        }
+
+        /// <summary>
+        /// Set target pose to tracking pose of the device identified by role relative to the origin
+        /// </summary>
+        public static void SetPose(Transform target, ViveRoleProperty role, Transform origin = null)
+        {
+            SetPose(target, role.GetDeviceIndex(), origin);
+        }
+        #endregion
 
         #region extend generic
         /// <typeparam name="TRole">
@@ -243,7 +292,7 @@ namespace HTC.UnityPlugin.Vive
         }
         #endregion extend generic
 
-        #region extend general
+        #region extend property role type & value
         /// <param name="roleType">
         /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
         /// Use ViveRole.ValidateViveRoleEnum() to validate role type
@@ -338,64 +387,82 @@ namespace HTC.UnityPlugin.Vive
         #region base
         public static bool IsValid(uint deviceIndex)
         {
-            return deviceIndex < s_rawPoses.Length && s_rawPoses[deviceIndex].bDeviceIsConnected && s_rawPoses[deviceIndex].bPoseIsValid && s_hasFocus; ;
+            return VRModule.GetCurrentDeviceState(deviceIndex).isPoseValid && HasFocus();
         }
 
         public static bool IsConnected(uint deviceIndex)
         {
-            return deviceIndex < s_rawPoses.Length && s_rawPoses[deviceIndex].bDeviceIsConnected;
+            return VRModule.GetCurrentDeviceState(deviceIndex).isConnected;
         }
 
         public static bool HasTracking(uint deviceIndex)
         {
-            return deviceIndex < s_rawPoses.Length && s_rawPoses[deviceIndex].bPoseIsValid;
+            return VRModule.GetCurrentDeviceState(deviceIndex).isPoseValid;
         }
 
         public static bool IsOutOfRange(uint deviceIndex)
         {
-            return deviceIndex < s_rawPoses.Length && (s_rawPoses[deviceIndex].eTrackingResult == ETrackingResult.Running_OutOfRange || s_rawPoses[deviceIndex].eTrackingResult == ETrackingResult.Calibrating_OutOfRange);
+            return VRModule.GetCurrentDeviceState(deviceIndex).isOutOfRange;
         }
 
         public static bool IsCalibrating(uint deviceIndex)
         {
-            return deviceIndex < s_rawPoses.Length && (s_rawPoses[deviceIndex].eTrackingResult == ETrackingResult.Calibrating_InProgress || s_rawPoses[deviceIndex].eTrackingResult == ETrackingResult.Calibrating_OutOfRange);
+            return VRModule.GetCurrentDeviceState(deviceIndex).isCalibrating;
         }
 
         public static bool IsUninitialized(uint deviceIndex)
         {
-            return deviceIndex < s_rawPoses.Length && s_rawPoses[deviceIndex].eTrackingResult == ETrackingResult.Uninitialized;
+            return VRModule.GetCurrentDeviceState(deviceIndex).isUninitialized;
         }
 
         public static Vector3 GetVelocity(uint deviceIndex, Transform origin = null)
         {
-            var rawValue = Vector3.zero;
-            if (deviceIndex < s_rawPoses.Length)
+            if (!VRModule.IsValidDeviceIndex(deviceIndex))
             {
-                rawValue = new Vector3(s_rawPoses[deviceIndex].vVelocity.v0, s_rawPoses[deviceIndex].vVelocity.v1, -s_rawPoses[deviceIndex].vVelocity.v2);
+                return Vector3.zero;
             }
-            return origin == null ? rawValue : origin.TransformVector(rawValue);
+            else if (origin == null)
+            {
+                return VRModule.GetCurrentDeviceState(deviceIndex).velocity;
+            }
+            else
+            {
+                return origin.TransformVector(VRModule.GetCurrentDeviceState(deviceIndex).velocity);
+            }
         }
 
         public static Vector3 GetAngularVelocity(uint deviceIndex, Transform origin = null)
         {
-            var rawValue = Vector3.zero;
-            if (deviceIndex < s_rawPoses.Length)
+            if (!VRModule.IsValidDeviceIndex(deviceIndex))
             {
-                rawValue = new Vector3(-s_rawPoses[deviceIndex].vAngularVelocity.v0, -s_rawPoses[deviceIndex].vAngularVelocity.v1, s_rawPoses[deviceIndex].vAngularVelocity.v2);
+                return Vector3.zero;
             }
-            return origin == null ? rawValue : origin.TransformVector(rawValue);
+            else if (origin == null)
+            {
+                return VRModule.GetCurrentDeviceState(deviceIndex).angularVelocity;
+            }
+            else
+            {
+                return origin.TransformVector(VRModule.GetCurrentDeviceState(deviceIndex).angularVelocity);
+            }
         }
 
         public static Pose GetPose(uint deviceIndex, Transform origin = null)
         {
-            var rawPose = new Pose();
-            if (deviceIndex < s_poses.Length) { rawPose = s_poses[deviceIndex]; }
-            if (origin != null)
+            if (!VRModule.IsValidDeviceIndex(deviceIndex))
             {
-                rawPose = new Pose(origin) * rawPose;
-                rawPose.pos.Scale(origin.localScale);
+                return default(Pose);
             }
-            return rawPose;
+            else if (origin == null)
+            {
+                return VRModule.GetCurrentDeviceState(deviceIndex).pose;
+            }
+            else
+            {
+                var rawPose = new Pose(origin) * VRModule.GetCurrentDeviceState(deviceIndex).pose;
+                rawPose.pos.Scale(origin.localScale);
+                return rawPose;
+            }
         }
 
         public static void SetPose(Transform target, uint deviceIndex, Transform origin = null)

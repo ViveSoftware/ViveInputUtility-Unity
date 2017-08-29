@@ -1,7 +1,8 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
-using Valve.VR;
+using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -28,73 +29,96 @@ namespace HTC.UnityPlugin.Vive
         Device13,
         Device14,
         Device15,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.RightHand instead")]
         RightHand = Device1,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.LeftHand instead")]
         LeftHand,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller3 instead")]
         Controller3,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller4 instead")]
         Controller4,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller5 instead")]
         Controller5,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller6 instead")]
         Controller6,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller7 instead")]
         Controller7,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller8 instead")]
         Controller8,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller9 instead")]
         Controller9,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller10 instead")]
         Controller10,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller11 instead")]
         Controller11,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller12 instead")]
         Controller12,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller13 instead")]
         Controller13,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller14 instead")]
         Controller14,
-        [HideMamber]
+        [HideInInspector]
         [Obsolete("Use HandRole.Controller15 instead")]
         Controller15,
     }
 
     public class DeviceRoleHandler : ViveRole.MapHandler<DeviceRole>
     {
-        public override void OnInitialize() { Refresh(); }
+        public override bool BlockBindings { get { return true; } }
 
-        public override void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected) { Refresh(); }
+        public override void OnAssignedAsCurrentMapHandler() { Refresh(); }
 
-        public override void OnBindingChanged(DeviceRole role, string deviceSN, bool bound) { Refresh(); }
+        public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
+        {
+            if (connected)
+            {
+                if (RoleMap.IsDeviceBound(deviceSN)) { return; }
+            }
+            else
+            {
+                return;
+            }
 
-        public override void OnTrackedDeviceRoleChanged() { Refresh(); }
+            Refresh();
+        }
+
+        public override void OnBindingChanged(string deviceSN, bool previousIsBound, DeviceRole previousRole, bool currentIsBound, DeviceRole currentRole)
+        {
+            uint deviceIndex;
+            if (!VRModule.TryGetConnectedDeviceIndex(deviceSN, out deviceIndex)) { return; }
+
+            Refresh();
+        }
 
         public void Refresh()
         {
-            UnmappingAll();
-
-            var role = DeviceRole.Hmd;
             var deviceIndex = 0u;
-            for (; role <= DeviceRole.Device15 && deviceIndex < ViveRole.MAX_DEVICE_COUNT; ++role, ++deviceIndex)
+            for (var role = RoleInfo.MinValidRole; role <= RoleInfo.MaxValidRole && deviceIndex < VRModule.MAX_DEVICE_COUNT; ++role, ++deviceIndex)
             {
-                if (ViveRole.GetDeviceClass(deviceIndex) == ETrackedDeviceClass.Invalid) { continue; }
-                MappingRoleIfUnbound(role, deviceIndex);
+                if (!RoleInfo.IsValidRole(role)) { continue; }
+
+                if (VRModule.GetCurrentDeviceState(deviceIndex).isConnected)
+                {
+                    MappingRoleIfUnbound(role, deviceIndex);
+                }
+                else
+                {
+                    UnmappingRole(role);
+                }
             }
         }
     }

@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -22,6 +23,7 @@ namespace HTC.UnityPlugin.Vive
         public ViveRoleEnumAttribute(int invalidEnumValue) { InvalidRoleValue = invalidEnumValue; }
     }
 
+    [Obsolete("Use HideInInspector instead")]
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
     public class HideMamberAttribute : Attribute { }
 
@@ -39,7 +41,8 @@ namespace HTC.UnityPlugin.Vive
             int MinValidRoleValue { get; }
             int MaxValidRoleValue { get; }
 
-            int ToRoleOffset(int roleValue);
+            int RoleValueToRoleOffset(int roleValue);
+            int RoleOffsetToRoleValue(int roleOffset);
             string GetNameByRoleValue(int roleValue);
             string GetNameByElementIndex(int elementIndex);
             int GetRoleValueByElementIndex(int elementIndex);
@@ -50,114 +53,66 @@ namespace HTC.UnityPlugin.Vive
 
         private sealed class Info : IInfo
         {
-            private struct EnumValues
-            {
-                public string name;
-                public int value;
-            }
-
-            private readonly Type m_roleEnumType;
-
-            private readonly IndexedSet<string> m_roleNameSet;
-            private readonly IndexedTable<int, string> m_roleNameTable;
-            private readonly string[] m_roleValueNames;
-            private readonly int[] m_roleValues;
+            private readonly EnumUtils.EnumDisplayInfo m_info;
             private readonly bool[] m_roleValid;
 
             private readonly int m_invalidRoleValue;
             private readonly int m_invalidRoleValueIndex;
-            private readonly int m_minRoleValue;
-            private readonly int m_maxRoleValue;
+            private readonly int m_minValidRoleValue;
+            private readonly int m_maxValidRoleValue;
             private readonly int m_validRoleLength;
 
             public Info(Type roleEnumType)
             {
-                m_roleEnumType = roleEnumType;
+                m_info = EnumUtils.GetDisplayInfo(roleEnumType);
 
                 var attrs = roleEnumType.GetCustomAttributes(typeof(ViveRoleEnumAttribute), false) as ViveRoleEnumAttribute[];
                 m_invalidRoleValue = attrs[0].InvalidRoleValue;
 
-                m_roleValueNames = Enum.GetNames(roleEnumType);
-                m_roleValues = Enum.GetValues(roleEnumType) as int[];
-                // remove name that shares same value with others
-                var tempValues = new List<EnumValues>();
-                for (int i = 0, imax = m_roleValues.Length; i < imax; ++i)
-                {
-                    // filter out obsolete member
-                    var memInfo = m_roleEnumType.GetMember(m_roleValueNames[i]);
-                    var attributes = memInfo[0].GetCustomAttributes(typeof(HideMamberAttribute), false);
-                    if (attributes != null && attributes.Length > 0) { continue; }
-
-                    tempValues.Add(new EnumValues()
-                    {
-                        value = m_roleValues[i],
-                        name = m_roleValueNames[i],
-                    });
-                }
-                // sort by value
-                tempValues.Sort((e1, e2) =>
-                {
-                    if (e1.value < e2.value) { return -1; }
-                    if (e1.value > e2.value) { return 1; }
-                    return string.Compare(e1.name, e2.name);
-                });
-
-                m_roleNameSet = new IndexedSet<string>(m_roleValues.Length);
-                m_roleNameTable = new IndexedTable<int, string>();
-                m_roleValueNames = new string[tempValues.Count];
-                m_roleValues = new int[tempValues.Count];
-                for (int i = 0, imax = tempValues.Count; i < imax; ++i)
-                {
-                    m_roleValueNames[i] = tempValues[i].name;
-                    m_roleValues[i] = tempValues[i].value;
-
-                    m_roleNameSet.Add(tempValues[i].name);
-                    m_roleNameTable.AddUniqueKey(tempValues[i].value, tempValues[i].name);
-                }
-
-                m_minRoleValue = int.MaxValue;
-                m_maxRoleValue = int.MinValue;
+                m_minValidRoleValue = int.MaxValue;
+                m_maxValidRoleValue = int.MinValue;
                 // find invalid role & valid role length
-                for (int i = 0; i < m_roleValues.Length; ++i)
+                for (int i = 0; i < m_info.displayedValues.Length; ++i)
                 {
-                    if (m_roleValues[i] == m_invalidRoleValue)
+                    if (m_info.displayedValues[i] == m_invalidRoleValue)
                     {
                         m_invalidRoleValueIndex = i;
                         continue;
                     }
 
-                    if (m_roleValues[i] < m_minRoleValue) { m_minRoleValue = m_roleValues[i]; }
+                    if (m_info.displayedValues[i] < m_minValidRoleValue) { m_minValidRoleValue = m_info.displayedValues[i]; }
 
-                    if (m_roleValues[i] > m_maxRoleValue) { m_maxRoleValue = m_roleValues[i]; }
+                    if (m_info.displayedValues[i] > m_maxValidRoleValue) { m_maxValidRoleValue = m_info.displayedValues[i]; }
                 }
 
-                m_validRoleLength = m_maxRoleValue - m_minRoleValue + 1;
+                m_validRoleLength = m_maxValidRoleValue - m_minValidRoleValue + 1;
 
                 // initialize role valid array, in case that the sequence of value of the enum type is not continuous
                 m_roleValid = new bool[m_validRoleLength];
-                for (int i = 0; i < m_roleValues.Length; ++i)
+                for (int i = 0; i < m_info.displayedValues.Length; ++i)
                 {
-                    if (m_roleValues[i] == m_invalidRoleValue) { continue; }
+                    if (m_info.displayedValues[i] == m_invalidRoleValue) { continue; }
 
-                    m_roleValid[ToRoleOffset(m_roleValues[i])] = true;
+                    m_roleValid[RoleValueToRoleOffset(m_info.displayedValues[i])] = true;
                 }
             }
 
-            public Type RoleEnumType { get { return m_roleEnumType; } }
-            public string[] RoleValueNames { get { return m_roleValueNames; } }
-            public int[] RoleValues { get { return m_roleValues; } }
-            public int ElementCount { get { return m_roleValues.Length; } }
+            public Type RoleEnumType { get { return m_info.enumType; } }
+            public string[] RoleValueNames { get { return m_info.displayedRawNames; } }
+            public int[] RoleValues { get { return m_info.displayedValues; } }
+            public int ElementCount { get { return m_info.displayedValues.Length; } }
             public int ValidRoleLength { get { return m_validRoleLength; } }
             public int InvalidRoleValue { get { return m_invalidRoleValue; } }
             public int InvalidRoleValueIndex { get { return m_invalidRoleValueIndex; } }
-            public int MinValidRoleValue { get { return m_minRoleValue; } }
-            public int MaxValidRoleValue { get { return m_maxRoleValue; } }
+            public int MinValidRoleValue { get { return m_minValidRoleValue; } }
+            public int MaxValidRoleValue { get { return m_maxValidRoleValue; } }
 
-            public int ToRoleOffset(int roleValue) { return roleValue - m_minRoleValue; }
-            public string GetNameByRoleValue(int roleValue) { string name; return m_roleNameTable.TryGetValue(roleValue, out name) ? name : roleValue.ToString(); }
-            public int GetElementIndexByName(string name) { return m_roleNameSet.IndexOf(name); }
-            public string GetNameByElementIndex(int elementIndex) { return m_roleNameSet[elementIndex]; }
-            public int GetRoleValueByElementIndex(int elementIndex) { return m_roleValues[elementIndex]; }
+            public int RoleValueToRoleOffset(int roleValue) { return roleValue - m_minValidRoleValue; }
+            public int RoleOffsetToRoleValue(int roleOffset) { return roleOffset + m_minValidRoleValue; }
+            public string GetNameByRoleValue(int roleValue) { int index; return m_info.value2displayedIndex.TryGetValue(roleValue, out index) ? m_info.displayedRawNames[index] : roleValue.ToString(); }
+            public int GetElementIndexByName(string name) { int index; return m_info.name2displayedIndex.TryGetValue(name, out index) ? index : -1; }
+            public string GetNameByElementIndex(int elementIndex) { return m_info.displayedRawNames[elementIndex]; }
+            public int GetRoleValueByElementIndex(int elementIndex) { return m_info.displayedValues[elementIndex]; }
 
             public bool TryGetRoleValueByName(string name, out int roleValue)
             {
@@ -178,7 +133,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (roleValue == m_invalidRoleValue) { return false; }
 
-                var roleOffset = ToRoleOffset(roleValue);
+                var roleOffset = RoleValueToRoleOffset(roleValue);
                 if (roleOffset < 0 || roleOffset >= m_roleValid.Length) { return false; }
 
                 return m_roleValid[roleOffset];
@@ -193,7 +148,8 @@ namespace HTC.UnityPlugin.Vive
 
             bool RoleEquals(TRole role1, TRole role2);
             int ToRoleValue(TRole role);
-            int ToRoleOffsetFromRole(TRole role);
+            int RoleToRoleOffset(TRole role);
+            TRole RoleOffsetToRole(int roleOffset);
             TRole ToRole(int roleValue);
             TRole GetRoleByElementIndex(int elementIndex);
             bool TryGetRoleByName(string name, out TRole role);
@@ -237,7 +193,7 @@ namespace HTC.UnityPlugin.Vive
                     }
                     else
                     {
-                        var offset = ToRoleOffset(roleValue);
+                        var offset = RoleValueToRoleOffset(roleValue);
                         m_roles[offset] = roleEnums[i];
                     }
                 }
@@ -251,7 +207,7 @@ namespace HTC.UnityPlugin.Vive
                 }
                 else
                 {
-                    UnityEngine.Debug.Log("duplicated instance for RoleInfo<" + typeof(TRole).Name + ">");
+                    UnityEngine.Debug.Log("redundant instance for RoleInfo<" + typeof(TRole).Name + ">");
                 }
             }
 
@@ -269,7 +225,8 @@ namespace HTC.UnityPlugin.Vive
 
             public TRole InvalidRole { get { return m_invalidRole; } }
 
-            public int ToRoleOffset(int roleValue) { return m_info.ToRoleOffset(roleValue); }
+            public int RoleValueToRoleOffset(int roleValue) { return m_info.RoleValueToRoleOffset(roleValue); }
+            public int RoleOffsetToRoleValue(int roleOffset) { return m_info.RoleOffsetToRoleValue(roleOffset); }
             public string GetNameByRoleValue(int roleValue) { return m_info.GetNameByRoleValue(roleValue); }
             public int GetElementIndexByName(string name) { return m_info.GetElementIndexByName(name); }
             public string GetNameByElementIndex(int elementIndex) { return m_info.GetNameByElementIndex(elementIndex); }
@@ -279,8 +236,9 @@ namespace HTC.UnityPlugin.Vive
 
             public bool RoleEquals(TRole role1, TRole role2) { return EqualityComparer<TRole>.Default.Equals(role1, role2); }
             public int ToRoleValue(TRole role) { return EqualityComparer<TRole>.Default.GetHashCode(role); }
-            public int ToRoleOffsetFromRole(TRole role) { return ToRoleOffset(ToRoleValue(role)); }
-            public TRole ToRole(int roleValue) { return IsValidRoleValue(roleValue) ? m_roles[ToRoleOffset(roleValue)] : InvalidRole; }
+            public int RoleToRoleOffset(TRole role) { return RoleValueToRoleOffset(ToRoleValue(role)); }
+            public TRole RoleOffsetToRole(int roleOffset) { return ToRole(RoleOffsetToRoleValue(roleOffset)); }
+            public TRole ToRole(int roleValue) { return IsValidRoleValue(roleValue) ? m_roles[RoleValueToRoleOffset(roleValue)] : InvalidRole; }
             public TRole GetRoleByElementIndex(int elementIndex) { return m_nameTable.GetValueByIndex(elementIndex); }
             public bool TryGetRoleByName(string name, out TRole role) { return m_nameTable.TryGetValue(name, out role); }
             public bool IsValidRole(TRole role) { return IsValidRoleValue(ToRoleValue(role)); }

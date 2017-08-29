@@ -1,9 +1,10 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.VRModuleManagement;
+using System;
 using UnityEngine;
-using Valve.VR;
+using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -32,88 +33,132 @@ namespace HTC.UnityPlugin.Vive
     /// </summary>
     public enum ControllerButton
     {
+        None = -1,
+
+        // classic buttons
+        System = 14,
+        Menu = 4,
+        MenuTouch = 7,
+        Trigger = 0, // on:0.55 off:0.45
+        TriggerTouch = 8, // on:0.25 off:0.20
+        Pad = 1,
+        PadTouch = 3,
+        Grip = 2,
+        GripTouch = 9,
+        CapSenseGrip = 10, // on:1.00 off:0.90 // Knuckles, Oculus Touch only
+        CapSenseGripTouch = 11, // on:0.25 off:0.20 // Knuckles, Oculus Touch only
+        AKey = 12, // Oculus Touch only, RightHandA or LeftHandX pressed
+        AKeyTouch = 13, // Oculus Touch only, RightHandA or LeftHandX touched
+
+        // button alias
+        OuterFaceButton = Menu, // 7
+        OuterFaceButtonTouch = MenuTouch, // 9
+        InnerFaceButton = Grip, // 2
+        InnerFaceButtonTouch = GripTouch, // 11
+        [HideInInspector]
+        Axis0 = Pad,
+        [HideInInspector]
+        Axis1 = Trigger,
+        [HideInInspector]
+        Axis2 = CapSenseGrip,
+        [HideInInspector]
+        Axis3 = 14,
+        [HideInInspector]
+        Axis4 = 15,
+        [HideInInspector]
+        Axis0Touch = PadTouch,
+        [HideInInspector]
+        Axis1Touch = TriggerTouch,
+        [HideInInspector]
+        Axis2Touch = CapSenseGripTouch,
+        [HideInInspector]
+        Axis3Touch = 16,
+        [HideInInspector]
+        Axis4Touch = 17,
+
+        // virtual buttons
+        HairTrigger = 5, // Pressed if trigger button is pressing, unpressed if trigger button is releasing
+        FullTrigger = 6, // on:1.00 off:1.00
+    }
+
+    public enum ControllerAxis
+    {
+        None = -1,
+        PadX,
+        PadY,
         Trigger,
-        Pad,
-        Grip,
-        PadTouch,
-        Menu,
-        /// <summary>
-        /// Pressed if trigger button is pressing, unpressed if trigger button is releasing
-        /// </summary>
-        HairTrigger,
-        /// <summary>
-        /// Pressed if only trigger button is fully held(tirgger value equals to 1.0f)
-        /// </summary>
-        FullTrigger,
+        CapSenseGrip, // Knuckles, Oculus Touch only
+        IndexCurl, // Knuckles only
+        MiddleCurl, // Knuckles only
+        RingCurl, // Knuckles only
+        PinkyCurl, // Knuckles only
+    }
+
+    public enum ScrollType
+    {
+        None = -1,
+        Auto,
+        Trackpad,
+        Thumbstick,
+    }
+
+    public class RawControllerState
+    {
+        public readonly bool[] buttonPress = new bool[ViveInput.CONTROLLER_BUTTON_COUNT];
+        public readonly float[] axisValue = new float[ViveInput.CONTROLLER_AXIS_COUNT];
     }
 
     /// <summary>
     /// Singleton that manage and update controllers input
     /// </summary>
-    public partial class ViveInput : MonoBehaviour
+    public partial class ViveInput : SingletonBehaviour<ViveInput>
     {
-        public const int CONTROLLER_BUTTON_COUNT = 7;
-        public const int BUTTON_EVENT_COUNT = 4;
+        public static readonly int CONTROLLER_BUTTON_COUNT = EnumUtils.GetMaxValue(typeof(ControllerButton)) + 1;
+        public static readonly int CONTROLLER_AXIS_COUNT = EnumUtils.GetMaxValue(typeof(ControllerAxis)) + 1;
+        public static readonly int BUTTON_EVENT_COUNT = EnumUtils.GetMaxValue(typeof(ButtonEventType)) + 1;
 
-        private static ViveInput s_instance = null;
-        private static bool s_isApplicationQuitting = false;
+        private static readonly CtrlState s_defaultState = new CtrlState();
+        private static readonly IndexedTable<Type, ICtrlState[]> s_roleStateTable = new IndexedTable<Type, ICtrlState[]>();
+        private static UnityAction s_onUpdate;
 
-        private static readonly uint s_sizeOfControllerStats = (uint)Marshal.SizeOf(typeof(VRControllerState_t));
-        private static VRControllerState_t[] s_controllerStats = new VRControllerState_t[ViveRole.MAX_DEVICE_COUNT];
-
+        [SerializeField]
         private float m_clickInterval = 0.3f;
-
-        public static bool Active { get { return s_instance != null; } }
+        [SerializeField]
+        private bool m_dontDestroyOnLoad = true;
+        [SerializeField]
+        private UnityEvent m_onUpdate = new UnityEvent();
 
         public static float clickInterval
         {
-            get { return Active ? s_instance.m_clickInterval : default(float); }
-            set { if (Active) s_instance.m_clickInterval = Mathf.Max(0f, value); }
+            get { return Instance.m_clickInterval; }
+            set { Instance.m_clickInterval = Mathf.Max(0f, value); }
         }
 
-        public static ViveInput Instance
+        public static event UnityAction onUpdate { add { s_onUpdate += value; } remove { s_onUpdate -= value; } }
+
+        static ViveInput()
         {
-            get
-            {
-                Initialize();
-                return s_instance;
-            }
+            SetDefaultInitGameObjectGetter(VRModule.GetInstanceGameObject);
         }
 
-        public static void Initialize()
+#if UNITY_EDITOR
+        private void OnValidate()
         {
-            if (Active || s_isApplicationQuitting) { return; }
+            m_clickInterval = Mathf.Max(m_clickInterval, 0f);
+        }
+#endif
 
-            var instances = FindObjectsOfType<ViveInput>();
-            if (instances.Length > 0)
+        protected override void OnSingletonBehaviourInitialized()
+        {
+            if (m_dontDestroyOnLoad && transform.parent == null)
             {
-                s_instance = instances[0];
-                if (instances.Length > 1) { Debug.LogWarning("Multiple ViveInput not supported!"); }
-            }
-
-            if (!Active)
-            {
-                s_instance = new GameObject("[ViveInput]").AddComponent<ViveInput>();
-            }
-
-            if (Active)
-            {
-                DontDestroyOnLoad(s_instance.gameObject);
+                DontDestroyOnLoad(gameObject);
             }
         }
 
         private void Update()
         {
-            if (s_instance != this) { return; }
-
-            var system = OpenVR.System;
-            for (uint deviceIndex = 0; deviceIndex < ViveRole.MAX_DEVICE_COUNT; ++deviceIndex)
-            {
-                if (system == null || !system.GetControllerState(deviceIndex, ref s_controllerStats[deviceIndex], s_sizeOfControllerStats))
-                {
-                    s_controllerStats[deviceIndex] = default(VRControllerState_t);
-                }
-            }
+            if (!IsInstance) { return; }
 
             for (int i = 0, imax = s_roleStateTable.Count; i < imax; ++i)
             {
@@ -126,11 +171,59 @@ namespace HTC.UnityPlugin.Vive
                     state.Update();
                 }
             }
+
+            if (s_onUpdate != null) { s_onUpdate(); }
+            if (m_onUpdate != null) { m_onUpdate.Invoke(); }
         }
 
-        private void OnApplicationQuit()
+        private static bool IsValidButton(ControllerButton button) { return button >= 0 && (int)button < CONTROLLER_BUTTON_COUNT; }
+
+        private static bool IsValidAxis(ControllerAxis axis) { return axis >= 0 && (int)axis < CONTROLLER_BUTTON_COUNT; }
+
+        private static ICtrlState GetState(Type roleType, int roleValue)
         {
-            s_isApplicationQuitting = true;
+            Initialize();
+            var info = ViveRoleEnum.GetInfo(roleType);
+
+            if (!info.IsValidRoleValue(roleValue)) { return s_defaultState; }
+
+            ICtrlState[] stateList;
+            if (!s_roleStateTable.TryGetValue(roleType, out stateList) || stateList == null)
+            {
+                s_roleStateTable[roleType] = stateList = new ICtrlState[info.ValidRoleLength];
+            }
+
+            var roleOffset = info.RoleValueToRoleOffset(roleValue);
+            if (stateList[roleOffset] == null)
+            {
+                stateList[roleOffset] = new RCtrlState(roleType, roleValue);
+            }
+
+            stateList[roleOffset].Update();
+            return stateList[roleOffset];
+        }
+
+        private static ICtrlState<TRole> GetState<TRole>(TRole role)
+        {
+            Initialize();
+            var info = ViveRoleEnum.GetInfo<TRole>();
+
+            if (!info.IsValidRole(role)) { return RGCtrolState<TRole>.s_defaultState; }
+
+            if (RGCtrolState<TRole>.s_roleStates == null)
+            {
+                RGCtrolState<TRole>.s_roleStates = new RGCtrolState<TRole>[info.ValidRoleLength];
+            }
+
+            var roleOffset = info.RoleToRoleOffset(role);
+            if (RGCtrolState<TRole>.s_roleStates[roleOffset] == null)
+            {
+                RGCtrolState<TRole>.s_roleStates[roleOffset] = new RGCtrolState<TRole>(role);
+                s_roleStateTable[typeof(TRole)][roleOffset] = RGCtrolState<TRole>.s_roleStates[roleOffset];
+            }
+
+            RGCtrolState<TRole>.s_roleStates[roleOffset].Update();
+            return RGCtrolState<TRole>.s_roleStates[roleOffset];
         }
     }
 }

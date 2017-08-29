@@ -1,4 +1,5 @@
 ﻿using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,11 +12,11 @@ public class DeviceInfoUIController : MonoBehaviour
     public Text textModelNum;
 
     [SerializeField]
-    private uint m_deviceIndex = ViveRole.INVALID_DEVICE_INDEX;
+    private uint m_deviceIndex = VRModule.INVALID_DEVICE_INDEX;
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (Application.isPlaying)
+        if (Application.isPlaying && VRModule.Active)
         {
             UpdateStatus();
         }
@@ -31,7 +32,7 @@ public class DeviceInfoUIController : MonoBehaviour
     {
         if (!VivePose.IsConnected(m_deviceIndex))
         {
-            m_deviceIndex = ViveRole.INVALID_DEVICE_INDEX;
+            m_deviceIndex = VRModule.INVALID_DEVICE_INDEX;
 
             textDeviceIndex.text = string.Empty;
             textDeviceClass.text = string.Empty;
@@ -40,10 +41,11 @@ public class DeviceInfoUIController : MonoBehaviour
         }
         else
         {
+            var deviceState = VRModule.GetCurrentDeviceState(m_deviceIndex);
             textDeviceIndex.text = m_deviceIndex.ToString();
-            textDeviceClass.text = ViveRole.GetDeviceClass(m_deviceIndex).ToString();
-            textSerialNum.text = ViveRole.GetSerialNumber(m_deviceIndex);
-            textModelNum.text = ViveRole.GetModelNumber(m_deviceIndex);
+            textDeviceClass.text = deviceState.deviceClass.ToString(); ;
+            textSerialNum.text = deviceState.serialNumber;
+            textModelNum.text = deviceState.modelNumber;
         }
     }
 }

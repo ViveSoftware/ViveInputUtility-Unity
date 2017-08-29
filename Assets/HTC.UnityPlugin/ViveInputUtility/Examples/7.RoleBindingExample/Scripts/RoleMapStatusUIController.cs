@@ -1,4 +1,5 @@
 ﻿using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.VRModuleManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +11,7 @@ public class RoleMapStatusUIController : MonoBehaviour
     public GameObject btnCancelBind;
     public VivePoseTracker pointedReticle;
 
-    private uint m_scannedDevice = ViveRole.INVALID_DEVICE_INDEX;
+    private uint m_scannedDevice = VRModule.INVALID_DEVICE_INDEX;
     private ViveRole.IMap m_selectedMap = null;
     private bool m_isUpdating = false;
 
@@ -24,7 +25,7 @@ public class RoleMapStatusUIController : MonoBehaviour
             var type = ViveRoleEnum.ValidViveRoleTable.GetValueByIndex(i);
             dropdownSelectRole.options.Add(new Dropdown.OptionData(type.Name));
 
-            if (type == typeof(DeviceRole))
+            if (type == typeof(BodyRole))
             {
                 defaultSelectIndex = i;
             }
@@ -117,7 +118,7 @@ public class RoleMapStatusUIController : MonoBehaviour
             mappingItemsParent.GetChild(itemIndex++).gameObject.SetActive(false);
         }
         // update toggle button
-        if (ViveRole.IsValidIndex(m_scannedDevice) || (mappedCount == 0 && boundCount == 0))
+        if (VRModule.IsValidDeviceIndex(m_scannedDevice) || (mappedCount == 0 && boundCount == 0))
         {
             toggleBindAll.gameObject.SetActive(false);
         }
@@ -127,7 +128,7 @@ public class RoleMapStatusUIController : MonoBehaviour
             toggleBindAll.isOn = mappedUnboundCount == 0;
         }
         // update cancel button
-        btnCancelBind.SetActive(ViveRole.IsValidIndex(m_scannedDevice));
+        btnCancelBind.SetActive(VRModule.IsValidDeviceIndex(m_scannedDevice));
 
         m_isUpdating = false;
     }
@@ -140,6 +141,6 @@ public class RoleMapStatusUIController : MonoBehaviour
 
     public void InitializeRoleMap()
     {
-        m_selectedMap.Handler.OnInitialize();
+        m_selectedMap.Handler.OnAssignedAsCurrentMapHandler();
     }
 }

@@ -7,8 +7,8 @@ namespace HTC.UnityPlugin.PoseTracker
     [AddComponentMenu("HTC/Pose Tracker/Pose Stablizer")]
     public class PoseStablizer : BasePoseModifier
     {
-        public float positionThreshold = 0.003f; // meter
-        public float rotationThreshold = 1.0f; // degree
+        public float positionThreshold = 0.0005f; // meter
+        public float rotationThreshold = 0.5f; // degree
 
         private bool firstPose = true;
         private Pose prevPose;

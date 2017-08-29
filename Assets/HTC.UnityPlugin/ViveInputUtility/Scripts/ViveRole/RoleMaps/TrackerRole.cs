@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using Valve.VR;
+using HTC.UnityPlugin.VRModuleManagement;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -27,79 +27,61 @@ namespace HTC.UnityPlugin.Vive
     {
         private bool IsTracker(uint deviceIndex)
         {
-            return ViveRole.GetDeviceClass(deviceIndex) == ETrackedDeviceClass.GenericTracker;
+            return IsTracker(VRModule.GetCurrentDeviceState(deviceIndex).deviceClass);
         }
 
-        public override void OnInitialize()
+        private bool IsTracker(VRModuleDeviceClass deviceClass)
         {
-            UnmappingAll();
+            return deviceClass == VRModuleDeviceClass.GenericTracker;
+        }
 
+        public override void OnAssignedAsCurrentMapHandler() { Refresh(); }
+
+        public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
+        {
+            if (!RoleMap.IsDeviceBound(deviceSN) && !IsTracker(deviceClass)) { return; }
+
+            Refresh();
+        }
+
+        public override void OnBindingChanged(string deviceSN, bool previousIsBound, TrackerRole previousRole, bool currentIsBound, TrackerRole currentRole)
+        {
+            uint deviceIndex;
+            if (!VRModule.TryGetConnectedDeviceIndex(deviceSN, out deviceIndex)) { return; }
+
+            Refresh();
+        }
+
+        public void Refresh()
+        {
             MappingTrackers();
         }
 
-        public override void OnConnectedDeviceChanged(uint deviceIndex, ETrackedDeviceClass deviceClass, string deviceSN, bool connected)
-        {
-            if (RoleMap.IsDeviceBound(deviceSN)) { return; }
-
-            if (connected)
-            {
-                if (deviceClass != ETrackedDeviceClass.GenericTracker) { return; }
-
-                // find unmapped role
-                var role = RoleMap.RoleInfo.MinValidRole;
-                while (!RoleMap.RoleInfo.IsValidRole(role) || RoleMap.IsRoleMapped(role))
-                {
-                    if (++role > RoleMap.RoleInfo.MaxValidRole) { return; }
-                }
-
-                MappingRole(role, deviceIndex);
-            }
-            else
-            {
-                UnmappingDevice(deviceIndex);
-            }
-        }
-
-        public override void OnBindingChanged(TrackerRole role, string deviceSN, bool bound)
-        {
-            if (bound)
-            {
-                // it's possible that some device will be pushed out when binding
-                MappingTrackers();
-            }
-            else
-            {
-                if (RoleMap.IsRoleMapped(role))
-                {
-                    UnmappingRole(role);
-
-                    MappingTrackers();
-                }
-            }
-        }
-
-        public override void OnTrackedDeviceRoleChanged() { }
-
         private void MappingTrackers()
         {
-            var role = RoleMap.RoleInfo.MinValidRole;
-            var index = (uint)1;
-
-            while (true)
+            var deviceIndex = 0u;
+            for (var role = RoleInfo.MinValidRole; role <= RoleInfo.MaxValidRole; ++role)
             {
-                while (!RoleMap.RoleInfo.IsValidRole(role) || RoleMap.IsRoleMapped(role) || RoleMap.IsRoleBound(role))
+                if (!RoleInfo.IsValidRole(role)) { continue; }
+                if (RoleMap.IsRoleBound(role)) { continue; }
+
+                // find next valid device
+                if (VRModule.IsValidDeviceIndex(deviceIndex))
                 {
-                    if (++role > RoleMap.RoleInfo.MaxValidRole) { return; }
+                    while (!IsTracker(deviceIndex) || RoleMap.IsDeviceConnectedAndBound(deviceIndex))
+                    {
+                        if (!VRModule.IsValidDeviceIndex(++deviceIndex)) { break; }
+                    }
                 }
 
-                while (ViveRole.GetDeviceClass(index) != ETrackedDeviceClass.GenericTracker || RoleMap.IsDeviceMapped(index) || RoleMap.IsDeviceConnectedAndBound(index))
+                if (VRModule.IsValidDeviceIndex(deviceIndex))
                 {
-                    if (++index >= ViveRole.MAX_DEVICE_COUNT) { return; }
+                    MappingRole(role, deviceIndex++);
                 }
-
-                MappingRole(role++, index++);
-
-                if (role > RoleMap.RoleInfo.MaxValidRole || index >= ViveRole.MAX_DEVICE_COUNT) { return; }
+                else
+                {
+                    UnmappingRole(role);
+                }
             }
         }
     }

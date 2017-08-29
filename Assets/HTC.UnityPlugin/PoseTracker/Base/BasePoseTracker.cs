@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using System.Collections.Generic;
+using HTC.UnityPlugin.Utility;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.PoseTracker
@@ -10,50 +10,32 @@ namespace HTC.UnityPlugin.PoseTracker
         public Vector3 posOffset;
         public Vector3 rotOffset;
 
-        private readonly Dictionary<IPoseModifier, LinkedListNode<IPoseModifier>> modifierTable = new Dictionary<IPoseModifier, LinkedListNode<IPoseModifier>>();
-        private readonly LinkedList<IPoseModifier> modifiers = new LinkedList<IPoseModifier>();
+        private OrderedIndexedSet<IPoseModifier> modifierSet;
 
         public void AddModifier(IPoseModifier obj)
         {
-            if (obj == null || modifierTable.ContainsKey(obj)) { return; }
+            if (obj == null) { return; }
 
-            var node = modifiers.Last;
-            if (node == null || node.Value != null)
+            if (modifierSet == null)
             {
-                node = modifiers.AddFirst(obj);
+                modifierSet = new OrderedIndexedSet<IPoseModifier>();
+                modifierSet.Add(obj);
             }
-            else
+            else if (!modifierSet.Contains(obj))
             {
-                modifiers.Remove(node);
-                node.Value = obj;
-                modifiers.AddFirst(node);
-            }
-
-            modifierTable.Add(obj, node);
-
-            // sort new modifier node
-            var priorNode = node;
-            while (priorNode.Next != null && priorNode.Next.Value != null && priorNode.Next.Value.priority < obj.priority)
-            {
-                priorNode = priorNode.Next;
-            }
-
-            if (priorNode != node)
-            {
-                modifiers.Remove(node);
-                modifiers.AddAfter(priorNode, node);
+                for (int i = modifierSet.Count - 1; i >= 0; --i)
+                {
+                    if (modifierSet[i].priority <= obj.priority)
+                    {
+                        modifierSet.Insert(i + 1, obj);
+                    }
+                }
             }
         }
 
         public bool RemoveModifier(IPoseModifier obj)
         {
-            LinkedListNode<IPoseModifier> node;
-            if (!modifierTable.TryGetValue(obj, out node)) { return false; }
-            modifierTable.Remove(obj);
-            modifiers.Remove(node);
-            node.Value = null;
-            modifiers.AddLast(node);
-            return true;
+            return modifierSet == null ? false : modifierSet.Remove(obj);
         }
 
         protected void TrackPose(Pose pose, Transform origin = null)
@@ -65,10 +47,12 @@ namespace HTC.UnityPlugin.PoseTracker
 
         protected void ModifyPose(ref Pose pose, Transform origin)
         {
-            for (var node = modifiers.First; node != null && node.Value != null; node = node.Next)
+            if (modifierSet == null) { return; }
+
+            for (int i = 0, imax = modifierSet.Count; i < imax; ++i)
             {
-                if (!node.Value.enabled) { continue; }
-                node.Value.ModifyPose(ref pose, origin);
+                if (!modifierSet[i].enabled) { continue; }
+                modifierSet[i].ModifyPose(ref pose, origin);
             }
         }
     }

@@ -18,7 +18,7 @@ namespace HTC.UnityPlugin.ColliderEvent
         public static bool TryGetEventCaster<TEventCaster>(this ColliderEventData eventData, out TEventCaster eventCaster) where TEventCaster : MonoBehaviour, IColliderEventCaster
         {
             eventCaster = null;
-            
+
             if (!(eventData.eventCaster is TEventCaster)) { return false; }
 
             eventCaster = eventData.eventCaster as TEventCaster;
@@ -43,11 +43,19 @@ namespace HTC.UnityPlugin.ColliderEvent
 
     public abstract class ColliderButtonEventData : ColliderEventData
     {
-        public int buttonId;
+        public enum InputButton
+        {
+            Trigger,
+            PadOrStick,
+            GripOrHandTrigger,
+            FunctionKey,
+        }
+
         public IndexedSet<GameObject> pressEnteredObjects = new IndexedSet<GameObject>();
         public IndexedSet<GameObject> draggingHandlers = new IndexedSet<GameObject>();
         public IndexedSet<GameObject> clickingHandlers = new IndexedSet<GameObject>();
 
+        public InputButton button { get; private set; }
         public Vector3 pressPosition { get; set; }
         public Quaternion pressRotation { get; set; }
 
@@ -55,9 +63,9 @@ namespace HTC.UnityPlugin.ColliderEvent
 
         public bool isPressed { get; set; }
 
-        public ColliderButtonEventData(IColliderEventCaster eventCaster, int buttonId = 0) : base(eventCaster)
+        public ColliderButtonEventData(IColliderEventCaster eventCaster, InputButton button = 0) : base(eventCaster)
         {
-            this.buttonId = buttonId;
+            this.button = button;
         }
 
         public abstract bool GetPress();
@@ -69,69 +77,45 @@ namespace HTC.UnityPlugin.ColliderEvent
 
     public abstract class ColliderAxisEventData : ColliderEventData
     {
-        public enum Dim
+        public enum InputAxis
         {
-            d1,
-            d2,
-            d3,
-            d4,
+            Scroll2D,
+            Trigger1D,
         }
 
-        public int axisId;
-
-        public bool xUsed = true;
-        public bool yUsed = true;
-        public bool zUsed = false;
-        public bool wUsed = false;
+        public enum Dim
+        {
+            D1,
+            D2,
+            D3,
+            D4,
+        }
+        
         // raw delta values
-        public float xRaw;
-        public float yRaw;
-        public float zRaw;
-        public float wRaw;
+        private float m_x;
+        private float m_y;
+        private float m_z;
+        private float m_w;
+
+        public InputAxis axis { get; private set; }
+        public Dim dimention { get; private set; }
+
         // delta values
-        public float x { get { return xUsed ? xRaw : 0f; } set { if (xUsed) xRaw = value; } }
-        public float y { get { return yUsed ? yRaw : 0f; } set { if (yUsed) yRaw = value; } }
-        public float z { get { return zUsed ? zRaw : 0f; } set { if (zUsed) zRaw = value; } }
-        public float w { get { return wUsed ? wRaw : 0f; } set { if (wUsed) wRaw = value; } }
+        public float x { get { return dimention >= Dim.D1 ? m_x : 0f; } set { if (dimention >= Dim.D1) m_x = value; } }
+        public float y { get { return dimention >= Dim.D2 ? m_y : 0f; } set { if (dimention >= Dim.D2) m_y = value; } }
+        public float z { get { return dimention >= Dim.D3 ? m_z : 0f; } set { if (dimention >= Dim.D3) m_z = value; } }
+        public float w { get { return dimention >= Dim.D4 ? m_w : 0f; } set { if (dimention >= Dim.D4) m_w = value; } }
 
         public Vector2 v2 { get { return new Vector2(x, y); } set { x = value.x; y = value.y; } }
         public Vector3 v3 { get { return new Vector3(x, y, z); } set { x = value.x; y = value.y; z = value.z; } }
         public Vector4 v4 { get { return new Vector4(x, y, z, w); } set { x = value.x; y = value.y; z = value.z; w = value.w; } }
 
-        public ColliderAxisEventData(IColliderEventCaster eventCaster, int axisId = 0) : base(eventCaster)
+        public ColliderAxisEventData(IColliderEventCaster eventCaster, Dim dimention, InputAxis axis = 0) : base(eventCaster)
         {
-            this.axisId = axisId;
+            this.axis = axis;
+            this.dimention = dimention;
         }
 
-        public ColliderAxisEventData(IColliderEventCaster eventCaster, Dim dimention, int axisId = 0) : base(eventCaster)
-        {
-            this.axisId = axisId;
-            SetDimention(dimention);
-        }
-
-        public void SetDimention(Dim dimention)
-        {
-            switch (dimention)
-            {
-                case Dim.d1: { xUsed = true; yUsed = false; zUsed = false; wUsed = false; break; }
-                case Dim.d2: { xUsed = true; yUsed = true; zUsed = false; wUsed = false; break; }
-                case Dim.d3: { xUsed = true; yUsed = true; zUsed = true; wUsed = false; break; }
-                case Dim.d4: { xUsed = true; yUsed = true; zUsed = true; wUsed = true; break; }
-            }
-        }
-
-        public bool IsDimention(Dim dimention)
-        {
-            switch (dimention)
-            {
-                case Dim.d1: return xUsed && !yUsed && !zUsed && !wUsed;
-                case Dim.d2: return xUsed && yUsed && !zUsed && !wUsed;
-                case Dim.d3: return xUsed && yUsed && zUsed && !wUsed;
-                case Dim.d4: return xUsed && yUsed && zUsed && wUsed;
-                default: return false;
-            }
-        }
-
-        public abstract bool IsValueChangedThisFrame();
+        public abstract Vector4 GetDelta();
     }
 }

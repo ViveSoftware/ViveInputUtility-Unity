@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Valve.VR;
+using HTC.UnityPlugin.VRModuleManagement;
 
 public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
 {
@@ -27,7 +27,7 @@ public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
     public Sprite[] deviceIconSprites;
 
     public UnityEventInt onPointed = new UnityEventInt();
-    
+
     private int m_roleValue;
     private ViveRole.IMap m_map;
     private bool m_isPointed;
@@ -48,7 +48,7 @@ public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
         m_isPointed = isPointed;
 
         m_selectedDevice = selectedDevice;
-        m_selectedDeviceSN = ViveRole.GetSerialNumber(selectedDevice);
+        m_selectedDeviceSN = VRModule.GetCurrentDeviceState(selectedDevice).serialNumber;
 
         UpdateState();
     }
@@ -56,15 +56,16 @@ public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
     public void UpdateState()
     {
         if (m_isUpdating) { return; }
+
         m_isUpdating = true;
 
         m_mappedDevice = m_map.GetMappedDeviceByRoleValue(m_roleValue);
-        m_mappedDeviceSN = ViveRole.GetSerialNumber(m_mappedDevice);
         m_boundDeviceSN = m_map.GetBoundDeviceByRoleValue(m_roleValue);
 
-        var mappedDeviceClass = ViveRole.GetDeviceClass(m_mappedDevice);
+        var mappedDeviceState = VRModule.GetCurrentDeviceState(m_mappedDevice);
+        m_mappedDeviceSN = mappedDeviceState.serialNumber;
 
-        var isMapped = ViveRole.IsValidIndex(m_mappedDevice);
+        var isMapped = VRModule.IsValidDeviceIndex(m_mappedDevice);
         var isBound = !string.IsNullOrEmpty(m_boundDeviceSN);
         var isSelectedValid = VivePose.IsConnected(m_selectedDevice);
         var isSelectingThisItem = isSelectedValid && (m_selectedDeviceSN == m_boundDeviceSN || m_selectedDevice == m_mappedDevice);
@@ -88,7 +89,7 @@ public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
             imgInnerBG.color = Color.gray;
         }
 
-        if (ViveRole.IsValidIndex(m_selectedDevice))
+        if (VRModule.IsValidDeviceIndex(m_selectedDevice))
         {
             toggleBind.gameObject.SetActive(false);
         }
@@ -103,14 +104,14 @@ public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
         textRoleName.text = m_map.RoleValueInfo.GetNameByRoleValue(m_roleValue);
 
         // update device icon
-        if (mappedDeviceClass == ETrackedDeviceClass.Invalid)
+        if (mappedDeviceState.deviceClass == VRModuleDeviceClass.Invalid)
         {
             imgDeviceIcon.transform.parent.gameObject.SetActive(false);
         }
         else
         {
             imgDeviceIcon.transform.parent.gameObject.SetActive(true);
-            imgDeviceIcon.sprite = deviceIconSprites[(int)mappedDeviceClass - 1];
+            imgDeviceIcon.sprite = deviceIconSprites[(int)mappedDeviceState.deviceClass - 1];
         }
 
 
@@ -150,10 +151,7 @@ public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
 
         if (value)
         {
-            if (m_map.UnbindRoleValue(m_roleValue) && m_map.UnbindDevice(m_mappedDeviceSN))
-            {
-                m_map.BindRoleValue(m_roleValue, m_mappedDeviceSN);
-            }
+            m_map.BindDeviceToRoleValue(m_mappedDeviceSN, m_roleValue);
         }
         else
         {
@@ -163,15 +161,12 @@ public class MappingItemUIController : MonoBehaviour, IPointerEnterHandler
 
     public void OnButtonBind()
     {
-        if (m_map.UnbindRoleValue(m_roleValue) && m_map.UnbindDevice(m_selectedDeviceSN))
-        {
-            m_map.BindRoleValue(m_roleValue, m_selectedDeviceSN);
-        }
+        m_map.BindDeviceToRoleValue(m_selectedDeviceSN, m_roleValue);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (onPointed != null && ViveRole.IsValidIndex(m_mappedDevice))
+        if (onPointed != null && VRModule.IsValidDeviceIndex(m_mappedDevice))
         {
             onPointed.Invoke(m_roleValue);
         }

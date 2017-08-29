@@ -1,7 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.ColliderEvent;
-using System;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
@@ -67,40 +66,40 @@ namespace HTC.UnityPlugin.Vive
             return true;
         }
 
-        public static bool IsViveTriggerValue(this ColliderAxisEventData eventData)
+        public static bool IsViveTriggerAxis(this ColliderAxisEventData eventData)
         {
             if (eventData == null) { return false; }
 
-            return eventData is ViveColliderTriggerValueEventData;
+            return eventData is ViveColliderTriggerAxisEventData;
         }
 
-        public static bool IsViveTriggerValue(this ColliderAxisEventData eventData, HandRole hand)
+        public static bool IsViveTriggerAxis(this ColliderAxisEventData eventData, HandRole hand)
         {
             if (eventData == null) { return false; }
 
-            if (!(eventData is ViveColliderTriggerValueEventData)) { return false; }
+            if (!(eventData is ViveColliderTriggerAxisEventData)) { return false; }
 
-            return (eventData as ViveColliderTriggerValueEventData).viveRole.IsRole(hand);
+            return (eventData as ViveColliderTriggerAxisEventData).viveRole.IsRole(hand);
         }
 
-        public static bool IsViveTriggerValueEx<TRole>(this ColliderAxisEventData eventData, TRole role)
+        public static bool IsViveTriggerAxisEx<TRole>(this ColliderAxisEventData eventData, TRole role)
         {
             if (eventData == null) { return false; }
 
-            if (!(eventData is ViveColliderTriggerValueEventData)) { return false; }
+            if (!(eventData is ViveColliderTriggerAxisEventData)) { return false; }
 
-            return (eventData as ViveColliderTriggerValueEventData).viveRole.IsRole(role);
+            return (eventData as ViveColliderTriggerAxisEventData).viveRole.IsRole(role);
         }
 
-        public static bool TryGetViveTriggerValueEventData(this ColliderAxisEventData eventData, out ViveColliderTriggerValueEventData viveEventData)
+        public static bool TryGetViveTriggerAxisEventData(this ColliderAxisEventData eventData, out ViveColliderTriggerAxisEventData viveEventData)
         {
             viveEventData = null;
 
             if (eventData == null) { return false; }
 
-            if (!(eventData is ViveColliderTriggerValueEventData)) { return false; }
+            if (!(eventData is ViveColliderTriggerAxisEventData)) { return false; }
 
-            viveEventData = eventData as ViveColliderTriggerValueEventData;
+            viveEventData = eventData as ViveColliderTriggerAxisEventData;
             return true;
         }
 
@@ -117,7 +116,7 @@ namespace HTC.UnityPlugin.Vive
 
             if (!(eventData is ViveColliderPadAxisEventData)) { return false; }
 
-            return (eventData as ViveColliderTriggerValueEventData).viveRole.IsRole(hand);
+            return (eventData as ViveColliderTriggerAxisEventData).viveRole.IsRole(hand);
         }
 
         public static bool IsVivePadAxisEx<TRole>(this ColliderAxisEventData eventData, TRole role)
@@ -126,7 +125,7 @@ namespace HTC.UnityPlugin.Vive
 
             if (!(eventData is ViveColliderPadAxisEventData)) { return false; }
 
-            return (eventData as ViveColliderTriggerValueEventData).viveRole.IsRole(role);
+            return (eventData as ViveColliderTriggerAxisEventData).viveRole.IsRole(role);
         }
 
         public static bool TryGetVivePadAxisEventData(this ColliderAxisEventData eventData, out ViveColliderPadAxisEventData viveEventData)
@@ -144,22 +143,14 @@ namespace HTC.UnityPlugin.Vive
 
     public class ViveColliderButtonEventData : ColliderButtonEventData
     {
-        [Obsolete]
-        public HandRole hand;
+        public ViveColliderEventCaster viveEventCaster { get; private set; }
+        public ControllerButton viveButton { get; private set; }
 
-        public readonly ViveRoleProperty viveRole;
-        public readonly ControllerButton viveButton;
+        public ViveRoleProperty viveRole { get { return viveEventCaster.viveRole; } }
 
-        public ViveColliderButtonEventData(IColliderEventCaster eventCaster, ViveRoleProperty role, ControllerButton viveButton, int buttonId = 0) : base(eventCaster, buttonId)
+        public ViveColliderButtonEventData(ViveColliderEventCaster eventCaster, ControllerButton viveButton, InputButton button) : base(eventCaster, button)
         {
-            viveRole = role;
-            this.viveButton = viveButton;
-        }
-
-        [Obsolete]
-        public ViveColliderButtonEventData(IColliderEventCaster eventCaster, HandRole hand, ControllerButton viveButton, int buttonId = 0) : base(eventCaster, buttonId)
-        {
-            viveRole = ViveRoleProperty.New(hand);
+            this.viveEventCaster = eventCaster;
             this.viveButton = viveButton;
         }
 
@@ -170,63 +161,35 @@ namespace HTC.UnityPlugin.Vive
         public override bool GetPressUp() { return ViveInput.GetPressUpEx(viveRole.roleType, viveRole.roleValue, viveButton); }
     }
 
-    public class ViveColliderTriggerValueEventData : ColliderAxisEventData
+    public class ViveColliderTriggerAxisEventData : ColliderAxisEventData
     {
-        [Obsolete]
-        public HandRole hand;
+        public ViveColliderEventCaster viveEventCaster { get; private set; }
+        public ViveRoleProperty viveRole { get { return viveEventCaster.viveRole; } }
 
-        public readonly ViveRoleProperty viveRole;
-
-        public ViveColliderTriggerValueEventData(IColliderEventCaster eventCaster, ViveRoleProperty role, int axisId = 0) : base(eventCaster, Dim.d1, axisId)
+        public ViveColliderTriggerAxisEventData(ViveColliderEventCaster eventCaster) : base(eventCaster, Dim.D1, InputAxis.Trigger1D)
         {
-            viveRole = role;
+            viveEventCaster = eventCaster;
         }
 
-        [Obsolete]
-        public ViveColliderTriggerValueEventData(IColliderEventCaster eventCaster, HandRole hand, int axisId = 0) : base(eventCaster, Dim.d1, axisId)
+        public override Vector4 GetDelta()
         {
-            viveRole = ViveRoleProperty.New(hand);
-        }
-
-        public override bool IsValueChangedThisFrame()
-        {
-            xRaw = ViveInput.GetTriggerValueEx(viveRole.roleType, viveRole.roleValue, false) - ViveInput.GetTriggerValueEx(viveRole.roleType, viveRole.roleValue, true);
-            return !Mathf.Approximately(xRaw, 0f);
-        }
-
-        public float GetCurrentValue()
-        {
-            return ViveInput.GetTriggerValueEx(viveRole.roleType, viveRole.roleValue);
+            return new Vector4(ViveInput.GetTriggerValueEx(viveRole.roleType, viveRole.roleValue, false) - ViveInput.GetTriggerValueEx(viveRole.roleType, viveRole.roleValue, true), 0f);
         }
     }
 
     public class ViveColliderPadAxisEventData : ColliderAxisEventData
     {
-        [Obsolete]
-        public HandRole hand;
+        public ViveColliderEventCaster viveEventCaster { get; private set; }
+        public ViveRoleProperty viveRole { get { return viveEventCaster.viveRole; } }
 
-        public readonly ViveRoleProperty viveRole;
-
-        public ViveColliderPadAxisEventData(IColliderEventCaster eventCaster, ViveRoleProperty role, int axisId = 0) : base(eventCaster, Dim.d2, axisId)
+        public ViveColliderPadAxisEventData(ViveColliderEventCaster eventCaster) : base(eventCaster, Dim.D2, InputAxis.Scroll2D)
         {
-            viveRole = role;
+            viveEventCaster = eventCaster;
         }
 
-        [Obsolete]
-        public ViveColliderPadAxisEventData(IColliderEventCaster eventCaster, HandRole hand, int axisId = 0) : base(eventCaster, Dim.d2, axisId)
+        public override Vector4 GetDelta()
         {
-            viveRole = ViveRoleProperty.New(hand);
-        }
-
-        public override bool IsValueChangedThisFrame()
-        {
-            v2 = ViveInput.GetPadTouchDeltaEx(viveRole.roleType, viveRole.roleValue);
-            return !Mathf.Approximately(v2.sqrMagnitude, 0f);
-        }
-
-        public Vector2 GetCurrentValue()
-        {
-            return ViveInput.GetPadTouchAxisEx(viveRole.roleType, viveRole.roleValue);
+            return ViveInput.GetScrollDelta(viveRole, viveEventCaster.scrollType, viveEventCaster.scrollDeltaScale);
         }
     }
 }

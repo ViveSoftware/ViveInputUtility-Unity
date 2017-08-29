@@ -1,9 +1,8 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Valve.VR;
+using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -13,50 +12,32 @@ namespace HTC.UnityPlugin.Vive
     /// </summary>
     public static partial class ViveRole
     {
-        public const uint MAX_DEVICE_COUNT = OpenVR.k_unMaxTrackedDeviceCount;
-        public const uint INVALID_DEVICE_INDEX = OpenVR.k_unTrackedDeviceIndexInvalid;
-
-        private readonly static StringBuilder s_propStrBuilder = new StringBuilder();
-
-        private readonly static ETrackedDeviceClass[] s_class = new ETrackedDeviceClass[MAX_DEVICE_COUNT];
-        private readonly static string[] s_modelNum = new string[MAX_DEVICE_COUNT]; // device model number
-        private readonly static string[] s_serialNum = new string[MAX_DEVICE_COUNT]; // device serial number
-
-        private readonly static Dictionary<string, uint> s_serialNum2device = new Dictionary<string, uint>((int)MAX_DEVICE_COUNT);
+        [Obsolete("Use VRModule.MAX_DEVICE_COUNT instead")]
+        public const uint MAX_DEVICE_COUNT = VRModule.MAX_DEVICE_COUNT;
+        [Obsolete("Use VRModule.INVALID_DEVICE_INDEX instead")]
+        public const uint INVALID_DEVICE_INDEX = VRModule.INVALID_DEVICE_INDEX;
 
         public readonly static DeviceRoleHandler DefaultDeviceRoleHandler = new DeviceRoleHandler();
         public readonly static HandRoleHandler DefaultHandRoleHandler = new HandRoleHandler();
         public readonly static TrackerRoleHandler DefaultTrackerRoleHandler = new TrackerRoleHandler();
         public readonly static BodyRoleHandler DefaultBodyRoleHandler = new BodyRoleHandler();
 
-        static ViveRole()
+        private static bool s_initialized = false;
+
+        [RuntimeInitializeOnLoadMethod]
+        public static void Initialize()
         {
-            for (uint i = 0; i < MAX_DEVICE_COUNT; ++i)
-            {
-                s_class[i] = ETrackedDeviceClass.Invalid;
-                s_modelNum[i] = string.Empty;
-                s_serialNum[i] = string.Empty;
-            }
+            if (s_initialized || !Application.isPlaying) { return; }
+            s_initialized = true;
 
             // update the ViveRole system with initial connecting state
-            var system = OpenVR.System;
-            if (system == null)
+            for (uint index = 0; index < VRModule.MAX_DEVICE_COUNT; ++index)
             {
-                for (int index = 0; index < MAX_DEVICE_COUNT; ++index)
-                {
-                    OnDeviceConnected(index, false);
-                }
-            }
-            else
-            {
-                for (int index = 0; index < MAX_DEVICE_COUNT; ++index)
-                {
-                    OnDeviceConnected(index, system.IsTrackedDeviceConnected((uint)index));
-                }
+                OnDeviceConnected(index, VivePose.IsConnected(index));
             }
 
-            SteamVR_Events.DeviceConnectedAction(OnDeviceConnected).Enable(true);
-            SteamVR_Events.SystemAction(EVREventType.VREvent_TrackedDeviceRoleChanged, OnTrackedDeviceRoleChanged).Enable(true);
+            VRModule.onDeviceConnected += OnDeviceConnected;
+            VRModule.onControllerRoleChanged += OnTrackedDeviceRoleChanged;
 
             // assign default role map handlers
             AssignMapHandler(DefaultDeviceRoleHandler);
@@ -65,51 +46,29 @@ namespace HTC.UnityPlugin.Vive
             AssignMapHandler(DefaultBodyRoleHandler);
         }
 
-        private static void OnDeviceConnected(int index, bool connected)
+        private static void OnDeviceConnected(uint deviceIndex, bool connected)
         {
-            var system = OpenVR.System;
-            var deviceIndex = (uint)index;
-            var serialNum = s_serialNum[deviceIndex];
-            var deviceClass = s_class[deviceIndex];
-
-            if (connected && deviceClass != ETrackedDeviceClass.Invalid) { return; } // already connected in structure
-            if (!connected && deviceClass == ETrackedDeviceClass.Invalid) { return; } // already disconnected in structure
+            var prevState = VRModule.GetPreviousDeviceState(deviceIndex);
+            var currState = VRModule.GetCurrentDeviceState(deviceIndex);
 
             // update serial number table and model number table
-            if (system != null && connected)
+            if (connected)
             {
-                s_class[deviceIndex] = deviceClass = system.GetTrackedDeviceClass(deviceIndex);
-
-                if (QueryDeviceStringProperty(deviceIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, out serialNum) && !string.IsNullOrEmpty(serialNum))
+                for (int i = s_mapTable.Count - 1; i >= 0; --i)
                 {
-                    s_serialNum[deviceIndex] = serialNum;
-                    s_serialNum2device[serialNum] = deviceIndex;
-                }
-
-                string modelNum;
-                if (QueryDeviceStringProperty(deviceIndex, ETrackedDeviceProperty.Prop_ModelNumber_String, out modelNum) && !string.IsNullOrEmpty(modelNum))
-                {
-                    s_modelNum[deviceIndex] = modelNum;
+                    s_mapTable.GetValueByIndex(i).OnConnectedDeviceChanged(deviceIndex, currState.deviceClass, currState.serialNumber, true);
                 }
             }
             else
             {
-                s_class[deviceIndex] = ETrackedDeviceClass.Invalid;
-
-                s_serialNum2device.Remove(s_serialNum[deviceIndex]);
-                s_serialNum[deviceIndex] = string.Empty;
-
-                s_modelNum[deviceIndex] = string.Empty;
-            }
-
-            // inform all role map handlers that a device connected or disconnected
-            for (int i = s_mapTable.Count - 1; i >= 0; --i)
-            {
-                s_mapTable.GetValueByIndex(i).OnConnectedDeviceChanged(deviceIndex, deviceClass, serialNum, connected);
+                for (int i = s_mapTable.Count - 1; i >= 0; --i)
+                {
+                    s_mapTable.GetValueByIndex(i).OnConnectedDeviceChanged(deviceIndex, prevState.deviceClass, prevState.serialNumber, false);
+                }
             }
         }
 
-        private static void OnTrackedDeviceRoleChanged(VREvent_t arg = default(VREvent_t))
+        private static void OnTrackedDeviceRoleChanged()
         {
             for (int i = s_mapTable.Count - 1; i >= 0; --i)
             {
@@ -117,46 +76,28 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private static bool QueryDeviceStringProperty(uint deviceIndex, ETrackedDeviceProperty prop, out string propValue)
-        {
-            propValue = string.Empty;
-
-            if (!IsValidIndex(deviceIndex)) { return false; }
-
-            var system = OpenVR.System;
-            if (system == null) { return false; }
-
-            var error = default(ETrackedPropertyError);
-            var capacity = (int)system.GetStringTrackedDeviceProperty(deviceIndex, prop, null, 0, ref error);
-            if (capacity <= 1 || capacity > 128) { return false; }
-
-            system.GetStringTrackedDeviceProperty(deviceIndex, prop, s_propStrBuilder, (uint)s_propStrBuilder.EnsureCapacity(capacity), ref error);
-            if (error != ETrackedPropertyError.TrackedProp_Success) { return false; }
-
-            propValue = s_propStrBuilder.ToString();
-            s_propStrBuilder.Length = 0;
-
-            return true;
-        }
-
+        [Obsolete("Use VRModule.TryGetDeviceIndex instead")]
         public static bool TryGetDeviceIndexBySerialNumber(string serialNumber, out uint deviceIndex)
         {
-            return s_serialNum2device.TryGetValue(serialNumber, out deviceIndex);
+            return VRModule.TryGetConnectedDeviceIndex(serialNumber, out deviceIndex);
         }
 
+        [Obsolete("Use VRModule.GetCurrentDeviceState(deviceIndex).modelNumber instead")]
         public static string GetModelNumber(uint deviceIndex)
         {
-            return IsValidIndex(deviceIndex) ? s_modelNum[deviceIndex] : string.Empty;
+            return IsValidIndex(deviceIndex) ? VRModule.GetCurrentDeviceState(deviceIndex).modelNumber : string.Empty;
         }
 
+        [Obsolete("Use VRModule.GetCurrentDeviceState(deviceIndex).serialNumber instead")]
         public static string GetSerialNumber(uint deviceIndex)
         {
-            return IsValidIndex(deviceIndex) ? s_serialNum[deviceIndex] : string.Empty;
+            return IsValidIndex(deviceIndex) ? VRModule.GetCurrentDeviceState(deviceIndex).serialNumber : string.Empty;
         }
 
-        public static ETrackedDeviceClass GetDeviceClass(uint deviceIndex)
+        [Obsolete("Use VRModule.GetCurrentDeviceState(deviceIndex).deviceClass instead")]
+        public static VRModuleDeviceClass GetDeviceClass(uint deviceIndex)
         {
-            return IsValidIndex(deviceIndex) ? s_class[deviceIndex] : ETrackedDeviceClass.Invalid;
+            return IsValidIndex(deviceIndex) ? VRModule.GetCurrentDeviceState(deviceIndex).deviceClass : VRModuleDeviceClass.Invalid;
         }
 
         /// <summary>
@@ -201,9 +142,7 @@ namespace HTC.UnityPlugin.Vive
             return GetMap(type).GetMappedDeviceByRoleValue(roleValue);
         }
 
-        /// <summary>
-        /// Check if the device index is valid to be used
-        /// </summary>
-        public static bool IsValidIndex(uint index) { return index < MAX_DEVICE_COUNT; }
+        [Obsolete("Use VRModule.IsValidDeviceIndex instead")]
+        public static bool IsValidIndex(uint index) { return VRModule.IsValidDeviceIndex(index); }
     }
 }

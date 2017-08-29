@@ -2,9 +2,9 @@
 
 using HTC.UnityPlugin.Pointer3D;
 using HTC.UnityPlugin.Utility;
-using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -12,93 +12,74 @@ namespace HTC.UnityPlugin.Vive
     // Customized Pointer3DRaycaster for Vive controllers.
     public class ViveRaycaster : Pointer3DRaycaster, IViveRoleComponent
     {
-        [Obsolete("Use ViveRaycaster.viveRole instead")]
-        public enum ButtonEventSource
-        {
-            AllButtons,
-            RightHandOnly,
-            LeftHandOnly,
-            None,
-        }
-
-        [HideInInspector]
-        [SerializeField]
-        [Obsolete]
-        private ButtonEventSource buttonEventSource;
-
         [SerializeField]
         private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
         [SerializeField]
+        [FormerlySerializedAs("m_mouseBtnLeft")]
+        [CustomOrderedEnum]
+        private ControllerButton m_mouseButtonLeft = ControllerButton.Trigger;
+        [SerializeField]
+        [FormerlySerializedAs("m_mouseBtnMiddle")]
+        [CustomOrderedEnum]
+        private ControllerButton m_mouseButtonMiddle = ControllerButton.Grip;
+        [SerializeField]
+        [FormerlySerializedAs("m_mouseBtnRight")]
+        [CustomOrderedEnum]
+        private ControllerButton m_mouseButtonRight = ControllerButton.Pad;
+        [SerializeField]
+        [FormerlySerializedAs("m_buttonEvents")]
         [FlagsFromEnum(typeof(ControllerButton))]
-        private int m_buttonEvents = (1 << (int)ControllerButton.Trigger) | (1 << (int)ControllerButton.Pad) | (1 << (int)ControllerButton.Grip);
+        private uint m_additionalButtons = 0;
         [SerializeField]
-        private ControllerButton m_mouseBtnLeft = ControllerButton.Trigger;
+        private ScrollType m_scrollType = ScrollType.Auto;
         [SerializeField]
-        private ControllerButton m_mouseBtnMiddle = ControllerButton.Grip;
-        [SerializeField]
-        private ControllerButton m_mouseBtnRight = ControllerButton.Pad;
-        public float scrollDeltaScale = 50f;
+        private Vector2 m_scrollDeltaScale = new Vector2(1f, -1f);
 
         public ViveRoleProperty viveRole { get { return m_viveRole; } }
+        public ControllerButton mouseButtonLeft { get { return m_mouseButtonLeft; } }
+        public ControllerButton mouseButtonMiddle { get { return m_mouseButtonMiddle; } }
+        public ControllerButton mouseButtonRight { get { return m_mouseButtonRight; } }
+        public uint additionalButtonMask { get { return m_additionalButtons; } }
+        public ScrollType scrollType { get { return m_scrollType; } set { m_scrollType = value; } }
+        public Vector2 scrollDeltaScale { get { return m_scrollDeltaScale; } set { m_scrollDeltaScale = value; } }
 #if UNITY_EDITOR
         protected override void OnValidate()
         {
             base.OnValidate();
 
-            // convert legacy buttonEventSource property to ViveRoleProperty
-            var serializedObject = new UnityEditor.SerializedObject(this);
-            var btnEventSrcProp = serializedObject.FindProperty("buttonEventSource");
-            var btnEventSrc = btnEventSrcProp.intValue;
-            if (btnEventSrc != 3) // ButtonEventSource.None
-            {
-                btnEventSrcProp.intValue = 3;
-
-                if (!Application.isPlaying)
-                {
-                    serializedObject.ApplyModifiedProperties();
-                }
-
-                switch (btnEventSrc)
-                {
-                    case 2:
-                        viveRole.SetEx(HandRole.LeftHand);
-                        break;
-                    case 0:
-                    case 1:
-                    default:
-                        viveRole.SetEx(HandRole.RightHand);
-                        break;
-                }
-
-                if (!Application.isPlaying)
-                {
-                    serializedObject.Update();
-                }
-            }
-            serializedObject.Dispose();
+            FilterOutAssignedButton();
         }
 #endif
+        protected void FilterOutAssignedButton()
+        {
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_mouseButtonLeft);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_mouseButtonMiddle);
+            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_mouseButtonRight);
+        }
+
         protected override void Start()
         {
             base.Start();
 
-            for (var i = ControllerButton.Trigger; i <= ControllerButton.FullTrigger; ++i)
+            buttonEventDataList.Add(new VivePointerEventData(this, EventSystem.current, m_mouseButtonLeft, PointerEventData.InputButton.Left));
+            buttonEventDataList.Add(new VivePointerEventData(this, EventSystem.current, m_mouseButtonRight, PointerEventData.InputButton.Right));
+            buttonEventDataList.Add(new VivePointerEventData(this, EventSystem.current, m_mouseButtonMiddle, PointerEventData.InputButton.Middle));
+
+            FilterOutAssignedButton();
+
+            var mouseBtn = PointerEventData.InputButton.Middle + 1;
+            var addBtns = m_additionalButtons;
+            for (ControllerButton btn = 0; addBtns > 0u; ++btn, addBtns >>= 1)
             {
-                if ((m_buttonEvents & (1 << (int)i)) == 0) { continue; }
+                if ((addBtns & 1u) == 0u) { continue; }
 
-                PointerEventData.InputButton mouseBtn;
-                if (i == m_mouseBtnLeft) { mouseBtn = PointerEventData.InputButton.Left; }
-                else if (i == m_mouseBtnMiddle) { mouseBtn = PointerEventData.InputButton.Middle; }
-                else if (i == m_mouseBtnRight) { mouseBtn = PointerEventData.InputButton.Right; }
-                else { mouseBtn = (PointerEventData.InputButton)3; }
-
-                buttonEventDataList.Add(new VivePointerEventData(this, EventSystem.current, m_viveRole, i, mouseBtn));
+                buttonEventDataList.Add(new VivePointerEventData(this, EventSystem.current, btn, mouseBtn++));
             }
         }
 
         public override Vector2 GetScrollDelta()
         {
-            return ViveInput.GetPadTouchDeltaEx(m_viveRole.roleType, m_viveRole.roleValue) * scrollDeltaScale;
+            return ViveInput.GetScrollDelta(m_viveRole, m_scrollType, m_scrollDeltaScale);
         }
     }
 }

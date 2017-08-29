@@ -15,11 +15,10 @@ namespace HTC.UnityPlugin.PoseTracker
             new Keyframe(1f, 0.99f, 0f, 0f),
         });
 
-        public float duration = 0.2f;
+        public float duration = 0.15f;
 
         private bool firstPose = true;
         private Pose prevPose;
-        private float prevPoseTime;
 
         public bool easePositionX = true;
         public bool easePositionY = true;
@@ -43,7 +42,7 @@ namespace HTC.UnityPlugin.PoseTracker
             }
             else
             {
-                var deltaTime = Time.time - prevPoseTime;
+                var deltaTime = Time.unscaledDeltaTime;
                 if (deltaTime < duration)
                 {
                     var easedPose = Pose.Lerp(prevPose, pose, curve.Evaluate(deltaTime / duration));
@@ -73,7 +72,6 @@ namespace HTC.UnityPlugin.PoseTracker
             }
 
             prevPose = pose;
-            prevPoseTime = Time.time;
         }
 
         public void ResetFirstPose() { firstPose = true; }
