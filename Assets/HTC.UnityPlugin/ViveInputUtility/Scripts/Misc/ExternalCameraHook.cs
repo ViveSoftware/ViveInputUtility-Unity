@@ -54,7 +54,10 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        UpdateExCamActivity();
+        if (Application.isPlaying && enabled)
+        {
+            UpdateExCamActivity();
+        }
     }
 #endif
 
@@ -63,7 +66,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
     private SteamVR_ExternalCamera m_externalCamera;
     private bool m_staticExCamEnabled = false;
-    private Pose m_staticExCamPose;
+    private Pose m_staticExCamPose = Pose.identity;
 
     public string configPath
     {
@@ -169,7 +172,9 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
                 m_staticExCamEnabled = true;
             }
 
-            quadViewEnabled = !quadViewEnabled;
+            m_quadViewEnabled = !m_quadViewEnabled;
+
+            UpdateExCamActivity();
         }
     }
 #endif
@@ -208,13 +213,14 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     public virtual void OnNewPoses()
     {
         var deviceIndex = m_viveRole.GetDeviceIndex();
+        var deviceValid = VRModule.IsValidDeviceIndex(deviceIndex);
 
-        if (VRModule.IsValidDeviceIndex(deviceIndex))
+        if (deviceValid)
         {
             m_staticExCamPose = VivePose.GetPose(deviceIndex);
-            Pose.SetPose(transform, m_staticExCamPose, m_origin);
         }
-        else if (m_staticExCamEnabled)
+
+        if (deviceValid || m_staticExCamEnabled)
         {
             Pose.SetPose(transform, m_staticExCamPose, m_origin);
         }
@@ -246,14 +252,6 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
                 SteamVR_Render.instance.externalCamera = m_externalCamera;
                 m_externalCamera.configPath = m_configPath;
                 m_externalCamera.ReadConfig();
-
-                // set static position read from config file
-                var exCamConfig = m_externalCamera.config;
-                m_staticExCamPose = new Pose()
-                {
-                    pos = new Vector3(exCamConfig.x, exCamConfig.y, exCamConfig.z),
-                    rot = Quaternion.Euler(exCamConfig.rx, exCamConfig.ry, exCamConfig.rz),
-                };
             }
         }
 
