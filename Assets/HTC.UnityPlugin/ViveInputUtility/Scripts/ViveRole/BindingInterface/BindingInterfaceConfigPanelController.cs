@@ -9,6 +9,8 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
     public class BindingInterfaceConfigPanelController : MonoBehaviour
     {
         [SerializeField]
+        private bool m_closeExCamOnEnable = true;
+        [SerializeField]
         private Toggle m_toggleApplyOnStart;
         [SerializeField]
         private GameObject m_dirtySymble;
@@ -43,7 +45,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         private void Update()
         {
-            if (ExternalCameraHook.Active && ExternalCameraHook.Instance.enabled)
+            if (m_closeExCamOnEnable && ExternalCameraHook.Active && ExternalCameraHook.Instance.enabled)
             {
                 ExternalCameraHook.Instance.enabled = false;
                 m_exCamTrunedOff = true;
