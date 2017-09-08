@@ -1,11 +1,11 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using HTC.UnityPlugin.VRModuleManagement;
 using System.IO;
 using UnityEngine;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 // This script creates and handles SteamVR_ExternalCamera using viveRole property
 [DisallowMultipleComponent]
