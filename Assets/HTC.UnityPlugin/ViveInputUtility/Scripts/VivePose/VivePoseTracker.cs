@@ -105,15 +105,14 @@ namespace HTC.UnityPlugin.Vive
         public virtual void OnNewPoses()
         {
             var deviceIndex = m_viveRole.GetDeviceIndex();
+            var isValid = VivePose.IsValid(deviceIndex);
 
-            var valid = VivePose.IsValid(deviceIndex);
-
-            if (valid)
+            if (isValid)
             {
-                TrackPose(VivePose.GetPose(deviceIndex, origin));
+                TrackPose(VivePose.GetPose(deviceIndex), origin);
             }
 
-            SetIsValid(valid);
+            SetIsValid(isValid);
         }
 
         public virtual void AfterNewPoses() { }
