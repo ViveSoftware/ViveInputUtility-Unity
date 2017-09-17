@@ -440,6 +440,11 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
                 EventSystem.current.gameObject.AddComponent<StandaloneInputModule>();
             }
 
+#if UNITY_5_4_OR_NEWER
+            // Disable the camera tracking to HMD
+            GetComponentInChildren<Camera>().stereoTargetEye = StereoTargetEyeMask.None;
+#endif
+
             transform.GetChild(0).gameObject.SetActive(true); // force update UI layout
 
             UpdateRecenterButtonVisible();
