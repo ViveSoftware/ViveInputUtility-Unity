@@ -15,6 +15,8 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
         [SerializeField]
         private GameObject m_recenterButton;
         [SerializeField]
+        private GameObject m_dirtySymbol;
+        [SerializeField]
         private ExCamConfigInterfaceDraggableLabel m_posX;
         [SerializeField]
         private ExCamConfigInterfaceDraggableLabel m_posY;
@@ -473,9 +475,15 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
             GetComponentInChildren<Camera>().stereoTargetEye = StereoTargetEyeMask.None;
 #endif
 
-            transform.GetChild(0).gameObject.SetActive(true); // force update UI layout
+#if UNITY_5_5_OR_NEWER
+            foreach (var layoutGroup in GetComponentsInChildren<HorizontalOrVerticalLayoutGroup>(true))
+            {
+                layoutGroup.childControlWidth = false;
+                layoutGroup.childControlHeight = false;
+            }
+#endif
 
-            UpdateRecenterButtonVisible();
+            transform.GetChild(0).gameObject.SetActive(true); // force update UI layout
         }
 
         private void OnEnable()
@@ -486,6 +494,8 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
             {
                 ExternalCameraHook.Instance.viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
             }
+
+            UpdateRecenterButtonVisible();
         }
 
         private void OnDisable()
@@ -517,12 +527,16 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
             m_frameSkip.fieldValue = frameSkip;
             m_sceneResolutionScale.fieldValue = sceneResolutionScale;
             m_diableStandardAssets.isOn = diableStandardAssets;
+
+            m_dirtySymbol.gameObject.SetActive(false);
         }
 
         private void OnDeviceIndexChanged(uint deviceIndex) { UpdateRecenterButtonVisible(); }
 
         private void UpdateRecenterButtonVisible()
         {
+            if (m_recenterButton == null) { return; }
+
             if (ExternalCameraHook.Instance.isTrackingDevice)
             {
                 m_recenterButton.gameObject.SetActive(false);
