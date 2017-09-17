@@ -20,20 +20,49 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     [SerializeField]
     private string m_configPath = AUTO_LOAD_CONFIG_PATH;
     [SerializeField]
-    private bool m_quadViewEnabled = true;
+    private bool m_enableStaticQuadView = false;
+    [SerializeField]
+    private bool m_enableConfigUI = false;
 
     public ViveRoleProperty viveRole { get { return m_viveRole; } }
 
     public Transform origin { get { return m_origin; } set { m_origin = value; } }
 
+    public bool isTrackingDevice { get { return isActiveAndEnabled && VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()); } }
+
     public bool quadViewEnabled
     {
-        get { return m_quadViewEnabled; }
+        get
+        {
+#if VIU_STEAMVR
+            return m_externalCamera != null && m_externalCamera.isActiveAndEnabled;
+#else
+            return false;
+#endif
+        }
+    }
+
+    public bool enableStaticQuadView
+    {
+        get { return m_enableStaticQuadView; }
         set
         {
-            if (m_quadViewEnabled != value)
+            if (m_enableStaticQuadView != value)
             {
-                m_quadViewEnabled = value;
+                m_enableStaticQuadView = value;
+                UpdateExCamActivity();
+            }
+        }
+    }
+
+    public bool enableConfigUI
+    {
+        get { return m_enableConfigUI; }
+        set
+        {
+            if (m_enableConfigUI != value)
+            {
+                m_enableConfigUI = value;
                 UpdateExCamActivity();
             }
         }
@@ -54,7 +83,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (Application.isPlaying && enabled)
+        if (Application.isPlaying && isActiveAndEnabled)
         {
             UpdateExCamActivity();
         }
@@ -65,8 +94,9 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     private static bool s_isAutoLoaded;
 
     private SteamVR_ExternalCamera m_externalCamera;
-    private bool m_staticExCamEnabled = false;
     private Pose m_staticExCamPose = Pose.identity;
+
+    private GameObject m_configUI;
 
     public string configPath
     {
@@ -147,7 +177,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         if (IsInstance)
         {
             m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
-            m_quadViewEnabled = true;
+            VivePose.AddNewPosesListener(this);
             UpdateExCamActivity();
         }
     }
@@ -157,22 +187,59 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         if (IsInstance)
         {
             m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
+            VivePose.RemoveNewPosesListener(this);
             UpdateExCamActivity();
         }
     }
+
+    public virtual void BeforeNewPoses() { }
+
+    public virtual void OnNewPoses()
+    {
+        var deviceIndex = m_viveRole.GetDeviceIndex();
+
+        if (VRModule.IsValidDeviceIndex(deviceIndex))
+        {
+            m_staticExCamPose = VivePose.GetPose(deviceIndex);
+        }
+
+        if (quadViewEnabled)
+        {
+            Pose.SetPose(transform, m_staticExCamPose, m_origin);
+        }
+    }
+
+    public virtual void AfterNewPoses() { }
 
 #if VIU_EXTERNAL_CAMERA_SWITCH
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.M) && Input.GetKey(KeyCode.RightShift))
         {
-            if (!m_staticExCamEnabled && !VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()))
+            if (!quadViewEnabled)
             {
-                m_quadViewEnabled = false;
-                m_staticExCamEnabled = true;
+                m_enableStaticQuadView = true;
+                m_enableConfigUI = false;
             }
-
-            m_quadViewEnabled = !m_quadViewEnabled;
+            else
+            {
+                if (isTrackingDevice)
+                {
+                    m_enableConfigUI = !m_enableConfigUI;
+                }
+                else
+                {
+                    if (!m_enableConfigUI)
+                    {
+                        m_enableConfigUI = true;
+                    }
+                    else
+                    {
+                        m_enableStaticQuadView = false;
+                        m_enableConfigUI = false;
+                    }
+                }
+            }
 
             UpdateExCamActivity();
         }
@@ -186,51 +253,36 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
     private void UpdateExCamActivity()
     {
-        if (!enabled)
+        if (!isActiveAndEnabled)
         {
-            SetValid(false);
-            VivePose.RemoveNewPosesListener(this);
-        }
-        else if (VRModule.IsValidDeviceIndex(m_viveRole.GetDeviceIndex()))
-        {
-            SetValid(m_quadViewEnabled);
-            VivePose.AddNewPosesListener(this);
-        }
-        else if (m_staticExCamEnabled)
-        {
-            SetValid(m_quadViewEnabled);
-            VivePose.AddNewPosesListener(this);
+            SetExCamActive(false);
+            SetExCamUIActive(false);
         }
         else
         {
-            SetValid(false);
-            VivePose.RemoveNewPosesListener(this);
+            if (isTrackingDevice)
+            {
+                SetExCamActive(true);
+            }
+            else
+            {
+                SetExCamActive(m_enableStaticQuadView);
+            }
+
+            if (quadViewEnabled)
+            {
+                SetExCamUIActive(m_enableConfigUI);
+            }
+            else
+            {
+                SetExCamUIActive(false);
+            }
         }
     }
 
-    public virtual void BeforeNewPoses() { }
-
-    public virtual void OnNewPoses()
+    private void SetExCamActive(bool value)
     {
-        var deviceIndex = m_viveRole.GetDeviceIndex();
-        var deviceValid = VRModule.IsValidDeviceIndex(deviceIndex);
-
-        if (deviceValid)
-        {
-            m_staticExCamPose = VivePose.GetPose(deviceIndex);
-        }
-
-        if (deviceValid || m_staticExCamEnabled)
-        {
-            Pose.SetPose(transform, m_staticExCamPose, m_origin);
-        }
-    }
-
-    public virtual void AfterNewPoses() { }
-
-    private void SetValid(bool value)
-    {
-        if (value && m_externalCamera == null && SteamVR_Render.instance.externalCamera == null && File.Exists(m_configPath))
+        if (value && m_externalCamera == null)
         {
             // don't know why SteamVR_ExternalCamera must be instantiated from the prefab
             // when create SteamVR_ExternalCamera using AddComponent, errors came out when disabling
@@ -261,6 +313,32 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         }
     }
 
+    private void SetExCamUIActive(bool value)
+    {
+        if (value && m_configUI == null)
+        {
+            var prefab = Resources.Load<GameObject>("VIUExCamConfigInterface");
+            if (prefab == null)
+            {
+                Debug.LogError("VIUExCamConfigInterface prefab not found!");
+            }
+            else
+            {
+                m_configUI = Instantiate(prefab);
+            }
+        }
+
+        if (m_configUI != null)
+        {
+            m_configUI.SetActive(value);
+        }
+    }
+
+    public void Recenter()
+    {
+        m_staticExCamPose = Pose.identity;
+    }
+
 #else
     public string configPath { get { return m_configPath; } set { m_configPath = value; } }
 
@@ -276,5 +354,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     public virtual void OnNewPoses() { }
 
     public virtual void AfterNewPoses() { }
+
+    public void Recenter() { }
 #endif
 }
