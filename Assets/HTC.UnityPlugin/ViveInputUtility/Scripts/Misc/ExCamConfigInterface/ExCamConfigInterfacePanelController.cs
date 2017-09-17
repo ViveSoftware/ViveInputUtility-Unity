@@ -255,6 +255,31 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
             }
         }
 
+        public float sceneResolutionScale
+        {
+            get
+            {
+                SteamVR_ExternalCamera excam;
+                if (TryGetTargetExCam(out excam))
+                {
+                    return excam.config.sceneResolutionScale;
+                }
+                else
+                {
+                    return 0f;
+                }
+            }
+            set
+            {
+                SteamVR_ExternalCamera excam;
+                if (TryGetTargetExCam(out excam))
+                {
+                    excam.config.sceneResolutionScale = value;
+                    SteamVR_Camera.sceneResolutionScale = value;
+                }
+            }
+        }
+
         public float ckR { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.r : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.r = value; } } }
         public float ckG { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.g : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.g = value; } } }
         public float ckB { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.b : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.b = value; } } }
@@ -266,7 +291,6 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
         public float offsetFar { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.farOffset : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.farOffset = value; } } }
         public float offsetHMD { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.hmdOffset : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.hmdOffset = value; } } }
         public float frameSkip { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.frameSkip : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.frameSkip = value; } } }
-        public float sceneResolutionScale { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.sceneResolutionScale : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.sceneResolutionScale = value; } } }
         public bool diableStandardAssets { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.disableStandardAssets : false; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.disableStandardAssets = value; } } }
 
         public void SaveConfig()
@@ -297,7 +321,11 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
             {
                 excam.config = default(SteamVR_ExternalCamera.Config);
                 excam.ReadConfig();
+
                 ReloadFields();
+
+                // sceneResolutionScale only update on SteamVR_ExternalCamera Enabled/Disabled
+                SteamVR_Camera.sceneResolutionScale = sceneResolutionScale;
             }
         }
 
