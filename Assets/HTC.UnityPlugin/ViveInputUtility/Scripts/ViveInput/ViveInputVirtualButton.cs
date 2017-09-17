@@ -103,7 +103,12 @@ namespace HTC.UnityPlugin.Vive
             });
         }
 #endif
-
+        [RuntimeInitializeOnLoadMethod]
+        private static void InitializeViveInput()
+        {
+            ViveInput.Initialize();
+        }
+        
         private void Awake()
         {
             TryListenUpdateEvent();
@@ -116,7 +121,6 @@ namespace HTC.UnityPlugin.Vive
                 // register update event
                 ViveInput.onUpdate += OnInputStateUpdated;
                 m_updateActivated = true;
-                ViveInput.Initialize();
             }
         }
 
