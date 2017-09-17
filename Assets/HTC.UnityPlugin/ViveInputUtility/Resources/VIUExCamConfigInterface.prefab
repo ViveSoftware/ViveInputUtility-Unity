@@ -9643,7 +9643,7 @@ Canvas:
   m_RenderMode: 1
   m_Camera: {fileID: 2091452}
   m_PlaneDistance: 1
-  m_PixelPerfect: 1
+  m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
