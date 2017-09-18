@@ -92,6 +92,10 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
             UpdateLabelText();
             ((Text)m_field.placeholder).text = "";
             m_field.onEndEdit.AddListener(OnFieldEndEdit);
+
+#if UNITY_5_5_OR_NEWER
+            m_field.GetComponent<LayoutElement>().layoutPriority = 2;
+#endif
         }
 
         private void OnFieldEndEdit(string fieldStr)

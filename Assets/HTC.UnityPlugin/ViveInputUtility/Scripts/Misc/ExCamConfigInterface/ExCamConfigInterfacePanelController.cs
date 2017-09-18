@@ -458,6 +458,7 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
         
         public void RecenterExternalCameraPose() { }
 #endif
+        private ViveRoleProperty m_exCamViveRole;
 
         private void Awake()
         {
@@ -471,28 +472,23 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
             }
 
 #if UNITY_5_4_OR_NEWER
-            // Disable the camera tracking to HMD
-            GetComponentInChildren<Camera>().stereoTargetEye = StereoTargetEyeMask.None;
+            // Disable the camera HMD tracking
+            GetComponent<Canvas>().worldCamera.stereoTargetEye = StereoTargetEyeMask.None;
 #endif
 
-#if UNITY_5_5_OR_NEWER
-            foreach (var layoutGroup in GetComponentsInChildren<HorizontalOrVerticalLayoutGroup>(true))
-            {
-                layoutGroup.childControlWidth = false;
-                layoutGroup.childControlHeight = false;
-            }
-#endif
-
-            transform.GetChild(0).gameObject.SetActive(true); // force update UI layout
+            // Force update layout
+            transform.parent.gameObject.SetActive(false);
+            transform.parent.gameObject.SetActive(true);
         }
 
         private void OnEnable()
         {
             ReloadFields();
 
-            if (ExternalCameraHook.Active)
+            if (m_exCamViveRole == null && ExternalCameraHook.Active)
             {
-                ExternalCameraHook.Instance.viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
+                m_exCamViveRole = ExternalCameraHook.Instance.viveRole;
+                m_exCamViveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
             }
 
             UpdateRecenterButtonVisible();
@@ -500,9 +496,10 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
 
         private void OnDisable()
         {
-            if (ExternalCameraHook.Active)
+            if (m_exCamViveRole != null)
             {
-                ExternalCameraHook.Instance.viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
+                m_exCamViveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
+                m_exCamViveRole = null;
             }
         }
 
@@ -535,7 +532,7 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
 
         private void UpdateRecenterButtonVisible()
         {
-            if (m_recenterButton == null) { return; }
+            if (!isActiveAndEnabled || m_recenterButton == null) { return; }
 
             if (ExternalCameraHook.Instance.isTrackingDevice)
             {
