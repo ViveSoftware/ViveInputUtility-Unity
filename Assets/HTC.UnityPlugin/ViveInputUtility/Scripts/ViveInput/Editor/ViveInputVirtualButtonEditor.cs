@@ -38,7 +38,6 @@ namespace HTC.UnityPlugin.Vive
         protected virtual void OnEnable()
         {
             m_scriptProp = serializedObject.FindProperty("m_Script");
-            m_activateProp = serializedObject.FindProperty("m_active");
             m_logicGateProp = serializedObject.FindProperty("m_combineInputsOperator");
             m_inputsProp = serializedObject.FindProperty("m_inputs");
             m_onPressProp = serializedObject.FindProperty("m_onVirtualPress");
@@ -59,8 +58,6 @@ namespace HTC.UnityPlugin.Vive
             GUI.enabled = false;
             EditorGUILayout.PropertyField(m_scriptProp);
             GUI.enabled = true;
-
-            EditorGUILayout.PropertyField(m_activateProp);
 
             if (m_inputsProp.arraySize > 1)
             {
