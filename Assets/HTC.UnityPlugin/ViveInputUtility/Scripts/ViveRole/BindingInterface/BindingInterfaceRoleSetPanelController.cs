@@ -71,6 +71,8 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         private void OnDisable()
         {
             VRModule.onDeviceConnected -= OnDeviceConnected;
+
+            FinishEditBinding();
         }
 
         private void OnDeviceConnected(uint deviceIndex, bool connected)
