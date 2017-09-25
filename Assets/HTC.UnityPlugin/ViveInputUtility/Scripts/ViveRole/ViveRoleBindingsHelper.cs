@@ -34,11 +34,7 @@ namespace HTC.UnityPlugin.Vive
         public class BindingConfig
         {
             public bool apply_bindings_on_load = true;
-#if VIU_BINDING_INTERFACE_SWITCH
             public string toggle_interface_key_code = KeyCode.B.ToString(); // Default key to enable binding interface
-#else
-            public string toggle_interface_key_code = KeyCode.None.ToString(); // Default key to enable binding interface
-#endif
             public string toggle_interface_modifier = KeyCode.RightShift.ToString(); // Default key modifier to enable binding interface
             public string interface_prefab = DEFAULT_INTERFACE_PREFAB;
             public RoleData[] roles = new RoleData[0];
@@ -67,6 +63,11 @@ namespace HTC.UnityPlugin.Vive
             SetDefaultInitGameObjectGetter(VRModule.GetInstanceGameObject);
         }
 
+        private void Awake()
+        {
+            AutoLoadConfig();
+        }
+
         [RuntimeInitializeOnLoadMethod]
         public static void AutoLoadConfig()
         {
@@ -75,12 +76,12 @@ namespace HTC.UnityPlugin.Vive
 
             var configPath = AUTO_LOAD_CONFIG_PATH;
 
-            if (Active && string.IsNullOrEmpty(Instance.m_overrideConfigPath))
+            if (Active)
             {
                 configPath = Instance.m_overrideConfigPath;
             }
 
-            if (File.Exists(configPath))
+            if (!string.IsNullOrEmpty(configPath) && File.Exists(configPath))
             {
                 LoadBindingConfigFromFile(configPath);
 
@@ -97,6 +98,7 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
+#if VIU_BINDING_INTERFACE_SWITCH
         private static void UpdateInterfaceKeyMonitor()
         {
             // Moniter input key to open up the binding interface
@@ -134,11 +136,6 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private void Awake()
-        {
-            AutoLoadConfig();
-        }
-
         private void Update()
         {
             if (!IsInstance) { return; }
@@ -148,6 +145,9 @@ namespace HTC.UnityPlugin.Vive
                 ToggleBindingInterface();
             }
         }
+#else
+        private static void UpdateInterfaceKeyMonitor() { }
+#endif
 
         public static VRModuleDeviceModel GetDeviceModelHint(string deviceSN)
         {
