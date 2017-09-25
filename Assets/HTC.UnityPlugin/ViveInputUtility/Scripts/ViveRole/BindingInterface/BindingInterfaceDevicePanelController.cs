@@ -153,7 +153,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
                     boundRect.yMin = Mathf.Min(boundRect.yMin, m_itemCorners[0].y, m_itemCorners[1].y, m_itemCorners[2].y, m_itemCorners[3].y);
                     boundRect.yMax = Mathf.Max(boundRect.yMax, m_itemCorners[0].y, m_itemCorners[1].y, m_itemCorners[2].y, m_itemCorners[3].y);
                 }
-                
+
                 // calculate view panel's scale to let view rect includes all devices
                 var innerWidth = m_deviceViewMaskWidth - (m_deviceViewMargin * 2f);
                 var innerHeight = m_deviceViewMaskHeight - (m_deviceViewMargin * 2f);
@@ -307,9 +307,28 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             m_selectedRoleMap = roleMap;
         }
 
+        public void SetAnimatorSlideLeft()
+        {
+            if (m_animator.isInitialized)
+            {
+                m_animator.SetTrigger("SlideDeviceViewLeft");
+            }
+        }
+
+        public void SetAnimatorSlideRight()
+        {
+            if (m_animator.isInitialized)
+            {
+                m_animator.SetTrigger("SlideDeviceViewRight");
+            }
+        }
+
         public void SetAnimatorIsEditing(bool value)
         {
-            m_animator.SetBool("isEditing", value);
+            if (m_animator.isInitialized)
+            {
+                m_animator.SetBool("isEditing", value);
+            }
         }
     }
 }
