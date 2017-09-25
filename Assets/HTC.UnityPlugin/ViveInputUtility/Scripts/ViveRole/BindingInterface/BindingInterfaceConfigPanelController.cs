@@ -70,6 +70,16 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         public void ReloadConfig()
         {
             ViveRoleBindingsHelper.LoadBindingConfigFromFile(ViveRoleBindingsHelper.AUTO_LOAD_CONFIG_PATH);
+
+            // Unbind all applied bindings
+            for (int i = 0, imax = ViveRoleEnum.ValidViveRoleTable.Count; i < imax; ++i)
+            {
+                var roleType = ViveRoleEnum.ValidViveRoleTable.GetValueByIndex(i);
+                var roleMap = ViveRole.GetMap(roleType);
+
+                roleMap.UnbindAll();
+            }
+
             ViveRoleBindingsHelper.ApplyBindingConfigToRoleMap();
 
             m_toggleApplyOnStart.isOn = ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load;
