@@ -22,6 +22,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
     private bool m_quadViewSwitch = false;
     private bool m_configInterfaceSwitch = true;
+    private GameObject m_configUI = null;
 
     public ViveRoleProperty viveRole { get { return m_viveRole; } }
 
@@ -102,8 +103,6 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
     private SteamVR_ExternalCamera m_externalCamera;
     private Pose m_staticExCamPose = Pose.identity;
-
-    private GameObject m_configUI;
 
     public string configPath
     {
