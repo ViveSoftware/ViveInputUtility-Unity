@@ -66,11 +66,11 @@ public class Teleportable : MonoBehaviour
         // skip if it was teleporting
         if (teleportCoroutine != null) { return; }
 
+        // don't teleport if it was not releasing the button
+        if (eventData.eligibleForClick) { return; }
+
         VivePointerEventData viveEventData;
         if (!eventData.TryGetViveButtonEventData(out viveEventData)) { return; }
-
-        // don't teleport if it was not releasing the button
-        if (viveEventData.eligibleForClick) { return; }
 
         if (viveEventData.viveButton != teleportViveButton) { return; }
 

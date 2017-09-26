@@ -100,25 +100,19 @@ namespace HTC.UnityPlugin.Pointer3D
                 SetLagacyRaycastMode(m_raycastMode);
                 m_raycastMode = RaycastMode.DefaultRaycast;
             }
-
-            Pointer3DInputModule.AddRaycaster(this);
         }
 
         // override OnEnable & OnDisable on purpose so that this BaseRaycaster won't be registered into RaycasterManager
         protected override void OnEnable()
         {
             //base.OnEnable();
+            Pointer3DInputModule.AddRaycaster(this);
         }
 
         protected override void OnDisable()
         {
             //base.OnDisable();
-        }
-
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-            Pointer3DInputModule.RemoveRaycasters(this);
+            Pointer3DInputModule.RemoveRaycaster(this);
         }
 
         public virtual void CleanUpRaycast()

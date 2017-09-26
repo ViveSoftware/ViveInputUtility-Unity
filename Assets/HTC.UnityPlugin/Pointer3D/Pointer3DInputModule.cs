@@ -14,7 +14,7 @@ namespace HTC.UnityPlugin.Pointer3D
         private static bool isApplicationQuitting = false;
 
         private static readonly IndexedSet<Pointer3DRaycaster> raycasters = new IndexedSet<Pointer3DRaycaster>();
-        private static readonly List<Pointer3DRaycaster> processingRaycasters = new List<Pointer3DRaycaster>();
+        private static IndexedSet<Pointer3DRaycaster> processingRaycasters = new IndexedSet<Pointer3DRaycaster>();
         private static int validEventDataId = PointerInputModule.kFakeTouchesId - 1;
 
 #if UNITY_5_5_OR_NEWER
@@ -138,7 +138,7 @@ namespace HTC.UnityPlugin.Pointer3D
         {
             base.OnDisable();
 
-            if (Active)
+            if (Active && processingRaycasters.Count == 0)
             {
                 for (var i = raycasters.Count - 1; i >= 0; --i)
                 {
@@ -210,22 +210,28 @@ namespace HTC.UnityPlugin.Pointer3D
             raycasters.AddUnique(raycaster);
         }
 
-        public static void RemoveRaycasters(Pointer3DRaycaster raycaster)
+        public static void RemoveRaycaster(Pointer3DRaycaster raycaster)
         {
-            raycasters.Remove(raycaster);
+            if (!raycasters.Remove(raycaster)) { return; }
+
+            if (!processingRaycasters.Contains(raycaster) && Active)
+            {
+                Instance.CleanUpRaycaster(raycaster);
+            }
         }
+
+        [Obsolete("Use RemoveRaycaster instead")]
+        public static void RemoveRaycasters(Pointer3DRaycaster raycaster) { RemoveRaycaster(raycaster); }
 
         protected void CleanUpRaycaster(Pointer3DRaycaster raycaster)
         {
-            raycaster.CleanUpRaycast();
-
             var hoverEventData = raycaster.HoverEventData;
 
-            // hover event
-            hoverEventData.pointerCurrentRaycast = default(RaycastResult);
+            hoverEventData.Reset();
 
             if (hoverEventData.pointerEnter != null)
             {
+                hoverEventData.pointerEnter = null;
                 HandlePointerExitAndEnter(hoverEventData, null);
             }
 
@@ -236,15 +242,26 @@ namespace HTC.UnityPlugin.Pointer3D
                 if (buttonEventData == null) { continue; }
 
                 buttonEventData.Reset();
-                buttonEventData.pointerCurrentRaycast = default(RaycastResult);
 
                 ProcessPressUp(buttonEventData);
 
                 if (buttonEventData.pointerEnter != null)
                 {
+                    hoverEventData.pointerEnter = null;
                     HandlePointerExitAndEnter(buttonEventData, null);
                 }
             }
+
+            raycaster.CleanUpRaycast();
+
+            for (int i = 0, imax = raycaster.ButtonEventDataList.Count; i < imax; ++i)
+            {
+                raycaster.ButtonEventDataList[i].pointerPressRaycast = default(RaycastResult);
+                raycaster.ButtonEventDataList[i].pointerCurrentRaycast = default(RaycastResult);
+            }
+
+            hoverEventData.pointerPressRaycast = default(RaycastResult);
+            hoverEventData.pointerCurrentRaycast = default(RaycastResult);
         }
 
         protected virtual void ProcessRaycast()
@@ -254,12 +271,19 @@ namespace HTC.UnityPlugin.Pointer3D
 
             // use another list to iterate raycasters
             // incase that raycasters may changed during this process cycle
-            processingRaycasters.AddRange(raycasters);
+            for (int i = 0, imax = raycasters.Count; i < imax; ++i)
+            {
+                var r = raycasters[i];
+
+                if (r != null)
+                {
+                    processingRaycasters.Add(r);
+                }
+            }
+
             for (var i = processingRaycasters.Count - 1; i >= 0; --i)
             {
                 var raycaster = processingRaycasters[i];
-
-                if (raycaster == null || !raycaster.isActiveAndEnabled) { continue; }
 
                 raycaster.Raycast();
                 var result = raycaster.FirstRaycastResult();
@@ -321,10 +345,24 @@ namespace HTC.UnityPlugin.Pointer3D
                     var scrollHandler = ExecuteEvents.GetEventHandler<IScrollHandler>(result.gameObject);
                     ExecuteEvents.ExecuteHierarchy(scrollHandler, hoverEventData, ExecuteEvents.scrollHandler);
                 }
+            }
 
-                if (!raycaster.isActiveAndEnabled)
+            if (isActiveAndEnabled)
+            {
+                for (var i = processingRaycasters.Count - 1; i >= 0; --i)
                 {
-                    CleanUpRaycaster(raycaster);
+                    var r = processingRaycasters[i];
+                    if (!raycasters.Contains(r))
+                    {
+                        CleanUpRaycaster(r);
+                    }
+                }
+            }
+            else
+            {
+                for (var i = processingRaycasters.Count - 1; i >= 0; --i)
+                {
+                    CleanUpRaycaster(processingRaycasters[i]);
                 }
             }
 
