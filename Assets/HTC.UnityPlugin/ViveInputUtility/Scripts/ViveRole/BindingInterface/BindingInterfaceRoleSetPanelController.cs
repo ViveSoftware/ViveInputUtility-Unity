@@ -20,6 +20,8 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         public class UnityEventString : UnityEvent<string> { }
 
         [SerializeField]
+        private Animator m_animator;
+        [SerializeField]
         private BindingInterfaceRoleSetButtonItem m_roleSetButtonItem;
         [SerializeField]
         private BindingInterfaceRoleSetBindingItem m_bindingItem;
@@ -71,6 +73,8 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         private void OnDisable()
         {
             VRModule.onDeviceConnected -= OnDeviceConnected;
+
+            FinishEditBinding();
         }
 
         private void OnDeviceConnected(uint deviceIndex, bool connected)
@@ -78,19 +82,35 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             RefreshSelectedRoleBindings();
         }
 
+        public void SetAnimatorSlideLeft()
+        {
+            if (m_animator.isInitialized)
+            {
+                m_animator.SetTrigger("SlideRoleSetViewLeft");
+            }
+        }
+
+        public void SetAnimatorSlideRight()
+        {
+            if (m_animator.isInitialized)
+            {
+                m_animator.SetTrigger("SlideRoleSetViewRight");
+            }
+        }
+
+        public void EnableSelection()
+        {
+            for (int i = 0, imax = m_roleSetButtonList.Count; i < imax; ++i)
+            {
+                m_roleSetButtonList[i].interactable = true;
+            }
+        }
+
         public void DisableSelection()
         {
             for (int i = 0, imax = m_roleSetButtonList.Count; i < imax; ++i)
             {
                 m_roleSetButtonList[i].interactable = false;
-            }
-        }
-
-        public void EableSelection()
-        {
-            for (int i = 0, imax = m_roleSetButtonList.Count; i < imax; ++i)
-            {
-                m_roleSetButtonList[i].interactable = true;
             }
         }
 
@@ -125,6 +145,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
                 m_editingDevice = deviceSN;
                 RefreshSelectedRoleBindings();
+                RefreshRoleSelection();
             }
             else
             {

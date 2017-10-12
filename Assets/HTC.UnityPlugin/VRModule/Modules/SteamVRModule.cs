@@ -1,10 +1,10 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 #if VIU_STEAMVR
-using HTC.UnityPlugin.PoseTracker;
 using System.Text;
 using UnityEngine;
 using Valve.VR;
+using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement

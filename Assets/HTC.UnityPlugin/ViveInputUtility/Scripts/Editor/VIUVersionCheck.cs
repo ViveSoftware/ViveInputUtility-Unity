@@ -30,7 +30,7 @@ namespace HTC.UnityPlugin.Vive
         private static string doNotShowSetupSwitch;
 
         private readonly static string s_enableBindUISwitchInfo = "This project will enable binding interface switch! Press RightShift + B to open the binding interface in play mode.";
-        private readonly static string s_disableBindUISwitchInfo = "This project will NOT enable binding interface switch! You can only enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script, or copy \"ViveInputUtility/Scripts/ViveRole/BindingInterface/BindingConfigSample/vive_role_bindings.cfg\" file into project folder before you can press RightShift + B to open the binding interface in play mode.";
+        private readonly static string s_disableBindUISwitchInfo = "This project will NOT enable binding interface switch! You can only enable it manually by calling ViveRoleBindingsHelper.EnableBindingInterface() in script.";
         private readonly static string s_enableExternalCamSwitcInfo = "This project will enable external camera switch! Press RightShift + M to toggle the quad view when external camera is enabled.";
         private readonly static string s_disableExternalCamSwitcInfo = "This project will NOT enable external camera switch! Enable the switch let you toggle the quad view by pressing RightShift + M when external camera is enabled.";
         private static bool s_waitingForCompile;
@@ -54,6 +54,7 @@ namespace HTC.UnityPlugin.Vive
         // check vive input utility version on github
         private static void CheckVersion()
         {
+            // On Windows, PlaterSetting is stored at \HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x
             nextVersionCheckTimeKey = "ViveInputUtility." + PlayerSettings.productGUID + ".LastVersionCheckTime";
             doNotShowUpdateKey = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowUpdate.v{0}";
             doNotShowSetupSwitch = "ViveInputUtility." + PlayerSettings.productGUID + ".DoNotShowSetupSwitch";
@@ -168,22 +169,22 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (toggleBindUISwithState)
                 {
-                    EditorGUILayout.HelpBox(s_enableBindUISwitchInfo, MessageType.Warning);
+                    EditorGUILayout.HelpBox(s_enableBindUISwitchInfo, MessageType.Info);
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox(s_disableBindUISwitchInfo, MessageType.Warning);
+                    EditorGUILayout.HelpBox(s_disableBindUISwitchInfo, MessageType.Info);
                 }
 
                 toggleBindUISwithState = GUILayout.Toggle(toggleBindUISwithState, "Enable Binding Interface Switch");
 
                 if (toggleExCamSwithState)
                 {
-                    EditorGUILayout.HelpBox(s_enableExternalCamSwitcInfo, MessageType.Warning);
+                    EditorGUILayout.HelpBox(s_enableExternalCamSwitcInfo, MessageType.Info);
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox(s_disableExternalCamSwitcInfo, MessageType.Warning);
+                    EditorGUILayout.HelpBox(s_disableExternalCamSwitcInfo, MessageType.Info);
                 }
 
                 toggleExCamSwithState = GUILayout.Toggle(toggleExCamSwithState, "Enable External Camera Switch");
@@ -222,6 +223,11 @@ namespace HTC.UnityPlugin.Vive
                         EditorPrefs.DeleteKey(key);
                     }
                 }
+            }
+
+            if (GUILayout.Button("Close"))
+            {
+                Close();
             }
         }
 
@@ -323,7 +329,6 @@ namespace HTC.UnityPlugin.Vive
             }
             else
             {
-                GUILayout.Space(30f);
                 GUILayout.Button("Re-compiling...");
             }
         }

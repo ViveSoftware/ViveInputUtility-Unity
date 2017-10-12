@@ -449,17 +449,15 @@ namespace HTC.UnityPlugin.Vive
 
         public static Pose GetPose(uint deviceIndex, Transform origin = null)
         {
-            if (!VRModule.IsValidDeviceIndex(deviceIndex))
+            var devicePose = VRModule.GetCurrentDeviceState(deviceIndex).pose;
+
+            if (origin == null)
             {
-                return default(Pose);
-            }
-            else if (origin == null)
-            {
-                return VRModule.GetCurrentDeviceState(deviceIndex).pose;
+                return devicePose;
             }
             else
             {
-                var rawPose = new Pose(origin) * VRModule.GetCurrentDeviceState(deviceIndex).pose;
+                var rawPose = new Pose(origin) * devicePose;
                 rawPose.pos.Scale(origin.localScale);
                 return rawPose;
             }

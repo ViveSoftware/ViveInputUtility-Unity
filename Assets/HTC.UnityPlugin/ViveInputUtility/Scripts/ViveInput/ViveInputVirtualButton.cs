@@ -36,8 +36,6 @@ namespace HTC.UnityPlugin.Vive
         public class OutputEvent : UnityEvent<OutputEventArgs> { }
 
         [SerializeField]
-        private bool m_active = true;
-        [SerializeField]
         private InputsOperatorEnum m_combineInputsOperator = InputsOperatorEnum.Or;
         [SerializeField]
         private List<InputEntry> m_inputs = new List<InputEntry>();
@@ -54,25 +52,15 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private List<Behaviour> m_toggleComponentOnVirtualClick = new List<Behaviour>();
 
+        private bool m_isUpdating;
         private int m_updatedFrameCount;
-        private bool m_updateActivated = false;
-        private bool m_prevState = false;
-        private bool m_currState = false;
+        private bool m_prevPressState = false;
+        private bool m_currPressState = false;
         private float m_lastPressDownTime = 0f;
         private int m_clickCount = 0;
 
-        public bool active
-        {
-            get
-            {
-                return m_active;
-            }
-            set
-            {
-                m_active = value;
-                TryListenUpdateEvent();
-            }
-        }
+        [Obsolete("Use Behaviour.enable instead.")]
+        public bool active { get { return enabled; } set { enabled = value; } }
 
         public InputsOperatorEnum combineInputsOperator { get { return m_combineInputsOperator; } }
         public List<InputEntry> inputs { get { return m_inputs; } }
@@ -84,16 +72,11 @@ namespace HTC.UnityPlugin.Vive
         public OutputEvent onPressDown { get { return m_onVirtualPressDown; } }
         public OutputEvent onPressUp { get { return m_onVirtualPressUp; } }
 
-        private bool isPress { get { return m_currState; } }
-        private bool isDown { get { return !m_prevState && m_currState; } }
-        private bool isUp { get { return m_prevState && !m_currState; } }
+        private bool isPress { get { return m_currPressState; } }
+        private bool isDown { get { return !m_prevPressState && m_currPressState; } }
+        private bool isUp { get { return m_prevPressState && !m_currPressState; } }
 
 #if UNITY_EDITOR
-        private void OnValidate()
-        {
-            TryListenUpdateEvent();
-        }
-
         private void Reset()
         {
             m_inputs.Add(new InputEntry()
@@ -104,28 +87,12 @@ namespace HTC.UnityPlugin.Vive
         }
 #endif
 
-        private void Awake()
-        {
-            TryListenUpdateEvent();
-        }
-
-        private void TryListenUpdateEvent()
-        {
-            if (enabled && Application.isPlaying && m_active && !m_updateActivated)
-            {
-                // register update event
-                ViveInput.onUpdate += OnInputStateUpdated;
-                m_updateActivated = true;
-                ViveInput.Initialize();
-            }
-        }
-
         private void UpdateState()
         {
             if (!ChangeProp.Set(ref m_updatedFrameCount, Time.frameCount)) { return; }
 
-            m_prevState = m_currState;
-            m_currState = false;
+            m_prevPressState = m_currPressState;
+            m_currPressState = false;
 
             if (m_inputs.Count == 0) { return; }
 
@@ -133,13 +100,13 @@ namespace HTC.UnityPlugin.Vive
             {
                 case InputsOperatorEnum.Or:
 
-                    m_currState = false;
+                    m_currPressState = false;
 
                     for (int i = 0, imax = m_inputs.Count; i < imax; ++i)
                     {
                         if (ViveInput.GetPress(m_inputs[i].viveRole, m_inputs[i].button))
                         {
-                            m_currState = true;
+                            m_currPressState = true;
                             break;
                         }
                     }
@@ -147,13 +114,13 @@ namespace HTC.UnityPlugin.Vive
                     break;
                 case InputsOperatorEnum.And:
 
-                    m_currState = true;
+                    m_currPressState = true;
 
                     for (int i = 0, imax = m_inputs.Count; i < imax; ++i)
                     {
                         if (!ViveInput.GetPress(m_inputs[i].viveRole, m_inputs[i].button))
                         {
-                            m_currState = false;
+                            m_currPressState = false;
                             break;
                         }
                     }
@@ -162,138 +129,151 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private void OnInputStateUpdated()
+        private void Update()
         {
+            m_isUpdating = true;
+
+            UpdateState();
+
             var timeNow = Time.unscaledTime;
-
-            if (m_active)
+            // handle events
+            if (isPress)
             {
-                UpdateState();
-
-                if (isPress)
+                if (isDown)
                 {
-                    if (isDown)
+                    // record click count
+                    if (timeNow - m_lastPressDownTime < ViveInput.clickInterval)
                     {
-                        // record click count
-                        if (timeNow - m_lastPressDownTime < ViveInput.clickInterval)
-                        {
-                            ++m_clickCount;
-                        }
-                        else
-                        {
-                            m_clickCount = 1;
-                        }
-
-                        // record press down time
-                        m_lastPressDownTime = timeNow;
-
-                        // PressDown event
-                        if (m_onVirtualPressDown != null)
-                        {
-                            m_onVirtualPressDown.Invoke(new OutputEventArgs()
-                            {
-                                senderObj = this,
-                                eventType = ButtonEventType.Down,
-                            });
-                        }
+                        ++m_clickCount;
+                    }
+                    else
+                    {
+                        m_clickCount = 1;
                     }
 
-                    // Press event
-                    if (m_onVirtualPress != null)
+                    // record press down time
+                    m_lastPressDownTime = timeNow;
+
+                    // PressDown event
+                    if (m_onVirtualPressDown != null)
                     {
-                        m_onVirtualPress.Invoke(new OutputEventArgs()
+                        m_onVirtualPressDown.Invoke(new OutputEventArgs()
                         {
                             senderObj = this,
-                            eventType = ButtonEventType.Press,
+                            eventType = ButtonEventType.Down,
                         });
                     }
                 }
-                else if (isUp)
+
+                // Press event
+                if (m_onVirtualPress != null)
                 {
-                    // PressUp event
-                    if (m_onVirtualPressUp != null)
+                    m_onVirtualPress.Invoke(new OutputEventArgs()
                     {
-                        m_onVirtualPressUp.Invoke(new OutputEventArgs()
-                        {
-                            senderObj = this,
-                            eventType = ButtonEventType.Up,
-                        });
+                        senderObj = this,
+                        eventType = ButtonEventType.Press,
+                    });
+                }
+            }
+            else if (isUp)
+            {
+                // PressUp event
+                if (m_onVirtualPressUp != null)
+                {
+                    m_onVirtualPressUp.Invoke(new OutputEventArgs()
+                    {
+                        senderObj = this,
+                        eventType = ButtonEventType.Up,
+                    });
+                }
+
+                if (timeNow - m_lastPressDownTime < ViveInput.clickInterval)
+                {
+                    for (int i = m_toggleGameObjectOnVirtualClick.Count - 1; i >= 0; --i)
+                    {
+                        if (m_toggleGameObjectOnVirtualClick[i] != null) { m_toggleGameObjectOnVirtualClick[i].SetActive(!m_toggleGameObjectOnVirtualClick[i].activeSelf); }
                     }
 
-                    if (timeNow - m_lastPressDownTime < ViveInput.clickInterval)
+                    for (int i = m_toggleComponentOnVirtualClick.Count - 1; i >= 0; --i)
                     {
-                        for (int i = m_toggleGameObjectOnVirtualClick.Count - 1; i >= 0; --i)
-                        {
-                            if (m_toggleGameObjectOnVirtualClick[i] != null) { m_toggleGameObjectOnVirtualClick[i].SetActive(!m_toggleGameObjectOnVirtualClick[i].activeSelf); }
-                        }
+                        if (m_toggleComponentOnVirtualClick[i] != null) { m_toggleComponentOnVirtualClick[i].enabled = !m_toggleComponentOnVirtualClick[i].enabled; }
+                    }
 
-                        for (int i = m_toggleComponentOnVirtualClick.Count - 1; i >= 0; --i)
+                    // Click event
+                    if (m_onVirtualClick != null)
+                    {
+                        m_onVirtualClick.Invoke(new OutputEventArgs()
                         {
-                            if (m_toggleComponentOnVirtualClick[i] != null) { m_toggleComponentOnVirtualClick[i].enabled = !m_toggleComponentOnVirtualClick[i].enabled; }
-                        }
-
-                        // Click event
-                        if (m_onVirtualClick != null)
-                        {
-                            m_onVirtualClick.Invoke(new OutputEventArgs()
-                            {
-                                senderObj = this,
-                                eventType = ButtonEventType.Click,
-                            });
-                        }
+                            senderObj = this,
+                            eventType = ButtonEventType.Click,
+                        });
                     }
                 }
             }
-            else
+
+            if (!isActiveAndEnabled)
             {
-                // unregister update event
-                ViveInput.onUpdate -= OnInputStateUpdated;
-                m_updateActivated = false;
+                InternalDisable();
+            }
 
-                // clean up
-                m_prevState = m_currState;
-                m_currState = false;
+            m_isUpdating = false;
+        }
 
-                if (isUp)
-                {
-                    // PressUp event
-                    if (m_onVirtualPressUp != null)
-                    {
-                        m_onVirtualPressUp.Invoke(new OutputEventArgs()
-                        {
-                            senderObj = this,
-                            eventType = ButtonEventType.Up,
-                        });
-                    }
-
-                    if (timeNow - m_lastPressDownTime < ViveInput.clickInterval)
-                    {
-                        for (int i = m_toggleGameObjectOnVirtualClick.Count - 1; i >= 0; --i)
-                        {
-                            if (m_toggleGameObjectOnVirtualClick[i] != null) { m_toggleGameObjectOnVirtualClick[i].SetActive(!m_toggleGameObjectOnVirtualClick[i].activeSelf); }
-                        }
-
-                        for (int i = m_toggleComponentOnVirtualClick.Count - 1; i >= 0; --i)
-                        {
-                            if (m_toggleComponentOnVirtualClick[i] != null) { m_toggleComponentOnVirtualClick[i].enabled = !m_toggleComponentOnVirtualClick[i].enabled; }
-                        }
-
-                        // Click event
-                        if (m_onVirtualClick != null)
-                        {
-                            m_onVirtualClick.Invoke(new OutputEventArgs()
-                            {
-                                senderObj = this,
-                                eventType = ButtonEventType.Click,
-                            });
-                        }
-                    }
-                }
-
-                m_prevState = false;
+        private void OnDisable()
+        {
+            if (!m_isUpdating)
+            {
+                InternalDisable();
             }
         }
 
+        private void InternalDisable()
+        {
+            var timeNow = Time.unscaledTime;
+
+            // clean up
+            m_prevPressState = m_currPressState;
+            m_currPressState = false;
+
+            if (isUp)
+            {
+                // PressUp event
+                if (m_onVirtualPressUp != null)
+                {
+                    m_onVirtualPressUp.Invoke(new OutputEventArgs()
+                    {
+                        senderObj = this,
+                        eventType = ButtonEventType.Up,
+                    });
+                }
+
+                if (timeNow - m_lastPressDownTime < ViveInput.clickInterval)
+                {
+                    for (int i = m_toggleGameObjectOnVirtualClick.Count - 1; i >= 0; --i)
+                    {
+                        if (m_toggleGameObjectOnVirtualClick[i] != null) { m_toggleGameObjectOnVirtualClick[i].SetActive(!m_toggleGameObjectOnVirtualClick[i].activeSelf); }
+                    }
+
+                    for (int i = m_toggleComponentOnVirtualClick.Count - 1; i >= 0; --i)
+                    {
+                        if (m_toggleComponentOnVirtualClick[i] != null) { m_toggleComponentOnVirtualClick[i].enabled = !m_toggleComponentOnVirtualClick[i].enabled; }
+                    }
+
+                    // Click event
+                    if (m_onVirtualClick != null)
+                    {
+                        m_onVirtualClick.Invoke(new OutputEventArgs()
+                        {
+                            senderObj = this,
+                            eventType = ButtonEventType.Click,
+                        });
+                    }
+                }
+            }
+
+            m_prevPressState = false;
+        }
+        
         public bool GetVirtualPress()
         {
             UpdateState();
@@ -322,11 +302,6 @@ namespace HTC.UnityPlugin.Vive
         {
             UpdateState();
             return m_lastPressDownTime;
-        }
-
-        public void ToggleActive()
-        {
-            active = !active;
         }
     }
 }

@@ -94,7 +94,7 @@ namespace HTC.UnityPlugin.Vive
 
         public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
         {
-            if (!RoleMap.IsDeviceBound(deviceSN) && !IsController(deviceClass)) { return; }
+            if (!RoleMap.IsDeviceBound(deviceSN) && !IsController(deviceClass) && !IsTracker(deviceClass)) { return; }
 
             Refresh();
         }
@@ -146,12 +146,12 @@ namespace HTC.UnityPlugin.Vive
             {
                 leftIndex = VRModule.INVALID_DEVICE_INDEX;
             }
-            
+
             // if not both left/right controllers are assigned, find and assign them with left/right most controller
             if (!VRModule.IsValidDeviceIndex(rightIndex) || !VRModule.IsValidDeviceIndex(leftIndex))
             {
                 // find right to left sorted controllers
-                // FIXME: GetSortedTrackedDeviceIndicesOfClass doesn't return correct devices count rightafter device connected
+                // FIXME: GetSortedTrackedDeviceIndicesOfClass doesn't return correct devices count right after device connected
 #if __VIU_STEAMVR
                 if (VRModule.activeModule == SupportedVRModule.SteamVR)
                 {
