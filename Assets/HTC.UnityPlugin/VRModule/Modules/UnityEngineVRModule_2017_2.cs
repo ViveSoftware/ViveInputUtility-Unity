@@ -127,7 +127,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return true;
         }
 
-        private void RemoveNodeDeviceIndex(ulong uniqueID)
+        private uint RemoveNodeDeviceIndex(ulong uniqueID)
         {
             var deviceIndex = INVALID_DEVICE_INDEX;
             if (m_node2Index.TryGetValue(uniqueID, out deviceIndex))
@@ -138,6 +138,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (deviceIndex == m_rightIndex) { m_rightIndex = INVALID_DEVICE_INDEX; }
                 if (deviceIndex == m_leftIndex) { m_leftIndex = INVALID_DEVICE_INDEX; }
             }
+
+            return deviceIndex;
         }
 
         public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
@@ -298,8 +300,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             // remove disconnected nodes
             for (int i = m_prevExistNodeUids.Count - 1; i >= 0; --i)
             {
-                if (currState[i].isConnected) { currState[i].Reset(); }
-                RemoveNodeDeviceIndex(m_prevExistNodeUids[i]);
+                var removedIndex = RemoveNodeDeviceIndex(m_prevExistNodeUids[i]);
+                if (VRModule.IsValidDeviceIndex(removedIndex))
+                {
+                    currState[removedIndex].Reset();
+                }
             }
 
             var temp = m_prevExistNodeUids;
