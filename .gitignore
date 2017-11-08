@@ -5,6 +5,7 @@
 /[Bb]uilds/
 /[Pp]ackages/
 /.vs/
+/UnityPackageManager/
 
 ProjectSettings/*
 !ProjectSettings/EditorSettings.asset
