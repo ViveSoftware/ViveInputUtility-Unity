@@ -104,7 +104,7 @@ public class Teleportable : MonoBehaviour
                 var fadeScripts = FindObjectsOfType<SteamVR_Fade>();
                 if (fadeScripts == null || fadeScripts.Length <= 0)
                 {
-                    var topCam = SteamVR_Render.Top().gameObject;
+                    var topCam = SteamVR_Render.Top();
                     if (topCam != null)
                     {
                         topCam.gameObject.AddComponent<SteamVR_Fade>();
