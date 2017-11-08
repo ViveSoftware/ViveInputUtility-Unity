@@ -1,48 +1,85 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-#if UNITY_2017_1_OR_NEWER && !UNITY_2017_2_OR_NEWER
+#if UNITY_2017_1_OR_NEWER
+
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
 using UnityEngine;
+
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR;
+#else
 using UnityEngine.VR;
+using XRSettings = UnityEngine.VR.VRSettings;
+using XRDevice = UnityEngine.VR.VRDevice;
+using XRNodeState = UnityEngine.VR.VRNodeState;
+using XRNode = UnityEngine.VR.VRNode;
+#endif
+
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-#if UNITY_2017_1_OR_NEWER && !UNITY_2017_2_OR_NEWER
+#if UNITY_2017_1_OR_NEWER
         private uint m_leftIndex = INVALID_DEVICE_INDEX;
         private uint m_rightIndex = INVALID_DEVICE_INDEX;
 
         private Dictionary<ulong, uint> m_node2Index = new Dictionary<ulong, uint>();
         private bool[] m_nodeStatesValid = new bool[MAX_DEVICE_COUNT];
-        private List<VRNodeState> m_nodeStateList = new List<VRNodeState>();
+        private List<XRNodeState> m_nodeStateList = new List<XRNodeState>();
 
         private IndexedSet<ulong> m_prevExistNodeUids = new IndexedSet<ulong>();
         private IndexedSet<ulong> m_currExistNodeUids = new IndexedSet<ulong>();
+
+        private TrackingSpaceType m_prevTrackingSpace;
+
+        public override void OnActivated()
+        {
+            m_prevTrackingSpace = XRDevice.GetTrackingSpaceType();
+            UpdateTrackingSpaceType();
+        }
+
+        public override void OnDeactivated()
+        {
+            XRDevice.SetTrackingSpaceType(m_prevTrackingSpace);
+        }
 
         public override uint GetLeftControllerDeviceIndex() { return m_leftIndex; }
 
         public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
 
-        private bool IsTrackingDeviceNode(VRNodeState nodeState)
+        public override void UpdateTrackingSpaceType()
+        {
+            switch (VRModule.trackingSpaceType)
+            {
+                case VRModuleTrackingSpaceType.Stationary:
+                    XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
+                    break;
+                case VRModuleTrackingSpaceType.RoomScale:
+                    XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale);
+                    break;
+            }
+        }
+
+        private bool IsTrackingDeviceNode(XRNodeState nodeState)
         {
             switch (nodeState.nodeType)
             {
-                case VRNode.Head:
-                case VRNode.RightHand:
-                case VRNode.LeftHand:
-                case VRNode.GameController:
-                case VRNode.HardwareTracker:
-                case VRNode.TrackingReference:
+                case XRNode.Head:
+                case XRNode.RightHand:
+                case XRNode.LeftHand:
+                case XRNode.GameController:
+                case XRNode.HardwareTracker:
+                case XRNode.TrackingReference:
                     return true;
                 default:
                     return false;
             }
         }
 
-        private bool TryGetNodeDeviceIndex(VRNodeState nodeState, out uint deviceIndex)
+        private bool TryGetNodeDeviceIndex(XRNodeState nodeState, out uint deviceIndex)
         {
             // only tracking certain type of node (some nodes share same uniqueID)
             if (!IsTrackingDeviceNode(nodeState)) { deviceIndex = 0; return false; }
@@ -54,7 +91,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 var validIndexFound = false;
 
-                if (nodeState.nodeType == VRNode.Head)
+                if (nodeState.nodeType == XRNode.Head)
                 {
                     if (m_nodeStatesValid[0])
                     {
@@ -79,8 +116,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                             switch (nodeState.nodeType)
                             {
-                                case VRNode.RightHand: m_rightIndex = i; break;
-                                case VRNode.LeftHand: m_leftIndex = i; break;
+                                case XRNode.RightHand: m_rightIndex = i; break;
+                                case XRNode.LeftHand: m_leftIndex = i; break;
                             }
 
                             deviceIndex = i;
@@ -92,7 +129,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (!validIndexFound)
                 {
-                    Debug.LogWarning("[" + Time.frameCount + "] VRNode added, but device index out of range, drop the node id:" + nodeState.uniqueID.ToString("X8") + " type:" + nodeState.nodeType + " name:" + InputTracking.GetNodeName(nodeState.uniqueID) + " tracked=" + nodeState.tracked);
+                    Debug.LogWarning("[" + Time.frameCount + "] XRNode added, but device index out of range, drop the node id:" + nodeState.uniqueID.ToString("X8") + " type:" + nodeState.nodeType + " name:" + InputTracking.GetNodeName(nodeState.uniqueID) + " tracked=" + nodeState.tracked);
                     return false;
                 }
 
@@ -102,7 +139,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return true;
         }
 
-        private void RemoveNodeDeviceIndex(ulong uniqueID)
+        private uint RemoveNodeDeviceIndex(ulong uniqueID)
         {
             var deviceIndex = INVALID_DEVICE_INDEX;
             if (m_node2Index.TryGetValue(uniqueID, out deviceIndex))
@@ -113,11 +150,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (deviceIndex == m_rightIndex) { m_rightIndex = INVALID_DEVICE_INDEX; }
                 if (deviceIndex == m_leftIndex) { m_leftIndex = INVALID_DEVICE_INDEX; }
             }
+
+            return deviceIndex;
         }
 
         public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
         {
-            if (VRSettings.isDeviceActive && VRDevice.isPresent)
+            if (XRSettings.isDeviceActive && XRDevice.isPresent)
             {
                 InputTracking.GetNodeStates(m_nodeStateList);
             }
@@ -143,24 +182,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 switch (m_nodeStateList[i].nodeType)
                 {
-                    case VRNode.Head:
+                    case XRNode.Head:
                         currDeviceState.deviceClass = VRModuleDeviceClass.HMD;
                         break;
-                    case VRNode.RightHand:
+                    case XRNode.RightHand:
                         currDeviceState.deviceClass = VRModuleDeviceClass.Controller;
                         rightIndex = deviceIndex;
                         break;
-                    case VRNode.LeftHand:
+                    case XRNode.LeftHand:
                         currDeviceState.deviceClass = VRModuleDeviceClass.Controller;
                         leftIndex = deviceIndex;
                         break;
-                    case VRNode.GameController:
+                    case XRNode.GameController:
                         currDeviceState.deviceClass = VRModuleDeviceClass.Controller;
                         break;
-                    case VRNode.HardwareTracker:
+                    case XRNode.HardwareTracker:
                         currDeviceState.deviceClass = VRModuleDeviceClass.GenericTracker;
                         break;
-                    case VRNode.TrackingReference:
+                    case XRNode.TrackingReference:
                         currDeviceState.deviceClass = VRModuleDeviceClass.TrackingReference;
                         break;
                     default:
@@ -172,9 +211,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     // FIXME: getting wrong name in Unity 2017.1f1
                     //currDeviceState.serialNumber = InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty;
-                    currDeviceState.serialNumber = VRDevice.model + " " + m_nodeStateList[i].uniqueID.ToString("X8");
-                    currDeviceState.modelNumber = VRDevice.model + " " + m_nodeStateList[i].nodeType;
-                    currDeviceState.renderModelName = VRDevice.model + " " + m_nodeStateList[i].nodeType;
+                    currDeviceState.serialNumber = XRDevice.model + " " + m_nodeStateList[i].uniqueID.ToString("X8");
+                    currDeviceState.modelNumber = XRDevice.model + " " + m_nodeStateList[i].nodeType;
+                    currDeviceState.renderModelName = XRDevice.model + " " + m_nodeStateList[i].nodeType;
 
                     SetupKnownDeviceModel(currDeviceState);
                 }
@@ -273,8 +312,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             // remove disconnected nodes
             for (int i = m_prevExistNodeUids.Count - 1; i >= 0; --i)
             {
-                if (currState[i].isConnected) { currState[i].Reset(); }
-                RemoveNodeDeviceIndex(m_prevExistNodeUids[i]);
+                var removedIndex = RemoveNodeDeviceIndex(m_prevExistNodeUids[i]);
+                if (VRModule.IsValidDeviceIndex(removedIndex))
+                {
+                    currState[removedIndex].Reset();
+                }
             }
 
             var temp = m_prevExistNodeUids;
