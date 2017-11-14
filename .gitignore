@@ -13,6 +13,8 @@ ProjectSettings/*
 Assets/*
 !Assets/HTC.UnityPlugin/
 !Assets/HTC.UnityPlugin.meta
+Assets/HTC.UnityPlugin/ViveInputUtility/changelog.txt
+Assets/HTC.UnityPlugin/ViveInputUtility/changelog.txt.meta
 
 *.cfg
 
