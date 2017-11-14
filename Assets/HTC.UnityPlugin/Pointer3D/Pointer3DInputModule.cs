@@ -387,9 +387,9 @@ namespace HTC.UnityPlugin.Pointer3D
             if (eventData.GetPressDown())
             {
                 ProcessPressDown(eventData);
-                HandlePressExitAndEnter(eventData, eventData.pointerCurrentRaycast.gameObject);
             }
-            else if (eventData.GetPress())
+
+            if (eventData.GetPress())
             {
                 HandlePressExitAndEnter(eventData, eventData.pointerCurrentRaycast.gameObject);
             }
@@ -492,6 +492,16 @@ namespace HTC.UnityPlugin.Pointer3D
 
             eventData.dragging = false;
             eventData.pointerDrag = null;
+
+            // redo pointer enter / exit to refresh state
+            // so that if we moused over something that ignored it before
+            // due to having pressed on something else
+            // it now gets it.
+            if (currentOverGo != eventData.pointerEnter)
+            {
+                HandlePointerExitAndEnter(eventData, null);
+                HandlePointerExitAndEnter(eventData, currentOverGo);
+            }
         }
 
         protected bool ShouldStartDrag(Pointer3DEventData eventData)
