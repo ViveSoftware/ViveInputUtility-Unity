@@ -31,7 +31,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [SerializeField]
         private ActiveModuleChangedEvent m_onActiveModuleChanged = new ActiveModuleChangedEvent();
 
-        private int m_poseUpdatedFrame = -1;
         private bool m_isUpdating = false;
         private bool m_isDestoryed = false;
 
@@ -110,6 +109,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 
 #if !UNITY_2017_1_OR_NEWER
+        private int m_poseUpdatedFrame = -1;
         private void OnCameraPreCull(Camera cam)
         {
             var thisFrame = Time.frameCount;
