@@ -26,6 +26,8 @@ GameObject:
   - 4: {fileID: 404836}
   - 20: {fileID: 2071970}
   - 124: {fileID: 12406598}
+  - 81: {fileID: 8189340}
+  - 92: {fileID: 9261234}
   - 114: {fileID: 11413550}
   m_Layer: 0
   m_Name: Camera
@@ -399,6 +401,20 @@ Camera:
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
   m_StereoMirrorMode: 0
+--- !u!81 &8189340
+AudioListener:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 116882}
+  m_Enabled: 1
+--- !u!92 &9261234
+Behaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 116882}
+  m_Enabled: 1
 --- !u!114 &11401118
 MonoBehaviour:
   m_ObjectHideFlags: 1
