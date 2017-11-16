@@ -31,7 +31,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [SerializeField]
         private ActiveModuleChangedEvent m_onActiveModuleChanged = new ActiveModuleChangedEvent();
 
-        private int m_poseUpdatedFrame = -1;
         private bool m_isUpdating = false;
         private bool m_isDestoryed = false;
 
@@ -81,14 +80,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_prevStates = new DeviceState[MAX_DEVICE_COUNT];
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i) { m_prevStates[i] = new DeviceState(i); }
 
+#if UNITY_2017_1_OR_NEWER
+            Application.onBeforeRender += DoUpdateFrame;
+#else
             Camera.onPreCull += OnCameraPreCull;
+#endif
         }
 
         protected override void OnDestroy()
         {
             if (IsInstance)
             {
+#if UNITY_2017_1_OR_NEWER
+                Application.onBeforeRender -= DoUpdateFrame;
+#else
                 Camera.onPreCull -= OnCameraPreCull;
+#endif
 
                 m_isDestoryed = true;
 
@@ -101,17 +108,26 @@ namespace HTC.UnityPlugin.VRModuleManagement
             base.OnDestroy();
         }
 
+#if !UNITY_2017_1_OR_NEWER
+        private int m_poseUpdatedFrame = -1;
         private void OnCameraPreCull(Camera cam)
         {
-#if UNITY_EDITOR
-            // skip pre cull from scene camera (editor only?)
-            // because at this point, the LastPoses seems not updated yet (the result is same as last frame)
-            // shell wait till next game camera pre cull (top game camera)
-            if (cam.depth == 0 && cam.name == "SceneCamera") { return; }
-#endif
-            // update only once per frame
-            if (!ChangeProp.Set(ref m_poseUpdatedFrame, Time.frameCount)) { return; }
+            var thisFrame = Time.frameCount;
+            if (m_poseUpdatedFrame == thisFrame) { return; }
 
+            if (cam.cameraType != CameraType.Game) { return; }
+
+#if VIU_STEAMVR && !UNITY_5_4_OR_NEWER
+            if (activeModule == VRModuleActiveEnum.SteamVR && cam.GetComponent<SteamVR_Camera>() == null) { return; }
+#endif
+
+            m_poseUpdatedFrame = thisFrame;
+            DoUpdateFrame();
+        }
+#endif
+
+        private void DoUpdateFrame()
+        {
             m_isUpdating = true;
 
             UpdateActivatedModule();

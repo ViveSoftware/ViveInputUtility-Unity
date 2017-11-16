@@ -22,19 +22,6 @@ public class SteamVRCameraHook : MonoBehaviour
     {
         if (activatedModule == VRModuleActiveEnum.SteamVR)
         {
-            var earsComp = default(SteamVR_Ears);
-            for (int i = transform.childCount - 1; i >= 0; --i)
-            {
-                earsComp = transform.GetChild(i).GetComponentInChildren<SteamVR_Ears>();
-                if (earsComp != null) { break; }
-            }
-
-            if (earsComp == null)
-            {
-                var ears = new GameObject("Camera (ears)", typeof(AudioListener), typeof(SteamVR_Ears));
-                ears.transform.SetParent(transform, false);
-            }
-
             if (GetComponent<SteamVR_Camera>() == null)
             {
                 gameObject.AddComponent<SteamVR_Camera>();

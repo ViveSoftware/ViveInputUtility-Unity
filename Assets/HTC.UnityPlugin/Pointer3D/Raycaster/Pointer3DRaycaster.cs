@@ -22,7 +22,6 @@ namespace HTC.UnityPlugin.Pointer3D
     {
         public const float MIN_SEGMENT_DISTANCE = 0.01f;
 
-        private Pointer3DEventData hoverEventData;
         private ReadOnlyCollection<Pointer3DEventData> buttonEventDataListReadOnly;
         private ReadOnlyCollection<RaycastResult> sortedRaycastResultsReadOnly;
         private ReadOnlyCollection<Vector3> breakPointsReadOnly;
@@ -35,11 +34,8 @@ namespace HTC.UnityPlugin.Pointer3D
         public float clickInterval = 0.3f;
 
         public bool showDebugRay = true;
-
-        public Pointer3DEventData HoverEventData
-        {
-            get { return hoverEventData ?? (hoverEventData = new Pointer3DEventData(this, EventSystem.current)); }
-        }
+        
+        public Pointer3DEventData HoverEventData { get { return buttonEventDataList.Count > 0 ? buttonEventDataList[0] : null; } }
 
         public ReadOnlyCollection<Pointer3DEventData> ButtonEventDataList
         {
@@ -388,5 +384,26 @@ namespace HTC.UnityPlugin.Pointer3D
             }
         }
         #endregion
+
+        public override string ToString()
+        {
+            var str = string.Empty;
+            str += "Raycaster path: " + Pointer3DInputModule.PrintGOPath(gameObject) + "(" + GetType().Name + ")\n";
+            str += "Raycaster transform: " + "pos" + transform.position.ToString("0.00") + " " + "rot" + transform.eulerAngles.ToString("0.0") + "\n";
+
+            for (int i = 0, imax = buttonEventDataList.Count; i < imax; ++i)
+            {
+                var eventData = buttonEventDataList[i];
+                if (eventData == null) { continue; }
+
+                if (eventData.eligibleForClick || (i == 0 && eventData.pointerEnter != null)) // is hover event?
+                {
+                    str += "<b>EventData: [" + i + "]</b>\n";
+                    str += eventData.ToString();
+                }
+            }
+
+            return str;
+        }
     }
 }
