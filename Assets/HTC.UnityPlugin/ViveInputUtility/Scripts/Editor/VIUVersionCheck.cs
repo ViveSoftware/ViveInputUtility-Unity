@@ -104,9 +104,9 @@ namespace HTC.UnityPlugin.Vive
         public const double versionCheckIntervalMinutes = 60.0;
 
         // On Windows, PlaterSetting is stored at \HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x
-        private static readonly string editorPrefsPrefix = "ViveInputUtility." + PlayerSettings.productGUID + ".";
-        private static readonly string nextVersionCheckTimeKey = editorPrefsPrefix + "LastVersionCheckTime";
-        private static readonly string fmtIgnoreUpdateKey = editorPrefsPrefix + "DoNotShowUpdate.v{0}";
+        private static string editorPrefsPrefix;
+        private static string nextVersionCheckTimeKey;
+        private static string fmtIgnoreUpdateKey;
         private static string ignoreThisVersionKey;
 
         private const string BIND_UI_SWITCH_TOOLTIP = "When enabled, pressing RightShift + B to open the binding interface in play mode.";
@@ -296,6 +296,13 @@ namespace HTC.UnityPlugin.Vive
         // check vive input utility version on github
         private static void CheckVersionAndSettings()
         {
+            if (string.IsNullOrEmpty(editorPrefsPrefix))
+            {
+                editorPrefsPrefix = "ViveInputUtility." + PlayerSettings.productGUID + ".";
+                nextVersionCheckTimeKey = editorPrefsPrefix + "LastVersionCheckTime";
+                fmtIgnoreUpdateKey = editorPrefsPrefix + "DoNotShowUpdate.v{0}";
+            }
+
             // fetch new version info from github release site
             if (!completeCheckVersionFlow)
             {
