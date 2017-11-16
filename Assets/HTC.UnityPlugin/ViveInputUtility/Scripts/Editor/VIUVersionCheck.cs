@@ -29,23 +29,24 @@ namespace HTC.UnityPlugin.Vive
             void DeleteIgnore();
         }
 
-        private class PropSetting<T> : IPropSetting where T : struct
+        private class PropSetting<T> : IPropSetting
         {
             private const string fmtTitle = "{0} (current = {1})";
-            private const string fmtRecommendBtn = "Use recommended (current = {0})";
-            private const string fmtRecommendBtnWithPosefix = "Use recommended (current = {0}) - {1}";
-
-            private string m_ignoreKey;
-            private string m_settingTitle;
+            private const string fmtRecommendBtn = "Use recommended ({0})";
+            private const string fmtRecommendBtnWithPosefix = "Use recommended ({0}) - {1}";
             
-            public string settingTitle { get { return m_settingTitle; } set { m_settingTitle = value; m_ignoreKey = editorPrefsPrefix + value.Replace(" ", ""); } }
+            private string m_settingTitle;
+            private string m_settingTrimedTitle;
+            private string ignoreKey { get { return editorPrefsPrefix + m_settingTrimedTitle; } }
+
+            public string settingTitle { get { return m_settingTitle; } set { m_settingTitle = value; m_settingTrimedTitle = value.Replace(" ", ""); } }
             public string recommendBtnPostfix;
             public string toolTip = string.Empty;
             public Func<T> currentValueFunc = null;
             public Action<T> setValueFunc = null;
             public T recommendedValue = default(T);
 
-            public bool IsIgnored() { return EditorPrefs.HasKey(m_ignoreKey); }
+            public bool IsIgnored() { return EditorPrefs.HasKey(ignoreKey); }
 
             public bool IsUsingRecommendedValue() { return EqualityComparer<T>.Default.Equals(currentValueFunc(), recommendedValue); }
 
@@ -87,12 +88,12 @@ namespace HTC.UnityPlugin.Vive
 
             public void DoIgnore()
             {
-                EditorPrefs.SetBool(m_ignoreKey, true);
+                EditorPrefs.SetBool(ignoreKey, true);
             }
 
             public void DeleteIgnore()
             {
-                EditorPrefs.DeleteKey(m_ignoreKey);
+                EditorPrefs.DeleteKey(ignoreKey);
             }
         }
 
@@ -173,7 +174,7 @@ namespace HTC.UnityPlugin.Vive
 
             new PropSetting<bool>()
             {
-            settingTitle = "Default is Fullscreen",
+            settingTitle = "Default Is Fullscreen",
             currentValueFunc = () => PlayerSettings.defaultIsFullScreen,
             setValueFunc = (v) => PlayerSettings.defaultIsFullScreen = v,
             recommendedValue = false,
@@ -475,7 +476,7 @@ namespace HTC.UnityPlugin.Vive
                     if (drawCount == 0)
                     {
                         EditorGUILayout.HelpBox("Recommended project settings:", MessageType.Warning);
-                        
+
                         settingScrollPosition = GUILayout.BeginScrollView(settingScrollPosition, GUILayout.ExpandHeight(true));
                     }
 
@@ -501,16 +502,11 @@ namespace HTC.UnityPlugin.Vive
                     if (GUILayout.Button("Accept All(" + drawCount + ")"))
                     {
                         foreach (var setting in s_settings) { if (!setting.IsIgnored()) { setting.AcceptRecommendValue(); } }
-
-                        EditorUtility.DisplayDialog("Accept All", "You made the right choice!", "Ok");
                     }
 
                     if (GUILayout.Button("Ignore All(" + drawCount + ")"))
                     {
-                        if (EditorUtility.DisplayDialog("Ignore All", "Are you sure?", "Yes, Ignore All Settings", "Cancel"))
-                        {
-                            foreach (var setting in s_settings) { if (!setting.IsIgnored() && !setting.IsUsingRecommendedValue()) { setting.DoIgnore(); } }
-                        }
+                        foreach (var setting in s_settings) { if (!setting.IsIgnored() && !setting.IsUsingRecommendedValue()) { setting.DoIgnore(); } }
                     }
                 }
                 GUILayout.EndHorizontal();
