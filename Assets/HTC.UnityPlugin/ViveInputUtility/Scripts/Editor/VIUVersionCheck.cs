@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.Vive
             private const string fmtTitle = "{0} (current = {1})";
             private const string fmtRecommendBtn = "Use recommended ({0})";
             private const string fmtRecommendBtnWithPosefix = "Use recommended ({0}) - {1}";
-            
+
             private string m_settingTitle;
             private string m_settingTrimedTitle;
             private string ignoreKey { get { return editorPrefsPrefix + m_settingTrimedTitle; } }
@@ -290,8 +290,6 @@ namespace HTC.UnityPlugin.Vive
         static VIUVersionCheck()
         {
             EditorApplication.update += CheckVersionAndSettings;
-            s_waitingForCompile = false;
-            EditorApplication.RepaintProjectWindow();
         }
 
         // check vive input utility version on github
@@ -302,6 +300,13 @@ namespace HTC.UnityPlugin.Vive
                 editorPrefsPrefix = "ViveInputUtility." + PlayerSettings.productGUID + ".";
                 nextVersionCheckTimeKey = editorPrefsPrefix + "LastVersionCheckTime";
                 fmtIgnoreUpdateKey = editorPrefsPrefix + "DoNotShowUpdate.v{0}";
+
+                // Force refresh preference window so it won't stuck in "re-compinling" state
+                var prefWindow = GetWindow<EditorWindow>("Unity Preferences", false);
+                if (prefWindow != null && prefWindow.titleContent.text == "Unity Preferences")
+                {
+                    prefWindow.Repaint();
+                }
             }
 
             // fetch new version info from github release site
@@ -677,7 +682,15 @@ namespace HTC.UnityPlugin.Vive
             }
             else
             {
-                GUILayout.Button("Re-compiling...");
+                GUILayout.FlexibleSpace();
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label("Re-compiling...");
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.FlexibleSpace();
             }
         }
     }
