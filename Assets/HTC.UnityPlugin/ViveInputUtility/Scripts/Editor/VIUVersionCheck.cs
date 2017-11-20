@@ -302,10 +302,13 @@ namespace HTC.UnityPlugin.Vive
                 fmtIgnoreUpdateKey = editorPrefsPrefix + "DoNotShowUpdate.v{0}";
 
                 // Force refresh preference window so it won't stuck in "re-compinling" state
-                var prefWindow = GetWindow<EditorWindow>("Unity Preferences", false);
-                if (prefWindow != null && prefWindow.titleContent.text == "Unity Preferences")
+                if (GUIUtility.hotControl == 0)
                 {
-                    prefWindow.Repaint();
+                    var prefWindow = GetWindow<EditorWindow>("Unity Preferences", false);
+                    if (prefWindow != null && prefWindow.titleContent.text == "Unity Preferences")
+                    {
+                        prefWindow.Repaint();
+                    }
                 }
             }
 
@@ -374,7 +377,7 @@ namespace HTC.UnityPlugin.Vive
                 window.minSize = new Vector2(240f, 550f);
 
                 var rect = window.position;
-                window.position = new Rect(Mathf.Max(rect.x, 50f), Mathf.Max(rect.y, 50f), rect.width, 150f + ((showNewVersion && recommendCount > 0) ? 700f : 400f));
+                window.position = new Rect(Mathf.Max(rect.x, 50f), Mathf.Max(rect.y, 50f), rect.width, 200f + (showNewVersion ? 700f : 400f));
             }
 
             EditorApplication.update -= CheckVersionAndSettings;
