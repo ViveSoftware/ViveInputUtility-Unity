@@ -6,7 +6,8 @@ using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #else
-using UnityEngine.VR;
+using XRDevice = UnityEngine.VR.VRDevice;
+using XRSettings = UnityEngine.VR.VRSettings;
 #endif
 #endif
 
@@ -86,7 +87,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (VRModule.lockPhysicsUpdateRateToRenderFrequency && Time.timeScale > 0.0f)
             {
                 // FIXME: VRDevice.refreshRate returns zero in Unity 5.6.0 or older version
-#if UNITY_5_6_1 || UNITY_2017 || UNITY_2017_1_OR_NEWER
+#if !UNITY_5_6_0 && UNITY_5_6_OR_NEWER
                 Time.fixedDeltaTime = 1f / XRDevice.refreshRate;
 #else
                 Time.fixedDeltaTime = 1f / 90f;

@@ -26,9 +26,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private int m_leftJoystickNameIndex = -1;
         private int m_rightJoystickNameIndex = -1;
 
+#if UNITY_5_6_OR_NEWER
         private TrackingSpaceType m_prevTrackingSpace;
 
-#if UNITY_5_6_OR_NEWER
         public override void OnActivated()
         {
             m_prevTrackingSpace = VRDevice.GetTrackingSpaceType();
