@@ -1,33 +1,28 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.Utility;
 using System;
 using UnityEngine;
 
-namespace HTC.UnityPlugin.PoseTracker
+namespace HTC.UnityPlugin.Utility
 {
-    /// <summary>
-    /// Describe a pose by position and rotation
-    /// </summary>
-    [Obsolete("Use HTC.UnityPlugin.Utility.RigidPose instead")]
     [Serializable]
-    public struct Pose
+    public struct RigidPose
     {
         public Vector3 pos;
         public Quaternion rot;
 
-        public static Pose identity
+        public static RigidPose identity
         {
-            get { return new Pose(Vector3.zero, Quaternion.identity); }
+            get { return new RigidPose(Vector3.zero, Quaternion.identity); }
         }
 
-        public Pose(Vector3 pos, Quaternion rot)
+        public RigidPose(Vector3 pos, Quaternion rot)
         {
             this.pos = pos;
             this.rot = rot;
         }
 
-        public Pose(Transform t, bool useLocal = false)
+        public RigidPose(Transform t, bool useLocal = false)
         {
             if (t == null)
             {
@@ -46,11 +41,18 @@ namespace HTC.UnityPlugin.PoseTracker
             }
         }
 
+        public Vector3 forward { get { return rot * Vector3.forward; } }
+
+        public Vector3 right { get { return rot * Vector3.right; } }
+
+        public Vector3 up { get { return rot * Vector3.up; } }
+
+
         public override bool Equals(object o)
         {
-            if (o is Pose)
+            if (o is RigidPose)
             {
-                Pose t = (Pose)o;
+                var t = (RigidPose)o;
                 return pos == t.pos && rot == t.rot;
             }
             return false;
@@ -61,7 +63,7 @@ namespace HTC.UnityPlugin.PoseTracker
             return pos.GetHashCode() ^ rot.GetHashCode();
         }
 
-        public static bool operator ==(Pose a, Pose b)
+        public static bool operator ==(RigidPose a, RigidPose b)
         {
             return
                 a.pos.x == b.pos.x &&
@@ -73,21 +75,21 @@ namespace HTC.UnityPlugin.PoseTracker
                 a.rot.w == b.rot.w;
         }
 
-        public static bool operator !=(Pose a, Pose b)
+        public static bool operator !=(RigidPose a, RigidPose b)
         {
             return !(a == b);
         }
 
-        public static Pose operator *(Pose a, Pose b)
+        public static RigidPose operator *(RigidPose a, RigidPose b)
         {
-            return new Pose
+            return new RigidPose
             {
                 rot = a.rot * b.rot,
                 pos = a.pos + a.rot * b.pos
             };
         }
 
-        public void Multiply(Pose a, Pose b)
+        public void Multiply(RigidPose a, RigidPose b)
         {
             rot = a.rot * b.rot;
             pos = a.pos + a.rot * b.pos;
@@ -99,9 +101,9 @@ namespace HTC.UnityPlugin.PoseTracker
             pos = -(rot * pos);
         }
 
-        public Pose GetInverse()
+        public RigidPose GetInverse()
         {
-            var t = new Pose(pos, rot);
+            var t = new RigidPose(pos, rot);
             t.Inverse();
             return t;
         }
@@ -116,33 +118,33 @@ namespace HTC.UnityPlugin.PoseTracker
             return pos + (rot * point);
         }
 
-        public static Pose Lerp(Pose a, Pose b, float t)
+        public static RigidPose Lerp(RigidPose a, RigidPose b, float t)
         {
-            return new Pose(Vector3.Lerp(a.pos, b.pos, t), Quaternion.Slerp(a.rot, b.rot, t));
+            return new RigidPose(Vector3.Lerp(a.pos, b.pos, t), Quaternion.Slerp(a.rot, b.rot, t));
         }
 
-        public void Lerp(Pose to, float t)
+        public void Lerp(RigidPose to, float t)
         {
             pos = Vector3.Lerp(pos, to.pos, t);
             rot = Quaternion.Slerp(rot, to.rot, t);
         }
 
-        public static Pose LerpUnclamped(Pose a, Pose b, float t)
+        public static RigidPose LerpUnclamped(RigidPose a, RigidPose b, float t)
         {
-            return new Pose(Vector3.LerpUnclamped(a.pos, b.pos, t), Quaternion.SlerpUnclamped(a.rot, b.rot, t));
+            return new RigidPose(Vector3.LerpUnclamped(a.pos, b.pos, t), Quaternion.SlerpUnclamped(a.rot, b.rot, t));
         }
 
-        public void LerpUnclamped(Pose to, float t)
+        public void LerpUnclamped(RigidPose to, float t)
         {
             pos = Vector3.LerpUnclamped(pos, to.pos, t);
             rot = Quaternion.SlerpUnclamped(rot, to.rot, t);
         }
 
-        public static void SetPose(Transform target, Pose pose, Transform origin = null)
+        public static void SetPose(Transform target, RigidPose pose, Transform origin = null)
         {
             if (origin != null && origin != target.parent)
             {
-                pose = new Pose(origin) * pose;
+                pose = new RigidPose(origin) * pose;
                 pose.pos.Scale(origin.localScale);
                 target.position = pose.pos;
                 target.rotation = pose.rot;
@@ -188,30 +190,32 @@ namespace HTC.UnityPlugin.PoseTracker
             }
         }
 
-        public static Pose FromToPose(Pose from, Pose to)
+        public static RigidPose FromToPose(RigidPose from, RigidPose to)
         {
             var invRot = Quaternion.Inverse(from.rot);
-            return new Pose(invRot * (to.pos - from.pos), invRot * to.rot);
+            return new RigidPose(invRot * (to.pos - from.pos), invRot * to.rot);
         }
 
+#if  UNITY_2017_2_OR_NEWER
         public static implicit operator RigidPose(Pose v)
         {
-            return new RigidPose(v.pos, v.rot);
+            return new RigidPose(v.position, v.rotation);
         }
 
         public static implicit operator Pose(RigidPose v)
         {
             return new Pose(v.pos, v.rot);
         }
+#endif
 
         public override string ToString()
         {
-            return "p" + pos.ToString() + "r" + rot.ToString();
+            return "{p" + pos.ToString() + ",r" + rot.ToString() + "}";
         }
 
         public string ToString(string format)
         {
-            return "p" + pos.ToString(format) + "r" + rot.ToString(format);
+            return "{p" + pos.ToString(format) + ",r" + rot.ToString(format) + "}";
         }
     }
 }

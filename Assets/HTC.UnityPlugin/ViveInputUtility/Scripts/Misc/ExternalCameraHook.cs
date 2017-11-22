@@ -5,7 +5,6 @@ using HTC.UnityPlugin.Vive;
 using HTC.UnityPlugin.VRModuleManagement;
 using System.IO;
 using UnityEngine;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 // This script creates and handles SteamVR_ExternalCamera using viveRole property
 [DisallowMultipleComponent]
@@ -102,7 +101,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
     private static bool s_isAutoLoaded;
 
     private SteamVR_ExternalCamera m_externalCamera;
-    private Pose m_staticExCamPose = Pose.identity;
+    private RigidPose m_staticExCamPose = RigidPose.identity;
 
     public string configPath
     {
@@ -213,7 +212,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
         if (isQuadViewActive)
         {
-            Pose.SetPose(transform, m_staticExCamPose, m_origin);
+            RigidPose.SetPose(transform, m_staticExCamPose, m_origin);
         }
     }
 
@@ -324,7 +323,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
 
     public void Recenter()
     {
-        m_staticExCamPose = Pose.identity;
+        m_staticExCamPose = RigidPose.identity;
     }
 
 #else

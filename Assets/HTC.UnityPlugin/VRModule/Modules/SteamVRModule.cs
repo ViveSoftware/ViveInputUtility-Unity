@@ -1,10 +1,10 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 #if VIU_STEAMVR
+using HTC.UnityPlugin.Utility;
 using System.Text;
 using UnityEngine;
 using Valve.VR;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -168,7 +168,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     // update poses
                     if (prevState[i].isPoseValid && !currState[i].isPoseValid)
                     {
-                        currState[i].pose = Pose.identity;
+                        currState[i].pose = RigidPose.identity;
                     }
                     else if (currState[i].isPoseValid)
                     {

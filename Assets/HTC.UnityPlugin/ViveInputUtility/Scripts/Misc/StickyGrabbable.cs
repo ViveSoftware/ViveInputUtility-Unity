@@ -5,7 +5,6 @@ using HTC.UnityPlugin.Utility;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
 {
@@ -16,7 +15,7 @@ public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
     public const float DEFAULT_FOLLOWING_DURATION = 0.04f;
     public const float MAX_FOLLOWING_DURATION = 0.5f;
 
-    private OrderedIndexedTable<ColliderButtonEventData, Pose> eventList = new OrderedIndexedTable<ColliderButtonEventData, Pose>();
+    private OrderedIndexedTable<ColliderButtonEventData, RigidPose> eventList = new OrderedIndexedTable<ColliderButtonEventData, RigidPose>();
     private ColliderButtonEventData m_bannedEventData;
 
     public bool alignPosition;
@@ -39,7 +38,7 @@ public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
     public UnityEventGrabbable beforeRelease = new UnityEventGrabbable();
     public UnityEventGrabbable onDrop = new UnityEventGrabbable(); // change rigidbody drop velocity here
 
-    private Pose m_prevPose = Pose.identity; // last frame world pose
+    private RigidPose m_prevPose = RigidPose.identity; // last frame world pose
 
     public ColliderButtonEventData.InputButton grabButton { get { return m_grabButton; } set { m_grabButton = value; } }
 
@@ -52,10 +51,10 @@ public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
 
     private bool moveByVelocity { get { return !unblockableGrab && rigid != null && !rigid.isKinematic; } }
 
-    private Pose GetEventPose(ColliderButtonEventData eventData)
+    private RigidPose GetEventPose(ColliderButtonEventData eventData)
     {
         var grabberTransform = eventData.eventCaster.transform;
-        return new Pose(grabberTransform);
+        return new RigidPose(grabberTransform);
     }
 
     protected virtual void Awake()
@@ -73,7 +72,7 @@ public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
         if (eventData.button != m_grabButton || eventList.ContainsKey(eventData) || eventData == m_bannedEventData) { return; }
 
         var casterPose = GetEventPose(eventData);
-        var offsetPose = Pose.FromToPose(casterPose, new Pose(transform));
+        var offsetPose = RigidPose.FromToPose(casterPose, new RigidPose(transform));
 
         if (alignPosition) { offsetPose.pos = Vector3.zero; }
         if (alignRotation) { offsetPose.rot = Quaternion.identity; }
@@ -103,8 +102,8 @@ public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
             if (alignRotation) { offsetPose.rot = Quaternion.Euler(alignRotationOffset); }
 
             var targetPose = casterPose * offsetPose;
-            Pose.SetRigidbodyVelocity(rigid, rigid.position, targetPose.pos, followingDuration);
-            Pose.SetRigidbodyAngularVelocity(rigid, rigid.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
+            RigidPose.SetRigidbodyVelocity(rigid, rigid.position, targetPose.pos, followingDuration);
+            RigidPose.SetRigidbodyAngularVelocity(rigid, rigid.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
         }
     }
 
@@ -119,7 +118,7 @@ public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
             if (alignPosition) { offsetPose.pos = alignPositionOffset; }
             if (alignRotation) { offsetPose.rot = Quaternion.Euler(alignRotationOffset); }
 
-            m_prevPose = new Pose(transform);
+            m_prevPose = new RigidPose(transform);
 
             if (rigid != null)
             {
@@ -181,12 +180,12 @@ public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
 
     private void DoDrop()
     {
-        if (!moveByVelocity && rigid != null && !rigid.isKinematic && m_prevPose != Pose.identity)
+        if (!moveByVelocity && rigid != null && !rigid.isKinematic && m_prevPose != RigidPose.identity)
         {
-            Pose.SetRigidbodyVelocity(rigid, m_prevPose.pos, transform.position, Time.deltaTime);
-            Pose.SetRigidbodyAngularVelocity(rigid, m_prevPose.rot, transform.rotation, Time.deltaTime, overrideMaxAngularVelocity);
+            RigidPose.SetRigidbodyVelocity(rigid, m_prevPose.pos, transform.position, Time.deltaTime);
+            RigidPose.SetRigidbodyAngularVelocity(rigid, m_prevPose.rot, transform.rotation, Time.deltaTime, overrideMaxAngularVelocity);
 
-            m_prevPose = Pose.identity;
+            m_prevPose = RigidPose.identity;
         }
 
         if (onDrop != null)

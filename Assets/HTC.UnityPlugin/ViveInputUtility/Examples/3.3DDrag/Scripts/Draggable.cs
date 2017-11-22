@@ -3,7 +3,6 @@ using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 // demonstrate of dragging things useing built in EventSystem handlers
 public class Draggable : MonoBehaviour
@@ -19,7 +18,7 @@ public class Draggable : MonoBehaviour
     public const float DEFAULT_FOLLOWING_DURATION = 0.04f;
     public const float MAX_FOLLOWING_DURATION = 0.5f;
 
-    private OrderedIndexedTable<PointerEventData, Pose> eventList = new OrderedIndexedTable<PointerEventData, Pose>();
+    private OrderedIndexedTable<PointerEventData, RigidPose> eventList = new OrderedIndexedTable<PointerEventData, RigidPose>();
 
     public float initGrabDistance = 0.5f;
     [Range(MIN_FOLLOWING_DURATION, MAX_FOLLOWING_DURATION)]
@@ -31,7 +30,7 @@ public class Draggable : MonoBehaviour
     public UnityEventDraggable beforeRelease = new UnityEventDraggable();
     public UnityEventDraggable onDrop = new UnityEventDraggable(); // change rigidbody drop velocity here
 
-    private Pose m_prevPose = Pose.identity; // last frame world pose
+    private RigidPose m_prevPose = RigidPose.identity; // last frame world pose
 
     public bool isDragged { get { return eventList.Count > 0; } }
 
@@ -42,11 +41,11 @@ public class Draggable : MonoBehaviour
 
     private bool moveByVelocity { get { return !unblockableGrab && rigid != null && !rigid.isKinematic; } }
 
-    private Pose GetEventPose(PointerEventData eventData)
+    private RigidPose GetEventPose(PointerEventData eventData)
     {
         var cam = eventData.pointerPressRaycast.module.eventCamera;
         var ray = cam.ScreenPointToRay(eventData.position);
-        return new Pose(ray.origin, Quaternion.LookRotation(ray.direction, cam.transform.up));
+        return new RigidPose(ray.origin, Quaternion.LookRotation(ray.direction, cam.transform.up));
     }
 
     protected virtual void Awake()
@@ -74,17 +73,17 @@ public class Draggable : MonoBehaviour
     public virtual void OnBeginDrag(PointerEventData eventData)
     {
         var casterPose = GetEventPose(eventData);
-        var offsetPose = new Pose();
+        var offsetPose = new RigidPose();
         switch (eventData.button)
         {
             case PointerEventData.InputButton.Middle:
             case PointerEventData.InputButton.Right:
                 {
                     var hitResult = eventData.pointerPressRaycast;
-                    var hitPose = new Pose(hitResult.worldPosition, casterPose.rot);
+                    var hitPose = new RigidPose(hitResult.worldPosition, casterPose.rot);
 
-                    var caster2hit = new Pose(Vector3.forward * Mathf.Min(hitResult.distance, initGrabDistance), Quaternion.identity);
-                    var hit2center = Pose.FromToPose(hitPose, new Pose(transform));
+                    var caster2hit = new RigidPose(Vector3.forward * Mathf.Min(hitResult.distance, initGrabDistance), Quaternion.identity);
+                    var hit2center = RigidPose.FromToPose(hitPose, new RigidPose(transform));
 
                     offsetPose = caster2hit * hit2center;
                     break;
@@ -92,7 +91,7 @@ public class Draggable : MonoBehaviour
             case PointerEventData.InputButton.Left:
             default:
                 {
-                    offsetPose = Pose.FromToPose(casterPose, new Pose(transform));
+                    offsetPose = RigidPose.FromToPose(casterPose, new RigidPose(transform));
                     break;
                 }
         }
@@ -121,8 +120,8 @@ public class Draggable : MonoBehaviour
             var offsetPose = eventList.GetLastValue();
 
             var targetPose = casterPose * offsetPose;
-            Pose.SetRigidbodyVelocity(rigid, rigid.position, targetPose.pos, followingDuration);
-            Pose.SetRigidbodyAngularVelocity(rigid, rigid.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
+            RigidPose.SetRigidbodyVelocity(rigid, rigid.position, targetPose.pos, followingDuration);
+            RigidPose.SetRigidbodyAngularVelocity(rigid, rigid.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
         }
     }
 
@@ -136,7 +135,7 @@ public class Draggable : MonoBehaviour
             var casterPose = GetEventPose(eventData);
             var offsetPose = eventList.GetLastValue();
 
-            m_prevPose = new Pose(transform);
+            m_prevPose = new RigidPose(transform);
 
             if (rigid != null)
             {
@@ -175,12 +174,12 @@ public class Draggable : MonoBehaviour
 
     private void DoDrop()
     {
-        if (!moveByVelocity && rigid != null && !rigid.isKinematic && m_prevPose != Pose.identity)
+        if (!moveByVelocity && rigid != null && !rigid.isKinematic && m_prevPose != RigidPose.identity)
         {
-            Pose.SetRigidbodyVelocity(rigid, m_prevPose.pos, transform.position, Time.deltaTime);
-            Pose.SetRigidbodyAngularVelocity(rigid, m_prevPose.rot, transform.rotation, Time.deltaTime, overrideMaxAngularVelocity);
+            RigidPose.SetRigidbodyVelocity(rigid, m_prevPose.pos, transform.position, Time.deltaTime);
+            RigidPose.SetRigidbodyAngularVelocity(rigid, m_prevPose.rot, transform.rotation, Time.deltaTime, overrideMaxAngularVelocity);
 
-            m_prevPose = Pose.identity;
+            m_prevPose = RigidPose.identity;
         }
 
         if (onDrop != null)

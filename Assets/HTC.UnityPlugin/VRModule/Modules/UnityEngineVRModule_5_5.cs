@@ -1,7 +1,7 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 #if UNITY_5_5_OR_NEWER && !UNITY_2017_1_OR_NEWER
-using HTC.UnityPlugin.PoseTracker;
+using HTC.UnityPlugin.Utility;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.VR;
@@ -94,7 +94,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 headCurrState.position = InputTracking.GetLocalPosition(VRNode.Head);
                 headCurrState.rotation = InputTracking.GetLocalRotation(VRNode.Head);
-                headCurrState.isPoseValid = headCurrState.pose != Pose.identity && headCurrState.pose != headPrevState.pose;
+                headCurrState.isPoseValid = headCurrState.pose != RigidPose.identity && headCurrState.pose != headPrevState.pose;
             }
             else
             {
@@ -110,7 +110,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             rightCurrState.position = InputTracking.GetLocalPosition(VRNode.RightHand);
             rightCurrState.rotation = InputTracking.GetLocalRotation(VRNode.RightHand);
-            rightCurrState.isPoseValid = rightCurrState.pose != Pose.identity && rightCurrState.pose != rightPrevState.pose;
+            rightCurrState.isPoseValid = rightCurrState.pose != RigidPose.identity && rightCurrState.pose != rightPrevState.pose;
 
             // right connected state
             if (rightCurrState.isPoseValid)
@@ -214,7 +214,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             leftCurrState.position = InputTracking.GetLocalPosition(VRNode.LeftHand);
             leftCurrState.rotation = InputTracking.GetLocalRotation(VRNode.LeftHand);
-            leftCurrState.isPoseValid = leftCurrState.pose != Pose.identity && leftCurrState.pose != leftPrevState.pose;
+            leftCurrState.isPoseValid = leftCurrState.pose != RigidPose.identity && leftCurrState.pose != leftPrevState.pose;
             // left connected state
             if (leftCurrState.isPoseValid)
             {

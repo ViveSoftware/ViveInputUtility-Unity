@@ -1,12 +1,10 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
-using HTC.UnityPlugin.VRModuleManagement;
 using System.IO;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
 {
@@ -544,11 +542,11 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
                 var origin = ExternalCameraHook.Instance.origin;
                 if (origin == null)
                 {
-                    needRecenter = new Pose(ExternalCameraHook.Instance.transform, false) != Pose.identity;
+                    needRecenter = new RigidPose(ExternalCameraHook.Instance.transform, false) != RigidPose.identity;
                 }
                 else
                 {
-                    needRecenter = new Pose(ExternalCameraHook.Instance.transform, false) != new Pose(origin, false);
+                    needRecenter = new RigidPose(ExternalCameraHook.Instance.transform, false) != new RigidPose(origin, false);
                 }
 
                 m_recenterButton.gameObject.SetActive(needRecenter);

@@ -1,10 +1,10 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -252,7 +252,7 @@ namespace HTC.UnityPlugin.Vive
         }
 
         private static readonly float[] s_deviceDirPoint = new float[VRModule.MAX_DEVICE_COUNT];
-        public static void SortDeviceIndicesByDirection(List<uint> deviceList, Pose sortingReference)
+        public static void SortDeviceIndicesByDirection(List<uint> deviceList, RigidPose sortingReference)
         {
             if (deviceList == null || deviceList.Count == 0) { return; }
 
@@ -274,6 +274,12 @@ namespace HTC.UnityPlugin.Vive
             }
 
             deviceList.Sort(CompareDirection);
+        }
+
+        [Obsolete]
+        public static void SortDeviceIndicesByDirection(List<uint> deviceList, PoseTracker.Pose sortingReference)
+        {
+            SortDeviceIndicesByDirection(deviceList, sortingReference);
         }
 
         private static int CompareDirection(uint d1, uint d2)

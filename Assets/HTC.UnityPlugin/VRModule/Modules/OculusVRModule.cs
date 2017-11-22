@@ -2,7 +2,7 @@
 
 #if VIU_OCULUSVR
 using UnityEngine;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
+using HTC.UnityPlugin.Utility;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #else
@@ -105,10 +105,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return s_node2index[(int)OVRPlugin.Node.HandRight];
         }
 
-        private static Pose ToPose(OVRPlugin.Posef value)
+        private static RigidPose ToPose(OVRPlugin.Posef value)
         {
             var ovrPose = value.ToOVRPose();
-            return new Pose(ovrPose.position, ovrPose.orientation);
+            return new RigidPose(ovrPose.position, ovrPose.orientation);
         }
 
         public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
@@ -138,7 +138,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     currState[i].velocity = OVRPlugin.GetNodeVelocity(node, OVRPlugin.Step.Render).FromFlippedZVector3f();
                     currState[i].angularVelocity = OVRPlugin.GetNodeAngularVelocity(node, OVRPlugin.Step.Render).FromFlippedZVector3f();
 
-                    currState[i].isPoseValid = currState[i].pose != Pose.identity;
+                    currState[i].isPoseValid = currState[i].pose != RigidPose.identity;
 
                     // update device input
                     switch (currState[i].deviceModel)

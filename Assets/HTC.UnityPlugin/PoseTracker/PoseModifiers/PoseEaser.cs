@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.PoseTracker
@@ -18,7 +19,7 @@ namespace HTC.UnityPlugin.PoseTracker
         public float duration = 0.15f;
 
         private bool firstPose = true;
-        private Pose prevPose;
+        private RigidPose prevPose;
 
         public bool easePositionX = true;
         public bool easePositionY = true;
@@ -34,7 +35,7 @@ namespace HTC.UnityPlugin.PoseTracker
             ResetFirstPose();
         }
 
-        public override void ModifyPose(ref Pose pose, Transform origin)
+        public override void ModifyPose(ref RigidPose pose, Transform origin)
         {
             if (firstPose)
             {
@@ -45,7 +46,7 @@ namespace HTC.UnityPlugin.PoseTracker
                 var deltaTime = Time.unscaledDeltaTime;
                 if (deltaTime < duration)
                 {
-                    var easedPose = Pose.Lerp(prevPose, pose, curve.Evaluate(deltaTime / duration));
+                    var easedPose = RigidPose.Lerp(prevPose, pose, curve.Evaluate(deltaTime / duration));
 
                     if (!easePositionX || !easePositionY || !easePositionZ)
                     {

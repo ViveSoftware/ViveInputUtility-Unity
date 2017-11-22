@@ -2,7 +2,6 @@
 
 using HTC.UnityPlugin.Utility;
 using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {

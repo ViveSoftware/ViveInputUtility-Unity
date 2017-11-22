@@ -1,19 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using HTC.UnityPlugin.Utility;
+using System.Collections.Generic;
 using UnityEngine;
-using Pose = PlayGroundManager.Pose;
 
 public class PlayGroundManager : MonoBehaviour
 {
-    public struct Pose
-    {
-        public Vector3 pos;
-        public Quaternion rot;
-
-        public Pose(Transform t) { pos = t.position; rot = t.rotation; }
-    }
-
     private static List<Draggable> draggablesCache = new List<Draggable>();
-    private Dictionary<int, Pose> poseTable = new Dictionary<int, Pose>();
+    private Dictionary<int, RigidPose> poseTable = new Dictionary<int, RigidPose>();
 
     private void Awake()
     {
@@ -22,7 +14,7 @@ public class PlayGroundManager : MonoBehaviour
         for (int i = 0, imax = draggablesCache.Count; i < imax; ++i)
         {
             var dt = draggablesCache[i].transform;
-            poseTable[dt.GetInstanceID()] = new Pose(dt);
+            poseTable[dt.GetInstanceID()] = new RigidPose(dt);
         }
         draggablesCache.Clear();
     }
@@ -34,7 +26,7 @@ public class PlayGroundManager : MonoBehaviour
         for (int i = 0, imax = draggablesCache.Count; i < imax; ++i)
         {
             var dt = draggablesCache[i].transform;
-            Pose pose;
+            RigidPose pose;
             if (poseTable.TryGetValue(dt.GetInstanceID(), out pose))
             {
                 dt.position = pose.pos;
