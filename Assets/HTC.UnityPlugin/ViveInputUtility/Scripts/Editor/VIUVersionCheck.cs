@@ -144,7 +144,11 @@ namespace HTC.UnityPlugin.Vive
             toolTip = BIND_UI_SWITCH_TOOLTIP + " You can change this option later in Edit -> Preferences... -> VIU Settings.",
             currentValueFunc = () => toggleBindUISwithState,
             setValueFunc = (v) => toggleBindUISwithState = v,
+#if VIU_STEAMVR
             recommendedValue = true,
+#else
+            recommendedValue = false,
+#endif
             },
 
             new PropSetting<bool>()
@@ -154,7 +158,11 @@ namespace HTC.UnityPlugin.Vive
             toolTip = EX_CAM_UI_SWITCH_TOOLTIP + " You can change this option later in Edit -> Preferences... -> VIU Settings.",
             currentValueFunc = () => toggleExCamSwithState,
             setValueFunc = (v) => toggleExCamSwithState = v,
+#if VIU_STEAMVR
             recommendedValue = true,
+#else
+            recommendedValue = false,
+#endif
             },
 
 #if !VIU_STEAMVR
@@ -268,21 +276,17 @@ namespace HTC.UnityPlugin.Vive
             },
 #endif
 
-#if UNITY_5_3 && UNITY_STANDALONE
+#if UNITY_STANDALONE && (VIU_OCULUS || UNITY_5_5_OR_NEWER)
             new PropSetting<bool>()
             {
             settingTitle = "Virtual Reality Support",
             currentValueFunc = () => PlayerSettings.virtualRealitySupported,
             setValueFunc = (v) => PlayerSettings.virtualRealitySupported = v,
-#if VIU_STEAMVR
-            recommendedValue = false,
-#else
             recommendedValue = true,
-#endif
             },
-#endif // UNITY_5_3 && UNITY_STANDALONE
+#endif
 
-#endif // VIU_STEAMVR
+#endif // !VIU_STEAMVR
         };
 
         private Texture2D viuLogo;
