@@ -5,6 +5,11 @@ using HTC.UnityPlugin.Utility;
 using System.Text;
 using UnityEngine;
 using Valve.VR;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR;
+#elif UNITY_5_4_OR_NEWER
+using XRSettings = UnityEngine.VR.VRSettings;
+#endif
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -24,10 +29,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool ShouldActiveModule()
         {
-#if UNITY_2017_2_OR_NEWER
-            return UnityEngine.XR.XRSettings.enabled && UnityEngine.XR.XRSettings.loadedDeviceName == "OpenVR";
-#elif UNITY_5_4_OR_NEWER
-            return UnityEngine.VR.VRSettings.enabled && UnityEngine.VR.VRSettings.loadedDeviceName == "OpenVR";
+#if UNITY_5_4_OR_NEWER
+            return XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR";
 #else
             return SteamVR.enabled;
 #endif
@@ -83,7 +86,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void Update()
         {
-            SteamVR_Render.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
+            if (SteamVR.active)
+            {
+                SteamVR_Render.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
+            }
         }
 
         public override bool HasInputFocus()
