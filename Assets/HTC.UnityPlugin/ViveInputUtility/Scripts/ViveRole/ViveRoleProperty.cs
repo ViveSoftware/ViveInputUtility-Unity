@@ -11,7 +11,7 @@ namespace HTC.UnityPlugin.Vive
     // There also has a property drawer so you can use it as a serialized field in your MonoBevaviour.
     // Note that when deserializing, result of type and value is based on the valid role info stored in ViveRoleEnum class
     [Serializable]
-    public class ViveRoleProperty : ISerializationCallbackReceiver
+    public class ViveRoleProperty
     {
         public delegate void RoleChangedListener();
         public delegate void DeviceIndexChangedListener(uint deviceIndex);
@@ -155,10 +155,6 @@ namespace HTC.UnityPlugin.Vive
 
         public void SetValueDirty() { m_isValueDirty = true; }
 
-        public void OnBeforeSerialize() { }
-
-        public void OnAfterDeserialize() { Update(); }
-
         private void OnMappingChanged(ViveRole.IMap map, ViveRole.MappingChangedEventArg args)
         {
             if (args.roleValue == m_roleValue)
@@ -168,7 +164,7 @@ namespace HTC.UnityPlugin.Vive
         }
 
         // update type and value changes
-        private void Update()
+        public void Update()
         {
             if (m_lockUpdate && (m_isTypeDirty || m_isValueDirty)) { throw new Exception("Can't change value during onChange event callback"); }
 

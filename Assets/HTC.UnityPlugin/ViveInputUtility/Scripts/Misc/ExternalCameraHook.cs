@@ -185,7 +185,7 @@ public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPo
         if (IsInstance)
         {
             m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
-            UpdateActivity();
+            OnDeviceIndexChanged(VRModule.INVALID_DEVICE_INDEX);
         }
     }
 
