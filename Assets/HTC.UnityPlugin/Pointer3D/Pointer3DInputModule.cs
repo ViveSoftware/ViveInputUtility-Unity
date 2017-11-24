@@ -235,7 +235,7 @@ namespace HTC.UnityPlugin.Pointer3D
 
                 buttonEventData.Reset();
 
-                if (buttonEventData.eligibleForClick)
+                if (buttonEventData.pressPrecessed)
                 {
                     ProcessPressUp(buttonEventData);
                     HandlePressExitAndEnter(buttonEventData, null);
@@ -287,7 +287,7 @@ namespace HTC.UnityPlugin.Pointer3D
                 if (raycaster == null) { continue; }
 
                 var hoverEventData = raycaster.HoverEventData;
-                if(hoverEventData == null || raycaster.ButtonEventDataList.Count == 0) { continue; }
+                if (hoverEventData == null || raycaster.ButtonEventDataList.Count == 0) { continue; }
 
                 raycaster.Raycast();
                 var result = raycaster.FirstRaycastResult();
@@ -384,17 +384,16 @@ namespace HTC.UnityPlugin.Pointer3D
 
         protected virtual void ProcessPress(Pointer3DEventData eventData)
         {
-            if (eventData.GetPressDown())
-            {
-                ProcessPressDown(eventData);
-            }
-
             if (eventData.GetPress())
             {
+                if (!eventData.pressPrecessed)
+                {
+                    ProcessPressDown(eventData);
+                }
+
                 HandlePressExitAndEnter(eventData, eventData.pointerCurrentRaycast.gameObject);
             }
-
-            if (eventData.GetPressUp())
+            else if (eventData.pressPrecessed)
             {
                 ProcessPressUp(eventData);
                 HandlePressExitAndEnter(eventData, null);
@@ -405,6 +404,7 @@ namespace HTC.UnityPlugin.Pointer3D
         {
             var currentOverGo = eventData.pointerCurrentRaycast.gameObject;
 
+            eventData.pressPrecessed = true;
             eventData.eligibleForClick = true;
             eventData.delta = Vector2.zero;
             eventData.dragging = false;
@@ -481,6 +481,7 @@ namespace HTC.UnityPlugin.Pointer3D
                 ExecuteEvents.ExecuteHierarchy(currentOverGo, eventData, ExecuteEvents.dropHandler);
             }
 
+            eventData.pressPrecessed = false;
             eventData.eligibleForClick = false;
             eventData.pointerPress = null;
             eventData.rawPointerPress = null;

@@ -66,6 +66,7 @@ namespace HTC.UnityPlugin.Pointer3D
 
         public float pressDistance;
         public GameObject pressEnter;
+        public bool pressPrecessed;
 
         public Pointer3DEventData(Pointer3DRaycaster ownerRaycaster, EventSystem eventSystem) : base(eventSystem)
         {
