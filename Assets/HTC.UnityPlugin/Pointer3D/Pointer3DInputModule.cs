@@ -223,15 +223,12 @@ namespace HTC.UnityPlugin.Pointer3D
             if (raycaster == null) { return; }
 
             var hoverEventData = raycaster.HoverEventData;
-            if (hoverEventData == null || raycaster.ButtonEventDataList.Count == 0) { return; }
-
-            hoverEventData.Reset();
 
             // buttons event
             for (int i = 0, imax = raycaster.ButtonEventDataList.Count; i < imax; ++i)
             {
                 var buttonEventData = raycaster.ButtonEventDataList[i];
-                if (buttonEventData == null || buttonEventData == hoverEventData) { continue; }
+                if (buttonEventData == null) { continue; }
 
                 buttonEventData.Reset();
 
@@ -243,9 +240,9 @@ namespace HTC.UnityPlugin.Pointer3D
 
                 if (buttonEventData.pointerEnter != null)
                 {
-                    if (i == 0)
+                    if (buttonEventData == hoverEventData)
                     {
-                        // perform exit event for hover event data
+                        // perform exit event only for hover event data
                         HandlePointerExitAndEnter(buttonEventData, null);
                     }
                     else
@@ -286,9 +283,6 @@ namespace HTC.UnityPlugin.Pointer3D
                 var raycaster = processingRaycasters[i];
                 if (raycaster == null) { continue; }
 
-                var hoverEventData = raycaster.HoverEventData;
-                if (hoverEventData == null || raycaster.ButtonEventDataList.Count == 0) { continue; }
-
                 raycaster.Raycast();
                 var result = raycaster.FirstRaycastResult();
 
@@ -296,6 +290,9 @@ namespace HTC.UnityPlugin.Pointer3D
                 var scrollDelta = raycaster.GetScrollDelta();
                 var raycasterPos = raycaster.transform.position;
                 var raycasterRot = raycaster.transform.rotation;
+
+                var hoverEventData = raycaster.HoverEventData;
+                if (hoverEventData == null) { continue; }
 
                 // gen shared data and put in hover event
                 hoverEventData.Reset();
