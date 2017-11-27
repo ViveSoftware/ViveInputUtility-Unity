@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.PoseTracker
@@ -11,7 +12,7 @@ namespace HTC.UnityPlugin.PoseTracker
         public float rotationThreshold = 0.5f; // degree
 
         private bool firstPose = true;
-        private Pose prevPose;
+        private RigidPose prevPose;
 
         protected override void OnEnable()
         {
@@ -19,7 +20,7 @@ namespace HTC.UnityPlugin.PoseTracker
             ResetFirstPose();
         }
 
-        public override void ModifyPose(ref Pose pose, Transform origin)
+        public override void ModifyPose(ref RigidPose pose, Transform origin)
         {
             if (firstPose)
             {

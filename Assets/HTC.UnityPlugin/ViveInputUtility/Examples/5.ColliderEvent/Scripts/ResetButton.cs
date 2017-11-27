@@ -2,7 +2,6 @@
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
 using UnityEngine;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 public class ResetButton : MonoBehaviour
     , IColliderEventPressUpHandler
@@ -16,7 +15,7 @@ public class ResetButton : MonoBehaviour
     [SerializeField]
     private ColliderButtonEventData.InputButton m_activeButton = ColliderButtonEventData.InputButton.Trigger;
 
-    private Pose[] resetPoses;
+    private RigidPose[] resetPoses;
 
     private Vector3 buttonOriginPosition;
 
@@ -41,10 +40,10 @@ public class ResetButton : MonoBehaviour
 
     private void Start()
     {
-        resetPoses = new Pose[effectTargets.Length];
+        resetPoses = new RigidPose[effectTargets.Length];
         for (int i = 0; i < effectTargets.Length; ++i)
         {
-            resetPoses[i] = new Pose(effectTargets[i]);
+            resetPoses[i] = new RigidPose(effectTargets[i]);
         }
 
         buttonOriginPosition = buttonObject.position;

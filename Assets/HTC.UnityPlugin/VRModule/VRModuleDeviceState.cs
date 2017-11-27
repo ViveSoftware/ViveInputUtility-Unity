@@ -3,7 +3,6 @@
 using HTC.UnityPlugin.Utility;
 using System;
 using UnityEngine;
-using Pose = HTC.UnityPlugin.PoseTracker.Pose;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -97,7 +96,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Vector3 angularVelocity { get; set; }
         Vector3 position { get; set; }
         Quaternion rotation { get; set; }
-        Pose pose { get; set; }
+        RigidPose pose { get; set; }
 
         ulong buttonPressed { get; set; }
         ulong buttonTouched { get; set; }
@@ -131,7 +130,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Vector3 angularVelocity { get; }
         Vector3 position { get; }
         Quaternion rotation { get; }
-        Pose pose { get; }
+        RigidPose pose { get; }
 
         ulong buttonPressed { get; }
         ulong buttonTouched { get; }
@@ -193,7 +192,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public Vector3 angularVelocity { get { return m_angularVelocity; } set { m_angularVelocity = value; } }
             public Vector3 position { get { return m_position; } set { m_position = value; } }
             public Quaternion rotation { get { return m_rotation; } set { m_rotation = value; } }
-            public Pose pose { get { return new Pose(m_position, m_rotation); } set { m_position = value.pos; m_rotation = value.rot; } }
+            public RigidPose pose { get { return new RigidPose(m_position, m_rotation); } set { m_position = value.pos; m_rotation = value.rot; } }
 
             // device input state
             [SerializeField]
@@ -224,18 +223,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public void CopyFrom(DeviceState state)
             {
-                deviceClass = state.deviceClass;
-                serialNumber = state.serialNumber;
-                modelNumber = state.modelNumber;
-                renderModelName = state.renderModelName;
-                isConnected = state.isConnected;
-                isPoseValid = state.isPoseValid;
-                isOutOfRange = state.isOutOfRange;
-                isCalibrating = state.isCalibrating;
-                isUninitialized = state.isUninitialized;
-                velocity = state.velocity;
-                angularVelocity = state.angularVelocity;
-                pose = state.pose;
+                m_serialNumber = state.m_serialNumber;
+                m_modelNumber = state.m_modelNumber;
+                m_renderModelName = state.m_renderModelName;
+                m_deviceClass = state.m_deviceClass;
+                m_deviceModel = state.m_deviceModel;
+
+                m_isPoseValid = state.m_isPoseValid;
+                m_isConnected = state.m_isConnected;
+                m_isOutOfRange = state.m_isOutOfRange;
+                m_isCalibrating = state.m_isCalibrating;
+                m_isUninitialized = state.m_isUninitialized;
+                m_velocity = state.m_velocity;
+                m_angularVelocity = state.m_angularVelocity;
+                m_position = state.m_position;
+                m_rotation = state.m_rotation;
 
                 m_buttonPressed = state.m_buttonPressed;
                 m_buttonTouched = state.m_buttonTouched;
@@ -255,7 +257,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 isUninitialized = false;
                 velocity = Vector3.zero;
                 angularVelocity = Vector3.zero;
-                pose = Pose.identity;
+                m_position = Vector3.zero;
+                m_rotation = Quaternion.identity;
 
                 m_buttonPressed = 0ul;
                 m_buttonTouched = 0ul;

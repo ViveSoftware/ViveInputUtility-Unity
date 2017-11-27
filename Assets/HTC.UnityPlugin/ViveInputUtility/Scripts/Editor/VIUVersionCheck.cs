@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.Vive
             private const string fmtTitle = "{0} (current = {1})";
             private const string fmtRecommendBtn = "Use recommended ({0})";
             private const string fmtRecommendBtnWithPosefix = "Use recommended ({0}) - {1}";
-            
+
             private string m_settingTitle;
             private string m_settingTrimedTitle;
             private string ignoreKey { get { return editorPrefsPrefix + m_settingTrimedTitle; } }
@@ -144,7 +144,11 @@ namespace HTC.UnityPlugin.Vive
             toolTip = BIND_UI_SWITCH_TOOLTIP + " You can change this option later in Edit -> Preferences... -> VIU Settings.",
             currentValueFunc = () => toggleBindUISwithState,
             setValueFunc = (v) => toggleBindUISwithState = v,
+#if VIU_STEAMVR
             recommendedValue = true,
+#else
+            recommendedValue = false,
+#endif
             },
 
             new PropSetting<bool>()
@@ -154,7 +158,11 @@ namespace HTC.UnityPlugin.Vive
             toolTip = EX_CAM_UI_SWITCH_TOOLTIP + " You can change this option later in Edit -> Preferences... -> VIU Settings.",
             currentValueFunc = () => toggleExCamSwithState,
             setValueFunc = (v) => toggleExCamSwithState = v,
+#if VIU_STEAMVR
             recommendedValue = true,
+#else
+            recommendedValue = false,
+#endif
             },
 
 #if !VIU_STEAMVR
@@ -268,21 +276,17 @@ namespace HTC.UnityPlugin.Vive
             },
 #endif
 
-#if UNITY_5_3 && UNITY_STANDALONE
+#if UNITY_STANDALONE && (VIU_OCULUS || UNITY_5_5_OR_NEWER)
             new PropSetting<bool>()
             {
             settingTitle = "Virtual Reality Support",
             currentValueFunc = () => PlayerSettings.virtualRealitySupported,
             setValueFunc = (v) => PlayerSettings.virtualRealitySupported = v,
-#if VIU_STEAMVR
-            recommendedValue = false,
-#else
             recommendedValue = true,
-#endif
             },
-#endif // UNITY_5_3 && UNITY_STANDALONE
+#endif
 
-#endif // VIU_STEAMVR
+#endif // !VIU_STEAMVR
         };
 
         private Texture2D viuLogo;
@@ -290,8 +294,6 @@ namespace HTC.UnityPlugin.Vive
         static VIUVersionCheck()
         {
             EditorApplication.update += CheckVersionAndSettings;
-            s_waitingForCompile = false;
-            EditorApplication.RepaintProjectWindow();
         }
 
         // check vive input utility version on github
@@ -302,6 +304,16 @@ namespace HTC.UnityPlugin.Vive
                 editorPrefsPrefix = "ViveInputUtility." + PlayerSettings.productGUID + ".";
                 nextVersionCheckTimeKey = editorPrefsPrefix + "LastVersionCheckTime";
                 fmtIgnoreUpdateKey = editorPrefsPrefix + "DoNotShowUpdate.v{0}";
+
+                // Force refresh preference window so it won't stuck in "re-compinling" state
+                if (GUIUtility.hotControl == 0)
+                {
+                    var prefWindow = GetWindow<EditorWindow>("Unity Preferences", false);
+                    if (prefWindow != null && prefWindow.titleContent.text == "Unity Preferences")
+                    {
+                        prefWindow.Repaint();
+                    }
+                }
             }
 
             // fetch new version info from github release site
@@ -369,7 +381,7 @@ namespace HTC.UnityPlugin.Vive
                 window.minSize = new Vector2(240f, 550f);
 
                 var rect = window.position;
-                window.position = new Rect(Mathf.Max(rect.x, 50f), Mathf.Max(rect.y, 50f), rect.width, 150f + ((showNewVersion && recommendCount > 0) ? 700f : 400f));
+                window.position = new Rect(Mathf.Max(rect.x, 50f), Mathf.Max(rect.y, 50f), rect.width, 200f + (showNewVersion ? 700f : 400f));
             }
 
             EditorApplication.update -= CheckVersionAndSettings;
@@ -677,7 +689,15 @@ namespace HTC.UnityPlugin.Vive
             }
             else
             {
-                GUILayout.Button("Re-compiling...");
+                GUILayout.FlexibleSpace();
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label("Re-compiling...");
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.FlexibleSpace();
             }
         }
     }
