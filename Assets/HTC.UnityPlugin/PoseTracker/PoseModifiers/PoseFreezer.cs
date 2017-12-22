@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace HTC.UnityPlugin.PoseTracker
 {
-    [AddComponentMenu("HTC/Pose Tracker/Pose Freezer")]
     public class PoseFreezer : BasePoseModifier
     {
         public bool freezePositionX = false;

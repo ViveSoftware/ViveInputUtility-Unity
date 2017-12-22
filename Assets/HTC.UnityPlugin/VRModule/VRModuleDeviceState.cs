@@ -109,6 +109,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         void SetButtonPress(VRModuleRawButton button, bool value);
         void SetButtonTouch(VRModuleRawButton button, bool value);
         void SetAxisValue(VRModuleRawAxis axis, float value);
+        void ResetAxisValues();
         void Reset();
     }
 
@@ -213,6 +214,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public void SetButtonPress(VRModuleRawButton button, bool value) { m_buttonPressed = value ? EnumUtils.SetFlag(m_buttonPressed, (int)button) : EnumUtils.UnsetFlag(m_buttonPressed, (int)button); }
             public void SetButtonTouch(VRModuleRawButton button, bool value) { m_buttonTouched = value ? EnumUtils.SetFlag(m_buttonTouched, (int)button) : EnumUtils.UnsetFlag(m_buttonTouched, (int)button); }
             public void SetAxisValue(VRModuleRawAxis axis, float value) { m_axisValue[(int)axis] = value; }
+            public void ResetAxisValues() { Array.Clear(m_axisValue, 0, m_axisValue.Length); }
 
             public DeviceState(uint deviceIndex)
             {
@@ -262,7 +264,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 m_buttonPressed = 0ul;
                 m_buttonTouched = 0ul;
-                Array.Clear(m_axisValue, 0, m_axisValue.Length);
+                ResetAxisValues();
             }
         }
     }

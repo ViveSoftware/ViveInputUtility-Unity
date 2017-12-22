@@ -6,7 +6,6 @@ using UnityEngine.EventSystems;
 
 namespace HTC.UnityPlugin.Pointer3D
 {
-    [AddComponentMenu("HTC/Pointer3D/Physics Raycast Method")]
     public class PhysicsRaycastMethod : BaseRaycastMethod
     {
         public enum MaskTypeEnum

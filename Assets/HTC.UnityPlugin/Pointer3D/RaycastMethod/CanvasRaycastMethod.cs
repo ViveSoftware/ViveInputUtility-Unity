@@ -8,7 +8,6 @@ using UnityEngine.UI;
 
 namespace HTC.UnityPlugin.Pointer3D
 {
-    [AddComponentMenu("HTC/Pointer3D/Canvas Raycast Method")]
     [DisallowMultipleComponent]
     public class CanvasRaycastMethod : BaseRaycastMethod
     {

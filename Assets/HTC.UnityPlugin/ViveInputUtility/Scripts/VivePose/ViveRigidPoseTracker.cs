@@ -5,8 +5,8 @@ using HTC.UnityPlugin.Utility;
 
 namespace HTC.UnityPlugin.Vive
 {
+    [AddComponentMenu("HTC/VIU/Device Tracker/Vive Rigid Pose Tracker (Rigidbody)", 8)]
     [RequireComponent(typeof(Rigidbody))]
-    [AddComponentMenu("HTC/Vive/Vive Rigid Pose Tracker")]
     public class ViveRigidPoseTracker : VivePoseTracker
     {
         public const float MIN_FOLLOWING_DURATION = 0.02f;

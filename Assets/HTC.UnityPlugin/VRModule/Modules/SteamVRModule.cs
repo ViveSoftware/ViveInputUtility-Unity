@@ -2,6 +2,7 @@
 
 #if VIU_STEAMVR
 using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.Vive;
 using System.Text;
 using UnityEngine;
 using Valve.VR;
@@ -30,9 +31,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override bool ShouldActiveModule()
         {
 #if UNITY_5_4_OR_NEWER
-            return XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR";
+            return VIUSettings.activateSteamVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR";
 #else
-            return SteamVR.enabled;
+            return VIUSettings.activateSteamVRModule && SteamVR.enabled;
 #endif
         }
 

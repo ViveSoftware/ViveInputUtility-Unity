@@ -3,32 +3,37 @@
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEngine;
 
-public class SteamVRCameraHook : MonoBehaviour
+
+namespace HTC.UnityPlugin.Vive
 {
+    [AddComponentMenu("HTC/VIU/Hooks/SteamVR Camera Hook", 10)]
+    public class SteamVRCameraHook : MonoBehaviour
+    {
 #if VIU_STEAMVR
-    private void Awake()
-    {
-        if (VRModule.activeModule == VRModuleActiveEnum.Uninitialized)
+        private void Awake()
         {
-            VRModule.onActiveModuleChanged += OnModuleActivated;
-        }
-        else
-        {
-            OnModuleActivated(VRModule.activeModule);
-        }
-    }
-
-    private void OnModuleActivated(VRModuleActiveEnum activatedModule)
-    {
-        if (activatedModule == VRModuleActiveEnum.SteamVR)
-        {
-            if (GetComponent<SteamVR_Camera>() == null)
+            if (VRModule.activeModule == VRModuleActiveEnum.Uninitialized)
             {
-                gameObject.AddComponent<SteamVR_Camera>();
+                VRModule.onActiveModuleChanged += OnModuleActivated;
             }
-
-            VRModule.onActiveModuleChanged -= OnModuleActivated;
+            else
+            {
+                OnModuleActivated(VRModule.activeModule);
+            }
         }
-    }
+
+        private void OnModuleActivated(VRModuleActiveEnum activatedModule)
+        {
+            if (activatedModule == VRModuleActiveEnum.SteamVR)
+            {
+                if (GetComponent<SteamVR_Camera>() == null)
+                {
+                    gameObject.AddComponent<SteamVR_Camera>();
+                }
+
+                VRModule.onActiveModuleChanged -= OnModuleActivated;
+            }
+        }
 #endif
+    }
 }

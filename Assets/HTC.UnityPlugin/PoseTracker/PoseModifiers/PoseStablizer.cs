@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace HTC.UnityPlugin.PoseTracker
 {
-    [AddComponentMenu("HTC/Pose Tracker/Pose Stablizer")]
     public class PoseStablizer : BasePoseModifier
     {
         public float positionThreshold = 0.0005f; // meter

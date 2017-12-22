@@ -97,12 +97,11 @@ namespace HTC.UnityPlugin.Vive
                 UpdateInterfaceKeyMonitor();
             }
         }
-
-#if VIU_BINDING_INTERFACE_SWITCH
+        
         private static void UpdateInterfaceKeyMonitor()
         {
             // Moniter input key to open up the binding interface
-            if (!string.IsNullOrEmpty(s_bindingConfig.toggle_interface_key_code) && Enum.IsDefined(typeof(KeyCode), s_bindingConfig.toggle_interface_key_code))
+            if (VIUSettings.enableBindingInterfaceSwitch && !string.IsNullOrEmpty(s_bindingConfig.toggle_interface_key_code) && Enum.IsDefined(typeof(KeyCode), s_bindingConfig.toggle_interface_key_code))
             {
                 s_toggleKey = (KeyCode)Enum.Parse(typeof(KeyCode), s_bindingConfig.toggle_interface_key_code);
 
@@ -145,9 +144,6 @@ namespace HTC.UnityPlugin.Vive
                 ToggleBindingInterface();
             }
         }
-#else
-        private static void UpdateInterfaceKeyMonitor() { }
-#endif
 
         public static VRModuleDeviceModel GetDeviceModelHint(string deviceSN)
         {

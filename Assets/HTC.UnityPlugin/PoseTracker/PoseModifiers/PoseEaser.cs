@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace HTC.UnityPlugin.PoseTracker
 {
-    [AddComponentMenu("HTC/Pose Tracker/Pose Easer")]
     public class PoseEaser : BasePoseModifier
     {
         // similar to equation y=1-(0.01^x) where 0<x<1

@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +22,7 @@ namespace HTC.UnityPlugin.Vive
 
         private interface IPropSetting
         {
+            void UpdateCurrentValue();
             bool IsIgnored();
             bool IsUsingRecommendedValue();
             void DoDrawRecommend();
@@ -40,30 +42,36 @@ namespace HTC.UnityPlugin.Vive
             private string ignoreKey { get { return editorPrefsPrefix + m_settingTrimedTitle; } }
 
             public string settingTitle { get { return m_settingTitle; } set { m_settingTitle = value; m_settingTrimedTitle = value.Replace(" ", ""); } }
-            public string recommendBtnPostfix;
+            public string recommendBtnPostfix = string.Empty;
             public string toolTip = string.Empty;
+            public Func<T> recommendedValueFunc = null;
             public Func<T> currentValueFunc = null;
             public Action<T> setValueFunc = null;
+            public T currentValue = default(T);
             public T recommendedValue = default(T);
+
+            public T GetRecommended() { return recommendedValueFunc == null ? recommendedValue : recommendedValueFunc(); }
 
             public bool IsIgnored() { return EditorPrefs.HasKey(ignoreKey); }
 
-            public bool IsUsingRecommendedValue() { return EqualityComparer<T>.Default.Equals(currentValueFunc(), recommendedValue); }
+            public bool IsUsingRecommendedValue() { return EqualityComparer<T>.Default.Equals(currentValue, GetRecommended()); }
+
+            public void UpdateCurrentValue() { currentValue = currentValueFunc(); }
 
             public void DoDrawRecommend()
             {
-                GUILayout.Label(new GUIContent(string.Format(fmtTitle, settingTitle, currentValueFunc()), toolTip));
+                GUILayout.Label(new GUIContent(string.Format(fmtTitle, settingTitle, currentValue), toolTip));
 
                 GUILayout.BeginHorizontal();
 
                 bool recommendBtnClicked;
                 if (string.IsNullOrEmpty(recommendBtnPostfix))
                 {
-                    recommendBtnClicked = GUILayout.Button(new GUIContent(string.Format(fmtRecommendBtn, recommendedValue), toolTip));
+                    recommendBtnClicked = GUILayout.Button(new GUIContent(string.Format(fmtRecommendBtn, GetRecommended()), toolTip));
                 }
                 else
                 {
-                    recommendBtnClicked = GUILayout.Button(new GUIContent(string.Format(fmtRecommendBtnWithPosefix, recommendedValue, recommendBtnPostfix), toolTip));
+                    recommendBtnClicked = GUILayout.Button(new GUIContent(string.Format(fmtRecommendBtnWithPosefix, GetRecommended(), recommendBtnPostfix), toolTip));
                 }
 
                 if (recommendBtnClicked)
@@ -83,7 +91,7 @@ namespace HTC.UnityPlugin.Vive
 
             public void AcceptRecommendValue()
             {
-                setValueFunc(recommendedValue);
+                setValueFunc(GetRecommended());
             }
 
             public void DoIgnore()
@@ -97,9 +105,6 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        public const string VIU_BINDING_INTERFACE_SWITCH_SYMBOL = "VIU_BINDING_INTERFACE_SWITCH";
-        public const string VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL = "VIU_EXTERNAL_CAMERA_SWITCH";
-
         public const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
         public const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
         public const double versionCheckIntervalMinutes = 60.0;
@@ -110,185 +115,17 @@ namespace HTC.UnityPlugin.Vive
         private static string fmtIgnoreUpdateKey;
         private static string ignoreThisVersionKey;
 
-        private const string BIND_UI_SWITCH_TOOLTIP = "When enabled, pressing RightShift + B to open the binding interface in play mode.";
-        private const string EX_CAM_UI_SWITCH_TOOLTIP = "When enabled, pressing RightShift + M to toggle the quad view while external camera config file exist.";
-        private static bool s_waitingForCompile;
-
         private static bool completeCheckVersionFlow = false;
         private static WWW www;
         private static RepoInfo latestRepoInfo;
         private static Version latestVersion;
-        private static VIUVersionCheck window;
         private static Vector2 releaseNoteScrollPosition;
         private static Vector2 settingScrollPosition;
         private static bool showNewVersion;
 
         private static bool toggleSkipThisVersion = false;
-#if VIU_BINDING_INTERFACE_SWITCH
-        private static bool toggleBindUISwithState = true;
-#else
-        private static bool toggleBindUISwithState = false;
-#endif
-#if VIU_EXTERNAL_CAMERA_SWITCH
-        private static bool toggleExCamSwithState = true;
-#else
-        private static bool toggleExCamSwithState = false;
-#endif
 
-        private static IPropSetting[] s_settings = new IPropSetting[]
-        {
-            new PropSetting<bool>()
-            {
-            settingTitle = "Binding Interface",
-            recommendBtnPostfix = "requires re-compiling",
-            toolTip = BIND_UI_SWITCH_TOOLTIP + " You can change this option later in Edit -> Preferences... -> VIU Settings.",
-            currentValueFunc = () => toggleBindUISwithState,
-            setValueFunc = (v) => toggleBindUISwithState = v,
-#if VIU_STEAMVR
-            recommendedValue = true,
-#else
-            recommendedValue = false,
-#endif
-            },
-
-            new PropSetting<bool>()
-            {
-            settingTitle = "External Camera Interface",
-            recommendBtnPostfix = "requires re-compiling",
-            toolTip = EX_CAM_UI_SWITCH_TOOLTIP + " You can change this option later in Edit -> Preferences... -> VIU Settings.",
-            currentValueFunc = () => toggleExCamSwithState,
-            setValueFunc = (v) => toggleExCamSwithState = v,
-#if VIU_STEAMVR
-            recommendedValue = true,
-#else
-            recommendedValue = false,
-#endif
-            },
-
-#if !VIU_STEAMVR
-
-            new PropSetting<bool>()
-            {
-            settingTitle = "Show Unity Splashscreen",
-#if (UNITY_5_4 || UNITY_5_3 || UNITY_5_2 || UNITY_5_1 || UNITY_5_0)
-			currentValueFunc = () => PlayerSettings.showUnitySplashScreen,
-            setValueFunc = (v) => PlayerSettings.showUnitySplashScreen = v,
-#else
-			currentValueFunc = () => PlayerSettings.SplashScreen.show,
-            setValueFunc = (v) => PlayerSettings.SplashScreen.show = v,
-#endif
-            recommendedValue = false,
-            },
-
-            new PropSetting<bool>()
-            {
-            settingTitle = "Default Is Fullscreen",
-            currentValueFunc = () => PlayerSettings.defaultIsFullScreen,
-            setValueFunc = (v) => PlayerSettings.defaultIsFullScreen = v,
-            recommendedValue = false,
-            },
-
-            new PropSetting<Vector2>()
-            {
-            settingTitle = "Default Screen Size",
-            currentValueFunc = () => new Vector2(PlayerSettings.defaultScreenWidth, PlayerSettings.defaultScreenHeight),
-            setValueFunc = (v) => { PlayerSettings.defaultScreenWidth = (int)v.x; PlayerSettings.defaultScreenHeight = (int)v.y; },
-            recommendedValue = new Vector2(1024f, 768f),
-            },
-
-            new PropSetting<bool>()
-            {
-            settingTitle = "Run In Background",
-            currentValueFunc = () => PlayerSettings.runInBackground,
-            setValueFunc = (v) => PlayerSettings.runInBackground = v,
-            recommendedValue = true,
-            },
-
-            new PropSetting<ResolutionDialogSetting>()
-            {
-            settingTitle = "Display Resolution Dialog",
-            currentValueFunc = () => PlayerSettings.displayResolutionDialog,
-            setValueFunc = (v) => PlayerSettings.displayResolutionDialog = v,
-            recommendedValue = ResolutionDialogSetting.HiddenByDefault,
-            },
-
-            new PropSetting<bool>()
-            {
-            settingTitle = "Resizable Window",
-            currentValueFunc = () => PlayerSettings.resizableWindow,
-            setValueFunc = (v) => PlayerSettings.resizableWindow = v,
-            recommendedValue = true,
-            },
-
-            new PropSetting<D3D11FullscreenMode>()
-            {
-            settingTitle = "D3D11 Fullscreen Mode",
-            currentValueFunc = () => PlayerSettings.d3d11FullscreenMode,
-            setValueFunc = (v) => PlayerSettings.d3d11FullscreenMode = v,
-            recommendedValue = D3D11FullscreenMode.FullscreenWindow,
-            },
-
-            new PropSetting<bool>()
-            {
-            settingTitle = "Visible In Background",
-            currentValueFunc = () => PlayerSettings.visibleInBackground,
-            setValueFunc = (v) => PlayerSettings.visibleInBackground = v,
-            recommendedValue = true,
-            },
-
-#if (UNITY_5_4 || UNITY_5_3 || UNITY_5_2 || UNITY_5_1 || UNITY_5_0)
-            new PropSetting<RenderingPath>()
-            {
-            settingTitle = "Rendering Path",
-            recommendBtnPostfix = "required for MSAA",
-            currentValueFunc = () => PlayerSettings.renderingPath,
-            setValueFunc = (v) => PlayerSettings.renderingPath = v,
-            recommendedValue = RenderingPath.Forward,
-            },
-#endif
-
-            new PropSetting<ColorSpace>()
-            {
-            settingTitle = "Color Space",
-            recommendBtnPostfix = "requires reloading scene",
-            currentValueFunc = () => PlayerSettings.colorSpace,
-            setValueFunc = (v) => PlayerSettings.colorSpace = v,
-            recommendedValue = ColorSpace.Linear,
-            },
-
-#if !(UNITY_5_3 || UNITY_5_2 || UNITY_5_1 || UNITY_5_0)
-            new PropSetting<bool>()
-            {
-            settingTitle = "GPU Skinning",
-            currentValueFunc = () => PlayerSettings.gpuSkinning ,
-            setValueFunc = (v) =>PlayerSettings.gpuSkinning  = v,
-            recommendedValue = true,
-            },
-#endif
-
-#if (UNITY_5_3 || UNITY_5_2 || UNITY_5_1 || UNITY_5_0)
-            new PropSetting<bool>()
-            {
-            settingTitle = "Stereoscopic Rendering",
-            currentValueFunc = () => PlayerSettings.stereoscopic3D,
-            setValueFunc = (v) => PlayerSettings.stereoscopic3D = v,
-            recommendedValue = false,
-            },
-#endif
-
-#if UNITY_STANDALONE && (VIU_OCULUS || UNITY_5_5_OR_NEWER)
-            new PropSetting<bool>()
-            {
-            settingTitle = "Virtual Reality Support",
-            currentValueFunc = () => PlayerSettings.virtualRealitySupported,
-            setValueFunc = (v) => PlayerSettings.virtualRealitySupported = v,
-            recommendedValue = true,
-            },
-#endif
-
-#endif // !VIU_STEAMVR
-        };
-
+        private static IPropSetting[] s_settings;
         private Texture2D viuLogo;
 
         static VIUVersionCheck()
@@ -296,9 +133,178 @@ namespace HTC.UnityPlugin.Vive
             EditorApplication.update += CheckVersionAndSettings;
         }
 
+        private static void InitializeSettins()
+        {
+            if (s_settings != null) { return; }
+            s_settings = new IPropSetting[]
+            {
+                new PropSetting<bool>()
+                {
+                settingTitle = "Binding Interface Switch",
+                toolTip = VIUSettings.BIND_UI_SWITCH_TOOLTIP + " You can change this option later in Edit -> Preferences... -> VIU Settings.",
+                currentValueFunc = () => VIUSettings.enableBindingInterfaceSwitch,
+                setValueFunc = v => { VIUSettings.enableBindingInterfaceSwitch = v; },
+                recommendedValueFunc = () => VIUSettingsEditor.supportOpenVR,
+                },
+
+                new PropSetting<bool>()
+                {
+                settingTitle = "External Camera Switch",
+                toolTip = VIUSettings.EX_CAM_UI_SWITCH_TOOLTIP + " You can change this option later in Edit -> Preferences... -> VIU Settings.",
+                currentValueFunc = () => VIUSettings.enableExternalCameraSwitch,
+                setValueFunc = v => { VIUSettings.enableExternalCameraSwitch = v; },
+                recommendedValue = VRModule.isSteamVRPluginDetected && VIUSettings.activateSteamVRModule,
+                },
+
+#if !VIU_STEAMVR
+
+    #if UNITY_5_3
+                new PropSetting<bool>()
+                {
+                settingTitle = "Stereoscopic Rendering",
+                currentValueFunc = () => PlayerSettings.stereoscopic3D,
+                setValueFunc = v => PlayerSettings.stereoscopic3D = v,
+                recommendedValue = false,
+                },
+    #endif
+
+    #if UNITY_5_3 || UNITY_5_4
+                new PropSetting<RenderingPath>()
+                {
+                settingTitle = "Rendering Path",
+                recommendBtnPostfix = "required for MSAA",
+                currentValueFunc = () => PlayerSettings.renderingPath,
+                setValueFunc = v => PlayerSettings.renderingPath = v,
+                recommendedValue = RenderingPath.Forward,
+                },
+    #endif
+
+    #if UNITY_5_4_OR_NEWER
+                new PropSetting<bool>()
+                {
+                settingTitle = "GPU Skinning",
+                currentValueFunc = () => PlayerSettings.gpuSkinning ,
+                setValueFunc = v => PlayerSettings.gpuSkinning  = v,
+                recommendedValue = true,
+                },
+    #endif
+
+                new PropSetting<bool>()
+                {
+                settingTitle = "Show Unity Splashscreen",
+    #if UNITY_5_3 || UNITY_5_4
+			    currentValueFunc = () => PlayerSettings.showUnitySplashScreen,
+                setValueFunc = v => PlayerSettings.showUnitySplashScreen = v,
+    #else
+			    currentValueFunc = () => PlayerSettings.SplashScreen.show,
+                setValueFunc = v => PlayerSettings.SplashScreen.show = v,
+    #endif
+                recommendedValueFunc = () => !UnityEditorInternal.InternalEditorUtility.HasPro(),
+                },
+
+                new PropSetting<bool>()
+                {
+                settingTitle = "Default Is Fullscreen",
+                currentValueFunc = () => PlayerSettings.defaultIsFullScreen,
+                setValueFunc = v => PlayerSettings.defaultIsFullScreen = v,
+                recommendedValue = false,
+                },
+
+                new PropSetting<Vector2>()
+                {
+                settingTitle = "Default Screen Size",
+                currentValueFunc = () => new Vector2(PlayerSettings.defaultScreenWidth, PlayerSettings.defaultScreenHeight),
+                setValueFunc = v => { PlayerSettings.defaultScreenWidth = (int)v.x; PlayerSettings.defaultScreenHeight = (int)v.y; },
+                recommendedValue = new Vector2(1024f, 768f),
+                },
+
+                new PropSetting<bool>()
+                {
+                settingTitle = "Run In Background",
+                currentValueFunc = () => PlayerSettings.runInBackground,
+                setValueFunc = v => PlayerSettings.runInBackground = v,
+                recommendedValue = true,
+                },
+
+                new PropSetting<ResolutionDialogSetting>()
+                {
+                settingTitle = "Display Resolution Dialog",
+                currentValueFunc = () => PlayerSettings.displayResolutionDialog,
+                setValueFunc = v => PlayerSettings.displayResolutionDialog = v,
+                recommendedValue = ResolutionDialogSetting.HiddenByDefault,
+                },
+
+                new PropSetting<bool>()
+                {
+                settingTitle = "Resizable Window",
+                currentValueFunc = () => PlayerSettings.resizableWindow,
+                setValueFunc = v => PlayerSettings.resizableWindow = v,
+                recommendedValue = true,
+                },
+
+                new PropSetting<D3D11FullscreenMode>()
+                {
+                settingTitle = "D3D11 Fullscreen Mode",
+                currentValueFunc = () => PlayerSettings.d3d11FullscreenMode,
+                setValueFunc = v => PlayerSettings.d3d11FullscreenMode = v,
+                recommendedValue = D3D11FullscreenMode.FullscreenWindow,
+                },
+
+                new PropSetting<bool>()
+                {
+                settingTitle = "Visible In Background",
+                currentValueFunc = () => PlayerSettings.visibleInBackground,
+                setValueFunc = v => PlayerSettings.visibleInBackground = v,
+                recommendedValue = true,
+                },
+
+                new PropSetting<ColorSpace>()
+                {
+                settingTitle = "Color Space",
+                recommendBtnPostfix = "requires reloading scene",
+                currentValueFunc = () => PlayerSettings.colorSpace,
+                setValueFunc = v => PlayerSettings.colorSpace = v,
+                recommendedValue = ColorSpace.Linear,
+                },
+                
+                new PropSetting<bool>()
+                {
+                settingTitle = "Vive Support",
+                currentValueFunc = () => VIUSettingsEditor.supportOpenVR,
+                setValueFunc = v =>
+                {
+                    VIUSettingsEditor.supportOpenVR = v;
+                    VIUSettingsEditor.EnabledDevices.ApplyChanges();
+                },
+                recommendedValueFunc = () => VIUSettingsEditor.canSupportOpenVR,
+                },
+                
+                new PropSetting<bool>()
+                {
+                settingTitle = "Oculus Support",
+                currentValueFunc = () => VIUSettingsEditor.supportOculus,
+                setValueFunc = v =>
+                {
+                    VIUSettingsEditor.supportOculus = v;
+                    VIUSettingsEditor.EnabledDevices.ApplyChanges();
+                },
+                recommendedValueFunc = () => VIUSettingsEditor.canSupportOculus,
+                },
+#endif // !VIU_STEAMVR
+           };
+        }
+
         // check vive input utility version on github
         private static void CheckVersionAndSettings()
         {
+            if (Application.isPlaying)
+            {
+                EditorApplication.update -= CheckVersionAndSettings;
+                return;
+            }
+
+            InitializeSettins();
+
             if (string.IsNullOrEmpty(editorPrefsPrefix))
             {
                 editorPrefsPrefix = "ViveInputUtility." + PlayerSettings.productGUID + ".";
@@ -369,6 +375,8 @@ namespace HTC.UnityPlugin.Vive
             var recommendCount = 0; // not ignored and not using recommended value
             foreach (var setting in s_settings)
             {
+                setting.UpdateCurrentValue();
+
                 if (!setting.IsIgnored() && !setting.IsUsingRecommendedValue())
                 {
                     ++recommendCount;
@@ -377,7 +385,7 @@ namespace HTC.UnityPlugin.Vive
 
             if (showNewVersion || recommendCount > 0)
             {
-                window = GetWindow<VIUVersionCheck>(true, "Vive Input Utility");
+                var window = GetWindow<VIUVersionCheck>(true, "Vive Input Utility");
                 window.minSize = new Vector2(240f, 550f);
 
                 var rect = window.position;
@@ -478,6 +486,8 @@ namespace HTC.UnityPlugin.Vive
 
             foreach (var setting in s_settings)
             {
+                setting.UpdateCurrentValue();
+
                 if (setting.IsIgnored()) { ++ignoredCount; }
 
                 if (setting.IsUsingRecommendedValue()) { continue; }
@@ -547,7 +557,6 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-
         private void OnDestroy()
         {
             if (viuLogo != null)
@@ -558,146 +567,6 @@ namespace HTC.UnityPlugin.Vive
             if (showNewVersion && toggleSkipThisVersion && !string.IsNullOrEmpty(ignoreThisVersionKey))
             {
                 EditorPrefs.SetBool(ignoreThisVersionKey, true);
-            }
-
-            if (
-#if VIU_BINDING_INTERFACE_SWITCH
-                !toggleBindUISwithState
-#else
-                toggleBindUISwithState
-#endif
-                ||
-#if VIU_EXTERNAL_CAMERA_SWITCH
-                !toggleExCamSwithState
-#else
-                toggleExCamSwithState
-#endif
-                )
-            {
-                EditSymbols(
-                    new EditSymbolArg() { symbol = VIU_BINDING_INTERFACE_SWITCH_SYMBOL, enable = toggleBindUISwithState },
-                    new EditSymbolArg() { symbol = VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL, enable = toggleExCamSwithState }
-                );
-            }
-        }
-
-        private struct EditSymbolArg
-        {
-            public string symbol;
-            public bool enable;
-        }
-
-        private static void EditSymbols(params EditSymbolArg[] args)
-        {
-            var symbolChanged = false;
-            var scriptingDefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
-            var symbolsList = new List<string>(scriptingDefineSymbols.Split(';'));
-
-            foreach (var arg in args)
-            {
-                if (arg.enable)
-                {
-                    if (!symbolsList.Contains(arg.symbol))
-                    {
-                        symbolsList.Add(arg.symbol);
-                        symbolChanged = true;
-                    }
-                }
-                else
-                {
-                    if (symbolsList.RemoveAll(s => s == arg.symbol) > 0)
-                    {
-                        symbolChanged = true;
-                    }
-                }
-            }
-
-            if (symbolChanged)
-            {
-                EditorApplication.delayCall += GetSetSymbolsCallback(string.Join(";", symbolsList.ToArray()));
-            }
-        }
-
-        private static EditorApplication.CallbackFunction GetSetSymbolsCallback(string symbols)
-        {
-            return () => PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, symbols);
-        }
-
-        [PreferenceItem("VIU Settings")]
-        public static void OnVIUPreferenceGUI()
-        {
-            EditorGUILayout.LabelField("Vive Input Utility v" + VIUVersion.current);
-
-            EditorGUILayout.BeginHorizontal();
-            {
-                if (GUILayout.Button(new GUIContent("Checkout Latest Version", "Goto " + pluginUrl)))
-                {
-                    Application.OpenURL(pluginUrl);
-                }
-
-                GUILayout.FlexibleSpace();
-            }
-            EditorGUILayout.EndHorizontal();
-
-            if (!s_waitingForCompile)
-            {
-                bool toggleValue;
-
-                EditorGUI.BeginChangeCheck();
-
-                GUILayout.BeginHorizontal();
-                {
-                    toggleValue = EditorGUILayout.ToggleLeft(new GUIContent("", BIND_UI_SWITCH_TOOLTIP),
-#if VIU_BINDING_INTERFACE_SWITCH
-                    true
-#else
-                    false
-#endif
-                    , GUILayout.MaxWidth(15f));
-                    EditorGUILayout.LabelField(new GUIContent("Enable Binding Interface Switch - requires re-compiling", BIND_UI_SWITCH_TOOLTIP));
-                }
-                GUILayout.EndHorizontal();
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    s_waitingForCompile = true;
-                    EditSymbols(new EditSymbolArg() { symbol = VIU_BINDING_INTERFACE_SWITCH_SYMBOL, enable = toggleValue });
-                    return;
-                }
-
-                EditorGUI.BeginChangeCheck();
-
-                GUILayout.BeginHorizontal();
-                {
-                    toggleValue = EditorGUILayout.ToggleLeft(new GUIContent("", EX_CAM_UI_SWITCH_TOOLTIP),
-#if VIU_EXTERNAL_CAMERA_SWITCH
-                    true
-#else
-                    false
-#endif
-                    , GUILayout.MaxWidth(15f));
-                    EditorGUILayout.LabelField(new GUIContent("Enable External Camera Switch - requires re-compiling", EX_CAM_UI_SWITCH_TOOLTIP));
-                }
-                GUILayout.EndHorizontal();
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    s_waitingForCompile = true;
-                    EditSymbols(new EditSymbolArg() { symbol = VIU_EXTERNAL_CAMERA_SWITCH_SYMBOL, enable = toggleValue });
-                    return;
-                }
-            }
-            else
-            {
-                GUILayout.FlexibleSpace();
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label("Re-compiling...");
-                    GUILayout.FlexibleSpace();
-                }
-                GUILayout.EndHorizontal();
-                GUILayout.FlexibleSpace();
             }
         }
     }

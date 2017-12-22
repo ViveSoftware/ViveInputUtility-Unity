@@ -299,24 +299,24 @@ namespace HTC.UnityPlugin.Vive
             return GetScrollDeltaEx(role.roleType, role.roleValue, scrollType, scale, xAxis, yAxis);
         }
 
-        public static void AddListener(ViveRoleProperty role, ControllerButton button, Action callback)
+        public static void AddListener(ViveRoleProperty role, ControllerButton button, ButtonEventType eventType, Action callback)
         {
-            AddListenerEx(role.roleType, role.roleValue, button, ButtonEventType.Press, callback);
+            AddListenerEx(role.roleType, role.roleValue, button, eventType, callback);
         }
 
-        public static void RemoveListener(ViveRoleProperty role, ControllerButton button, Action callback)
+        public static void RemoveListener(ViveRoleProperty role, ControllerButton button, ButtonEventType eventType, Action callback)
         {
-            RemoveListenerEx(role.roleType, role.roleValue, button, ButtonEventType.Press, callback);
+            RemoveListenerEx(role.roleType, role.roleValue, button, eventType, callback);
         }
 
-        public static void AddListener(ViveRoleProperty role, ControllerButton button, RoleValueEventListener callback)
+        public static void AddListener(ViveRoleProperty role, ControllerButton button, ButtonEventType eventType, RoleValueEventListener callback)
         {
-            AddListenerEx(role.roleType, role.roleValue, button, ButtonEventType.Press, callback);
+            AddListenerEx(role.roleType, role.roleValue, button, eventType, callback);
         }
 
-        public static void RemoveListener(ViveRoleProperty role, ControllerButton button, RoleValueEventListener callback)
+        public static void RemoveListener(ViveRoleProperty role, ControllerButton button, ButtonEventType eventType, RoleValueEventListener callback)
         {
-            RemoveListenerEx(role.roleType, role.roleValue, button, ButtonEventType.Press, callback);
+            RemoveListenerEx(role.roleType, role.roleValue, button, eventType, callback);
         }
 
         /// <summary>

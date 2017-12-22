@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace HTC.UnityPlugin.PoseTracker
 {
-    [AddComponentMenu("HTC/Pose Tracker/Pose Tracker")]
     public class PoseTracker : BasePoseTracker
     {
         public Transform target;

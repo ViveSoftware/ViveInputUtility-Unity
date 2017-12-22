@@ -9,6 +9,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public partial class VRModule : SingletonBehaviour<VRModule>
     {
         private static readonly DeviceState s_defaultState;
+        private static readonly SimulatorVRModule s_simulator;
         private static readonly Dictionary<string, uint> s_deviceSerialNumberTable = new Dictionary<string, uint>((int)MAX_DEVICE_COUNT);
 
         [SerializeField]
@@ -45,7 +46,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SetDefaultInitGameObjectGetter(GetDefaultInitGameObject);
 
             s_defaultState = new DeviceState(INVALID_DEVICE_INDEX);
-            s_defaultState.Reset();
+            s_simulator = new SimulatorVRModule();
         }
 
         private static GameObject GetDefaultInitGameObject()
@@ -67,7 +68,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             m_modules = new ModuleBase[EnumUtils.GetMaxValue(typeof(VRModuleActiveEnum)) + 1];
             m_modules[(int)VRModuleActiveEnum.None] = new DefaultModule();
-            //s_modules[(int)SupportedModule.Simulator] = new DefaultModule();
+            m_modules[(int)VRModuleActiveEnum.Simulator] = s_simulator;
             m_modules[(int)VRModuleActiveEnum.UnityNativeVR] = new UnityEngineVRModule();
             m_modules[(int)VRModuleActiveEnum.SteamVR] = new SteamVRModule();
             m_modules[(int)VRModuleActiveEnum.OculusVR] = new OculusVRModule();
@@ -85,6 +86,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             Camera.onPreCull += OnCameraPreCull;
 #endif
+        }
+
+        private void Update()
+        {
+            if (m_activatedModuleBase != null)
+            {
+                m_activatedModuleBase.Update();
+            }
         }
 
         protected override void OnDestroy()
@@ -170,29 +179,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             var currentSelectedModule = GetSelectedModule(m_selectModule);
 
-            if (m_activatedModule == currentSelectedModule) { return; }
-
-            // clean up if previous active module is not null
-            if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
+            if (m_activatedModule != currentSelectedModule)
             {
-                CleanUp();
-                // m_activatedModule will reset to SupportedVRModule.Uninitialized after CleanUp()
-            }
+                // clean up if previous active module is not null
+                if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
+                {
+                    CleanUp();
+                    // m_activatedModule will reset to VRModuleActiveEnum.Uninitialized after CleanUp()
+                }
 
-            // activate the selected module
-            if (currentSelectedModule != VRModuleActiveEnum.Uninitialized)
-            {
                 m_activatedModule = currentSelectedModule;
-                m_activatedModuleBase = m_modules[(int)currentSelectedModule];
-                m_activatedModuleBase.OnActivated();
 
-                VRModule.InvokeActiveModuleChangedEvent(m_activatedModule);
-            }
+                // activate the selected module
+                if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
+                {
+                    m_activatedModuleBase = m_modules[(int)currentSelectedModule];
+                    m_activatedModuleBase.OnActivated();
 
-            // update module
-            if (currentSelectedModule != VRModuleActiveEnum.Uninitialized)
-            {
-                m_activatedModuleBase.Update();
+                    VRModule.InvokeActiveModuleChangedEvent(m_activatedModule);
+                }
             }
         }
 

@@ -1,58 +1,63 @@
-﻿using UnityEditor;
+﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+
+using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(RenderModelHook))]
-[CanEditMultipleObjects]
-public class RenderModelHookEditor : Editor
+namespace HTC.UnityPlugin.Vive
 {
-    protected SerializedProperty scriptProp;
-    protected SerializedProperty modeProp;
-    protected SerializedProperty viveRoleProp;
-    protected SerializedProperty deviceIndexProp;
-    protected SerializedProperty overrideModelProp;
-	protected SerializedProperty overrideShaderProp;
-
-    protected virtual void OnEnable()
+    [CustomEditor(typeof(RenderModelHook))]
+    [CanEditMultipleObjects]
+    public class RenderModelHookEditor : Editor
     {
-        if (target == null || serializedObject == null) return;
+        protected SerializedProperty scriptProp;
+        protected SerializedProperty modeProp;
+        protected SerializedProperty viveRoleProp;
+        protected SerializedProperty deviceIndexProp;
+        protected SerializedProperty overrideModelProp;
+        protected SerializedProperty overrideShaderProp;
 
-        scriptProp = serializedObject.FindProperty("m_Script");
-        modeProp = serializedObject.FindProperty("m_mode");
-        viveRoleProp = serializedObject.FindProperty("m_viveRole");
-        deviceIndexProp = serializedObject.FindProperty("m_deviceIndex");
-        overrideModelProp = serializedObject.FindProperty("m_overrideModel");
-		overrideShaderProp = serializedObject.FindProperty("m_overrideShader");
-    }
-
-    public override void OnInspectorGUI()
-    {
-        if (target == null || serializedObject == null) return;
-
-        serializedObject.Update();
-
-        GUI.enabled = false;
-        EditorGUILayout.PropertyField(scriptProp);
-        GUI.enabled = true;
-
-        EditorGUILayout.PropertyField(overrideModelProp);
-
-		EditorGUILayout.PropertyField(overrideShaderProp);
-
-        EditorGUILayout.PropertyField(modeProp);
-
-        switch (modeProp.intValue)
+        protected virtual void OnEnable()
         {
-            case (int)RenderModelHook.Mode.ViveRole:
-                EditorGUILayout.PropertyField(viveRoleProp);
-                break;
-            case (int)RenderModelHook.Mode.DeivceIndex:
-                EditorGUILayout.PropertyField(deviceIndexProp);
-                break;
-            case (int)RenderModelHook.Mode.Disable:
-            default:
-                break;
+            if (target == null || serializedObject == null) return;
+
+            scriptProp = serializedObject.FindProperty("m_Script");
+            modeProp = serializedObject.FindProperty("m_mode");
+            viveRoleProp = serializedObject.FindProperty("m_viveRole");
+            deviceIndexProp = serializedObject.FindProperty("m_deviceIndex");
+            overrideModelProp = serializedObject.FindProperty("m_overrideModel");
+            overrideShaderProp = serializedObject.FindProperty("m_overrideShader");
         }
 
-        serializedObject.ApplyModifiedProperties();
+        public override void OnInspectorGUI()
+        {
+            if (target == null || serializedObject == null) return;
+
+            serializedObject.Update();
+
+            GUI.enabled = false;
+            EditorGUILayout.PropertyField(scriptProp);
+            GUI.enabled = true;
+
+            EditorGUILayout.PropertyField(overrideModelProp);
+
+            EditorGUILayout.PropertyField(overrideShaderProp);
+
+            EditorGUILayout.PropertyField(modeProp);
+
+            switch (modeProp.intValue)
+            {
+                case (int)RenderModelHook.Mode.ViveRole:
+                    EditorGUILayout.PropertyField(viveRoleProp);
+                    break;
+                case (int)RenderModelHook.Mode.DeivceIndex:
+                    EditorGUILayout.PropertyField(deviceIndexProp);
+                    break;
+                case (int)RenderModelHook.Mode.Disable:
+                default:
+                    break;
+            }
+
+            serializedObject.ApplyModifiedProperties();
+        }
     }
 }

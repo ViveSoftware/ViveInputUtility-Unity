@@ -207,7 +207,7 @@ namespace HTC.UnityPlugin.Vive
                 }
                 else
                 {
-                    UnityEngine.Debug.Log("redundant instance for RoleInfo<" + typeof(TRole).Name + ">");
+                    Debug.Log("redundant instance for RoleInfo<" + typeof(TRole).Name + ">");
                 }
             }
 
@@ -277,7 +277,7 @@ namespace HTC.UnityPlugin.Vive
                 var validateResult = ValidateViveRoleEnum(roleEnumType);
                 if (validateResult != ViveRoleEnumValidateResult.Valid)
                 {
-                    UnityEngine.Debug.LogWarning(roleEnumType.Name + " is not valid ViveRole. " + validateResult);
+                    Debug.LogWarning(roleEnumType.Name + " is not valid ViveRole. " + validateResult);
                     return null;
                 }
 
@@ -290,13 +290,13 @@ namespace HTC.UnityPlugin.Vive
 
         public static IInfo<TRole> GetInfo<TRole>()
         {
-            var roleEnumType = typeof(TRole);
             if (GenericInfo<TRole>.s_instance == null)
             {
+                var roleEnumType = typeof(TRole);
                 var validateResult = ValidateViveRoleEnum(roleEnumType);
                 if (validateResult != ViveRoleEnumValidateResult.Valid)
                 {
-                    UnityEngine.Debug.LogWarning(roleEnumType.Name + " is not valid ViveRole. " + validateResult);
+                    Debug.LogWarning(roleEnumType.Name + " is not valid ViveRole. " + validateResult);
                     return null;
                 }
 

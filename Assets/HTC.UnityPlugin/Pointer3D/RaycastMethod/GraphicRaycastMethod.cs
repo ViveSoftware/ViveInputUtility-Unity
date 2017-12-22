@@ -6,7 +6,6 @@ using UnityEngine.EventSystems;
 
 namespace HTC.UnityPlugin.Pointer3D
 {
-    [AddComponentMenu("HTC/Pointer3D/Graphic Raycast Method")]
     public class GraphicRaycastMethod : BaseRaycastMethod
     {
         [SerializeField]
