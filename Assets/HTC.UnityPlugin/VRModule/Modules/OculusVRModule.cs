@@ -56,7 +56,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_node2class[(int)OVRPlugin.Node.TrackerThree] = VRModuleDeviceClass.TrackingReference;
         }
 
-        public override bool ShouldActiveModule() { return VIUSettings.oculusVRSupport && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus"; }
+        public override bool ShouldActiveModule() { return VIUSettings.activateOculusVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus"; }
 
         public override void OnActivated()
         {
