@@ -225,13 +225,15 @@ namespace HTC.UnityPlugin.Vive
                 s_boldStyle.fontStyle = FontStyle.Bold;
             }
 
+            EditorGUILayout.SelectableLabel("v" + VIUVersion.current);
+
             EditorGUI.BeginChangeCheck();
 
             VIUSettings.enableBindingInterfaceSwitch = EditorGUILayout.ToggleLeft(new GUIContent("Enable Binding Interface Switch", VIUSettings.BIND_UI_SWITCH_TOOLTIP), VIUSettings.enableBindingInterfaceSwitch);
             VIUSettings.enableExternalCameraSwitch = EditorGUILayout.ToggleLeft(new GUIContent("Enable External Camera Switch", VIUSettings.EX_CAM_UI_SWITCH_TOOLTIP), VIUSettings.enableExternalCameraSwitch);
 
             EditorGUILayout.Space();
-            
+
             EditorGUILayout.LabelField("Supported devices", s_boldStyle);
 
             const string supportSimulatorTitle = "Simulated Device";

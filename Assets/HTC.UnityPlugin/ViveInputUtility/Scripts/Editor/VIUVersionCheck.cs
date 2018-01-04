@@ -279,6 +279,7 @@ namespace HTC.UnityPlugin.Vive
                     },
                     recommendedValueFunc = () => VIUSettingsEditor.canSupportOpenVR,
                 },
+
 #endif // !VIU_STEAMVR
                 
                 new PropSetting<bool>()
