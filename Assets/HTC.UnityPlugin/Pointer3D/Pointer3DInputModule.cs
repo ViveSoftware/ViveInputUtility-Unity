@@ -629,14 +629,20 @@ namespace HTC.UnityPlugin.Pointer3D
         public override string ToString()
         {
             var str = string.Empty;
-
-            for (int i = 0, imax = raycasters.Count; i < imax; ++i)
+            if (raycasters.Count == 0)
             {
-                var raycaster = raycasters[i];
-                if (raycaster == null) { continue; }
+                str += "No raycaster registered";
+            }
+            else
+            {
+                for (int i = 0, imax = raycasters.Count; i < imax; ++i)
+                {
+                    var raycaster = raycasters[i];
+                    if (raycaster == null) { continue; }
 
-                str += "<b>Raycaster: [" + i + "]</b>\n";
-                str += raycaster.ToString() + "\n";
+                    str += "<b>Raycaster: [" + i + "]</b>\n";
+                    str += raycaster.ToString() + "\n";
+                }
             }
 
             return str;

@@ -42,7 +42,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var system = OpenVR.System;
             if (system != null)
             {
+#if VIU_STEAMVR_1_2_3_OR_NEWER
+                m_hasInputFocus = !system.IsInputAvailable();
+#else
                 m_hasInputFocus = !system.IsInputFocusCapturedByAnotherProcess();
+#endif
             }
 
             var compositor = OpenVR.Compositor;

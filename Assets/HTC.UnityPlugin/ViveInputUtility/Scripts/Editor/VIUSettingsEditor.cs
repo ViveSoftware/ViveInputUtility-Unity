@@ -10,8 +10,6 @@ namespace HTC.UnityPlugin.Vive
 {
     public static class VIUSettingsEditor
     {
-        private static GUIStyle s_boldStyle;
-
         public static class EnabledDevices
         {
             public class Device
@@ -34,12 +32,12 @@ namespace HTC.UnityPlugin.Vive
                         m_enabled = value;
                         if (value)
                         {
-                            if (m_addLast) { s_devices.Add(m_name); }
-                            else { s_devices.Insert(0, m_name); }
+                            if (m_addLast) { s_deviceNames.Add(m_name); }
+                            else { s_deviceNames.Insert(0, m_name); }
                         }
                         else
                         {
-                            s_devices.Remove(m_name);
+                            s_deviceNames.Remove(m_name);
                         }
                     }
                 }
@@ -50,35 +48,49 @@ namespace HTC.UnityPlugin.Vive
 
             private static int s_updatedFrame = -1;
             private static bool s_listDirty;
-            private static List<string> s_devices;
+            private static List<string> s_deviceNames;
+            private static List<Device> s_devices;
 
             public static readonly Device Oculus = new Device("Oculus");
             public static readonly Device OpenVR = new Device("OpenVR", true);
+            public static readonly Device Daydream = new Device("daydream");
+
+            public static int deviceCount { get { return s_deviceNames == null ? 0 : s_deviceNames.Count; } }
 
             private static void Update()
             {
                 if (!ChangeProp.Set(ref s_updatedFrame, Time.frameCount)) { return; }
                 UpdateDeviceList();
 
-                Oculus.Reset();
-                OpenVR.Reset();
-
-                for (int i = s_devices.Count - 1; i >= 0; --i)
+                // Register device for name check here
+                if (s_devices == null)
                 {
-                    if (Oculus.CheckSupport(s_devices[i])) { continue; }
-                    if (OpenVR.CheckSupport(s_devices[i])) { continue; }
+                    s_devices = new List<Device>();
+                    s_devices.Add(Oculus);
+                    s_devices.Add(OpenVR);
+                    s_devices.Add(Daydream);
+                }
+
+                s_devices.ForEach(device => device.Reset());
+
+                foreach (var name in s_deviceNames)
+                {
+                    foreach (var device in s_devices)
+                    {
+                        if (device.CheckSupport(name)) { break; }
+                    }
                 }
             }
 
             private static void UpdateDeviceList()
             {
-                if (s_devices == null) { s_devices = new List<string>(); }
-                s_devices.Clear();
+                if (s_deviceNames == null) { s_deviceNames = new List<string>(); }
+                s_deviceNames.Clear();
                 if (!PlayerSettings.virtualRealitySupported) { return; }
 #if UNITY_5_4
-                s_devices.AddRange(UnityEditorInternal.VR.VREditor.GetVREnabledDevices(EditorUserBuildSettings.selectedBuildTargetGroup));
+                s_deviceNames.AddRange(UnityEditorInternal.VR.VREditor.GetVREnabledDevices(EditorUserBuildSettings.selectedBuildTargetGroup));
 #elif UNITY_5_5_OR_NEWER
-                s_devices.AddRange(UnityEditorInternal.VR.VREditor.GetVREnabledDevicesOnTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup));
+                s_deviceNames.AddRange(UnityEditorInternal.VR.VREditor.GetVREnabledDevicesOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget)));
 #endif
             }
 
@@ -86,31 +98,53 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (!s_listDirty) { return; }
                 s_listDirty = false;
-                if (s_devices.Count > 0 && !PlayerSettings.virtualRealitySupported)
+                if (s_deviceNames.Count > 0 && !PlayerSettings.virtualRealitySupported)
                 {
                     PlayerSettings.virtualRealitySupported = true;
                 }
-                else if (s_devices.Count == 0 && PlayerSettings.virtualRealitySupported)
+                else if (s_deviceNames.Count == 0 && PlayerSettings.virtualRealitySupported)
                 {
                     PlayerSettings.virtualRealitySupported = false;
                 }
 #if UNITY_5_4
-                UnityEditorInternal.VR.VREditor.SetVREnabledDevices(EditorUserBuildSettings.selectedBuildTargetGroup, s_devices.ToArray());
+                UnityEditorInternal.VR.VREditor.SetVREnabledDevices(EditorUserBuildSettings.selectedBuildTargetGroup, s_deviceNames.ToArray());
 #elif UNITY_5_5_OR_NEWER
-                UnityEditorInternal.VR.VREditor.SetVREnabledDevicesOnTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup, s_devices.ToArray());
+                UnityEditorInternal.VR.VREditor.SetVREnabledDevicesOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), s_deviceNames.ToArray());
 #endif
             }
         }
+
+        private const float s_buttonIndent = 20f;
+        private static GUIStyle s_boldStyle;
+        private static string s_defaultAssetPath;
+
+        public static string defaultAssetPath
+        {
+            get
+            {
+                if (s_defaultAssetPath == null)
+                {
+                    var ms = MonoScript.FromScriptableObject(VIUSettings.Instance);
+                    var path = AssetDatabase.GetAssetPath(ms);
+                    path = System.IO.Path.GetDirectoryName(path);
+                    s_defaultAssetPath = path.Substring(0, path.Length - "Scripts".Length) + "Resources/" + VIUSettings.DEFAULT_RESOURCE_PATH + ".asset";
+                }
+
+                return s_defaultAssetPath;
+            }
+        }
+
+        public static bool supportAnyStandaloneVR { get { return supportOpenVR || supportOculus; } }
+
+        public static bool supportAnyAndroidVR { get { return supportDaydream; } }
+
+        public static bool supportAnyVR { get { return supportAnyStandaloneVR || supportAnyAndroidVR; } }
 
         public static bool canSupportSimulatedDevice
         {
             get
             {
-#if UNITY_STANDALONE
                 return true;
-#else
-                return false;
-#endif
             }
         }
 
@@ -130,13 +164,12 @@ namespace HTC.UnityPlugin.Vive
         {
             get
             {
-#if UNITY_STANDALONE && (UNITY_5_3 || UNITY_5_4)
-                return VRModule.isSteamVRPluginDetected;
-#elif UNITY_STANDALONE
-                return true;
-#else
-                return false;
+                return
+                    BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget) == BuildTargetGroup.Standalone
+#if UNITY_5_3 || UNITY_5_4
+                    && VRModule.isSteamVRPluginDetected
 #endif
+                    ;
             }
         }
 
@@ -152,29 +185,11 @@ namespace HTC.UnityPlugin.Vive
             }
             set
             {
-                if (VRModule.isSteamVRPluginDetected)
-                {
-                    VIUSettings.activateSteamVRModule = value;
-                }
-#if !(UNITY_5_3 || UNITY_5_4)
+#if UNITY_5_5_OR_NEWER
                 EnabledDevices.OpenVR.enabled = value;
 #endif
-            }
-        }
-
-        private static string supportOpenVRWarnning
-        {
-            get
-            {
-                if (!VIUSettings.activateSteamVRModule || !VRModule.isSteamVRPluginDetected)
-                {
-#if UNITY_5_5 || UNITY_5_6
-                    return "Vive Tracker not supported! Install SteamVR Plugin to get support.";
-#elif UNITY_2017_1_OR_NEWER
-                    return "Vive Tracker's input not supported! Install SteamVR Plugin to get support.";
-#endif
-                }
-                return string.Empty;
+                VIUSettings.activateSteamVRModule = value;
+                VIUSettings.activateUnityNativeVRModule = supportOpenVR || supportOculus;
             }
         }
 
@@ -182,13 +197,12 @@ namespace HTC.UnityPlugin.Vive
         {
             get
             {
-#if UNITY_STANDALONE && UNITY_5_3 || UNITY_5_4
-                return VRModule.isOculusVRPluginDetected;
-#elif UNITY_STANDALONE
-                return true;
-#else
-                return false;
+                return
+                    BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget) == BuildTargetGroup.Standalone
+#if UNITY_5_3 || UNITY_5_4
+                    && VRModule.isOculusVRPluginDetected
 #endif
+                    ;
             }
         }
 
@@ -196,36 +210,67 @@ namespace HTC.UnityPlugin.Vive
         {
             get
             {
-#if UNITY_5_3 || UNITY_5_4
-                return VIUSettings.activateOculusVRModule && VRModule.isOculusVRPluginDetected;
+#if UNITY_5_3
+                return canSupportOculus && VIUSettings.activateOculusVRModule && PlayerSettings.virtualRealitySupported;
+#elif UNITY_5_4
+                return canSupportOculus && VIUSettings.activateOculusVRModule && EnabledDevices.Oculus.enabled;
 #elif UNITY_5_5_OR_NEWER
                 return canSupportOculus && (VIUSettings.activateOculusVRModule || VIUSettings.activateUnityNativeVRModule) && EnabledDevices.Oculus.enabled;
 #endif
             }
             set
             {
-                if (VRModule.isOculusVRPluginDetected)
-                {
-                    VIUSettings.activateOculusVRModule = value;
-                }
-#if !(UNITY_5_3 || UNITY_5_4)
+#if UNITY_5_3
+                PlayerSettings.virtualRealitySupported = value;
+#else
                 EnabledDevices.Oculus.enabled = value;
 #endif
+                VIUSettings.activateOculusVRModule = value;
+                VIUSettings.activateUnityNativeVRModule = supportOpenVR || supportOculus;
             }
         }
+
+#if UNITY_5_6_OR_NEWER
+        public static bool canSupportDaydream
+        {
+            get
+            {
+                return BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget) == BuildTargetGroup.Android && VRModule.isGoogleVRPluginDetected;
+            }
+        }
+
+        public static bool supportDaydream
+        {
+            get
+            {
+                return canSupportDaydream && VIUSettings.activateGoogleVRModule && EnabledDevices.Daydream.enabled && PlayerSettings.Android.minSdkVersion >= AndroidSdkVersions.AndroidApiLevel24;
+            }
+            set
+            {
+                EnabledDevices.Daydream.enabled = value;
+                VIUSettings.activateGoogleVRModule = value;
+                if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel24)
+                {
+                    PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel24;
+                }
+            }
+        }
+#else
+        public static bool canSupportDaydream { get { return false; } }
+
+        public static bool supportDaydream { get { return false; } set { } }
+#endif
 
         [PreferenceItem("VIU Settings")]
         private static void OnVIUPreferenceGUI()
         {
-            const float buttonIndent = 20f;
-
             if (s_boldStyle == null)
             {
                 s_boldStyle = new GUIStyle();
                 s_boldStyle.fontStyle = FontStyle.Bold;
             }
 
-            EditorGUILayout.SelectableLabel("v" + VIUVersion.current);
+            EditorGUILayout.SelectableLabel("Version: v" + VIUVersion.current);
 
             EditorGUI.BeginChangeCheck();
 
@@ -235,6 +280,7 @@ namespace HTC.UnityPlugin.Vive
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Supported devices", s_boldStyle);
+            GUILayout.Space(5);
 
             const string supportSimulatorTitle = "Simulated Device";
             if (canSupportSimulatedDevice)
@@ -262,38 +308,50 @@ namespace HTC.UnityPlugin.Vive
                 GUI.enabled = true;
             }
 
+            GUILayout.Space(5);
+
             const string supportOpenVRTitle = "Vive (OpenVR compatible device)";
             if (canSupportOpenVR)
             {
                 if (supportOpenVR = EditorGUILayout.ToggleLeft(new GUIContent(supportOpenVRTitle), supportOpenVR))
                 {
-                    var warnning = supportOpenVRWarnning;
-                    if (!string.IsNullOrEmpty(warnning))
+                    if (!VRModule.isSteamVRPluginDetected)
                     {
+                        var noViveTrackerSupportWanning =
+#if UNITY_5_5 || UNITY_5_6
+                        "Vive Tracker not supported! Install SteamVR Plugin to get support.";
+#elif UNITY_2017_1_OR_NEWER
+                        "Vive Tracker's input not supported! Install SteamVR Plugin to get support.";
+#else 
+                        string.Empty;
+#endif
                         EditorGUI.indentLevel++;
-                        EditorGUILayout.HelpBox(warnning, MessageType.Warning);
+                        EditorGUILayout.HelpBox(noViveTrackerSupportWanning, MessageType.Warning);
                         EditorGUI.indentLevel--;
+
+                        ShowGetSteamVRPluginButton();
                     }
                 }
             }
             else
             {
-                GUI.enabled = false;
-                EditorGUILayout.ToggleLeft(new GUIContent(supportOpenVRTitle, "SteamVR Plugin not required."), false);
-                GUI.enabled = true;
+                if (BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget) != BuildTargetGroup.Standalone)
+                {
+                    GUI.enabled = false;
+                    EditorGUILayout.ToggleLeft(new GUIContent(supportOpenVRTitle), false);
+                    GUI.enabled = true;
+                    ShowSwitchPlatformButton(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                }
+                else if (!VRModule.isSteamVRPluginDetected)
+                {
+                    GUI.enabled = false;
+                    EditorGUILayout.ToggleLeft(new GUIContent(supportOpenVRTitle, "SteamVR Plugin required."), false);
+                    GUI.enabled = true;
+                    ShowGetSteamVRPluginButton();
+                }
             }
 
-            if (!canSupportOpenVR || (supportOpenVR && !VRModule.isSteamVRPluginDetected))
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Space(buttonIndent);
-                if (GUILayout.Button("Get SteamVR Plugin"))
-                {
-                    Application.OpenURL("https://www.assetstore.unity3d.com/en/#!/content/32647");
-                }
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-            }
+            GUILayout.Space(5f);
 
             const string supportOculusVRTitle = "Oculus Rift & Touch";
             if (canSupportOculus)
@@ -302,28 +360,77 @@ namespace HTC.UnityPlugin.Vive
             }
             else
             {
+                if (BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget) != BuildTargetGroup.Standalone)
+                {
+                    GUI.enabled = false;
+                    EditorGUILayout.ToggleLeft(new GUIContent(supportOculusVRTitle), false);
+                    GUI.enabled = true;
+                    ShowSwitchPlatformButton(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                }
+                else if (!VRModule.isOculusVRPluginDetected)
+                {
+                    GUI.enabled = false;
+                    EditorGUILayout.ToggleLeft(new GUIContent(supportOculusVRTitle, "Oculus VR plugin required."), false);
+                    GUI.enabled = true;
+                    ShowGetOculusVRPluginButton();
+                }
+            }
+
+            GUILayout.Space(5);
+
+            const string supportDaydreamVRTitle = "Daydream";
+            if (canSupportDaydream)
+            {
+                if (supportDaydream = EditorGUILayout.ToggleLeft(new GUIContent(supportDaydreamVRTitle), supportDaydream))
+                {
+                    EditorGUI.indentLevel++;
+
+                    // following preferences is stored at HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x\
+                    //EditorPrefs.GetString("AndroidNdkRoot");
+                    if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidSdkRoot")))
+                    {
+                        EditorGUILayout.HelpBox("AndroidSdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
+                    }
+
+                    if (string.IsNullOrEmpty(EditorPrefs.GetString("JdkPath")))
+                    {
+                        EditorGUILayout.HelpBox("JdkPath is empty. Setup at Edit -> Preferences... -> External Tools -> Android JDK", MessageType.Warning);
+                    }
+
+                    EditorGUI.indentLevel--;
+                }
+            }
+            else
+            {
                 GUI.enabled = false;
-                EditorGUILayout.ToggleLeft(new GUIContent(supportOculusVRTitle, "Oculus VR plugin required."), false);
+                EditorGUILayout.ToggleLeft(new GUIContent(supportDaydreamVRTitle, (VRModule.isGoogleVRPluginDetected ? "Google VR plugin required." : "")), false);
                 GUI.enabled = true;
 
-                GUILayout.BeginHorizontal();
-                GUILayout.Space(buttonIndent);
-                if (GUILayout.Button("Get Oculus VR Plugin"))
+#if UNITY_5_6_OR_NEWER
+                if (BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget) != BuildTargetGroup.Android)
                 {
-                    Application.OpenURL("https://developer.oculus.com/downloads/package/oculus-utilities-for-unity-5/");
+                    ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
                 }
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
+
+                if (!VRModule.isGoogleVRPluginDetected)
+                {
+                    ShowGetGoogleVRPluginButton();
+                }
+#else
+                EditorGUI.indentLevel++;
+                EditorGUILayout.HelpBox("Unity 5.6 or newer version required.", MessageType.Warning);
+                EditorGUI.indentLevel--;
+#endif
             }
 
             if (EditorGUI.EndChangeCheck())
             {
                 EnabledDevices.ApplyChanges();
 
-                var path = VIUSettings.loadedAssetPath;
+                var path = AssetDatabase.GetAssetPath(VIUSettings.Instance);
                 if (string.IsNullOrEmpty(path))
                 {
-                    VIUSettings.CreateAsset();
+                    AssetDatabase.CreateAsset(VIUSettings.Instance, defaultAssetPath);
                 }
             }
 
@@ -331,13 +438,65 @@ namespace HTC.UnityPlugin.Vive
             //GUILayout.FlexibleSpace();
             //if (GUILayout.Button("Reset"))
             //{
-            //    var path = VIUSettings.loadedAssetPath;
+            //    var path = AssetDatabase.GetAssetPath(VIUSettings.Instance);
             //    if (!string.IsNullOrEmpty(path))
             //    {
             //        AssetDatabase.DeleteAsset(path);
             //    }
             //}
             //GUILayout.EndHorizontal();
+        }
+
+        private static void ShowSwitchPlatformButton(BuildTargetGroup group, BuildTarget target)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(s_buttonIndent);
+            if (GUILayout.Button("Switch platform to " + group))
+            {
+#if UNITY_2017_1_OR_NEWER
+                EditorUserBuildSettings.SwitchActiveBuildTargetAsync(group, target);
+#else
+                EditorUserBuildSettings.SwitchActiveBuildTarget(target);
+#endif
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+        }
+
+        private static void ShowGetSteamVRPluginButton()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(s_buttonIndent);
+            if (GUILayout.Button("Get SteamVR Plugin"))
+            {
+                Application.OpenURL("https://www.assetstore.unity3d.com/en/#!/content/32647");
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+        }
+
+        private static void ShowGetOculusVRPluginButton()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(s_buttonIndent);
+            if (GUILayout.Button("Get Oculus VR Plugin"))
+            {
+                Application.OpenURL("https://developer.oculus.com/downloads/package/oculus-utilities-for-unity-5/");
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+        }
+
+        private static void ShowGetGoogleVRPluginButton()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(s_buttonIndent);
+            if (GUILayout.Button("Get Google VR Plugin"))
+            {
+                Application.OpenURL("https://developers.google.com/vr/develop/unity/download");
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
         }
     }
 }

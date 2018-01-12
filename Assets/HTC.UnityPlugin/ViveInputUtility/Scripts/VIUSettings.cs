@@ -6,7 +6,7 @@ namespace HTC.UnityPlugin.Vive
 {
     public class VIUSettings : ScriptableObject
     {
-        public const string SETTING_DATA_RESOURCE_PATH = "VIUSettings";
+        public const string DEFAULT_RESOURCE_PATH = "VIUSettings";
 
         public const string BIND_UI_SWITCH_TOOLTIP = "When enabled, pressing RightShift + B to open the binding interface in play mode.";
         public const string EX_CAM_UI_SWITCH_TOOLTIP = "When enabled, pressing RightShift + M to toggle the quad view while external camera config file exist.";
@@ -20,12 +20,15 @@ namespace HTC.UnityPlugin.Vive
         public const bool ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE = true;
+        public const bool ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE = true;
         public const bool SIMULATOR_AUTO_TRACK_MAIN_CAMERA_DEFAULT_VALUE = true;
-        public const bool ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_VALUE = true;
+        public const bool ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_DEFAULT_VALUE = true;
         public const bool SIMULATE_TRACKPAD_TOUCH_DEFAULT_VALUE = true;
         public const float SIMULATOR_KEY_MOVE_SPEED_DEFAULT_VALUE = 1.5f;
         public const float SIMULATOR_MOUSE_ROTATE_SPEED_DEFAULT_VALUE = 90f;
         public const float SIMULATOR_KEY_ROTATE_SPEED_DEFAULT_VALUE = 90f;
+
+        private static VIUSettings s_instance = null;
 
         [SerializeField, Tooltip(BIND_UI_SWITCH_TOOLTIP)]
         private bool m_enableBindingInterfaceSwitch = ENABLE_BINDING_INTERFACE_SWITCH_DEFAULT_VALUE;
@@ -40,7 +43,9 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private bool m_activateOculusVRModule = ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE;
         [SerializeField]
-        private bool m_enableSimulatorKeyboardMouseControl = ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_VALUE;
+        private bool m_activateGoogleVRModule = ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE;
+        [SerializeField]
+        private bool m_enableSimulatorKeyboardMouseControl = ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_DEFAULT_VALUE;
         [SerializeField]
         private bool m_simulatorAutoTrackMainCamera = SIMULATOR_AUTO_TRACK_MAIN_CAMERA_DEFAULT_VALUE;
         [SerializeField, Tooltip(SIMULATE_TRACKPAD_TOUCH_TOOLTIP)]
@@ -64,7 +69,9 @@ namespace HTC.UnityPlugin.Vive
 
         public static bool activateOculusVRModule { get { return Instance == null ? ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateOculusVRModule; } set { if (Instance != null) { Instance.m_activateOculusVRModule = value; } } }
 
-        public static bool enableSimulatorKeyboardMouseControl { get { return Instance == null ? ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_VALUE : s_instance.m_enableSimulatorKeyboardMouseControl; } set { if (Instance != null) { Instance.m_enableSimulatorKeyboardMouseControl = value; } } }
+        public static bool activateGoogleVRModule { get { return Instance == null ? ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateGoogleVRModule; } set { if (Instance != null) { Instance.m_activateGoogleVRModule = value; } } }
+
+        public static bool enableSimulatorKeyboardMouseControl { get { return Instance == null ? ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_DEFAULT_VALUE : s_instance.m_enableSimulatorKeyboardMouseControl; } set { if (Instance != null) { Instance.m_enableSimulatorKeyboardMouseControl = value; } } }
 
         public static bool simulatorAutoTrackMainCamera { get { return Instance == null ? SIMULATOR_AUTO_TRACK_MAIN_CAMERA_DEFAULT_VALUE : s_instance.m_simulatorAutoTrackMainCamera; } set { if (Instance != null) { Instance.m_simulatorAutoTrackMainCamera = value; } } }
 
@@ -76,10 +83,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static float simulatorKeyRotateSpeed { get { return Instance == null ? SIMULATOR_KEY_ROTATE_SPEED_DEFAULT_VALUE : s_instance.m_simulatorKeyRotateSpeed; } set { if (Instance != null) { Instance.m_simulatorKeyRotateSpeed = value; } } }
 
-        private static VIUSettings s_instance = null;
-        private static string s_loadedAssetPath;
-
-        private static VIUSettings Instance
+        public static VIUSettings Instance
         {
             get
             {
@@ -92,60 +96,17 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        public static string loadedAssetPath
-        {
-            get
-            {
-#if UNITY_EDITOR
-                return UnityEditor.AssetDatabase.GetAssetPath(s_instance);
-#else
-                return null;
-#endif
-            }
-        }
-
-        public static string defaultAssetPath
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (s_loadedAssetPath == null)
-                {
-                    var ms = UnityEditor.MonoScript.FromScriptableObject(Instance);
-                    var path = UnityEditor.AssetDatabase.GetAssetPath(ms);
-                    path = System.IO.Path.GetDirectoryName(path);
-                    s_loadedAssetPath = path.Substring(0, path.Length - "Scripts".Length) + "Resources/" + SETTING_DATA_RESOURCE_PATH + ".asset";
-                }
-#endif
-                return s_loadedAssetPath;
-            }
-        }
-
         public static void LoadFromResource(string path = null)
         {
             if (path == null)
             {
-                path = SETTING_DATA_RESOURCE_PATH;
+                path = DEFAULT_RESOURCE_PATH;
             }
 
             if ((s_instance = Resources.Load<VIUSettings>(path)) == null)
             {
                 s_instance = CreateInstance<VIUSettings>();
             }
-        }
-
-        // Editor only
-        // will fail if loadedAssetPath is not null (Couldn't add object to asset file because the MonoBehaviour is already an asset!)
-        public static void CreateAsset(string path = null)
-        {
-#if UNITY_EDITOR
-            if (path == null)
-            {
-                path = defaultAssetPath;
-            }
-
-            UnityEditor.AssetDatabase.CreateAsset(Instance, path);
-#endif
         }
 
         private void OnDestroy()

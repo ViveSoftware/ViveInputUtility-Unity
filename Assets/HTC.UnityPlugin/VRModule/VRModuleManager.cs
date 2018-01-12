@@ -66,12 +66,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 DontDestroyOnLoad(gameObject);
             }
 
+            m_activatedModule = VRModuleActiveEnum.Uninitialized;
+            m_activatedModuleBase = null;
+
             m_modules = new ModuleBase[EnumUtils.GetMaxValue(typeof(VRModuleActiveEnum)) + 1];
             m_modules[(int)VRModuleActiveEnum.None] = new DefaultModule();
             m_modules[(int)VRModuleActiveEnum.Simulator] = s_simulator;
             m_modules[(int)VRModuleActiveEnum.UnityNativeVR] = new UnityEngineVRModule();
             m_modules[(int)VRModuleActiveEnum.SteamVR] = new SteamVRModule();
             m_modules[(int)VRModuleActiveEnum.OculusVR] = new OculusVRModule();
+            m_modules[(int)VRModuleActiveEnum.DayDream] = new GoogleVRModule();
+            m_modules[(int)VRModuleActiveEnum.WaveVR] = new DefaultModule();
 
             s_deviceSerialNumberTable.Clear();
 
@@ -80,42 +85,125 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             m_prevStates = new DeviceState[MAX_DEVICE_COUNT];
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i) { m_prevStates[i] = new DeviceState(i); }
-
-#if UNITY_2017_1_OR_NEWER
-            Application.onBeforeRender += DoUpdateFrame;
-#else
-            Camera.onPreCull += OnCameraPreCull;
-#endif
         }
 
         private void Update()
         {
-            if (m_activatedModuleBase != null)
+            m_isUpdating = true;
+
+            // Get should activate module
+            var shouldActivateModule = GetShouldActivateModule();
+
+            // Update module activity
+            if (m_activatedModule != shouldActivateModule)
+            {
+                // Do clean up
+                if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
+                {
+                    DeactivateModule();
+                }
+
+                if (shouldActivateModule != VRModuleActiveEnum.Uninitialized)
+                {
+                    ActivateModule(shouldActivateModule);
+                }
+            }
+
+            if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
             {
                 m_activatedModuleBase.Update();
             }
+
+            if (m_isDestoryed)
+            {
+                DeactivateModule();
+            }
+
+            m_isUpdating = false;
         }
 
         protected override void OnDestroy()
         {
             if (IsInstance)
             {
-#if UNITY_2017_1_OR_NEWER
-                Application.onBeforeRender -= DoUpdateFrame;
-#else
-                Camera.onPreCull -= OnCameraPreCull;
-#endif
-
                 m_isDestoryed = true;
 
                 if (!m_isUpdating)
                 {
-                    CleanUp();
+                    DeactivateModule();
                 }
             }
 
             base.OnDestroy();
         }
+
+        private VRModuleActiveEnum GetShouldActivateModule()
+        {
+            if (m_selectModule == VRModuleSelectEnum.Auto)
+            {
+                for (int i = m_modules.Length - 1; i >= 0; --i)
+                {
+                    if (m_modules[i] != null && m_modules[i].ShouldActiveModule())
+                    {
+                        return (VRModuleActiveEnum)i;
+                    }
+                }
+            }
+            else if ((int)m_selectModule >= 0 && (int)m_selectModule < m_modules.Length)
+            {
+                return (VRModuleActiveEnum)m_selectModule;
+            }
+            else
+            {
+                return VRModuleActiveEnum.None;
+            }
+
+            return VRModuleActiveEnum.Uninitialized;
+        }
+
+        private void ActivateModule(VRModuleActiveEnum module)
+        {
+            if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
+            {
+                Debug.LogError("Must deactivate before activate module! Current activatedModule:" + m_activatedModule);
+                return;
+            }
+
+            if (module == VRModuleActiveEnum.Uninitialized)
+            {
+                Debug.LogError("Activate module cannot be Uninitialized! Use DeactivateModule instead");
+                return;
+            }
+
+            m_activatedModule = module;
+
+            m_activatedModuleBase = m_modules[(int)module];
+            m_activatedModuleBase.OnActivated();
+
+            VRModule.InvokeActiveModuleChangedEvent(m_activatedModule);
+
+#if VIU_STEAMVR
+            if (m_activatedModule == VRModuleActiveEnum.SteamVR)
+            {
+                SteamVR_Events.NewPoses.AddListener(OnSteamVRNewPose);
+            }
+            else
+#endif
+            {
+#if UNITY_2017_1_OR_NEWER
+                Application.onBeforeRender += UpdateActiveModuleDeviceState;
+#else
+                Camera.onPreCull += OnCameraPreCull;
+#endif
+            }
+        }
+
+#if VIU_STEAMVR
+        private void OnSteamVRNewPose(Valve.VR.TrackedDevicePose_t[] poses)
+        {
+            UpdateActiveModuleDeviceState();
+        }
+#endif
 
 #if !UNITY_2017_1_OR_NEWER
         private int m_poseUpdatedFrame = -1;
@@ -126,83 +214,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             if (cam.cameraType != CameraType.Game) { return; }
 
-#if VIU_STEAMVR && !UNITY_5_4_OR_NEWER
-            if (activeModule == VRModuleActiveEnum.SteamVR && cam.GetComponent<SteamVR_Camera>() == null) { return; }
-#endif
-
             m_poseUpdatedFrame = thisFrame;
-            DoUpdateFrame();
+            UpdateActiveModuleDeviceState();
         }
 #endif
 
-        private void DoUpdateFrame()
+        private void UpdateActiveModuleDeviceState()
         {
             m_isUpdating = true;
 
-            UpdateActivatedModule();
-
-            UpdateDeviceStates();
-
-            if (m_isDestoryed)
-            {
-                CleanUp();
-            }
-
-            m_isUpdating = false;
-        }
-
-        private VRModuleActiveEnum GetSelectedModule(VRModuleSelectEnum select)
-        {
-            if (select == VRModuleSelectEnum.Auto)
-            {
-                for (int i = m_modules.Length - 1; i >= 0; --i)
-                {
-                    if (m_modules[i] != null && m_modules[i].ShouldActiveModule())
-                    {
-                        return (VRModuleActiveEnum)i;
-                    }
-                }
-            }
-            else if ((int)select >= 0 && (int)select < m_modules.Length)
-            {
-                return (VRModuleActiveEnum)select;
-            }
-            else
-            {
-                return VRModuleActiveEnum.None;
-            }
-
-            return VRModuleActiveEnum.Uninitialized;
-        }
-
-        private void UpdateActivatedModule()
-        {
-            var currentSelectedModule = GetSelectedModule(m_selectModule);
-
-            if (m_activatedModule != currentSelectedModule)
-            {
-                // clean up if previous active module is not null
-                if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
-                {
-                    CleanUp();
-                    // m_activatedModule will reset to VRModuleActiveEnum.Uninitialized after CleanUp()
-                }
-
-                m_activatedModule = currentSelectedModule;
-
-                // activate the selected module
-                if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
-                {
-                    m_activatedModuleBase = m_modules[(int)currentSelectedModule];
-                    m_activatedModuleBase.OnActivated();
-
-                    VRModule.InvokeActiveModuleChangedEvent(m_activatedModule);
-                }
-            }
-        }
-
-        private void UpdateDeviceStates()
-        {
             // copy status to from current state to previous state
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i)
             {
@@ -213,10 +233,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // update status
-            if (m_activatedModuleBase != null)
-            {
-                m_activatedModuleBase.UpdateDeviceState(m_prevStates, m_currStates);
-            }
+            m_activatedModuleBase.UpdateDeviceState(m_prevStates, m_currStates);
 
             // send connect/disconnect event
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i)
@@ -245,10 +262,44 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             // send new poses event
             VRModule.InvokeNewPosesEvent();
+
+            if (m_isDestoryed)
+            {
+                DeactivateModule();
+            }
+
+            m_isUpdating = false;
         }
 
-        private void CleanUp()
+        private void DeactivateModule()
         {
+            if (m_activatedModule == VRModuleActiveEnum.Uninitialized)
+            {
+                Debug.LogError("activatedModule is already Uninitialized!");
+                return;
+            }
+
+            if (m_activatedModuleBase == null)
+            {
+                Debug.LogError("activatedModule is already null!");
+                return;
+            }
+
+#if VIU_STEAMVR
+            if (m_activatedModule == VRModuleActiveEnum.SteamVR)
+            {
+                SteamVR_Events.NewPoses.RemoveListener(OnSteamVRNewPose);
+            }
+            else
+#endif
+            {
+#if UNITY_2017_1_OR_NEWER
+                Application.onBeforeRender -= UpdateActiveModuleDeviceState;
+#else
+                Camera.onPreCull -= OnCameraPreCull;
+#endif
+            }
+
             // copy status to from current state to previous state, and reset current state
             for (var i = 0u; i < MAX_DEVICE_COUNT; ++i)
             {
@@ -268,17 +319,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            if (m_activatedModuleBase != null)
-            {
-                var deactivatedModuleBase = m_activatedModuleBase;
+            var deactivatedModuleBase = m_activatedModuleBase;
 
-                m_activatedModule = VRModuleActiveEnum.Uninitialized;
-                m_activatedModuleBase = null;
+            m_activatedModule = VRModuleActiveEnum.Uninitialized;
+            m_activatedModuleBase = null;
 
-                deactivatedModuleBase.OnDeactivated();
+            deactivatedModuleBase.OnDeactivated();
 
-                VRModule.InvokeActiveModuleChangedEvent(VRModuleActiveEnum.Uninitialized);
-            }
+            VRModule.InvokeActiveModuleChangedEvent(VRModuleActiveEnum.Uninitialized);
         }
     }
 }

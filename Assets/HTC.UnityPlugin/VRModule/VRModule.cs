@@ -18,6 +18,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         UnityNativeVR = 2,
         SteamVR = 3,
         OculusVR = 4,
+        DayDream = 5,
+        WaveVR = 6,
     }
 
     public enum VRModuleActiveEnum
@@ -28,6 +30,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         UnityNativeVR = VRModuleSelectEnum.UnityNativeVR,
         SteamVR = VRModuleSelectEnum.SteamVR,
         OculusVR = VRModuleSelectEnum.OculusVR,
+        DayDream = VRModuleSelectEnum.DayDream,
+        WaveVR = VRModuleSelectEnum.WaveVR,
     }
 
     public partial class VRModule : SingletonBehaviour<VRModule>
@@ -173,6 +177,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static readonly bool isOculusVRPluginDetected =
 #if VIU_OCULUSVR
+            true;
+#else
+            false;
+#endif
+
+        public static readonly bool isGoogleVRPluginDetected =
+#if VIU_GOOGLEVR
             true;
 #else
             false;

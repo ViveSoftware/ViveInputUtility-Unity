@@ -41,7 +41,6 @@ namespace HTC.UnityPlugin.Vive
                 if (s_comps[i].viveRole != setter.viveRole)
                 {
                     ++dirtyCompCount;
-                    break;
                 }
             }
             s_comps.Clear();

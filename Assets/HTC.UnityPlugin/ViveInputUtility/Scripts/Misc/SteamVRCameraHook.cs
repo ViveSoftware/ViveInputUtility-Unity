@@ -3,7 +3,6 @@
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEngine;
 
-
 namespace HTC.UnityPlugin.Vive
 {
     [AddComponentMenu("HTC/VIU/Hooks/SteamVR Camera Hook", 10)]

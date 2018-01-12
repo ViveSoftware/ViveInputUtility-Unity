@@ -28,6 +28,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusSensor,
         KnucklesLeft,
         KnucklesRight,
+        DaydreamHMD,
+        DaydreamController,
     }
 
     public enum VRModuleRawButton
