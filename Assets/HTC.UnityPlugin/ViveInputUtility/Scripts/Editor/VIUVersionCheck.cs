@@ -277,7 +277,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<ColorSpace>()
             {
                 settingTitle = "Color Space",
-                skipCheckFunc = () => !VIUSettingsEditor.supportAnyVR,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyVR,
                 recommendBtnPostfix = "requires reloading scene",
                 currentValueFunc = () => PlayerSettings.colorSpace,
                 setValueFunc = v => PlayerSettings.colorSpace = v,

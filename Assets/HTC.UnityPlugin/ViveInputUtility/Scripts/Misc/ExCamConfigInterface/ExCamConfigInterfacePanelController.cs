@@ -279,12 +279,17 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
                 }
             }
         }
-
+#if VIU_STEAMVR_1_2_2_OR_NEWER
         public float ckR { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.r : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.r = value; } } }
         public float ckG { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.g : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.g = value; } } }
         public float ckB { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.b : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.b = value; } } }
         public float ckA { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.a : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.a = value; } } }
-
+#else
+        public float ckR { get { return 0f; } set { } }
+        public float ckG { get { return 0f; } set { } }
+        public float ckB { get { return 0f; } set { } }
+        public float ckA { get { return 0f; } set { } }
+#endif
         public float clipNear { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.near : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.near = value; } } }
         public float clipFar { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.far : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.far = value; } } }
         public float offsetNear { get { SteamVR_ExternalCamera excam; return TryGetTargetExCam(out excam) ? excam.config.nearOffset : 0f; } set { SteamVR_ExternalCamera excam; if (TryGetTargetExCam(out excam)) { excam.config.nearOffset = value; } } }
@@ -468,6 +473,13 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
             {
                 EventSystem.current.gameObject.AddComponent<StandaloneInputModule>();
             }
+
+#if !VIU_STEAMVR_1_2_2_OR_NEWER
+            if (m_ckR != null)
+            {
+                m_ckR.transform.parent.gameObject.SetActive(false);
+            }
+#endif
 
 #if UNITY_5_4_OR_NEWER
             // Disable the camera HMD tracking

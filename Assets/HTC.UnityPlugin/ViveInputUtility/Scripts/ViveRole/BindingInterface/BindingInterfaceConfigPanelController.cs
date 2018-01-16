@@ -69,7 +69,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         public void ReloadConfig()
         {
-            ViveRoleBindingsHelper.LoadBindingConfigFromFile(ViveRoleBindingsHelper.AUTO_LOAD_CONFIG_PATH);
+            ViveRoleBindingsHelper.LoadBindingConfigFromFile(VIUSettings.bindingConfigFilePath);
 
             // Unbind all applied bindings
             for (int i = 0, imax = ViveRoleEnum.ValidViveRoleTable.Count; i < imax; ++i)
@@ -92,7 +92,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load = m_toggleApplyOnStart.isOn;
 
             ViveRoleBindingsHelper.LoadBindingConfigFromRoleMap();
-            ViveRoleBindingsHelper.SaveBindingConfigToFile(ViveRoleBindingsHelper.AUTO_LOAD_CONFIG_PATH);
+            ViveRoleBindingsHelper.SaveBindingConfigToFile(VIUSettings.bindingConfigFilePath);
 
             m_dirtySymble.SetActive(false);
         }

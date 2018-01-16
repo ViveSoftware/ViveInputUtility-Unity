@@ -2,6 +2,7 @@
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
+using System;
 using System.IO;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace HTC.UnityPlugin.Vive
     [DisallowMultipleComponent]
     public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPoseListener, IViveRoleComponent
     {
+        [Obsolete("Use VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE instead.")]
         public const string AUTO_LOAD_CONFIG_PATH = "externalcamera.cfg";
 
         [SerializeField]
@@ -19,7 +21,7 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private Transform m_origin;
         [SerializeField]
-        private string m_configPath = AUTO_LOAD_CONFIG_PATH;
+        private string m_configPath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
 
         private bool m_quadViewSwitch = false;
         private bool m_configInterfaceSwitch = true;
@@ -143,9 +145,10 @@ namespace HTC.UnityPlugin.Vive
 
             if (activatedModule != VRModuleActiveEnum.SteamVR) { return; }
 
-            if (!Active && !string.IsNullOrEmpty(AUTO_LOAD_CONFIG_PATH) && File.Exists(AUTO_LOAD_CONFIG_PATH))
+            if (!Active && File.Exists(VIUSettings.externalCameraConfigFilePath))
             {
                 Initialize();
+                Instance.configPath = VIUSettings.externalCameraConfigFilePath;
             }
 
             if (Active)
@@ -216,7 +219,7 @@ namespace HTC.UnityPlugin.Vive
 
         private void Update()
         {
-            if (VIUSettings.enableExternalCameraSwitch && Input.GetKeyDown(KeyCode.M) && Input.GetKey(KeyCode.RightShift))
+            if (VIUSettings.enableExternalCameraSwitch && Input.GetKeyDown(VIUSettings.externalCameraSwitchKey) && (VIUSettings.externalCameraSwitchKeyModifier != KeyCode.None && Input.GetKey(VIUSettings.externalCameraSwitchKeyModifier)))
             {
                 if (!isQuadViewActive)
                 {

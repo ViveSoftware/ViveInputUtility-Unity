@@ -34,20 +34,23 @@ namespace HTC.UnityPlugin.Vive
         public class BindingConfig
         {
             public bool apply_bindings_on_load = true;
+            [Obsolete("Use VIUSettings.bindingInterfaceSwitchKey instead.")]
             public string toggle_interface_key_code = KeyCode.B.ToString(); // Default key to enable binding interface
+            [Obsolete("Use VIUSettings.bindingInterfaceSwitchKeyModifier instead.")]
             public string toggle_interface_modifier = KeyCode.RightShift.ToString(); // Default key modifier to enable binding interface
+            [Obsolete("Use VIUSettings.bindingInterfaceObject instead.")]
             public string interface_prefab = DEFAULT_INTERFACE_PREFAB;
             public RoleData[] roles = new RoleData[0];
         }
 
+        [Obsolete("Use VIUSettings.BINDING_INTERFACE_CONFIG_FILE_PATH_DEFAULT_VALUE instead.")]
         public const string AUTO_LOAD_CONFIG_PATH = "vive_role_bindings.cfg";
+        [Obsolete("Use VIUSettings.BINDING_INTERFACE_PREFAB_DEFAULT_RESOURCE_PATH instead.")]
         public const string DEFAULT_INTERFACE_PREFAB = "VIUBindingInterface";
 
         private static bool s_isAutoLoaded;
         private static BindingConfig s_bindingConfig = new BindingConfig();
 
-        private static KeyCode s_toggleKey;
-        private static KeyCode s_toggleModifier;
         private static GameObject s_interfaceObj;
         private static Dictionary<string, VRModuleDeviceModel> s_modelHintTable = new Dictionary<string, VRModuleDeviceModel>();
 
@@ -56,7 +59,7 @@ namespace HTC.UnityPlugin.Vive
         public static bool isBindingInterfaceEnabled { get { return s_interfaceObj != null && s_interfaceObj.activeSelf; } }
 
         [SerializeField]
-        private string m_overrideConfigPath = AUTO_LOAD_CONFIG_PATH;
+        private string m_overrideConfigPath = VIUSettings.BINDING_CONFIG_FILE_PATH_DEFAULT_VALUE;
 
         static ViveRoleBindingsHelper()
         {
@@ -74,46 +77,31 @@ namespace HTC.UnityPlugin.Vive
             if (s_isAutoLoaded) { return; }
             s_isAutoLoaded = true;
 
-            var configPath = AUTO_LOAD_CONFIG_PATH;
-
-            if (Active)
+            if (VIUSettings.autoLoadBindingConfigOnStart)
             {
-                configPath = Instance.m_overrideConfigPath;
-            }
+                var configPath = Active ? Instance.m_overrideConfigPath : VIUSettings.bindingConfigFilePath;
 
-            if (!string.IsNullOrEmpty(configPath) && File.Exists(configPath))
-            {
-                LoadBindingConfigFromFile(configPath);
-
-                if (s_bindingConfig.apply_bindings_on_load)
+                if (!string.IsNullOrEmpty(configPath) && File.Exists(configPath))
                 {
-                    var appliedCount = ApplyBindingConfigToRoleMap();
+                    LoadBindingConfigFromFile(configPath);
 
-                    Debug.Log("ViveRoleBindingsHelper: " + appliedCount + " bindings applied from " + configPath);
+                    if (bindingConfig.apply_bindings_on_load)
+                    {
+                        var appliedCount = ApplyBindingConfigToRoleMap();
+
+                        Debug.Log("ViveRoleBindingsHelper: " + appliedCount + " bindings applied from " + configPath);
+                    }
                 }
             }
-            else
-            {
-                UpdateInterfaceKeyMonitor();
-            }
+
+            UpdateInterfaceKeyMonitor();
         }
-        
+
         private static void UpdateInterfaceKeyMonitor()
         {
             // Moniter input key to open up the binding interface
-            if (VIUSettings.enableBindingInterfaceSwitch && !string.IsNullOrEmpty(s_bindingConfig.toggle_interface_key_code) && Enum.IsDefined(typeof(KeyCode), s_bindingConfig.toggle_interface_key_code))
+            if (VIUSettings.enableBindingInterfaceSwitch)
             {
-                s_toggleKey = (KeyCode)Enum.Parse(typeof(KeyCode), s_bindingConfig.toggle_interface_key_code);
-
-                if (!string.IsNullOrEmpty(s_bindingConfig.toggle_interface_modifier) && Enum.IsDefined(typeof(KeyCode), s_bindingConfig.toggle_interface_modifier))
-                {
-                    s_toggleModifier = (KeyCode)Enum.Parse(typeof(KeyCode), s_bindingConfig.toggle_interface_modifier);
-                }
-                else
-                {
-                    s_toggleModifier = KeyCode.None;
-                }
-
                 if (!Active)
                 {
                     Initialize();
@@ -125,9 +113,6 @@ namespace HTC.UnityPlugin.Vive
             }
             else
             {
-                s_toggleKey = KeyCode.None;
-                s_toggleModifier = KeyCode.None;
-
                 if (Active)
                 {
                     Instance.enabled = false;
@@ -139,7 +124,7 @@ namespace HTC.UnityPlugin.Vive
         {
             if (!IsInstance) { return; }
 
-            if (Input.GetKeyDown(s_toggleKey) && (s_toggleModifier == KeyCode.None || Input.GetKey(s_toggleModifier)))
+            if (Input.GetKeyDown(VIUSettings.bindingInterfaceSwitchKey) && (VIUSettings.bindingInterfaceSwitchKeyModifier == KeyCode.None || Input.GetKey(VIUSettings.bindingInterfaceSwitchKeyModifier)))
             {
                 ToggleBindingInterface();
             }
@@ -166,20 +151,13 @@ namespace HTC.UnityPlugin.Vive
         {
             if (s_interfaceObj == null)
             {
-                if (string.IsNullOrEmpty(s_bindingConfig.interface_prefab))
+                if (VIUSettings.bindingInterfaceObjectSource == null)
                 {
-                    s_bindingConfig.interface_prefab = DEFAULT_INTERFACE_PREFAB;
-                }
-
-                s_interfaceObj = Resources.Load<GameObject>(s_bindingConfig.interface_prefab);
-
-                if (s_interfaceObj == null)
-                {
-                    Debug.LogWarning("Binding interface prefab \"" + s_bindingConfig.interface_prefab + "\" not found");
+                    Debug.LogWarning("VIUSettings.bindingInterfaceObjectSource is null.");
                     return;
                 }
 
-                s_interfaceObj = Instantiate(s_interfaceObj);
+                s_interfaceObj = Instantiate(VIUSettings.bindingInterfaceObjectSource);
             }
             else
             {
@@ -376,10 +354,8 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
 
-                UpdateInterfaceKeyMonitor();
+                return true;
             }
-
-            return true;
         }
 
         public static void BindAllCurrentDeviceClassMappings(VRModuleDeviceClass deviceClass)

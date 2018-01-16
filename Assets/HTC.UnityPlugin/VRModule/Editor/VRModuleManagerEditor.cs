@@ -26,7 +26,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 public string typeName = string.Empty;
                 public string name = string.Empty;
                 public BindingFlags bindingAttr;
-                public Type[] argTypes = null;
+                public string[] argTypeNames = null;
                 public ParameterModifier[] argModifiers = null;
             }
 
@@ -61,6 +61,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     foreach (var method in requiredMethods)
                     {
                         TryAddTypeFromAssembly(method.typeName, assembly);
+
+                        if (method.argTypeNames != null)
+                        {
+                            foreach (var typeName in method.argTypeNames)
+                            {
+                                TryAddTypeFromAssembly(typeName, assembly);
+                            }
+                        }
                     }
                 }
             }
@@ -105,8 +113,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         Type type;
                         if (!m_foundTypes.TryGetValue(method.typeName, out type)) { return false; }
-                        if (type.GetMethod(method.name, method.bindingAttr, null, CallingConventions.Any, method.argTypes ?? new Type[0], method.argModifiers ?? new ParameterModifier[0]) == null) { return false; }
+
+                        var argTypes = new Type[method.argTypeNames == null ? 0 : method.argTypeNames.Length];
+                        for (int i = argTypes.Length - 1; i >= 0; --i)
+                        {
+                            if (!m_foundTypes.TryGetValue(method.argTypeNames[i], out argTypes[i])) { return false; }
+                        }
+
+                        if (type.GetMethod(method.name, method.bindingAttr, null, CallingConventions.Any, argTypes, method.argModifiers ?? new ParameterModifier[0]) == null) { return false; }
                     }
+                }
+
+                if (!string.IsNullOrEmpty(requiredScriptFileName))
+                {
+                    var files = Directory.GetFiles(Application.dataPath, requiredScriptFileName, SearchOption.AllDirectories);
+                    if (files == null || files.Length == 0) { return false; }
                 }
 
                 return true;
@@ -135,6 +156,46 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
             {
+                scriptingDefineSymble = "VIU_STEAMVR_1_2_0_OR_NEWER",
+                requiredTypeNames = new string[] { "SteamVR_Events" },
+                requiredScriptFileName = "SteamVR_Events.cs",
+            });
+
+            s_supportedSdkInfoList.Add(new VrSdkInfo()
+            {
+                scriptingDefineSymble = "VIU_STEAMVR_1_2_1_OR_NEWER",
+                requiredTypeNames = new string[] { "SteamVR_Events" },
+                requiredMethods = new VrSdkInfo.ReqMethodInfo[]
+                {
+                    new VrSdkInfo.ReqMethodInfo()
+                    {
+                         typeName = "SteamVR_Events",
+                         name = "System",
+                         argTypeNames = new string[] { "Valve.VR.EVREventType" },
+                         bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                requiredScriptFileName = "SteamVR_Events.cs",
+            });
+
+            s_supportedSdkInfoList.Add(new VrSdkInfo()
+            {
+                scriptingDefineSymble = "VIU_STEAMVR_1_2_2_OR_NEWER",
+                requiredTypeNames = new string[] { "SteamVR_ExternalCamera+Config" },
+                requiredFields = new VrSdkInfo.ReqFieldInfo[]
+                {
+                    new VrSdkInfo.ReqFieldInfo()
+                    {
+                        typeName = "SteamVR_ExternalCamera+Config",
+                        name = "r",
+                        bindingAttr = BindingFlags.Public | BindingFlags.Instance,
+                    }
+                },
+                requiredScriptFileName = "SteamVR_ExternalCamera.cs",
+            });
+
+            s_supportedSdkInfoList.Add(new VrSdkInfo()
+            {
                 scriptingDefineSymble = "VIU_STEAMVR_1_2_3_OR_NEWER",
                 requiredTypeNames = new string[] { "Valve.VR.CVRSystem" },
                 requiredMethods = new VrSdkInfo.ReqMethodInfo[]
@@ -146,7 +207,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                          bindingAttr = BindingFlags.Public | BindingFlags.Instance,
                     }
                 },
-                requiredScriptFileName = "SteamVR.cs",
+                requiredScriptFileName = "openvr_api.cs",
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()

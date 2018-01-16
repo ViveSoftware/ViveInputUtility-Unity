@@ -55,9 +55,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_prevTrackingSpace = compositor.GetTrackingSpace();
                 UpdateTrackingSpaceType();
             }
-
+#if VIU_STEAMVR_1_2_1_OR_NEWER
             SteamVR_Events.InputFocus.AddListener(OnInputFocus);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
+#elif VIU_STEAMVR_1_2_0_OR_NEWER
+            SteamVR_Events.InputFocus.AddListener(OnInputFocus);
+            SteamVR_Events.System("TrackedDeviceRoleChanged").AddListener(OnTrackedDeviceRoleChanged);
+#else
+            SteamVR_Utils.Event.Listen("input_focus", OnInputFocusArgs);
+            SteamVR_Utils.Event.Listen("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
+#endif
         }
 
         public override void OnDeactivated()
@@ -67,9 +74,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 compositor.SetTrackingSpace(m_prevTrackingSpace);
             }
-
+#if VIU_STEAMVR_1_2_1_OR_NEWER
             SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
+#elif VIU_STEAMVR_1_2_0_OR_NEWER
+            SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
+            SteamVR_Events.System("TrackedDeviceRoleChanged").RemoveListener(OnTrackedDeviceRoleChanged);
+#else
+            SteamVR_Utils.Event.Remove("input_focus", OnInputFocusArgs);
+            SteamVR_Utils.Event.Remove("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
+#endif
         }
 
         public override void UpdateTrackingSpaceType()
@@ -101,7 +115,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             return m_hasInputFocus;
         }
+#if !VIU_STEAMVR_1_2_0_OR_NEWER
+        private void OnInputFocusArgs(params object[] args) { OnInputFocus((bool)args[0]); }
 
+        private void OnTrackedDeviceRoleChangedArgs(params object[] args) { OnTrackedDeviceRoleChanged((VREvent_t)args[0]); }
+#endif
         private void OnInputFocus(bool value)
         {
             m_hasInputFocus = value;
@@ -238,5 +256,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return result;
         }
 #endif
-    }
+        }
 }
