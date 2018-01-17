@@ -330,23 +330,23 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
-            s_settings.Add(new RecommendedSetting<bool>()
-            {
-                settingTitle = "Oculus Support",
-                skipCheckFunc = () => !VIUSettingsEditor.canSupportOculus,
-                currentValueFunc = () => VIUSettingsEditor.supportOculus,
-                setValueFunc = v => VIUSettingsEditor.supportOculus = v,
-                recommendedValue = true,
-            });
+            //s_settings.Add(new RecommendedSetting<bool>()
+            //{
+            //    settingTitle = "Oculus Support",
+            //    skipCheckFunc = () => !VIUSettingsEditor.canSupportOculus,
+            //    currentValueFunc = () => VIUSettingsEditor.supportOculus,
+            //    setValueFunc = v => VIUSettingsEditor.supportOculus = v,
+            //    recommendedValue = true,
+            //});
 
-            s_settings.Add(new RecommendedSetting<bool>()
-            {
-                settingTitle = "Daydream Support",
-                skipCheckFunc = () => !VIUSettingsEditor.canSupportDaydream,
-                currentValueFunc = () => VIUSettingsEditor.supportDaydream,
-                setValueFunc = v => VIUSettingsEditor.supportDaydream = v,
-                recommendedValue = true,
-            });
+            //s_settings.Add(new RecommendedSetting<bool>()
+            //{
+            //    settingTitle = "Daydream Support",
+            //    skipCheckFunc = () => !VIUSettingsEditor.canSupportDaydream,
+            //    currentValueFunc = () => VIUSettingsEditor.supportDaydream,
+            //    setValueFunc = v => VIUSettingsEditor.supportDaydream = v,
+            //    recommendedValue = true,
+            //});
         }
 
         // check vive input utility version on github
