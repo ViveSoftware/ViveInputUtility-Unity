@@ -50,7 +50,7 @@ public class OverlayKeyboardSample : MonoBehaviour
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
         SteamVR_Events.System("KeyboardCharInput").AddListener(OnKeyboardCharInput);
         SteamVR_Events.System("KeyboardClosed").AddListener(OnKeyboardClosed);
-#else
+#elif VIU_STEAMVR_1_1_1
         SteamVR_Utils.Event.Listen("KeyboardCharInput", OnKeyboardCharInputArgs);
         SteamVR_Utils.Event.Listen("KeyboardClosed", OnKeyboardClosedArgs);
 #endif
@@ -89,7 +89,7 @@ public class OverlayKeyboardSample : MonoBehaviour
 
         activeKeyboard = null;
     }
-#if !VIU_STEAMVR_1_2_0_OR_NEWER
+#if VIU_STEAMVR_1_1_1
     private static void OnKeyboardCharInputArgs(params object[] args) { OnKeyboardCharInput((Valve.VR.VREvent_t)args[0]); }
 
     private static void OnKeyboardClosedArgs(params object[] args) { OnKeyboardClosed((Valve.VR.VREvent_t)args[0]); }

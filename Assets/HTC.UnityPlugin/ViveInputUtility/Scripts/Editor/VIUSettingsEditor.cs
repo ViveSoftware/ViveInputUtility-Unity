@@ -585,6 +585,8 @@ namespace HTC.UnityPlugin.Vive
                     s_guiChanged |= EditorGUI.EndChangeCheck();
                 }
 
+                GUILayout.Space(5);
+
                 VIUSettings.enableBindingInterfaceSwitch = Foldouter.ShowFoldoutButtonWithEnabledToggle(Foldouter.Index.BindingUISwitch, new GUIContent("Enable Binding Interface Switch", VIUSettings.BIND_UI_SWITCH_TOOLTIP), VIUSettings.enableBindingInterfaceSwitch);
 
                 if (VIUSettings.enableBindingInterfaceSwitch && Foldouter.IsExpended(Foldouter.Index.BindingUISwitch))
@@ -604,6 +606,9 @@ namespace HTC.UnityPlugin.Vive
             else
             {
                 Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent("Auto Load Binding Config on Start", "Role Binding only works on standalone device."));
+
+                GUILayout.Space(5);
+
                 Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent("Enable Binding Interface Switch", "Role Binding only works on sstandalone device."));
             }
 

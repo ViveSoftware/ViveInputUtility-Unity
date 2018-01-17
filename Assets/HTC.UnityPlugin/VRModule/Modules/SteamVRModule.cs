@@ -44,7 +44,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
 #if VIU_STEAMVR_1_2_3_OR_NEWER
                 m_hasInputFocus = !system.IsInputAvailable();
-#else
+#elif VIU_STEAMVR_1_1_1 || VIU_STEAMVR_1_2_0_OR_NEWER
                 m_hasInputFocus = !system.IsInputFocusCapturedByAnotherProcess();
 #endif
             }
@@ -61,7 +61,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
             SteamVR_Events.InputFocus.AddListener(OnInputFocus);
             SteamVR_Events.System("TrackedDeviceRoleChanged").AddListener(OnTrackedDeviceRoleChanged);
-#else
+#elif VIU_STEAMVR_1_1_1
             SteamVR_Utils.Event.Listen("input_focus", OnInputFocusArgs);
             SteamVR_Utils.Event.Listen("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
@@ -80,7 +80,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
             SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
             SteamVR_Events.System("TrackedDeviceRoleChanged").RemoveListener(OnTrackedDeviceRoleChanged);
-#else
+#elif VIU_STEAMVR_1_1_1
             SteamVR_Utils.Event.Remove("input_focus", OnInputFocusArgs);
             SteamVR_Utils.Event.Remove("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
@@ -115,7 +115,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             return m_hasInputFocus;
         }
-#if !VIU_STEAMVR_1_2_0_OR_NEWER
+#if VIU_STEAMVR_1_1_1
         private void OnInputFocusArgs(params object[] args) { OnInputFocus((bool)args[0]); }
 
         private void OnTrackedDeviceRoleChangedArgs(params object[] args) { OnTrackedDeviceRoleChanged((VREvent_t)args[0]); }
@@ -209,7 +209,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (currState[i].deviceClass == VRModuleDeviceClass.Controller || currState[i].deviceClass == VRModuleDeviceClass.GenericTracker)
                     {
                         // get device state from openvr api
+#if VIU_STEAMVR_1_2_0_OR_NEWER
                         if (system == null || !system.GetControllerState(i, ref m_ctrlState, s_sizeOfControllerStats))
+#elif VIU_STEAMVR_1_1_1_OR_NEWER
+                        if (system == null || !system.GetControllerState(i, ref m_ctrlState))
+#endif
                         {
                             m_ctrlState = default(VRControllerState_t);
                         }
@@ -256,5 +260,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return result;
         }
 #endif
-        }
+                    }
 }
