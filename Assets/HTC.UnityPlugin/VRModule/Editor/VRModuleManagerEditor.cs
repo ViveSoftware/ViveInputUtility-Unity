@@ -32,7 +32,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public string scriptingDefineSymble = string.Empty;
             public string[] requiredTypeNames = null;
-            public string requiredScriptFileName = string.Empty;
+            public string[] requiredScriptFileNames = null;
             public ReqFieldInfo[] requiredFields = null;
             public ReqMethodInfo[] requiredMethods = null;
 
@@ -124,10 +124,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
 
-                if (!string.IsNullOrEmpty(requiredScriptFileName))
+                if (requiredScriptFileNames != null)
                 {
-                    var files = Directory.GetFiles(Application.dataPath, requiredScriptFileName, SearchOption.AllDirectories);
-                    if (files == null || files.Length == 0) { return false; }
+                    foreach (var requiredFile in requiredScriptFileNames)
+                    {
+                        var files = Directory.GetFiles(Application.dataPath, requiredFile, SearchOption.AllDirectories);
+                        if (files == null || files.Length == 0) { return false; }
+                    }
                 }
 
                 return true;
@@ -144,21 +147,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 scriptingDefineSymble = "VIU_PLUGIN",
                 requiredTypeNames = new string[] { "HTC.UnityPlugin.Vive.ViveInput" },
-                requiredScriptFileName = "ViveInput.cs",
+                requiredScriptFileNames = new string[] { "ViveInput.cs" },
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
             {
                 scriptingDefineSymble = "VIU_STEAMVR",
                 requiredTypeNames = new string[] { "SteamVR" },
-                requiredScriptFileName = "SteamVR.cs",
+                requiredScriptFileNames = new string[] { "SteamVR.cs" },
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
             {
                 scriptingDefineSymble = "VIU_STEAMVR_1_2_0_OR_NEWER",
                 requiredTypeNames = new string[] { "SteamVR_Events" },
-                requiredScriptFileName = "SteamVR_Events.cs",
+                requiredScriptFileNames = new string[] { "SteamVR_Events.cs" },
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
@@ -175,7 +178,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                          bindingAttr = BindingFlags.Public | BindingFlags.Static,
                     }
                 },
-                requiredScriptFileName = "SteamVR_Events.cs",
+                requiredScriptFileNames = new string[] { "SteamVR_Events.cs" },
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
@@ -191,7 +194,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         bindingAttr = BindingFlags.Public | BindingFlags.Instance,
                     }
                 },
-                requiredScriptFileName = "SteamVR_ExternalCamera.cs",
+                requiredScriptFileNames = new string[] { "SteamVR_ExternalCamera.cs" },
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
@@ -207,28 +210,28 @@ namespace HTC.UnityPlugin.VRModuleManagement
                          bindingAttr = BindingFlags.Public | BindingFlags.Instance,
                     }
                 },
-                requiredScriptFileName = "openvr_api.cs",
+                requiredScriptFileNames = new string[] { "openvr_api.cs" },
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
             {
                 scriptingDefineSymble = "VIU_OCULUSVR",
                 requiredTypeNames = new string[] { "OVRInput" },
-                requiredScriptFileName = "OVRInput.cs",
+                requiredScriptFileNames = new string[] { "OVRInput.cs" },
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
             {
                 scriptingDefineSymble = "VIU_GOOGLEVR",
                 requiredTypeNames = new string[] { "GvrUnitySdkVersion" },
-                requiredScriptFileName = "GvrUnitySdkVersion.cs",
+                requiredScriptFileNames = new string[] { "GvrUnitySdkVersion.cs" },
             });
 
             s_supportedSdkInfoList.Add(new VrSdkInfo()
             {
                 scriptingDefineSymble = "VIU_WAVEVR",
                 requiredTypeNames = new string[] { "WaveVR" },
-                requiredScriptFileName = "WaveVR.cs",
+                requiredScriptFileNames = new string[] { "WaveVR.cs" },
             });
         }
 
@@ -271,65 +274,58 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private static bool s_delayRemoved;
-        private static List<string> s_symbolsToRemove;
+        private static bool s_delayCallRemoveRegistered;
         // This is called when ever an asset deleted
-        // If the deleted asset include sdk files, then remove the related symbol
+        // If the deleted asset include sdk files, then remove all symbols defined by VIU
         public static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions option)
         {
             var fullPath = Application.dataPath + "/../" + assetPath;
+            var isDir = Directory.Exists(fullPath); // otherwise, removed asset is file
+            var requiredFileFound = false;
 
-            if (Directory.Exists(fullPath))
+            foreach (var sdkInfo in s_supportedSdkInfoList)
             {
-                // is directory
-                for (int i = 0, imax = s_supportedSdkInfoList.Count; i < imax; ++i)
+                foreach (var requiredFile in sdkInfo.requiredScriptFileNames)
                 {
-                    var requiredFiles = Directory.GetFiles(fullPath, s_supportedSdkInfoList[i].requiredScriptFileName, SearchOption.AllDirectories);
-                    if (requiredFiles != null && requiredFiles.Length > 0)
+                    if (isDir)
                     {
-                        if (s_symbolsToRemove == null) { s_symbolsToRemove = new List<string>(); }
-                        s_symbolsToRemove.Add(s_supportedSdkInfoList[i].scriptingDefineSymble);
+                        var files = Directory.GetFiles(fullPath, requiredFile, SearchOption.AllDirectories);
+                        requiredFileFound = files != null && files.Length > 0;
+                    }
+                    else
+                    {
+                        requiredFileFound = Path.GetFileName(fullPath) == requiredFile;
+                    }
+
+                    if (requiredFileFound)
+                    {
+                        if (!s_delayCallRemoveRegistered)
+                        {
+                            s_delayCallRemoveRegistered = true;
+                            EditorApplication.delayCall += RemoveAllVIUSymbols;
+                        }
+
+                        return AssetDeleteResult.DidNotDelete;
                     }
                 }
-            }
-            else
-            {
-                // is file
-                for (int i = 0, imax = s_supportedSdkInfoList.Count; i < imax; ++i)
-                {
-                    if (Path.GetFileName(fullPath) == s_supportedSdkInfoList[i].requiredScriptFileName)
-                    {
-                        if (s_symbolsToRemove == null) { s_symbolsToRemove = new List<string>(); }
-                        s_symbolsToRemove.Add(s_supportedSdkInfoList[i].scriptingDefineSymble);
-                    }
-                }
-            }
-
-            if (!s_delayRemoved && s_symbolsToRemove != null && s_symbolsToRemove.Count > 0)
-            {
-                s_delayRemoved = true;
-                EditorApplication.delayCall += RemoveSymbolsIfSDKDeleted;
             }
 
             return AssetDeleteResult.DidNotDelete;
         }
 
-        // Should only called at once
-        private static void RemoveSymbolsIfSDKDeleted()
+        private static void RemoveAllVIUSymbols()
         {
-            EditorApplication.delayCall -= RemoveSymbolsIfSDKDeleted;
+            EditorApplication.delayCall -= RemoveAllVIUSymbols;
 
             var scriptingDefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
-            var symbolsList = new List<string>(scriptingDefineSymbols.Split(';'));
+            var definedSymbols = new List<string>(scriptingDefineSymbols.Split(';'));
 
-            var removed = symbolsList.RemoveAll((symbol) => s_symbolsToRemove.Contains(symbol)) > 0;
-
-            s_symbolsToRemove.Clear();
-
-            if (removed)
+            foreach (var sdkInfo in s_supportedSdkInfoList)
             {
-                PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), string.Join(";", symbolsList.ToArray()));
+                definedSymbols.Remove(sdkInfo.scriptingDefineSymble);
             }
+
+            PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), string.Join(";", definedSymbols.ToArray()));
         }
     }
 }

@@ -389,7 +389,7 @@ namespace HTC.UnityPlugin.Vive
 
             EditorGUILayout.SelectableLabel("<b>Version</b> v" + VIUVersion.current, s_labelStyle);
 
-            EditorGUILayout.LabelField("<b>Supporting Devices</b>", s_labelStyle);
+            EditorGUILayout.LabelField("<b>Supporting Device</b>", s_labelStyle);
             GUILayout.Space(5);
 
             const string supportSimulatorTitle = "Simulator";
@@ -436,7 +436,7 @@ namespace HTC.UnityPlugin.Vive
 
                     if (VRModule.isSteamVRPluginDetected)
                     {
-                        VIUSettings.externalCameraConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("External Camera Config Path", "SteamVR Plugin required."), VIUSettings.externalCameraConfigFilePath);
+                        VIUSettings.externalCameraConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("External Camera Config Path"), VIUSettings.externalCameraConfigFilePath);
 
                         if (!string.IsNullOrEmpty(VIUSettings.externalCameraConfigFilePath))
                         {
