@@ -53,10 +53,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static void BindAxis(Axis axis)
         {
-            SerializedObject serializedObject = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset")[0]);
-            SerializedProperty axesProperty = serializedObject.FindProperty("m_Axes");
+            var serializedObject = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset")[0]);
+            var axesProperty = serializedObject.FindProperty("m_Axes");
 
-            SerializedProperty axisIter = axesProperty.Copy();
+            var axisIter = axesProperty.Copy();
             axisIter.Next(true);
             axisIter.Next(true);
             while (axisIter.Next(false))

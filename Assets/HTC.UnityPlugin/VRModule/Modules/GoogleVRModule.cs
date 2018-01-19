@@ -11,6 +11,8 @@ using UnityEngine.XR;
 #else
 using XRSettings = UnityEngine.VR.VRSettings;
 using XRDevice = UnityEngine.VR.VRDevice;
+using XRNode = UnityEngine.VR.VRNode;
+using InputTracking = UnityEngine.VR.InputTracking;
 #endif
 
 #endif
