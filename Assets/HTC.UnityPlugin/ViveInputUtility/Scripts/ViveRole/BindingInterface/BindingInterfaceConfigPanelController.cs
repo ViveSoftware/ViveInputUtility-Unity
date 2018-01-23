@@ -29,8 +29,6 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             }
 
             ViveRoleBindingsHelper.AutoLoadConfig();
-
-            m_toggleApplyOnStart.isOn = ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load;
         }
 
         private void OnDisable()
@@ -82,15 +80,11 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
             ViveRoleBindingsHelper.ApplyBindingConfigToRoleMap();
 
-            m_toggleApplyOnStart.isOn = ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load;
-
             m_dirtySymble.SetActive(false);
         }
 
         public void SaveConfig()
         {
-            ViveRoleBindingsHelper.bindingConfig.apply_bindings_on_load = m_toggleApplyOnStart.isOn;
-
             ViveRoleBindingsHelper.LoadBindingConfigFromRoleMap();
             ViveRoleBindingsHelper.SaveBindingConfigToFile(VIUSettings.bindingConfigFilePath);
 

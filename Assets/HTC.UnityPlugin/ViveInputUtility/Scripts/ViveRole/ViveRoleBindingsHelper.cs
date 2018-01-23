@@ -33,11 +33,16 @@ namespace HTC.UnityPlugin.Vive
         [Serializable]
         public class BindingConfig
         {
+            [NonSerialized]
+            [Obsolete("This field is always true now. Use VIUSettings.autoLoadBindingConfigOnStart to control if the project will auto load config.")]
             public bool apply_bindings_on_load = true;
+            [NonSerialized]
             [Obsolete("Use VIUSettings.bindingInterfaceSwitchKey instead.")]
-            public string toggle_interface_key_code = KeyCode.B.ToString(); // Default key to enable binding interface
+            public string toggle_interface_key_code = string.Empty;
+            [NonSerialized]
             [Obsolete("Use VIUSettings.bindingInterfaceSwitchKeyModifier instead.")]
-            public string toggle_interface_modifier = KeyCode.RightShift.ToString(); // Default key modifier to enable binding interface
+            public string toggle_interface_modifier = string.Empty;
+            [NonSerialized]
             [Obsolete("Use VIUSettings.bindingInterfaceObject instead.")]
             public string interface_prefab = DEFAULT_INTERFACE_PREFAB;
             public RoleData[] roles = new RoleData[0];
@@ -85,12 +90,9 @@ namespace HTC.UnityPlugin.Vive
                 {
                     LoadBindingConfigFromFile(configPath);
 
-                    if (bindingConfig.apply_bindings_on_load)
-                    {
-                        var appliedCount = ApplyBindingConfigToRoleMap();
+                    var appliedCount = ApplyBindingConfigToRoleMap();
 
-                        Debug.Log("ViveRoleBindingsHelper: " + appliedCount + " bindings applied from " + configPath);
-                    }
+                    Debug.Log("ViveRoleBindingsHelper: " + appliedCount + " bindings applied from " + configPath);
                 }
             }
 
