@@ -262,9 +262,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var symbolReq in s_symbolReqList)
+                try
                 {
-                    symbolReq.FindRequiredTypesInAssembly(assembly);
+                    foreach (var symbolReq in s_symbolReqList)
+                    {
+                        symbolReq.FindRequiredTypesInAssembly(assembly);
+                    }
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    Debug.LogWarning(e);
+                    Debug.LogWarning("load assembly " + assembly.FullName + " fail");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
                 }
             }
 

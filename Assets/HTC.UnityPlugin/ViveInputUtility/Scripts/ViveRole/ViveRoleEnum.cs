@@ -252,12 +252,24 @@ namespace HTC.UnityPlugin.Vive
             // find all valid ViveRole enum type in current assemblies
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var type in assembly.GetTypes())
+                try
                 {
-                    if (ValidateViveRoleEnum(type) == ViveRoleEnumValidateResult.Valid)
+                    foreach (var type in assembly.GetTypes())
                     {
-                        s_validViveRoleTable.Add(type.FullName, type);
+                        if (ValidateViveRoleEnum(type) == ViveRoleEnumValidateResult.Valid)
+                        {
+                            s_validViveRoleTable.Add(type.FullName, type);
+                        }
                     }
+                }
+                catch (System.Reflection.ReflectionTypeLoadException e)
+                {
+                    Debug.LogWarning(e);
+                    Debug.LogWarning("load assembly " + assembly.FullName + " fail");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
                 }
             }
         }
