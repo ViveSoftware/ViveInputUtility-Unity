@@ -151,11 +151,21 @@ namespace HTC.UnityPlugin.Vive
 
             s_settings = new List<IPropSetting>();
 
+            //s_settings.Add(new RecommendedSetting<bool>()
+            //{
+            //    settingTitle = "Virtual Reality Supported",
+            //    currentValueFunc = () => VIUSettingsEditor.virtualRealitySupported,
+            //    setValueFunc = v => VIUSettingsEditor.virtualRealitySupported = v,
+            //    recommendedValue = true,
+            //});
+
             s_settings.Add(new RecommendedSetting<bool>()
             {
-                settingTitle = "Virtual Reality Supported",
-                currentValueFunc = () => VIUSettingsEditor.virtualRealitySupported,
-                setValueFunc = v => VIUSettingsEditor.virtualRealitySupported = v,
+                settingTitle = "Load Binding Config on Start",
+                skipCheckFunc = () => !VIUSettingsEditor.supportOpenVR,
+                toolTip = "You can change this option later in Edit -> Preferences... -> VIU Settings.",
+                currentValueFunc = () => VIUSettings.autoLoadBindingConfigOnStart,
+                setValueFunc = v => { VIUSettings.autoLoadBindingConfigOnStart = v; },
                 recommendedValue = true,
             });
 
@@ -316,32 +326,32 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = ColorSpace.Linear,
             });
 
-            //s_settings.Add(new RecommendedSetting<bool>()
-            //{
-            //    settingTitle = "Virtual Reality Supported with OpenVR",
-            //    skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.canSupportOpenVR,
-            //    currentValueFunc = () => VIUSettingsEditor.supportOpenVR,
-            //    setValueFunc = v => VIUSettingsEditor.supportOpenVR = v,
-            //    recommendedValue = true,
-            //});
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
+                settingTitle = "Virtual Reality Supported with OpenVR",
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportOpenVR,
+                currentValueFunc = () => VIUSettingsEditor.supportOpenVR,
+                setValueFunc = v => VIUSettingsEditor.supportOpenVR = v,
+                recommendedValue = true,
+            });
 
-            //s_settings.Add(new RecommendedSetting<bool>()
-            //{
-            //    settingTitle = "Virtual Reality Supported with Oculus",
-            //    skipCheckFunc = () => !VIUSettingsEditor.canSupportOculus,
-            //    currentValueFunc = () => VIUSettingsEditor.supportOculus,
-            //    setValueFunc = v => VIUSettingsEditor.supportOculus = v,
-            //    recommendedValue = true,
-            //});
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
+                settingTitle = "Virtual Reality Supported with Oculus",
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportOculus,
+                currentValueFunc = () => VIUSettingsEditor.supportOculus,
+                setValueFunc = v => VIUSettingsEditor.supportOculus = v,
+                recommendedValue = true,
+            });
 
-            //s_settings.Add(new RecommendedSetting<bool>()
-            //{
-            //    settingTitle = "Virtual Reality Supported with Daydream",
-            //    skipCheckFunc = () => !VIUSettingsEditor.canSupportDaydream,
-            //    currentValueFunc = () => VIUSettingsEditor.supportDaydream,
-            //    setValueFunc = v => VIUSettingsEditor.supportDaydream = v,
-            //    recommendedValue = true,
-            //});
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
+                settingTitle = "Virtual Reality Supported with Daydream",
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportDaydream,
+                currentValueFunc = () => VIUSettingsEditor.supportDaydream,
+                setValueFunc = v => VIUSettingsEditor.supportDaydream = v,
+                recommendedValue = true,
+            });
         }
 
         // check vive input utility version on github

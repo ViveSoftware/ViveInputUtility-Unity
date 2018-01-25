@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -85,7 +86,7 @@ namespace HTC.UnityPlugin.Vive
             private static bool s_vrEnabled;
             private static SerializedObject s_projectSettingAsset;
             private static SerializedProperty s_enabledProp;
-            private static SerializedProperty s_devicesProp;
+            private static SerializedProperty s_devicesProp = null;
 
             public static readonly VRSDK Oculus = new VRSDK("Oculus");
             public static readonly VRSDK OpenVR = new VRSDK("OpenVR", true);
@@ -255,32 +256,52 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.Space(20f);
             }
 
-            public static void ShowFoldoutButton(Index i, bool visible)
+            public static void ShowFoldoutButton(Index i)
             {
-                if (visible)
+                var flag = Flag(i);
+                var style = IsExpended(flag) ? s_styleExpended : s_styleFoleded;
+                if (GUILayout.Button(string.Empty, style, GUILayout.Width(12f)))
                 {
-                    var flag = Flag(i);
-                    var style = IsExpended(flag) ? s_styleExpended : s_styleFoleded;
-                    if (GUILayout.Button(string.Empty, style, GUILayout.Width(12f)))
-                    {
-                        s_expendedFlags ^= flag;
-                        isChanged = true;
-                    }
+                    s_expendedFlags ^= flag;
+                    isChanged = true;
+                }
+            }
+
+            public static bool ShowFoldoutButtonOnToggleEnabled(Index i, GUIContent content, bool toggleValue)
+            {
+                GUILayout.BeginHorizontal();
+                if (toggleValue)
+                {
+                    ShowFoldoutButton(i);
                 }
                 else
                 {
                     ShowFoldoutBlank();
                 }
+                var toggleResult = EditorGUILayout.ToggleLeft(content, toggleValue);
+                if (toggleResult != toggleValue) { s_guiChanged = true; }
+                GUILayout.EndHorizontal();
+                return toggleResult;
             }
 
             public static bool ShowFoldoutButtonWithEnabledToggle(Index i, GUIContent content, bool toggleValue)
             {
                 GUILayout.BeginHorizontal();
-                ShowFoldoutButton(i, toggleValue);
+                ShowFoldoutButton(i);
                 var toggleResult = EditorGUILayout.ToggleLeft(content, toggleValue);
                 if (toggleResult != toggleValue) { s_guiChanged = true; }
                 GUILayout.EndHorizontal();
                 return toggleResult;
+            }
+
+            public static void ShowFoldoutButtonWithDisbledToggle(Index i, GUIContent content)
+            {
+                GUILayout.BeginHorizontal();
+                ShowFoldoutButton(i);
+                GUI.enabled = false;
+                EditorGUILayout.ToggleLeft(content, false);
+                GUI.enabled = true;
+                GUILayout.EndHorizontal();
             }
 
             public static void ShowFoldoutBlankWithDisbledToggle(GUIContent content)
@@ -322,6 +343,7 @@ namespace HTC.UnityPlugin.Vive
         }
 
         //private const float s_buttonIndent = 35f;
+        private static Vector2 s_scrollValue = Vector2.zero;
         private static float s_warningHeight;
         private static GUIStyle s_labelStyle;
         private static bool s_guiChanged;
@@ -454,10 +476,10 @@ namespace HTC.UnityPlugin.Vive
                 VIUSettings.activateOculusVRModule = value;
 
 #if UNITY_5_5_OR_NEWER
-                OpenVRSDK.enabled = value;
+                OculusSDK.enabled = value;
                 VIUSettings.activateUnityNativeVRModule = value || supportOpenVR;
 #elif UNITY_5_4_OR_NEWER
-                OpenVRSDK.enabled = value;
+                OculusSDK.enabled = value;
 #else
                 virtualRealitySupported = value;
 #endif
@@ -543,7 +565,9 @@ namespace HTC.UnityPlugin.Vive
 
             s_guiChanged = false;
 
-            EditorGUILayout.LabelField("<b>Version</b> v" + VIUVersion.current, s_labelStyle);
+            s_scrollValue = EditorGUILayout.BeginScrollView(s_scrollValue);
+
+            EditorGUILayout.LabelField("<b>Vive Input Utility v" + VIUVersion.current + "</b>", s_labelStyle);
             ShowGetReleaseNoteButton();
 
             GUILayout.Space(10);
@@ -554,15 +578,22 @@ namespace HTC.UnityPlugin.Vive
             const string supportSimulatorTitle = "Simulator";
             if (canSupportSimulator)
             {
-                supportSimulator = Foldouter.ShowFoldoutButtonWithEnabledToggle(Foldouter.Index.Simulator, new GUIContent(supportSimulatorTitle, "If checked, the simulator will activated automatically if no other valid VR devices found."), supportSimulator);
+                supportSimulator = Foldouter.ShowFoldoutButtonOnToggleEnabled(Foldouter.Index.Simulator, new GUIContent(supportSimulatorTitle, "If checked, the simulator will activated automatically if no other valid VR devices found."), supportSimulator);
+            }
+            else
+            {
+                Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent(supportSimulatorTitle));
+            }
 
-                if (supportSimulator && Foldouter.IsExpended(Foldouter.Index.Simulator))
+            if (supportSimulator && Foldouter.IsExpended(Foldouter.Index.Simulator))
+            {
+                if (supportSimulator) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
                 {
-                    EditorGUI.BeginChangeCheck();
                     EditorGUI.indentLevel += 2;
-
                     VIUSettings.simulatorAutoTrackMainCamera = EditorGUILayout.ToggleLeft(new GUIContent("Enable Auto Camera Tracking", "Main camera only"), VIUSettings.simulatorAutoTrackMainCamera);
-                    if (VIUSettings.enableSimulatorKeyboardMouseControl = EditorGUILayout.ToggleLeft(new GUIContent("Enable Keyboard-Mouse Control", "You can also handle VRModule.Simulator.onUpdateDeviceState by your self."), VIUSettings.enableSimulatorKeyboardMouseControl))
+                    VIUSettings.enableSimulatorKeyboardMouseControl = EditorGUILayout.ToggleLeft(new GUIContent("Enable Keyboard-Mouse Control", "You can also control Simulator devices by handling VRModule.Simulator.onUpdateDeviceState event."), VIUSettings.enableSimulatorKeyboardMouseControl);
+
+                    if (!VIUSettings.enableSimulatorKeyboardMouseControl && supportSimulator) { GUI.enabled = false; }
                     {
                         EditorGUI.indentLevel++;
                         VIUSettings.simulateTrackpadTouch = EditorGUILayout.Toggle(new GUIContent("Simulate Trackpad Touch", VIUSettings.SIMULATE_TRACKPAD_TOUCH_TOOLTIP), VIUSettings.simulateTrackpadTouch);
@@ -571,14 +602,11 @@ namespace HTC.UnityPlugin.Vive
                         VIUSettings.simulatorMouseRotateSpeed = EditorGUILayout.DelayedFloatField(new GUIContent("Mouse Rotate Speed"), VIUSettings.simulatorMouseRotateSpeed);
                         EditorGUI.indentLevel--;
                     }
+                    if (!VIUSettings.enableSimulatorKeyboardMouseControl && supportSimulator) { GUI.enabled = true; }
 
                     EditorGUI.indentLevel -= 2;
-                    s_guiChanged |= EditorGUI.EndChangeCheck();
                 }
-            }
-            else
-            {
-                Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent(supportSimulatorTitle));
+                if (supportSimulator) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
             }
 
             GUILayout.Space(5);
@@ -586,74 +614,7 @@ namespace HTC.UnityPlugin.Vive
             const string supportOpenVRTitle = "Vive (OpenVR compatible device)";
             if (canSupportOpenVR)
             {
-                if (VRModule.isSteamVRPluginDetected)
-                {
-                    supportOpenVR = Foldouter.ShowFoldoutButtonWithEnabledToggle(Foldouter.Index.Vive, new GUIContent(supportOpenVRTitle), supportOpenVR);
-
-                    if (supportOpenVR && Foldouter.IsExpended(Foldouter.Index.Vive))
-                    {
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUI.indentLevel += 2;
-
-                        VIUSettings.externalCameraConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("External Camera Config Path"), VIUSettings.externalCameraConfigFilePath);
-
-                        if (!string.IsNullOrEmpty(VIUSettings.externalCameraConfigFilePath))
-                        {
-                            if (!System.IO.File.Exists(VIUSettings.externalCameraConfigFilePath))
-                            {
-                                ShowCreateExCamCfgButton();
-                            }
-
-                            if (VIUSettings.enableExternalCameraSwitch = EditorGUILayout.ToggleLeft(new GUIContent("Enable External Camera Switch", VIUSettings.EX_CAM_UI_SWITCH_TOOLTIP), VIUSettings.enableExternalCameraSwitch))
-                            {
-                                EditorGUI.indentLevel++;
-                                VIUSettings.externalCameraSwitchKey = (KeyCode)EditorGUILayout.EnumPopup("Switch Key", VIUSettings.externalCameraSwitchKey);
-                                if (VIUSettings.externalCameraSwitchKey != KeyCode.None)
-                                {
-                                    VIUSettings.externalCameraSwitchKeyModifier = (KeyCode)EditorGUILayout.EnumPopup("Switch Key Modifier", VIUSettings.externalCameraSwitchKeyModifier);
-                                }
-                                EditorGUI.indentLevel--;
-                            }
-                        }
-
-                        EditorGUI.indentLevel -= 2;
-                        s_guiChanged |= EditorGUI.EndChangeCheck();
-                    }
-                }
-                else
-                {
-                    supportOpenVR = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(supportOpenVRTitle), supportOpenVR);
-
-                    if (supportOpenVR)
-                    {
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUI.indentLevel += 2;
-
-                        GUILayout.BeginHorizontal();
-                        EditorGUILayout.HelpBox("External-Camera(Mix-Reality), animated controller model, Vive Controller haptics(vibration)" +
-#if UNITY_2017_1_OR_NEWER
-                        ", Vive Tracker USB/Pogo-pin input" +
-#else
-                        ", Vive Tracker device" +
-#endif
-                        " NOT supported! Install SteamVR Plugin to get support.", MessageType.Warning);
-
-                        s_warningHeight = Mathf.Max(s_warningHeight, GUILayoutUtility.GetLastRect().height);
-
-                        if (!VRModule.isSteamVRPluginDetected)
-                        {
-                            GUILayout.BeginVertical(GUILayout.Height(s_warningHeight));
-                            GUILayout.FlexibleSpace();
-                            ShowGetSteamVRPluginButton();
-                            GUILayout.FlexibleSpace();
-                            GUILayout.EndVertical();
-                        }
-                        GUILayout.EndHorizontal();
-
-                        EditorGUI.indentLevel -= 2;
-                        s_guiChanged |= EditorGUI.EndChangeCheck();
-                    }
-                }
+                supportOpenVR = Foldouter.ShowFoldoutButtonOnToggleEnabled(Foldouter.Index.Vive, new GUIContent(supportOpenVRTitle), supportOpenVR);
             }
             else
             {
@@ -678,6 +639,85 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 GUILayout.EndHorizontal();
+            }
+
+            if (supportOpenVR && Foldouter.IsExpended(Foldouter.Index.Vive))
+            {
+                if (supportOpenVR && VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                {
+                    EditorGUI.indentLevel += 2;
+
+                    VIUSettings.autoLoadExternalCameraConfigOnStart = EditorGUILayout.ToggleLeft(new GUIContent("Load Config and Enable External Camera on Start", "You can also load config by calling ExternalCameraHook.LoadConfigFromFile(path) in script."), VIUSettings.autoLoadExternalCameraConfigOnStart);
+                    if (!VIUSettings.autoLoadExternalCameraConfigOnStart && supportOpenVR) { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel++;
+
+                        EditorGUI.BeginChangeCheck();
+                        VIUSettings.externalCameraConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("Config Path"), VIUSettings.externalCameraConfigFilePath);
+                        if (string.IsNullOrEmpty(VIUSettings.externalCameraConfigFilePath))
+                        {
+                            VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+                            EditorGUI.EndChangeCheck();
+                        }
+                        else if (EditorGUI.EndChangeCheck() && VIUSettings.externalCameraConfigFilePath.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                        {
+                            VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+                        }
+                        // Create button that writes default config file
+                        if (VIUSettings.autoLoadExternalCameraConfigOnStart && supportOpenVR && !File.Exists(VIUSettings.externalCameraConfigFilePath))
+                        {
+                            if (supportOpenVR && VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); }
+                            ShowCreateExCamCfgButton();
+                            if (supportOpenVR && VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); }
+                        }
+
+                        EditorGUI.indentLevel--;
+                    }
+                    if (!VIUSettings.autoLoadExternalCameraConfigOnStart && supportOpenVR) { GUI.enabled = true; }
+
+                    VIUSettings.enableExternalCameraSwitch = EditorGUILayout.ToggleLeft(new GUIContent("Enable External Camera Switch", VIUSettings.EX_CAM_UI_SWITCH_TOOLTIP), VIUSettings.enableExternalCameraSwitch);
+                    if (!VIUSettings.enableExternalCameraSwitch && supportOpenVR) { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel++;
+
+                        VIUSettings.externalCameraSwitchKey = (KeyCode)EditorGUILayout.EnumPopup("Switch Key", VIUSettings.externalCameraSwitchKey);
+                        VIUSettings.externalCameraSwitchKeyModifier = (KeyCode)EditorGUILayout.EnumPopup("Switch Key Modifier", VIUSettings.externalCameraSwitchKeyModifier);
+
+                        EditorGUI.indentLevel--;
+                    }
+                    if (!VIUSettings.enableExternalCameraSwitch && supportOpenVR) { GUI.enabled = true; }
+
+                    EditorGUI.indentLevel -= 2;
+                }
+                if (supportOpenVR && VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
+            }
+
+            if (supportOpenVR && !VRModule.isSteamVRPluginDetected)
+            {
+                EditorGUI.indentLevel += 2;
+
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.HelpBox("External-Camera(Mix-Reality), animated controller model, Vive Controller haptics(vibration)" +
+#if UNITY_2017_1_OR_NEWER
+                        ", Vive Tracker USB/Pogo-pin input" +
+#else
+                        ", Vive Tracker device" +
+#endif
+                        " NOT supported! Install SteamVR Plugin to get support.", MessageType.Warning);
+
+                s_warningHeight = Mathf.Max(s_warningHeight, GUILayoutUtility.GetLastRect().height);
+
+                if (!VRModule.isSteamVRPluginDetected)
+                {
+                    GUILayout.BeginVertical(GUILayout.Height(s_warningHeight));
+                    GUILayout.FlexibleSpace();
+                    ShowGetSteamVRPluginButton();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndVertical();
+                }
+                GUILayout.EndHorizontal();
+
+                EditorGUI.indentLevel -= 2;
             }
 
             GUILayout.Space(5f);
@@ -717,33 +757,7 @@ namespace HTC.UnityPlugin.Vive
             const string supportDaydreamVRTitle = "Daydream";
             if (canSupportDaydream)
             {
-                supportDaydream = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(supportDaydreamVRTitle), supportDaydream);
-
-                if (supportDaydream)
-                {
-                    EditorGUI.indentLevel += 2;
-
-                    EditorGUILayout.HelpBox("VRDevice daydream not supported in Editor Mode.  Please run on target device.", MessageType.Info);
-
-                    // following preferences is stored at HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x\
-                    if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidSdkRoot")))
-                    {
-                        EditorGUILayout.HelpBox("AndroidSdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
-                    }
-
-                    if (string.IsNullOrEmpty(EditorPrefs.GetString("JdkPath")))
-                    {
-                        EditorGUILayout.HelpBox("JdkPath is empty. Setup at Edit -> Preferences... -> External Tools -> Android JDK", MessageType.Warning);
-                    }
-
-                    // Optional
-                    //if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidNdkRoot")))
-                    //{
-                    //    EditorGUILayout.HelpBox("AndroidNdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
-                    //}
-
-                    EditorGUI.indentLevel -= 2;
-                }
+                supportDaydream = Foldouter.ShowFoldoutButtonOnToggleEnabled(Foldouter.Index.Daydream, new GUIContent(supportDaydreamVRTitle), supportDaydream);
             }
             else
             {
@@ -761,7 +775,7 @@ namespace HTC.UnityPlugin.Vive
                     tooltip = "Google VR plugin required.";
                 }
 #else
-                tooltip = "Unity 5.6 or later required.";
+                tooltip = "Unity 5.6 or later version required.";
 #endif
                 GUI.enabled = false;
                 ShowToggle(new GUIContent(supportDaydreamVRTitle, tooltip), false, GUILayout.Width(80f));
@@ -781,6 +795,45 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.EndHorizontal();
             }
 
+            if (supportDaydream && Foldouter.IsExpended(Foldouter.Index.Daydream))
+            {
+                if (supportDaydream) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                {
+                    EditorGUI.indentLevel += 2;
+
+                    VIUSettings.daydreamSyncPadPressToTrigger = EditorGUILayout.ToggleLeft(new GUIContent("Sync Pad Press to Trigger", "Daydream controller have less button then other VR controller. Enable this option to let the trigger button work."), VIUSettings.daydreamSyncPadPressToTrigger);
+
+                    EditorGUI.indentLevel -= 2;
+                }
+                if (supportDaydream) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
+            }
+
+            if (supportDaydream)
+            {
+                EditorGUI.indentLevel += 2;
+
+                EditorGUILayout.HelpBox("VRDevice daydream not supported in Editor Mode.  Please run on target device.", MessageType.Info);
+
+                // following preferences is stored at HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x\
+                if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidSdkRoot")))
+                {
+                    EditorGUILayout.HelpBox("AndroidSdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
+                }
+
+                if (string.IsNullOrEmpty(EditorPrefs.GetString("JdkPath")))
+                {
+                    EditorGUILayout.HelpBox("JdkPath is empty. Setup at Edit -> Preferences... -> External Tools -> Android JDK", MessageType.Warning);
+                }
+
+                // Optional
+                //if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidNdkRoot")))
+                //{
+                //    EditorGUILayout.HelpBox("AndroidNdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
+                //}
+
+                EditorGUI.indentLevel -= 2;
+            }
+
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("<b>Role Binding</b>", s_labelStyle);
@@ -788,42 +841,59 @@ namespace HTC.UnityPlugin.Vive
 
             if (supportAnyStandaloneVR)
             {
-                VIUSettings.autoLoadBindingConfigOnStart = Foldouter.ShowFoldoutButtonWithEnabledToggle(Foldouter.Index.AutoBinding, new GUIContent("Auto Load Binding Config on Start"), VIUSettings.autoLoadBindingConfigOnStart);
-
-                if (VIUSettings.autoLoadBindingConfigOnStart && Foldouter.IsExpended(Foldouter.Index.AutoBinding))
-                {
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUI.indentLevel += 2;
-                    VIUSettings.bindingConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("Config Path"), VIUSettings.bindingConfigFilePath);
-                    EditorGUI.indentLevel -= 2;
-                    s_guiChanged |= EditorGUI.EndChangeCheck();
-                }
-
-                GUILayout.Space(5);
-
-                VIUSettings.enableBindingInterfaceSwitch = Foldouter.ShowFoldoutButtonWithEnabledToggle(Foldouter.Index.BindingUISwitch, new GUIContent("Enable Binding Interface Switch", VIUSettings.BIND_UI_SWITCH_TOOLTIP), VIUSettings.enableBindingInterfaceSwitch);
-
-                if (VIUSettings.enableBindingInterfaceSwitch && Foldouter.IsExpended(Foldouter.Index.BindingUISwitch))
-                {
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUI.indentLevel += 2;
-                    VIUSettings.bindingInterfaceSwitchKey = (KeyCode)EditorGUILayout.EnumPopup("Switch Key", VIUSettings.bindingInterfaceSwitchKey);
-                    if (VIUSettings.bindingInterfaceSwitchKey != KeyCode.None)
-                    {
-                        VIUSettings.bindingInterfaceSwitchKeyModifier = (KeyCode)EditorGUILayout.EnumPopup("Switch Key Modifier", VIUSettings.bindingInterfaceSwitchKeyModifier);
-                    }
-                    VIUSettings.bindingInterfaceObjectSource = EditorGUILayout.ObjectField("Interface Prefab", VIUSettings.bindingInterfaceObjectSource, typeof(GameObject), false) as GameObject;
-                    EditorGUI.indentLevel -= 2;
-                    s_guiChanged |= EditorGUI.EndChangeCheck();
-                }
+                VIUSettings.autoLoadBindingConfigOnStart = Foldouter.ShowFoldoutButtonOnToggleEnabled(Foldouter.Index.AutoBinding, new GUIContent("Load Binding Config on Start"), VIUSettings.autoLoadBindingConfigOnStart);
             }
             else
             {
-                Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent("Auto Load Binding Config on Start", "Role Binding only works on standalone device."));
+                Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent("Load Binding Config on Start", "Role Binding only works on standalone device."));
+            }
 
-                GUILayout.Space(5);
+            if (supportAnyStandaloneVR && VIUSettings.autoLoadBindingConfigOnStart && Foldouter.IsExpended(Foldouter.Index.AutoBinding))
+            {
+                if (supportAnyStandaloneVR && VIUSettings.autoLoadBindingConfigOnStart) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                {
+                    EditorGUI.indentLevel += 2;
 
-                Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent("Enable Binding Interface Switch", "Role Binding only works on sstandalone device."));
+                    EditorGUI.BeginChangeCheck();
+                    VIUSettings.bindingConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("Config Path"), VIUSettings.bindingConfigFilePath);
+                    if (string.IsNullOrEmpty(VIUSettings.bindingConfigFilePath))
+                    {
+                        VIUSettings.bindingConfigFilePath = VIUSettings.BINDING_CONFIG_FILE_PATH_DEFAULT_VALUE;
+                        EditorGUI.EndChangeCheck();
+                    }
+                    else if (EditorGUI.EndChangeCheck() && VIUSettings.bindingConfigFilePath.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                    {
+                        VIUSettings.bindingConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+                    }
+
+                    EditorGUI.indentLevel -= 2;
+                }
+                if (supportAnyStandaloneVR && VIUSettings.autoLoadBindingConfigOnStart) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
+            }
+
+            GUILayout.Space(5);
+
+            if (supportAnyStandaloneVR)
+            {
+                VIUSettings.enableBindingInterfaceSwitch = Foldouter.ShowFoldoutButtonOnToggleEnabled(Foldouter.Index.BindingUISwitch, new GUIContent("Enable Binding Interface Switch", VIUSettings.BIND_UI_SWITCH_TOOLTIP), VIUSettings.enableBindingInterfaceSwitch);
+            }
+            else
+            {
+                Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent("Enable Binding Interface Switch", "Role Binding only works with Standalone device."));
+            }
+
+            if (supportAnyStandaloneVR && VIUSettings.enableBindingInterfaceSwitch && Foldouter.IsExpended(Foldouter.Index.BindingUISwitch))
+            {
+                if (supportAnyStandaloneVR && VIUSettings.enableBindingInterfaceSwitch) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                {
+                    EditorGUI.indentLevel += 2;
+
+                    VIUSettings.bindingInterfaceSwitchKey = (KeyCode)EditorGUILayout.EnumPopup("Switch Key", VIUSettings.bindingInterfaceSwitchKey);
+                    VIUSettings.bindingInterfaceSwitchKeyModifier = (KeyCode)EditorGUILayout.EnumPopup("Switch Key Modifier", VIUSettings.bindingInterfaceSwitchKeyModifier);
+
+                    EditorGUI.indentLevel -= 2;
+                }
+                if (supportAnyStandaloneVR && VIUSettings.enableBindingInterfaceSwitch) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
             }
 
             //Foldouter.ApplyChanges();
@@ -849,14 +919,16 @@ namespace HTC.UnityPlugin.Vive
                     AssetDatabase.DeleteAsset(assetPath);
                     supportSimulator = canSupportSimulator;
                     supportOpenVR = canSupportOpenVR;
-                    //supportOculus = canSupportOculus;
-                    //supportDaydream = canSupportDaydream;
+                    supportOculus = canSupportOculus;
+                    supportDaydream = canSupportDaydream;
 
                     VRSDKSettings.ApplyChanges();
                 }
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
             }
+
+            EditorGUILayout.EndScrollView();
         }
 
         private static bool ShowToggle(GUIContent label, bool value, params GUILayoutOption[] options)
@@ -921,10 +993,10 @@ namespace HTC.UnityPlugin.Vive
         private static void ShowCreateExCamCfgButton()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
+            GUILayout.Space(50f);
             if (GUILayout.Button(new GUIContent("Generate Default Config File", "To get External Camera work in playmode, the config file must exits under project folder or build folder when start playing.")))
             {
-                System.IO.File.WriteAllText(VIUSettings.externalCameraConfigFilePath,
+                File.WriteAllText(VIUSettings.externalCameraConfigFilePath,
 @"x=0
 y=0
 z=0

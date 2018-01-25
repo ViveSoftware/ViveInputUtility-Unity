@@ -21,7 +21,7 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private Transform m_origin;
         [SerializeField]
-        private string m_configPath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+        private string m_configPath = string.Empty;
 
         private bool m_quadViewSwitch = false;
         private bool m_configInterfaceSwitch = true;
@@ -43,7 +43,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 m_configPath = value;
 #if VIU_STEAMVR
-                if (m_externalCamera != null && File.Exists(m_configPath))
+                if (m_externalCamera != null && !string.IsNullOrEmpty(m_configPath) && File.Exists(m_configPath))
                 {
                     m_externalCamera.configPath = m_configPath;
                     m_externalCamera.ReadConfig();
@@ -111,6 +111,11 @@ namespace HTC.UnityPlugin.Vive
         }
 
 #if UNITY_EDITOR
+        private void Reset()
+        {
+            m_configPath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+        }
+
         private void OnValidate()
         {
             if (Application.isPlaying && isActiveAndEnabled)
@@ -131,30 +136,48 @@ namespace HTC.UnityPlugin.Vive
         {
             if (VRModule.Active && VRModule.activeModule != VRModuleActiveEnum.Uninitialized)
             {
-                AutoLoadConfig(VRModule.activeModule);
+                AutoLoadConfig();
             }
             else
             {
-                VRModule.onActiveModuleChanged += AutoLoadConfig;
+                VRModule.onActiveModuleChanged += OnActiveModuleChanged;
             }
         }
 
-        private static void AutoLoadConfig(VRModuleActiveEnum activatedModule)
+        private static void OnActiveModuleChanged(VRModuleActiveEnum activatedModule)
         {
-            VRModule.onActiveModuleChanged -= AutoLoadConfig;
-
-            if (activatedModule != VRModuleActiveEnum.SteamVR) { return; }
-
-            if (!Active && File.Exists(VIUSettings.externalCameraConfigFilePath))
+            if (activatedModule != VRModuleActiveEnum.Uninitialized)
             {
-                Initialize();
-                Instance.configPath = VIUSettings.externalCameraConfigFilePath;
+                VRModule.onActiveModuleChanged -= OnActiveModuleChanged;
+                AutoLoadConfig();
+            }
+        }
+
+        private static void AutoLoadConfig()
+        {
+            if (!Active && VIUSettings.autoLoadExternalCameraConfigOnStart)
+            {
+                // if ExternalCameraHook is already exist in current scene, use its property
+                LoadConfigFromFile(VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE);
+            }
+        }
+
+        /// <summary>
+        /// Load config form file if the file exist.
+        /// Will create an ExternalCameraHook instance into scene if config is availabile and there was no instance.
+        /// </summary>
+        /// <param name="">The config file path.</param>
+        /// <returns>true if config file loaded and external camera instance is created successfully.</returns>
+        public static bool LoadConfigFromFile(string path)
+        {
+            if (!SteamVR.active || string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                return false;
             }
 
-            if (Active)
-            {
-                Instance.UpdateActivity();
-            }
+            Instance.configPath = path;
+            Instance.UpdateActivity();
+            return true;
         }
 
         private static bool m_defaultExCamResolved;
@@ -195,6 +218,15 @@ namespace HTC.UnityPlugin.Vive
             {
                 m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
                 OnDeviceIndexChanged(VRModule.INVALID_DEVICE_INDEX);
+            }
+        }
+
+        private void OnDeviceIndexChanged(uint deviceIndex)
+        {
+            if (IsInstance)
+            {
+                m_quadViewSwitch = isTrackingDevice;
+                UpdateActivity();
             }
         }
 
@@ -239,15 +271,6 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
 
-                UpdateActivity();
-            }
-        }
-
-        private void OnDeviceIndexChanged(uint deviceIndex)
-        {
-            if (IsInstance)
-            {
-                m_quadViewSwitch = isTrackingDevice;
                 UpdateActivity();
             }
         }

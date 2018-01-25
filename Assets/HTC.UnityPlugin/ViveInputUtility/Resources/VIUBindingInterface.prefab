@@ -2924,7 +2924,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_closeExCamOnEnable: 1
-  m_toggleApplyOnStart: {fileID: 0}
+  m_pathInfo: {fileID: 11403280}
   m_dirtySymble: {fileID: 163510}
 --- !u!114 &11445958
 MonoBehaviour:

@@ -11,7 +11,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
         [SerializeField]
         private bool m_closeExCamOnEnable = true;
         [SerializeField]
-        private Toggle m_toggleApplyOnStart;
+        private Text m_pathInfo;
         [SerializeField]
         private GameObject m_dirtySymble;
 
@@ -28,7 +28,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
                 EventSystem.current.gameObject.AddComponent<StandaloneInputModule>();
             }
 
-            ViveRoleBindingsHelper.AutoLoadConfig();
+            m_pathInfo.text = "The changes will be stored in \"" + VIUSettings.externalCameraConfigFilePath + "\".";
         }
 
         private void OnDisable()

@@ -8,8 +8,8 @@ namespace HTC.UnityPlugin.Vive
     {
         public const string DEFAULT_RESOURCE_PATH = "VIUSettings";
 
-        public const string BIND_UI_SWITCH_TOOLTIP = "When enabled, pressing the switch key to open the binding interface in play mode.";
-        public const string EX_CAM_UI_SWITCH_TOOLTIP = "When enabled, pressing the switch key to toggle the quad view while external camera config file exist.";
+        public const string BIND_UI_SWITCH_TOOLTIP = "Enable this option to open binding interface by pressing the switch key in play mode.";
+        public const string EX_CAM_UI_SWITCH_TOOLTIP = "Enable this option to toggle quad view by pressing the switch key in play mode. (After the config file loaded successfully)";
         public const string SIMULATE_TRACKPAD_TOUCH_TOOLTIP = "Hold Shift key and move the mouse to simulate trackpad touching event";
         public const string SIMULATOR_KEY_MOVE_SPEED_TOOLTIP = "W/A/S/D";
         public const string SIMULATOR_KEY_ROTATE_SPEED_TOOLTIP = "Arrow Up/Down/Left/Right";
@@ -21,6 +21,7 @@ namespace HTC.UnityPlugin.Vive
         public const KeyCode BINDING_INTERFACE_SWITCH_KEY_MODIFIER_DEFAULT_VALUE = KeyCode.RightShift;
         public const string BINDING_INTERFACE_PREFAB_DEFAULT_RESOURCE_PATH = "VIUBindingInterface";
 
+        public const bool AUTO_LOAD_EXTERNAL_CAMERA_CONFIG_ON_START_DEFAULT_VALUE = true;
         public const string EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE = "externalcamera.cfg";
         public const bool ENABLE_EXTERNAL_CAMERA_SWITCH_DEFAULT_VALUE = true;
         public const KeyCode EXTERNAL_CAMERA_SWITCH_KEY_DEFAULT_VALUE = KeyCode.M;
@@ -34,10 +35,12 @@ namespace HTC.UnityPlugin.Vive
         public const float SIMULATOR_MOUSE_ROTATE_SPEED_DEFAULT_VALUE = 90f;
         public const float SIMULATOR_KEY_ROTATE_SPEED_DEFAULT_VALUE = 90f;
 
+        public const bool ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE = true;
+        public const bool DAYDREAM_SYNC_PAD_PRESS_TO_TRIGGER_DEFAULT_VALUE = true;
+
         public const bool ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE = true;
-        public const bool ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE = true;
 
         private static VIUSettings s_instance = null;
 
@@ -55,6 +58,8 @@ namespace HTC.UnityPlugin.Vive
         private GameObject m_bindingInterfaceObjectSource = null;
 
         [SerializeField]
+        private bool m_autoLoadExternalCameraConfigOnStart = AUTO_LOAD_EXTERNAL_CAMERA_CONFIG_ON_START_DEFAULT_VALUE;
+        [SerializeField]
         private string m_externalCameraConfigFilePath = EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
         [SerializeField, Tooltip(EX_CAM_UI_SWITCH_TOOLTIP)]
         private bool m_enableExternalCameraSwitch = ENABLE_EXTERNAL_CAMERA_SWITCH_DEFAULT_VALUE;
@@ -67,12 +72,19 @@ namespace HTC.UnityPlugin.Vive
         private bool m_simulatorAutoTrackMainCamera = SIMULATOR_AUTO_TRACK_MAIN_CAMERA_DEFAULT_VALUE;
         [SerializeField, Tooltip(SIMULATE_TRACKPAD_TOUCH_TOOLTIP)]
         private bool m_simulateTrackpadTouch = SIMULATE_TRACKPAD_TOUCH_DEFAULT_VALUE;
+        [SerializeField]
+        private bool m_enableSimulatorKeyboardMouseControl = ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_DEFAULT_VALUE;
         [SerializeField, Tooltip(SIMULATOR_KEY_MOVE_SPEED_TOOLTIP)]
         private float m_simulatorKeyMoveSpeed = SIMULATOR_KEY_MOVE_SPEED_DEFAULT_VALUE;
         [SerializeField]
         private float m_simulatorMouseRotateSpeed = SIMULATOR_MOUSE_ROTATE_SPEED_DEFAULT_VALUE;
         [SerializeField, Tooltip(SIMULATOR_KEY_MOVE_SPEED_TOOLTIP)]
         private float m_simulatorKeyRotateSpeed = SIMULATOR_KEY_ROTATE_SPEED_DEFAULT_VALUE;
+
+        [SerializeField]
+        private bool m_activateGoogleVRModule = ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE;
+        [SerializeField]
+        private bool m_daydreamSyncPadPressToTrigger = DAYDREAM_SYNC_PAD_PRESS_TO_TRIGGER_DEFAULT_VALUE;
 
         [SerializeField]
         private bool m_activateSimulatorModule = ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE;
@@ -82,10 +94,6 @@ namespace HTC.UnityPlugin.Vive
         private bool m_activateSteamVRModule = ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE;
         [SerializeField]
         private bool m_activateOculusVRModule = ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE;
-        [SerializeField]
-        private bool m_activateGoogleVRModule = ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE;
-        [SerializeField]
-        private bool m_enableSimulatorKeyboardMouseControl = ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_DEFAULT_VALUE;
 
         public static bool autoLoadBindingConfigOnStart { get { return Instance == null ? AUTO_LOAD_BINDING_CONFIG_ON_START_DEFAULT_VALUE : s_instance.m_autoLoadBindingConfigOnStart; } set { if (Instance != null) { Instance.m_autoLoadBindingConfigOnStart = value; } } }
         public static string bindingConfigFilePath { get { return Instance == null ? BINDING_CONFIG_FILE_PATH_DEFAULT_VALUE : s_instance.m_bindingConfigFilePath; } set { if (Instance != null) { Instance.m_bindingConfigFilePath = value; } } }
@@ -94,6 +102,7 @@ namespace HTC.UnityPlugin.Vive
         public static KeyCode bindingInterfaceSwitchKeyModifier { get { return Instance == null ? BINDING_INTERFACE_SWITCH_KEY_DEFAULT_VALUE : s_instance.m_bindingInterfaceSwitchKeyModifier; } set { if (Instance != null) { Instance.m_bindingInterfaceSwitchKeyModifier = value; } } }
         public static GameObject bindingInterfaceObjectSource { get { return Instance == null ? null : s_instance.m_bindingInterfaceObjectSource; } set { if (Instance != null) { Instance.m_bindingInterfaceObjectSource = value; } } }
 
+        public static bool autoLoadExternalCameraConfigOnStart { get { return Instance == null ? AUTO_LOAD_EXTERNAL_CAMERA_CONFIG_ON_START_DEFAULT_VALUE : s_instance.m_autoLoadExternalCameraConfigOnStart; } set { if (Instance != null) { Instance.m_autoLoadExternalCameraConfigOnStart = value; } } }
         public static string externalCameraConfigFilePath { get { return Instance == null ? EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE : s_instance.m_externalCameraConfigFilePath; } set { if (Instance != null) { Instance.m_externalCameraConfigFilePath = value; } } }
         public static bool enableExternalCameraSwitch { get { return Instance == null ? ENABLE_EXTERNAL_CAMERA_SWITCH_DEFAULT_VALUE : s_instance.m_enableExternalCameraSwitch; } set { if (Instance != null) { Instance.m_enableExternalCameraSwitch = value; } } }
         public static KeyCode externalCameraSwitchKey { get { return Instance == null ? EXTERNAL_CAMERA_SWITCH_KEY_DEFAULT_VALUE : s_instance.m_externalCameraSwitchKey; } set { if (Instance != null) { Instance.m_externalCameraSwitchKey = value; } } }
@@ -106,11 +115,13 @@ namespace HTC.UnityPlugin.Vive
         public static float simulatorMouseRotateSpeed { get { return Instance == null ? SIMULATOR_MOUSE_ROTATE_SPEED_DEFAULT_VALUE : s_instance.m_simulatorMouseRotateSpeed; } set { if (Instance != null) { Instance.m_simulatorMouseRotateSpeed = value; } } }
         public static float simulatorKeyRotateSpeed { get { return Instance == null ? SIMULATOR_KEY_ROTATE_SPEED_DEFAULT_VALUE : s_instance.m_simulatorKeyRotateSpeed; } set { if (Instance != null) { Instance.m_simulatorKeyRotateSpeed = value; } } }
 
+        public static bool activateGoogleVRModule { get { return Instance == null ? ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateGoogleVRModule; } set { if (Instance != null) { Instance.m_activateGoogleVRModule = value; } } }
+        public static bool daydreamSyncPadPressToTrigger { get { return Instance == null ? DAYDREAM_SYNC_PAD_PRESS_TO_TRIGGER_DEFAULT_VALUE : s_instance.m_daydreamSyncPadPressToTrigger; } set { if (Instance != null) { Instance.m_daydreamSyncPadPressToTrigger = value; } } }
+
         public static bool activateSimulatorModule { get { return Instance == null ? ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE : s_instance.m_activateSimulatorModule; } set { if (Instance != null) { Instance.m_activateSimulatorModule = value; } } }
         public static bool activateUnityNativeVRModule { get { return Instance == null ? ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateUnityNativeVRModule; } set { if (Instance != null) { Instance.m_activateUnityNativeVRModule = value; } } }
         public static bool activateSteamVRModule { get { return Instance == null ? ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateSteamVRModule; } set { if (Instance != null) { Instance.m_activateSteamVRModule = value; } } }
         public static bool activateOculusVRModule { get { return Instance == null ? ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateOculusVRModule; } set { if (Instance != null) { Instance.m_activateOculusVRModule = value; } } }
-        public static bool activateGoogleVRModule { get { return Instance == null ? ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateGoogleVRModule; } set { if (Instance != null) { Instance.m_activateGoogleVRModule = value; } } }
 
         public static VIUSettings Instance
         {
