@@ -53,13 +53,11 @@ namespace HTC.UnityPlugin.Vive
 
         public void UpdateHeight()
         {
-#if UNITY_5_6_OR_NEWER
-            if (XRSettings.enabled && XRSettings.loadedDeviceName == "daydream")
+            if (VRModule.activeModule == VRModuleActiveEnum.DayDream)
             {
                 var pos = transform.localPosition;
                 transform.localPosition = new Vector3(pos.x, m_height, pos.y);
             }
-#endif
         }
     }
 }

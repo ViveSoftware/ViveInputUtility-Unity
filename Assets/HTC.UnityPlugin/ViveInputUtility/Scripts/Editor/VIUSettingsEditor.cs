@@ -278,7 +278,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     ShowFoldoutBlank();
                 }
-                var toggleResult = EditorGUILayout.ToggleLeft(content, toggleValue);
+                var toggleResult = EditorGUILayout.ToggleLeft(content, toggleValue, s_labelStyle);
                 if (toggleResult != toggleValue) { s_guiChanged = true; }
                 GUILayout.EndHorizontal();
                 return toggleResult;
@@ -288,7 +288,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 GUILayout.BeginHorizontal();
                 ShowFoldoutButton(i);
-                var toggleResult = EditorGUILayout.ToggleLeft(content, toggleValue);
+                var toggleResult = EditorGUILayout.ToggleLeft(content, toggleValue, s_labelStyle);
                 if (toggleResult != toggleValue) { s_guiChanged = true; }
                 GUILayout.EndHorizontal();
                 return toggleResult;
@@ -299,7 +299,7 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.BeginHorizontal();
                 ShowFoldoutButton(i);
                 GUI.enabled = false;
-                EditorGUILayout.ToggleLeft(content, false);
+                EditorGUILayout.ToggleLeft(content, false, s_labelStyle);
                 GUI.enabled = true;
                 GUILayout.EndHorizontal();
             }
@@ -309,7 +309,7 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.BeginHorizontal();
                 ShowFoldoutBlank();
                 GUI.enabled = false;
-                EditorGUILayout.ToggleLeft(content, false);
+                EditorGUILayout.ToggleLeft(content, false, s_labelStyle);
                 GUI.enabled = true;
                 GUILayout.EndHorizontal();
             }
@@ -318,7 +318,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 GUILayout.BeginHorizontal();
                 ShowFoldoutBlank();
-                var toggleResult = EditorGUILayout.ToggleLeft(content, toggleValue);
+                var toggleResult = EditorGUILayout.ToggleLeft(content, toggleValue, s_labelStyle);
                 if (toggleResult != toggleValue) { s_guiChanged = true; }
                 GUILayout.EndHorizontal();
                 return toggleResult;
@@ -567,7 +567,7 @@ namespace HTC.UnityPlugin.Vive
 
             s_scrollValue = EditorGUILayout.BeginScrollView(s_scrollValue);
 
-            EditorGUILayout.LabelField("<b>Vive Input Utility v" + VIUVersion.current + "</b>", s_labelStyle);
+            EditorGUILayout.LabelField("<b>VIVE Input Utility v" + VIUVersion.current + "</b>", s_labelStyle);
             ShowGetReleaseNoteButton();
 
             GUILayout.Space(10);
@@ -611,7 +611,7 @@ namespace HTC.UnityPlugin.Vive
 
             GUILayout.Space(5);
 
-            const string supportOpenVRTitle = "Vive (OpenVR compatible device)";
+            const string supportOpenVRTitle = "VIVE (OpenVR compatible device)";
             if (canSupportOpenVR)
             {
                 supportOpenVR = Foldouter.ShowFoldoutButtonOnToggleEnabled(Foldouter.Index.Vive, new GUIContent(supportOpenVRTitle), supportOpenVR);
@@ -697,11 +697,11 @@ namespace HTC.UnityPlugin.Vive
                 EditorGUI.indentLevel += 2;
 
                 GUILayout.BeginHorizontal();
-                EditorGUILayout.HelpBox("External-Camera(Mix-Reality), animated controller model, Vive Controller haptics(vibration)" +
+                EditorGUILayout.HelpBox("External-Camera(Mix-Reality), animated controller model, VIVE Controller haptics(vibration)" +
 #if UNITY_2017_1_OR_NEWER
-                        ", Vive Tracker USB/Pogo-pin input" +
+                        ", VIVE Tracker USB/Pogo-pin input" +
 #else
-                        ", Vive Tracker device" +
+                        ", VIVE Tracker device" +
 #endif
                         " NOT supported! Install SteamVR Plugin to get support.", MessageType.Warning);
 
@@ -801,7 +801,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     EditorGUI.indentLevel += 2;
 
-                    VIUSettings.daydreamSyncPadPressToTrigger = EditorGUILayout.ToggleLeft(new GUIContent("Sync Pad Press to Trigger", "Daydream controller have less button then other VR controller. Enable this option to let the trigger button work."), VIUSettings.daydreamSyncPadPressToTrigger);
+                    VIUSettings.daydreamSyncPadPressToTrigger = EditorGUILayout.ToggleLeft(new GUIContent("Sync Pad Press to Trigger", "Enable this option to handle the trigger button since the Daydream controller lacks one."), VIUSettings.daydreamSyncPadPressToTrigger);
 
                     EditorGUI.indentLevel -= 2;
                 }
@@ -833,6 +833,12 @@ namespace HTC.UnityPlugin.Vive
 
                 EditorGUI.indentLevel -= 2;
             }
+
+            GUILayout.Space(5);
+
+            GUI.enabled = false;
+            Foldouter.ShowFoldoutBlankWithDisbledToggle(new GUIContent("VIVE Focus <size=9>(VIVE Wave compatible device)</size>", "Comming soon!"));
+            GUI.enabled = true;
 
             EditorGUILayout.Space();
 

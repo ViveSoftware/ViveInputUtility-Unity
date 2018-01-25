@@ -143,6 +143,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     ctrlCurrState.SetAxisValue(VRModuleRawAxis.TouchpadX, 0f);
                     ctrlCurrState.SetAxisValue(VRModuleRawAxis.TouchpadY, 0f);
                 }
+
+                if (VIUSettings.daydreamSyncPadPressToTrigger)
+                {
+                    ctrlCurrState.SetButtonPress(VRModuleRawButton.Trigger, GvrControllerInput.ClickButton);
+                    ctrlCurrState.SetButtonTouch(VRModuleRawButton.Trigger, GvrControllerInput.IsTouching);
+                    ctrlCurrState.SetAxisValue(VRModuleRawAxis.Trigger, GvrControllerInput.ClickButton ? 1f : 0f);
+                }
             }
             else
             {

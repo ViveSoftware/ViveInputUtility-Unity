@@ -4,7 +4,7 @@ Copyright 2016-2017, HTC Corporation. All rights reserved.
 
 ## Introduction:
 
-- Vive Input Utility is an Unity plugin that allows developers 
+- Vive Input Utility(VIU) is an Unity plugin that allows developers 
 to access [Vive](https://www.vive.com/) device status, 
 including [Vive Tracker](https://www.vive.com/us/vive-tracker/).
 

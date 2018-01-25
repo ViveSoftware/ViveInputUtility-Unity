@@ -6,6 +6,6 @@ namespace HTC.UnityPlugin.Vive
 {
     public static class VIUVersion
     {
-        public static readonly Version current = new Version("1.7.3.12");
+        public static readonly Version current = new Version("1.8.0.0");
     }
 }
