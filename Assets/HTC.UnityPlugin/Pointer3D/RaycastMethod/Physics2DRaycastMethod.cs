@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +6,6 @@ using UnityEngine.EventSystems;
 
 namespace HTC.UnityPlugin.Pointer3D
 {
-    [AddComponentMenu("HTC/Pointer3D/Physics2D Raycast Method")]
     public class Physics2DRaycastMethod : PhysicsRaycastMethod
     {
         private static readonly RaycastHit2D[] hits = new RaycastHit2D[64];

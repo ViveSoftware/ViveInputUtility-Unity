@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -47,9 +47,6 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         private void Awake()
         {
-            ViveRole.Initialize();
-            ViveRoleBindingsHelper.AutoLoadConfig();
-
             RefreshRoleSelection();
 
             // select the role that have largest binding count
@@ -62,8 +59,6 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
                 }
             }
         }
-
-        public void Test(ViveRole.IMap roleMap, string deviceSN) { }
 
         private void OnEnable()
         {
@@ -220,6 +215,8 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         public void RefreshRoleSelection()
         {
+            ViveRole.Initialize();
+
             if (m_roleSetButtonList.Count == 0)
             {
                 m_roleSetButtonList.Add(m_roleSetButtonItem);

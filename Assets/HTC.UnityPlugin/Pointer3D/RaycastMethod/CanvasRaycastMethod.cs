@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ using UnityEngine.UI;
 
 namespace HTC.UnityPlugin.Pointer3D
 {
-    [AddComponentMenu("HTC/Pointer3D/Canvas Raycast Method")]
     [DisallowMultipleComponent]
     public class CanvasRaycastMethod : BaseRaycastMethod
     {

@@ -15,6 +15,10 @@ Assets/*
 !Assets/HTC.UnityPlugin.meta
 Assets/HTC.UnityPlugin/ViveInputUtility/changelog.txt
 Assets/HTC.UnityPlugin/ViveInputUtility/changelog.txt.meta
+Assets/HTC.UnityPlugin/ViveInputUtility/Resources/VIUSettings.asset
+Assets/HTC.UnityPlugin/ViveInputUtility/Resources/VIUSettings.asset.meta
+Assets/HTC.UnityPlugin/ViveInputUtility/Scripts/Editor/VIUProjectSettings.asset
+Assets/HTC.UnityPlugin/ViveInputUtility/Scripts/Editor/VIUProjectSettings.asset.meta
 
 *.cfg
 

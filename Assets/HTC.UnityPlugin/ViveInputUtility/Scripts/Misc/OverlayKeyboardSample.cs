@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -44,8 +44,16 @@ public class OverlayKeyboardSample : MonoBehaviour
 
     static OverlayKeyboardSample()
     {
+#if VIU_STEAMVR_1_2_1_OR_NEWER
         SteamVR_Events.System(Valve.VR.EVREventType.VREvent_KeyboardCharInput).AddListener(OnKeyboardCharInput);
         SteamVR_Events.System(Valve.VR.EVREventType.VREvent_KeyboardClosed).AddListener(OnKeyboardClosed);
+#elif VIU_STEAMVR_1_2_0_OR_NEWER
+        SteamVR_Events.System("KeyboardCharInput").AddListener(OnKeyboardCharInput);
+        SteamVR_Events.System("KeyboardClosed").AddListener(OnKeyboardClosed);
+#elif VIU_STEAMVR_1_1_1
+        SteamVR_Utils.Event.Listen("KeyboardCharInput", OnKeyboardCharInputArgs);
+        SteamVR_Utils.Event.Listen("KeyboardClosed", OnKeyboardClosedArgs);
+#endif
     }
 
     public static void ShowKeyboard(OverlayKeyboardSample caller)
@@ -81,7 +89,11 @@ public class OverlayKeyboardSample : MonoBehaviour
 
         activeKeyboard = null;
     }
+#if VIU_STEAMVR_1_1_1
+    private static void OnKeyboardCharInputArgs(params object[] args) { OnKeyboardCharInput((Valve.VR.VREvent_t)args[0]); }
 
+    private static void OnKeyboardClosedArgs(params object[] args) { OnKeyboardClosed((Valve.VR.VREvent_t)args[0]); }
+#endif
     private static void OnKeyboardCharInput(Valve.VR.VREvent_t arg)
     {
         if (activeKeyboard == null) { return; }

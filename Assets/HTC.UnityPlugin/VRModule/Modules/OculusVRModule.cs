@@ -1,8 +1,9 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 #if VIU_OCULUSVR
 using UnityEngine;
 using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.Vive;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #else
@@ -55,7 +56,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_node2class[(int)OVRPlugin.Node.TrackerThree] = VRModuleDeviceClass.TrackingReference;
         }
 
-        public override bool ShouldActiveModule() { return XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus"; }
+        public override bool ShouldActiveModule() { return VIUSettings.activateOculusVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus"; }
 
         public override void OnActivated()
         {

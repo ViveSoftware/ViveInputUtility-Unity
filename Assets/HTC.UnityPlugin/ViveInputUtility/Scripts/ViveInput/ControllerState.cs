@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -356,6 +356,7 @@ namespace HTC.UnityPlugin.Vive
                         case VRModuleDeviceModel.KnucklesLeft:
                         case VRModuleDeviceModel.KnucklesRight:
                         case VRModuleDeviceModel.ViveController:
+                        case VRModuleDeviceModel.DaydreamController:
                             mode = ScrollType.Trackpad; break;
                         case VRModuleDeviceModel.OculusTouchLeft:
                         case VRModuleDeviceModel.OculusTouchRight:

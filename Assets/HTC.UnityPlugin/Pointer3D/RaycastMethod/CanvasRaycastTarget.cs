@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -12,7 +12,7 @@ namespace HTC.UnityPlugin.Pointer3D
         bool ignoreReversedGraphics { get; }
     }
 
-    [AddComponentMenu("HTC/Pointer3D/Canvas Raycast Target")]
+    [AddComponentMenu("HTC/VIU/UI Pointer/Canvas Raycast Target", 6)]
     [RequireComponent(typeof(Canvas))]
     [DisallowMultipleComponent]
     public class CanvasRaycastTarget : UIBehaviour, ICanvasRaycastTarget

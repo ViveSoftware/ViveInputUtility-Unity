@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 
@@ -14,20 +14,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
     {
         Auto = -1,
         None = 0,
-        //Simulator = 1,
+        Simulator = 1,
         UnityNativeVR = 2,
         SteamVR = 3,
         OculusVR = 4,
+        DayDream = 5,
+        WaveVR = 6,
     }
 
     public enum VRModuleActiveEnum
     {
         Uninitialized = -1,
         None = VRModuleSelectEnum.None,
-        //Simulator = SelectVRModuleEnum.Simulator,
+        Simulator = VRModuleSelectEnum.Simulator,
         UnityNativeVR = VRModuleSelectEnum.UnityNativeVR,
         SteamVR = VRModuleSelectEnum.SteamVR,
         OculusVR = VRModuleSelectEnum.OculusVR,
+        DayDream = VRModuleSelectEnum.DayDream,
+        WaveVR = VRModuleSelectEnum.WaveVR,
     }
 
     public partial class VRModule : SingletonBehaviour<VRModule>
@@ -119,6 +123,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return Instance == null || !IsValidDeviceIndex(deviceIndex) ? s_defaultState : Instance.m_prevStates[deviceIndex];
         }
 
+        public static IVRModuleDeviceState GetDeviceState(uint deviceIndex, bool usePrevious = false)
+        {
+            return Instance == null || !IsValidDeviceIndex(deviceIndex) ? s_defaultState : (usePrevious ? Instance.m_prevStates[deviceIndex] : Instance.m_currStates[deviceIndex]);
+        }
+
         public static uint GetLeftControllerDeviceIndex()
         {
             return Instance == null || Instance.m_activatedModuleBase == null ? INVALID_DEVICE_INDEX : Instance.m_activatedModuleBase.GetLeftControllerDeviceIndex();
@@ -149,6 +158,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        public static ISimulatorVRModule Simulator { get { return s_simulator; } }
+
         public static void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500)
         {
             if (Instance != null && Instance.m_activatedModuleBase != null && IsValidDeviceIndex(deviceIndex))
@@ -156,5 +167,26 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Instance.m_activatedModuleBase.TriggerViveControllerHaptic(deviceIndex, durationMicroSec);
             }
         }
+
+        public static readonly bool isSteamVRPluginDetected =
+#if VIU_STEAMVR
+            true;
+#else
+            false;
+#endif
+
+        public static readonly bool isOculusVRPluginDetected =
+#if VIU_OCULUSVR
+            true;
+#else
+            false;
+#endif
+
+        public static readonly bool isGoogleVRPluginDetected =
+#if VIU_GOOGLEVR
+            true;
+#else
+            false;
+#endif
     }
 }

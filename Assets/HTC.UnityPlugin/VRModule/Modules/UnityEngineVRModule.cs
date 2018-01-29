@@ -1,6 +1,7 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
+using HTC.UnityPlugin.Vive;
 
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
@@ -110,7 +111,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public static int Index(int i) { return s_ids[i]; }
         }
 #endif
-        public override bool ShouldActiveModule() { return XRSettings.enabled; }
+        public override bool ShouldActiveModule() { return VIUSettings.activateUnityNativeVRModule && XRSettings.enabled; }
 
         public override void Update()
         {

@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -629,14 +629,20 @@ namespace HTC.UnityPlugin.Pointer3D
         public override string ToString()
         {
             var str = string.Empty;
-
-            for (int i = 0, imax = raycasters.Count; i < imax; ++i)
+            if (raycasters.Count == 0)
             {
-                var raycaster = raycasters[i];
-                if (raycaster == null) { continue; }
+                str += "No raycaster registered";
+            }
+            else
+            {
+                for (int i = 0, imax = raycasters.Count; i < imax; ++i)
+                {
+                    var raycaster = raycasters[i];
+                    if (raycaster == null) { continue; }
 
-                str += "<b>Raycaster: [" + i + "]</b>\n";
-                str += raycaster.ToString() + "\n";
+                    str += "<b>Raycaster: [" + i + "]</b>\n";
+                    str += raycaster.ToString() + "\n";
+                }
             }
 
             return str;

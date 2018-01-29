@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.ColliderEvent;
 using HTC.UnityPlugin.Utility;
@@ -7,6 +7,7 @@ using UnityEngine.Serialization;
 
 namespace HTC.UnityPlugin.Vive
 {
+    [AddComponentMenu("HTC/VIU/Object Grabber/Vive Collider Event Caster (Grabber)", 2)]
     public class ViveColliderEventCaster : ColliderEventCaster, IViveRoleComponent
     {
         [SerializeField]

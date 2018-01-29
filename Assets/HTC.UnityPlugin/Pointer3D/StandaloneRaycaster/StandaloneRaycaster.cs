@@ -1,11 +1,11 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace HTC.UnityPlugin.Pointer3D
 {
-    [AddComponentMenu("HTC/Pointer3D/Standalone Raycaster")]
+    [AddComponentMenu("HTC/VIU/UI Pointer/Standalone Raycaster (Standalone Input)", 5)]
     public class StandaloneRaycaster : Pointer3DRaycaster
     {
         protected override void Start()

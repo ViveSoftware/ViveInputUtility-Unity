@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Pointer3D;
 using HTC.UnityPlugin.Utility;
@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 
 namespace HTC.UnityPlugin.Vive
 {
-    [AddComponentMenu("HTC/Vive/Vive Raycaster")]
+    [AddComponentMenu("HTC/VIU/UI Pointer/Vive Raycaster (VR Controller Input)", 4)]
     // Customized Pointer3DRaycaster for Vive controllers.
     public class ViveRaycaster : Pointer3DRaycaster, IViveRoleComponent
     {

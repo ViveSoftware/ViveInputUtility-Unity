@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -14,6 +14,7 @@ namespace HTC.UnityPlugin.Vive
     public class ViveRoleProperty
     {
         public delegate void RoleChangedListener();
+        public delegate void RoleChangedListenerEx(Type previousRoleType, int previousRoleValue);
         public delegate void DeviceIndexChangedListener(uint deviceIndex);
 
         public static readonly Type DefaultRoleType = typeof(HandRole);
@@ -37,6 +38,7 @@ namespace HTC.UnityPlugin.Vive
 
         private Action m_onChanged;
         private RoleChangedListener m_onRoleChanged;
+        private RoleChangedListenerEx m_onRoleChangedEx;
         private DeviceIndexChangedListener m_onDeviceIndexChanged;
 
         public Type roleType
@@ -83,6 +85,12 @@ namespace HTC.UnityPlugin.Vive
         {
             add { m_onRoleChanged += value; }
             remove { m_onRoleChanged -= value; }
+        }
+
+        public event RoleChangedListenerEx onRoleChangedEx
+        {
+            add { m_onRoleChangedEx += value; }
+            remove { m_onRoleChangedEx -= value; }
         }
 
         public event DeviceIndexChangedListener onDeviceIndexChanged
@@ -168,6 +176,8 @@ namespace HTC.UnityPlugin.Vive
         {
             if (m_lockUpdate && (m_isTypeDirty || m_isValueDirty)) { throw new Exception("Can't change value during onChange event callback"); }
 
+            var oldRoleType = m_roleType;
+            var oldRoleValue = m_roleValue;
             var roleTypeChanged = false;
             var roleValueChanged = false;
             var deviceIndexChanged = false;
@@ -175,8 +185,7 @@ namespace HTC.UnityPlugin.Vive
             if (m_isTypeDirty || m_roleType == null)
             {
                 m_isTypeDirty = false;
-
-                var oldRoleType = m_roleType;
+                
                 if (string.IsNullOrEmpty(m_roleTypeFullName) || !ViveRoleEnum.ValidViveRoleTable.TryGetValue(m_roleTypeFullName, out m_roleType))
                 {
                     m_roleType = DefaultRoleType;
@@ -213,8 +222,7 @@ namespace HTC.UnityPlugin.Vive
             if (m_isValueDirty || roleTypeChanged)
             {
                 m_isValueDirty = false;
-
-                var oldRoleValue = m_roleValue;
+                
                 var info = m_roleMap.RoleValueInfo;
                 if (string.IsNullOrEmpty(m_roleValueName) || !info.TryGetRoleValueByName(m_roleValueName, out m_roleValue))
                 {
@@ -242,6 +250,8 @@ namespace HTC.UnityPlugin.Vive
                 if (m_onChanged != null) { m_onChanged(); }
 
                 if (m_onRoleChanged != null) { m_onRoleChanged(); }
+
+                if (m_onRoleChangedEx != null) { m_onRoleChangedEx(oldRoleType, oldRoleValue); }
 
                 if (deviceIndexChanged) { m_onDeviceIndexChanged(m_deviceIndex); }
 

@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System.Text.RegularExpressions;
@@ -15,6 +15,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knuckles).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
 
@@ -105,6 +106,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         deviceState.deviceModel = VRModuleDeviceModel.KnucklesRight;
                         return;
+                    }
+                }
+                else if (s_daydreamRgx.IsMatch(deviceState.modelNumber))
+                {
+                    switch (deviceState.deviceClass)
+                    {
+                        case VRModuleDeviceClass.HMD:
+                            deviceState.deviceModel = VRModuleDeviceModel.DaydreamHMD;
+                            return;
+                        case VRModuleDeviceClass.Controller:
+                            deviceState.deviceModel = VRModuleDeviceModel.DaydreamController;
+                            return;
                     }
                 }
 

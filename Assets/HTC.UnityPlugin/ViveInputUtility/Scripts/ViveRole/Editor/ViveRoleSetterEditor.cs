@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using System.Collections.Generic;
 using UnityEditor;
@@ -41,7 +41,6 @@ namespace HTC.UnityPlugin.Vive
                 if (s_comps[i].viveRole != setter.viveRole)
                 {
                     ++dirtyCompCount;
-                    break;
                 }
             }
             s_comps.Clear();

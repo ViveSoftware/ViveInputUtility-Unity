@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2017, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
@@ -8,7 +8,7 @@ using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
-    [AddComponentMenu("HTC/Vive/Vive Pose Tracker")]
+    [AddComponentMenu("HTC/VIU/Device Tracker/Vive Pose Tracker (Transform)", 7)]
     // Simple component to track Vive devices.
     public class VivePoseTracker : BasePoseTracker, INewPoseListener, IViveRoleComponent
     {
