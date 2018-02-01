@@ -173,7 +173,8 @@ namespace HTC.UnityPlugin.PoseTracker
         {
             float angle;
             Vector3 axis;
-            (to * Quaternion.Inverse(from)).ToAngleAxis(out angle, out axis);
+            var fromToRot = to * Quaternion.Inverse(from);
+            fromToRot.ToAngleAxis(out angle, out axis);
             while (angle > 180f) { angle -= 360f; }
 
             if (Mathf.Approximately(angle, 0f) || float.IsNaN(axis.x) || float.IsNaN(axis.y) || float.IsNaN(axis.z))
