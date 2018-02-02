@@ -27,7 +27,7 @@ namespace HTC.UnityPlugin.Vive
         public const KeyCode EXTERNAL_CAMERA_SWITCH_KEY_DEFAULT_VALUE = KeyCode.M;
         public const KeyCode EXTERNAL_CAMERA_SWITCH_KEY_MODIFIER_DEFAULT_VALUE = KeyCode.RightShift;
 
-        public const bool ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE = true;
+        public const bool ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE = false;
         public const bool SIMULATOR_AUTO_TRACK_MAIN_CAMERA_DEFAULT_VALUE = true;
         public const bool ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_DEFAULT_VALUE = true;
         public const bool SIMULATE_TRACKPAD_TOUCH_DEFAULT_VALUE = true;

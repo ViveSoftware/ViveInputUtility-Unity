@@ -159,6 +159,24 @@ namespace HTC.UnityPlugin.Vive
             //    recommendedValue = true,
             //});
 
+            s_settings.Add(new RecommendedSetting<BuildTarget>()
+            {
+                settingTitle = "Build Target",
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Standalone || VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Android,
+                currentValueFunc = () => EditorUserBuildSettings.activeBuildTarget,
+                setValueFunc = v =>
+                {
+#if UNITY_2017_1_OR_NEWER
+                    EditorUserBuildSettings.SwitchActiveBuildTargetAsync(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+#elif UNITY_5_6_OR_NEWER
+                    EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+#else
+                    EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneWindows64);
+#endif
+                },
+                recommendedValue = BuildTarget.StandaloneWindows64,
+            });
+
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Load Binding Config on Start",
@@ -384,11 +402,11 @@ namespace HTC.UnityPlugin.Vive
                     return;
                 }
 
+                // On Windows, PlaterSetting is stored at \HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x
+                EditorPrefs.SetString(nextVersionCheckTimeKey, UtcDateTimeToStr(DateTime.UtcNow.AddMinutes(versionCheckIntervalMinutes)));
+
                 if (UrlSuccess(www))
                 {
-                    // On Windows, PlaterSetting is stored at \HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x
-                    EditorPrefs.SetString(nextVersionCheckTimeKey, UtcDateTimeToStr(DateTime.UtcNow.AddMinutes(versionCheckIntervalMinutes)));
-
                     latestRepoInfo = JsonUtility.FromJson<RepoInfo>(www.text);
                 }
 
@@ -468,35 +486,46 @@ namespace HTC.UnityPlugin.Vive
 
         private static bool UrlSuccess(WWW www)
         {
-            if (!string.IsNullOrEmpty(www.error))
+            try
             {
-                // API rate limit exceeded, see https://developer.github.com/v3/#rate-limiting
-                Debug.Log("url:" + www.url);
-                Debug.Log("error:" + www.error);
-                Debug.Log(www.text);
+                if (!string.IsNullOrEmpty(www.error))
+                {
+                    // API rate limit exceeded, see https://developer.github.com/v3/#rate-limiting
+                    Debug.Log("url:" + www.url);
+                    Debug.Log("error:" + www.error);
+                    Debug.Log(www.text);
 
-                string responseHeader;
-                if (www.responseHeaders.TryGetValue("X-RateLimit-Limit", out responseHeader))
-                {
-                    Debug.Log("X-RateLimit-Limit:" + responseHeader);
-                }
-                if (www.responseHeaders.TryGetValue("X-RateLimit-Remaining", out responseHeader))
-                {
-                    Debug.Log("X-RateLimit-Remaining:" + responseHeader);
-                }
-                if (www.responseHeaders.TryGetValue("X-RateLimit-Reset", out responseHeader))
-                {
-                    Debug.Log("X-RateLimit-Reset:" + TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(double.Parse(responseHeader))).ToString());
+                    if (www.responseHeaders != null)
+                    {
+                        string responseHeader;
+                        if (www.responseHeaders.TryGetValue("X-RateLimit-Limit", out responseHeader))
+                        {
+                            Debug.Log("X-RateLimit-Limit:" + responseHeader);
+                        }
+                        if (www.responseHeaders.TryGetValue("X-RateLimit-Remaining", out responseHeader))
+                        {
+                            Debug.Log("X-RateLimit-Remaining:" + responseHeader);
+                        }
+                        if (www.responseHeaders.TryGetValue("X-RateLimit-Reset", out responseHeader))
+                        {
+                            Debug.Log("X-RateLimit-Reset:" + TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(double.Parse(responseHeader))).ToString());
+                        }
+                    }
+
+                    return false;
                 }
 
-                return false;
+                if (Regex.IsMatch(www.text, "404 not found", RegexOptions.IgnoreCase))
+                {
+                    Debug.Log("url:" + www.url);
+                    Debug.Log("error:" + www.error);
+                    Debug.Log(www.text);
+                    return false;
+                }
             }
-
-            if (Regex.IsMatch(www.text, "404 not found", RegexOptions.IgnoreCase))
+            catch (Exception e)
             {
-                Debug.Log("url:" + www.url);
-                Debug.Log("error:" + www.error);
-                Debug.Log(www.text);
+                Debug.LogWarning(e);
                 return false;
             }
 
