@@ -19,16 +19,15 @@ code managing Vive devices.
 
 ## Requirements:
 
-- Unity 5.3.6 or newer versions to open this project
+- Please use Unity 5.3.6 or newer 5.X versions to open the project
 
-- If your target device is Vive or other OpenVR compatible device, also import SteamVR plugin form [Unity Asset Store](http://u3d.as/content/valve-corporation/steam-vr-plugin)
-
-- If your target device is Oculus, also import OVRPlugin from [Oculus develop website](https://developer.oculus.com/downloads/package/oculus-utilities-for-unity-5/)
+- Also import the SteamVR Plugin for Unity. This can be found in [Unity
+Asset Store](http://u3d.as/content/valve-corporation/steam-vr-plugin).
 
 
 ## Contributing guidelines:
 
-1. Read and agree the [CLA](https://github.com/ViveSoftware/ViveInputUtility-Unity/blob/master/CONTRIBUTING.md).
+1. Read the [CLA](https://github.com/ViveSoftware/ViveInputUtility-Unity/blob/master/CONTRIBUTING.md).
 2. Create an issue for the work you want to contribute.
 3. [Fork this project](https://github.com/ViveSoftware/ViveInputUtility-Unity/fork) on GitHub.
 4. Create a new branch (based on master branch) for your work on your fork.
