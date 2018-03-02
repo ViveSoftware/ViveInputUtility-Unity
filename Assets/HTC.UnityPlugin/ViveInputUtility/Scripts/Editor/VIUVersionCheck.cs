@@ -249,15 +249,6 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
-            s_settings.Add(new RecommendedSetting<bool>()
-            {
-                settingTitle = "Default Is Fullscreen",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
-                currentValueFunc = () => PlayerSettings.defaultIsFullScreen,
-                setValueFunc = v => PlayerSettings.defaultIsFullScreen = v,
-                recommendedValue = false,
-            });
-
             s_settings.Add(new RecommendedSetting<Vector2>()
             {
                 settingTitle = "Default Screen Size",
@@ -294,6 +285,16 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
+#if !UNITY_2018_1_OR_NEWER
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
+                settingTitle = "Default Is Fullscreen",
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                currentValueFunc = () => PlayerSettings.defaultIsFullScreen,
+                setValueFunc = v => PlayerSettings.defaultIsFullScreen = v,
+                recommendedValue = false,
+            });
+
             s_settings.Add(new RecommendedSetting<D3D11FullscreenMode>()
             {
                 settingTitle = "D3D11 Fullscreen Mode",
@@ -302,6 +303,16 @@ namespace HTC.UnityPlugin.Vive
                 setValueFunc = v => PlayerSettings.d3d11FullscreenMode = v,
                 recommendedValue = D3D11FullscreenMode.FullscreenWindow,
             });
+#else
+            s_settings.Add(new RecommendedSetting<FullScreenMode>()
+            {
+                settingTitle = "Fullscreen Mode",
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                currentValueFunc = () => PlayerSettings.fullScreenMode,
+                setValueFunc = v => PlayerSettings.fullScreenMode = v,
+                recommendedValue = FullScreenMode.FullScreenWindow,
+            });
+#endif
 
             s_settings.Add(new RecommendedSetting<bool>()
             {
