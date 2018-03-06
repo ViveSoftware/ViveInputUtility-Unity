@@ -913,6 +913,8 @@ namespace HTC.UnityPlugin.Vive
                 {
                     AssetDatabase.CreateAsset(VIUSettings.Instance, defaultAssetPath);
                 }
+
+                EditorUtility.SetDirty(VIUSettings.Instance);
             }
 
             if (!string.IsNullOrEmpty(assetPath))

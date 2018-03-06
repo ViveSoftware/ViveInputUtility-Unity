@@ -57,6 +57,9 @@ namespace HTC.UnityPlugin.Vive
                     m_ignoreKeys.Clear();
                     m_ignoreKeys.AddRange(m_ignoreKeySet);
                 }
+
+                EditorUtility.SetDirty(this);
+
                 m_isDirty = false;
             }
         }
