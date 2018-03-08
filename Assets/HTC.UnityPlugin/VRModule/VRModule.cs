@@ -188,5 +188,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+
+        public static readonly bool isWaveVRPluginDetected =
+#if VIU_WAVEVR
+            true;
+#else
+            false;
+#endif
     }
 }
