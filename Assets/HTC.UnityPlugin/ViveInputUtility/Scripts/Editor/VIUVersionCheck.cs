@@ -395,13 +395,18 @@ namespace HTC.UnityPlugin.Vive
             {
                 settingTitle = "Multithreaded Rendering",
                 skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Android,
+#if UNITY_2017_2_OR_NEWER
+                currentValueFunc = () => PlayerSettings.MTRendering,
+                setValueFunc = v => PlayerSettings.MTRendering = v,
+#else
                 currentValueFunc = () => PlayerSettings.mobileMTRendering,
                 setValueFunc = v => PlayerSettings.mobileMTRendering = v,
+#endif
                 recommendedValue = true,
             });
 
 #if UNITY_5_4_OR_NEWER
-            s_settings.Add(new RecommendedSetting<bool>()
+                s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Graphic Jobs",
                 skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Android,
