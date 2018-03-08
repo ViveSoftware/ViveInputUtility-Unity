@@ -27,8 +27,7 @@ GameObject:
   - 20: {fileID: 2071970}
   - 124: {fileID: 12406598}
   - 81: {fileID: 8189340}
-  - 92: {fileID: 9261234}
-  - 114: {fileID: 11413550}
+  - 114: {fileID: 11450330}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -408,13 +407,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 116882}
   m_Enabled: 1
---- !u!92 &9261234
-Behaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 116882}
-  m_Enabled: 1
 --- !u!114 &11401118
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -475,17 +467,6 @@ MonoBehaviour:
   m_deviceIndex: 0
   m_overrideModel: 0
   m_overrideShader: {fileID: 0}
---- !u!114 &11413550
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 116882}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcf697fb9de885d47b4c990c8a58936a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &11422458
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -516,6 +497,17 @@ MonoBehaviour:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
     m_roleValueInt: 0
+--- !u!114 &11450330
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 116882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 326f9add24fafee418bdcd053a0324a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &11450602
 MonoBehaviour:
   m_ObjectHideFlags: 1

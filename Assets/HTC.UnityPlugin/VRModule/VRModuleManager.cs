@@ -76,7 +76,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_modules[(int)VRModuleActiveEnum.SteamVR] = new SteamVRModule();
             m_modules[(int)VRModuleActiveEnum.OculusVR] = new OculusVRModule();
             m_modules[(int)VRModuleActiveEnum.DayDream] = new GoogleVRModule();
-            m_modules[(int)VRModuleActiveEnum.WaveVR] = new DefaultModule();
+            m_modules[(int)VRModuleActiveEnum.WaveVR] = new WaveVRModule();
 
             s_deviceSerialNumberTable.Clear();
 
@@ -182,23 +182,31 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             VRModule.InvokeActiveModuleChangedEvent(m_activatedModule);
 
-#if VIU_STEAMVR
-            if (m_activatedModule == VRModuleActiveEnum.SteamVR)
+            switch (m_activatedModule)
             {
-#if VIU_STEAMVR_1_2_0_OR_NEWER
-                SteamVR_Events.NewPoses.AddListener(OnSteamVRNewPose);
+#if VIU_STEAMVR
+                case VRModuleActiveEnum.SteamVR:
+#if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER
+                    Camera.onPreCull += OnCameraPreCull;
+#elif VIU_STEAMVR_1_2_0_OR_NEWER
+                    SteamVR_Events.NewPoses.AddListener(OnSteamVRNewPose);
 #elif VIU_STEAMVR_1_1_1
-                SteamVR_Utils.Event.Listen("new_poses", OnSteamVRNewPoseArgs);
+                    SteamVR_Utils.Event.Listen("new_poses", OnSteamVRNewPoseArgs);
 #endif
-            }
-            else
+                    break;
 #endif
-                {
+#if VIU_WAVEVR
+                case VRModuleActiveEnum.WaveVR:
+                    WaveVR_Utils.Event.Listen(WaveVR_Utils.Event.NEW_POSES, OnWaveVRNewPoseArgs);
+                    break;
+#endif
+                default:
 #if UNITY_2017_1_OR_NEWER
-                Application.onBeforeRender += UpdateActiveModuleDeviceState;
+                    Application.onBeforeRender += UpdateActiveModuleDeviceState;
 #else
-                Camera.onPreCull += OnCameraPreCull;
+                    Camera.onPreCull += OnCameraPreCull;
 #endif
+                    break;
             }
         }
 
@@ -206,10 +214,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #if VIU_STEAMVR_1_1_1
         private void OnSteamVRNewPoseArgs(params object[] args) { OnSteamVRNewPose((Valve.VR.TrackedDevicePose_t[])args[0]); }
 #endif
-        private void OnSteamVRNewPose(Valve.VR.TrackedDevicePose_t[] poses)
-        {
-            UpdateActiveModuleDeviceState();
-        }
+        private void OnSteamVRNewPose(Valve.VR.TrackedDevicePose_t[] poses) { UpdateActiveModuleDeviceState(); }
+#endif
+
+#if VIU_WAVEVR
+        private void OnWaveVRNewPoseArgs(params object[] args) { UpdateActiveModuleDeviceState(); }
 #endif
 
 #if !UNITY_2017_1_OR_NEWER
@@ -219,7 +228,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var thisFrame = Time.frameCount;
             if (m_poseUpdatedFrame == thisFrame) { return; }
 
+#if UNITY_5_5_OR_NEWER
+            if (cam.cameraType != CameraType.Game && cam.cameraType != CameraType.VR) { return; }
+#else
             if (cam.cameraType != CameraType.Game) { return; }
+#endif
 
             m_poseUpdatedFrame = thisFrame;
             UpdateActiveModuleDeviceState();
@@ -292,23 +305,31 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return;
             }
 
+            switch (m_activatedModule)
+            {
 #if VIU_STEAMVR
-            if (m_activatedModule == VRModuleActiveEnum.SteamVR)
-            {
-#if VIU_STEAMVR_1_2_0_OR_NEWER
-                SteamVR_Events.NewPoses.RemoveListener(OnSteamVRNewPose);
+                case VRModuleActiveEnum.SteamVR:
+#if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER
+                    Camera.onPreCull -= OnCameraPreCull;
+#elif VIU_STEAMVR_1_2_0_OR_NEWER
+                    SteamVR_Events.NewPoses.RemoveListener(OnSteamVRNewPose);
 #elif VIU_STEAMVR_1_1_1
-                SteamVR_Utils.Event.Remove("new_poses", OnSteamVRNewPoseArgs);
+                    SteamVR_Utils.Event.Remove("new_poses", OnSteamVRNewPoseArgs);
 #endif
-            }
-            else
+                    break;
 #endif
-            {
+#if VIU_WAVEVR
+                case VRModuleActiveEnum.WaveVR:
+                    WaveVR_Utils.Event.Remove(WaveVR_Utils.Event.NEW_POSES, OnWaveVRNewPoseArgs);
+                    break;
+#endif
+                default:
 #if UNITY_2017_1_OR_NEWER
-                Application.onBeforeRender -= UpdateActiveModuleDeviceState;
+                    Application.onBeforeRender -= UpdateActiveModuleDeviceState;
 #else
-                Camera.onPreCull -= OnCameraPreCull;
+                    Camera.onPreCull -= OnCameraPreCull;
 #endif
+                    break;
             }
 
             // copy status to from current state to previous state, and reset current state

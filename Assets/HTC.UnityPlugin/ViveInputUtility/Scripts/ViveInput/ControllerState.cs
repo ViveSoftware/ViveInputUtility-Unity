@@ -357,6 +357,7 @@ namespace HTC.UnityPlugin.Vive
                         case VRModuleDeviceModel.KnucklesRight:
                         case VRModuleDeviceModel.ViveController:
                         case VRModuleDeviceModel.DaydreamController:
+                        case VRModuleDeviceModel.ViveFocusFinch:
                             mode = ScrollType.Trackpad; break;
                         case VRModuleDeviceModel.OculusTouchLeft:
                         case VRModuleDeviceModel.OculusTouchRight:

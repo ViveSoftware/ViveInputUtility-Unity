@@ -27,7 +27,7 @@ namespace HTC.UnityPlugin.Vive
         public const KeyCode EXTERNAL_CAMERA_SWITCH_KEY_DEFAULT_VALUE = KeyCode.M;
         public const KeyCode EXTERNAL_CAMERA_SWITCH_KEY_MODIFIER_DEFAULT_VALUE = KeyCode.RightShift;
 
-        public const bool ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE = true;
+        public const bool ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE = false;
         public const bool SIMULATOR_AUTO_TRACK_MAIN_CAMERA_DEFAULT_VALUE = true;
         public const bool ENABLE_SIMULATOR_KEYBOARD_MOUSE_CONTROL_DEFAULT_VALUE = true;
         public const bool SIMULATE_TRACKPAD_TOUCH_DEFAULT_VALUE = true;
@@ -41,6 +41,7 @@ namespace HTC.UnityPlugin.Vive
         public const bool ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE = true;
+        public const bool ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE = true;
 
         private static VIUSettings s_instance = null;
 
@@ -94,6 +95,8 @@ namespace HTC.UnityPlugin.Vive
         private bool m_activateSteamVRModule = ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE;
         [SerializeField]
         private bool m_activateOculusVRModule = ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE;
+        [SerializeField]
+        private bool m_activateWaveVRModule = ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE;
 
         public static bool autoLoadBindingConfigOnStart { get { return Instance == null ? AUTO_LOAD_BINDING_CONFIG_ON_START_DEFAULT_VALUE : s_instance.m_autoLoadBindingConfigOnStart; } set { if (Instance != null) { Instance.m_autoLoadBindingConfigOnStart = value; } } }
         public static string bindingConfigFilePath { get { return Instance == null ? BINDING_CONFIG_FILE_PATH_DEFAULT_VALUE : s_instance.m_bindingConfigFilePath; } set { if (Instance != null) { Instance.m_bindingConfigFilePath = value; } } }
@@ -122,6 +125,7 @@ namespace HTC.UnityPlugin.Vive
         public static bool activateUnityNativeVRModule { get { return Instance == null ? ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateUnityNativeVRModule; } set { if (Instance != null) { Instance.m_activateUnityNativeVRModule = value; } } }
         public static bool activateSteamVRModule { get { return Instance == null ? ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateSteamVRModule; } set { if (Instance != null) { Instance.m_activateSteamVRModule = value; } } }
         public static bool activateOculusVRModule { get { return Instance == null ? ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateOculusVRModule; } set { if (Instance != null) { Instance.m_activateOculusVRModule = value; } } }
+        public static bool activateWaveVRModule { get { return Instance == null ? ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateWaveVRModule; } set { if (Instance != null) { Instance.m_activateWaveVRModule = value; } } }
 
         public static VIUSettings Instance
         {

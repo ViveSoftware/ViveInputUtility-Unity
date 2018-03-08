@@ -43,7 +43,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (system != null)
             {
 #if VIU_STEAMVR_1_2_3_OR_NEWER
-                m_hasInputFocus = !system.IsInputAvailable();
+                m_hasInputFocus = system.IsInputAvailable();
 #elif VIU_STEAMVR_1_1_1 || VIU_STEAMVR_1_2_0_OR_NEWER
                 m_hasInputFocus = !system.IsInputFocusCapturedByAnotherProcess();
 #endif

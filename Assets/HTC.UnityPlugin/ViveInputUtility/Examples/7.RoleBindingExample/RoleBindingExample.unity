@@ -2038,7 +2038,6 @@ GameObject:
   m_Component:
   - 4: {fileID: 1517009474}
   - 20: {fileID: 1517009477}
-  - 124: {fileID: 1517009476}
   - 114: {fileID: 1517009475}
   m_Layer: 0
   m_Name: Camera
@@ -2063,23 +2062,14 @@ Transform:
 --- !u!114 &1517009475
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 11413550, guid: cb3370c18187bb444b240cfb08dcc02f,
-    type: 2}
+  m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1517009473}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcf697fb9de885d47b4c990c8a58936a, type: 3}
+  m_Script: {fileID: 11500000, guid: 326f9add24fafee418bdcd053a0324a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!124 &1517009476
-Behaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 12406598, guid: cb3370c18187bb444b240cfb08dcc02f,
-    type: 2}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1517009473}
-  m_Enabled: 1
 --- !u!20 &1517009477
 Camera:
   m_ObjectHideFlags: 0

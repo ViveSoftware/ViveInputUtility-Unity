@@ -161,6 +161,51 @@ namespace HTC.UnityPlugin.Vive
 
             s_settings.Add(new RecommendedSetting<bool>()
             {
+                settingTitle = "Virtual Reality Supported with OpenVR",
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportOpenVR,
+                currentValueFunc = () => VIUSettingsEditor.supportOpenVR,
+                setValueFunc = v => VIUSettingsEditor.supportOpenVR = v,
+                recommendedValue = true,
+            });
+
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
+                settingTitle = "Virtual Reality Supported with Oculus",
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportOculus,
+                currentValueFunc = () => VIUSettingsEditor.supportOculus,
+                setValueFunc = v => VIUSettingsEditor.supportOculus = v,
+                recommendedValue = true,
+            });
+
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
+                settingTitle = "Virtual Reality Supported with Daydream",
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportDaydream,
+                currentValueFunc = () => VIUSettingsEditor.supportDaydream,
+                setValueFunc = v => VIUSettingsEditor.supportDaydream = v,
+                recommendedValue = true,
+            });
+
+            s_settings.Add(new RecommendedSetting<BuildTarget>()
+            {
+                settingTitle = "Build Target",
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Standalone || VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Android,
+                currentValueFunc = () => EditorUserBuildSettings.activeBuildTarget,
+                setValueFunc = v =>
+                {
+#if UNITY_2017_1_OR_NEWER
+                    EditorUserBuildSettings.SwitchActiveBuildTargetAsync(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+#elif UNITY_5_6_OR_NEWER
+                    EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+#else
+                    EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneWindows64);
+#endif
+                },
+                recommendedValue = BuildTarget.StandaloneWindows64,
+            });
+
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
                 settingTitle = "Load Binding Config on Start",
                 skipCheckFunc = () => !VIUSettingsEditor.supportOpenVR,
                 toolTip = "You can change this option later in Edit -> Preferences... -> VIU Settings.",
@@ -228,16 +273,7 @@ namespace HTC.UnityPlugin.Vive
                 skipCheckFunc = () => VRModule.isSteamVRPluginDetected,
                 currentValueFunc = () => PlayerSettings.gpuSkinning,
                 setValueFunc = v => PlayerSettings.gpuSkinning = v,
-                recommendedValue = true,
-            });
-
-            s_settings.Add(new RecommendedSetting<bool>()
-            {
-                settingTitle = "Default Is Fullscreen",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
-                currentValueFunc = () => PlayerSettings.defaultIsFullScreen,
-                setValueFunc = v => PlayerSettings.defaultIsFullScreen = v,
-                recommendedValue = false,
+                recommendedValueFunc = () => !VIUSettingsEditor.supportWaveVR,
             });
 
             s_settings.Add(new RecommendedSetting<Vector2>()
@@ -276,6 +312,16 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
+#if !UNITY_2018_1_OR_NEWER
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
+                settingTitle = "Default Is Fullscreen",
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                currentValueFunc = () => PlayerSettings.defaultIsFullScreen,
+                setValueFunc = v => PlayerSettings.defaultIsFullScreen = v,
+                recommendedValue = false,
+            });
+
             s_settings.Add(new RecommendedSetting<D3D11FullscreenMode>()
             {
                 settingTitle = "D3D11 Fullscreen Mode",
@@ -284,6 +330,16 @@ namespace HTC.UnityPlugin.Vive
                 setValueFunc = v => PlayerSettings.d3d11FullscreenMode = v,
                 recommendedValue = D3D11FullscreenMode.FullscreenWindow,
             });
+#else
+            s_settings.Add(new RecommendedSetting<FullScreenMode>()
+            {
+                settingTitle = "Fullscreen Mode",
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                currentValueFunc = () => PlayerSettings.fullScreenMode,
+                setValueFunc = v => PlayerSettings.fullScreenMode = v,
+                recommendedValue = FullScreenMode.FullScreenWindow,
+            });
+#endif
 
             s_settings.Add(new RecommendedSetting<bool>()
             {
@@ -326,32 +382,39 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = ColorSpace.Linear,
             });
 
-            s_settings.Add(new RecommendedSetting<bool>()
+            s_settings.Add(new RecommendedSetting<UIOrientation>()
             {
-                settingTitle = "Virtual Reality Supported with OpenVR",
-                skipCheckFunc = () => !VIUSettingsEditor.canSupportOpenVR,
-                currentValueFunc = () => VIUSettingsEditor.supportOpenVR,
-                setValueFunc = v => VIUSettingsEditor.supportOpenVR = v,
-                recommendedValue = true,
+                settingTitle = "Default Interface Orientation",
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Android,
+                currentValueFunc = () => PlayerSettings.defaultInterfaceOrientation,
+                setValueFunc = v => PlayerSettings.defaultInterfaceOrientation = v,
+                recommendedValue = UIOrientation.LandscapeLeft,
             });
 
             s_settings.Add(new RecommendedSetting<bool>()
             {
-                settingTitle = "Virtual Reality Supported with Oculus",
-                skipCheckFunc = () => !VIUSettingsEditor.canSupportOculus,
-                currentValueFunc = () => VIUSettingsEditor.supportOculus,
-                setValueFunc = v => VIUSettingsEditor.supportOculus = v,
+                settingTitle = "Multithreaded Rendering",
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Android,
+#if UNITY_2017_2_OR_NEWER
+                currentValueFunc = () => PlayerSettings.MTRendering,
+                setValueFunc = v => PlayerSettings.MTRendering = v,
+#else
+                currentValueFunc = () => PlayerSettings.mobileMTRendering,
+                setValueFunc = v => PlayerSettings.mobileMTRendering = v,
+#endif
                 recommendedValue = true,
             });
 
-            s_settings.Add(new RecommendedSetting<bool>()
+#if UNITY_5_4_OR_NEWER
+                s_settings.Add(new RecommendedSetting<bool>()
             {
-                settingTitle = "Virtual Reality Supported with Daydream",
-                skipCheckFunc = () => !VIUSettingsEditor.canSupportDaydream,
-                currentValueFunc = () => VIUSettingsEditor.supportDaydream,
-                setValueFunc = v => VIUSettingsEditor.supportDaydream = v,
+                settingTitle = "Graphic Jobs",
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Android,
+                currentValueFunc = () => PlayerSettings.graphicsJobs,
+                setValueFunc = v => PlayerSettings.graphicsJobs = v,
                 recommendedValue = true,
             });
+#endif
         }
 
         // check vive input utility version on github
@@ -384,11 +447,11 @@ namespace HTC.UnityPlugin.Vive
                     return;
                 }
 
+                // On Windows, PlaterSetting is stored at \HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x
+                EditorPrefs.SetString(nextVersionCheckTimeKey, UtcDateTimeToStr(DateTime.UtcNow.AddMinutes(versionCheckIntervalMinutes)));
+
                 if (UrlSuccess(www))
                 {
-                    // On Windows, PlaterSetting is stored at \HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x
-                    EditorPrefs.SetString(nextVersionCheckTimeKey, UtcDateTimeToStr(DateTime.UtcNow.AddMinutes(versionCheckIntervalMinutes)));
-
                     latestRepoInfo = JsonUtility.FromJson<RepoInfo>(www.text);
                 }
 
@@ -415,7 +478,7 @@ namespace HTC.UnityPlugin.Vive
 
             showNewVersion = !string.IsNullOrEmpty(ignoreThisVersionKey) && !VIUProjectSettings.HasIgnoreKey(ignoreThisVersionKey) && latestVersion > VIUVersion.current;
 
-            if (showNewVersion || RecommendedSettingPromptCount() > 0)
+            if (showNewVersion || (VIUSettingsEditor.supportAnyVR && RecommendedSettingPromptCount() > 0))
             {
                 TryOpenRecommendedSettingWindow();
             }
@@ -468,35 +531,46 @@ namespace HTC.UnityPlugin.Vive
 
         private static bool UrlSuccess(WWW www)
         {
-            if (!string.IsNullOrEmpty(www.error))
+            try
             {
-                // API rate limit exceeded, see https://developer.github.com/v3/#rate-limiting
-                Debug.Log("url:" + www.url);
-                Debug.Log("error:" + www.error);
-                Debug.Log(www.text);
+                if (!string.IsNullOrEmpty(www.error))
+                {
+                    // API rate limit exceeded, see https://developer.github.com/v3/#rate-limiting
+                    Debug.Log("url:" + www.url);
+                    Debug.Log("error:" + www.error);
+                    Debug.Log(www.text);
 
-                string responseHeader;
-                if (www.responseHeaders.TryGetValue("X-RateLimit-Limit", out responseHeader))
-                {
-                    Debug.Log("X-RateLimit-Limit:" + responseHeader);
-                }
-                if (www.responseHeaders.TryGetValue("X-RateLimit-Remaining", out responseHeader))
-                {
-                    Debug.Log("X-RateLimit-Remaining:" + responseHeader);
-                }
-                if (www.responseHeaders.TryGetValue("X-RateLimit-Reset", out responseHeader))
-                {
-                    Debug.Log("X-RateLimit-Reset:" + TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(double.Parse(responseHeader))).ToString());
+                    if (www.responseHeaders != null)
+                    {
+                        string responseHeader;
+                        if (www.responseHeaders.TryGetValue("X-RateLimit-Limit", out responseHeader))
+                        {
+                            Debug.Log("X-RateLimit-Limit:" + responseHeader);
+                        }
+                        if (www.responseHeaders.TryGetValue("X-RateLimit-Remaining", out responseHeader))
+                        {
+                            Debug.Log("X-RateLimit-Remaining:" + responseHeader);
+                        }
+                        if (www.responseHeaders.TryGetValue("X-RateLimit-Reset", out responseHeader))
+                        {
+                            Debug.Log("X-RateLimit-Reset:" + TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(double.Parse(responseHeader))).ToString());
+                        }
+                    }
+
+                    return false;
                 }
 
-                return false;
+                if (Regex.IsMatch(www.text, "404 not found", RegexOptions.IgnoreCase))
+                {
+                    Debug.Log("url:" + www.url);
+                    Debug.Log("error:" + www.error);
+                    Debug.Log(www.text);
+                    return false;
+                }
             }
-
-            if (Regex.IsMatch(www.text, "404 not found", RegexOptions.IgnoreCase))
+            catch (Exception e)
             {
-                Debug.Log("url:" + www.url);
-                Debug.Log("error:" + www.error);
-                Debug.Log(www.text);
+                Debug.LogWarning(e);
                 return false;
             }
 
