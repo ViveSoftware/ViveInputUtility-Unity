@@ -228,7 +228,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var thisFrame = Time.frameCount;
             if (m_poseUpdatedFrame == thisFrame) { return; }
 
+#if UNITY_5_5_OR_NEWER
             if (cam.cameraType != CameraType.Game && cam.cameraType != CameraType.VR) { return; }
+#else
+            if (cam.cameraType != CameraType.Game) { return; }
+#endif
 
             m_poseUpdatedFrame = thisFrame;
             UpdateActiveModuleDeviceState();
