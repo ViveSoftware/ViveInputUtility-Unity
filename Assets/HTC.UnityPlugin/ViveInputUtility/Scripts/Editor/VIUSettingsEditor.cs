@@ -882,7 +882,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 EditorGUI.indentLevel += 2;
 
-                EditorGUILayout.HelpBox("VRDevice daydream not supported in Editor Mode.  Please run on target device.", MessageType.Info);
+                EditorGUILayout.HelpBox("VRDevice daydream not supported in Editor Mode. Please run on target device.", MessageType.Info);
 
                 EditorGUI.indentLevel -= 2;
             }
@@ -930,6 +930,14 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.EndHorizontal();
             }
 
+            if (supportWaveVR)
+            {
+                EditorGUI.indentLevel += 2;
+
+                EditorGUILayout.HelpBox("WaveVR device not supported in Editor Mode. Please run on target device.", MessageType.Info);
+
+                EditorGUI.indentLevel -= 2;
+            }
 
             GUILayout.Space(5);
 
@@ -1065,7 +1073,7 @@ namespace HTC.UnityPlugin.Vive
 
         private static void ShowSwitchPlatformButton(BuildTargetGroup group, BuildTarget target)
         {
-            if (GUILayout.Button(new GUIContent("Swich Platform", "Switch platform to " + group), GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(new GUIContent("Switch Platform", "Switch platform to " + group), GUILayout.ExpandWidth(false)))
             {
 #if UNITY_2017_1_OR_NEWER
                 EditorUserBuildSettings.SwitchActiveBuildTargetAsync(group, target);
