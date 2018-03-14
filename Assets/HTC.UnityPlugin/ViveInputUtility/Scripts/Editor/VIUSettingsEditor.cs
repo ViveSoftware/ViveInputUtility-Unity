@@ -913,7 +913,7 @@ namespace HTC.UnityPlugin.Vive
                 tooltip = "Unity 5.6.3 or later version required.";
 #endif
                 GUI.enabled = false;
-                ShowToggle(new GUIContent(supportWaveVRTitle, tooltip), false, GUILayout.Width(230f));
+                ShowToggle(new GUIContent(supportWaveVRTitle, tooltip), false, GUILayout.Width(226f));
                 GUI.enabled = true;
 #if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
                 if (activeBuildTargetGroup != BuildTargetGroup.Android)
@@ -1047,7 +1047,7 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.Space(10);
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Use Defaults"))
+                if (GUILayout.Button("Use Default Settings"))
                 {
                     AssetDatabase.DeleteAsset(assetPath);
                     supportSimulator = canSupportSimulator;
@@ -1060,6 +1060,14 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
             }
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(new GUIContent("Repair Define Symbols", "Repair symbols that handled by VIU.")))
+            {
+                VRModuleManagerEditor.UpdateScriptingDefineSymbols();
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
 
             EditorGUILayout.EndScrollView();
         }
