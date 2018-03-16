@@ -63,6 +63,11 @@ namespace HTC.UnityPlugin.Vive
                             {
                                 s_enabledSDKNames.Remove(name);
                             }
+
+                            if (s_enabledSDKNames.Count == 0)
+                            {
+                                s_vrEnabled = false;
+                            }
                         }
 
                         m_sdkEnabled = value;
@@ -203,7 +208,7 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
 
-                s_enabledProp.boolValue = vrEnabled;
+                s_enabledProp.boolValue = s_vrEnabled;
 
                 s_projectSettingAsset.ApplyModifiedProperties();
             }
