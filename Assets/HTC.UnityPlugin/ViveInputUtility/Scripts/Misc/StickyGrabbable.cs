@@ -11,6 +11,19 @@ namespace HTC.UnityPlugin.Vive
     [AddComponentMenu("HTC/VIU/Object Grabber/Sticky Grabbable", 1)]
     public class StickyGrabbable : MonoBehaviour, IColliderEventPressDownHandler
     {
+        private enum EventGrabState
+        {
+            JustGrabbed,
+            Grabbing,
+            JustReleased,
+        }
+
+        private struct GrabData
+        {
+            public RigidPose offset;
+            public EventGrabState grabState;
+        }
+
         [Serializable]
         public class UnityEventGrabbable : UnityEvent<StickyGrabbable> { }
 
@@ -18,8 +31,8 @@ namespace HTC.UnityPlugin.Vive
         public const float DEFAULT_FOLLOWING_DURATION = 0.04f;
         public const float MAX_FOLLOWING_DURATION = 0.5f;
 
-        private OrderedIndexedTable<ColliderButtonEventData, RigidPose> eventList = new OrderedIndexedTable<ColliderButtonEventData, RigidPose>();
-        private ColliderButtonEventData m_bannedEventData;
+        private OrderedIndexedTable<ColliderButtonEventData, GrabData> m_eventList;
+        private int m_toggleReleaseCheckedFrame = -1;
 
         public bool alignPosition;
         public bool alignRotation;
@@ -45,14 +58,28 @@ namespace HTC.UnityPlugin.Vive
 
         public ColliderButtonEventData.InputButton grabButton { get { return m_grabButton; } set { m_grabButton = value; } }
 
-        public bool isGrabbed { get { return eventList.Count > 0; } }
+        public bool isGrabbed
+        {
+            get
+            {
+                if (m_eventList == null) { return false; }
+                if (m_eventList.Count == 0) { return false; }
+                return m_eventList.GetLastValue().grabState != EventGrabState.JustReleased;
+            }
+        }
 
         public ColliderButtonEventData grabbedEvent { get { return isGrabbed ? eventList.GetLastKey() : null; } }
+
+        private GrabData grabbedData { get { return isGrabbed ? eventList.GetLastValue() : default(GrabData); } }
 
         // effected rigidbody
         public Rigidbody rigid { get; set; }
 
+        private OrderedIndexedTable<ColliderButtonEventData, GrabData> eventList { get { return m_eventList ?? (m_eventList = new OrderedIndexedTable<ColliderButtonEventData, GrabData>()); } }
+
         private bool moveByVelocity { get { return !unblockableGrab && rigid != null && !rigid.isKinematic; } }
+
+        private bool isToggleReleaseCheckedThisFrame { get { return !m_toggleToRelease || m_toggleReleaseCheckedFrame == Time.frameCount; } }
 
         private RigidPose GetEventPose(ColliderButtonEventData eventData)
         {
@@ -72,7 +99,33 @@ namespace HTC.UnityPlugin.Vive
 
         public virtual void OnColliderEventPressDown(ColliderButtonEventData eventData)
         {
-            if (eventData.button != m_grabButton || eventList.ContainsKey(eventData) || eventData == m_bannedEventData) { return; }
+            GrabData grabData;
+
+            if (eventData.button != m_grabButton) { return; }
+
+            if (eventList.TryGetValue(eventData, out grabData))
+            {
+                switch (grabData.grabState)
+                {
+                    case EventGrabState.JustReleased:
+                        eventList.Remove(eventData);
+                        if (m_toggleReleaseCheckedFrame == Time.frameCount)
+                        {
+                            // skip when this event just released at the same frame
+                            return;
+                        }
+                        break;
+                    case EventGrabState.JustGrabbed:
+                    case EventGrabState.Grabbing:
+                    default:
+                        return;
+                }
+            }
+
+            if (!m_multipleGrabbers)
+            {
+                Release();
+            }
 
             var casterPose = GetEventPose(eventData);
             var offsetPose = RigidPose.FromToPose(casterPose, new RigidPose(transform));
@@ -80,12 +133,13 @@ namespace HTC.UnityPlugin.Vive
             if (alignPosition) { offsetPose.pos = Vector3.zero; }
             if (alignRotation) { offsetPose.rot = Quaternion.identity; }
 
-            if (!m_multipleGrabbers && eventList.Count > 0)
+            grabData = new GrabData()
             {
-                Release();
-            }
+                offset = offsetPose,
+                grabState = isToggleReleaseCheckedThisFrame ? EventGrabState.Grabbing : EventGrabState.JustGrabbed,
+            };
 
-            eventList.AddUniqueKey(eventData, offsetPose);
+            eventList.AddUniqueKey(eventData, grabData);
 
             if (afterGrabbed != null)
             {
@@ -99,7 +153,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 // if rigidbody exists, follow eventData caster using physics
                 var casterPose = GetEventPose(grabbedEvent);
-                var offsetPose = eventList.GetLastValue();
+                var offsetPose = grabbedData.offset;
 
                 if (alignPosition) { offsetPose.pos = alignPositionOffset; }
                 if (alignRotation) { offsetPose.rot = Quaternion.Euler(alignRotationOffset); }
@@ -112,11 +166,13 @@ namespace HTC.UnityPlugin.Vive
 
         protected virtual void Update()
         {
-            if (isGrabbed && !moveByVelocity)
+            if (!isGrabbed) { return; }
+
+            if (!moveByVelocity)
             {
                 // if rigidbody doesn't exist, just move to eventData caster's pose
                 var casterPose = GetEventPose(grabbedEvent);
-                var offsetPose = eventList.GetLastValue();
+                var offsetPose = grabbedData.offset;
 
                 if (alignPosition) { offsetPose.pos = alignPositionOffset; }
                 if (alignRotation) { offsetPose.rot = Quaternion.Euler(alignRotationOffset); }
@@ -134,30 +190,60 @@ namespace HTC.UnityPlugin.Vive
                 transform.rotation = targetPose.rot;
             }
 
-            // reset banned event data
-            m_bannedEventData = null;
-
-            // toggle grab button to release
-            if (m_toggleToRelease && isGrabbed)
+            // check toggle release
+            if (m_toggleToRelease)
             {
-                var released = grabbedEvent.GetPressDown();
-                if (released)
-                {
-                    m_bannedEventData = grabbedEvent; // ban this press down event so that it won't trigger another grab in OnColliderEventPressDown
+                m_toggleReleaseCheckedFrame = Time.frameCount;
+                var grabberChanged = false;
 
+                for (int iCurrent = m_eventList.Count - 1, iEnd = 0; iCurrent >= iEnd; --iCurrent)
+                {
+                    var eventData = m_eventList.GetKeyByIndex(iCurrent);
+                    var grabData = m_eventList.GetValueByIndex(iCurrent);
+                    switch (grabData.grabState)
+                    {
+                        case EventGrabState.JustGrabbed:
+                            grabData.grabState = EventGrabState.Grabbing;
+                            m_eventList.SetValueByIndex(iCurrent, grabData);
+                            break;
+                        case EventGrabState.Grabbing:
+                            if (eventData.GetPressDown())
+                            {
+                                if (!grabberChanged && iCurrent == m_eventList.Count - 1)
+                                {
+                                    grabberChanged = true;
+                                }
+
+                                m_eventList.RemoveAt(iCurrent);
+                                grabData.grabState = EventGrabState.JustReleased;
+                                m_eventList.Insert(0, eventData, grabData);
+
+                                ++iEnd;
+                                ++iCurrent;
+                            }
+                            break;
+                        case EventGrabState.JustReleased:
+                            m_eventList.Remove(eventData);
+                            break;
+                    }
+                }
+
+                if (grabberChanged)
+                {
                     if (beforeRelease != null)
                     {
                         beforeRelease.Invoke(this);
                     }
                 }
 
-                eventList.RemoveAll((obj) => obj.Key.GetPressDown());
-
                 if (isGrabbed)
                 {
-                    if (released && afterGrabbed != null)
+                    if (grabberChanged)
                     {
-                        afterGrabbed.Invoke(this);
+                        if (afterGrabbed != null)
+                        {
+                            afterGrabbed.Invoke(this);
+                        }
                     }
                 }
                 else

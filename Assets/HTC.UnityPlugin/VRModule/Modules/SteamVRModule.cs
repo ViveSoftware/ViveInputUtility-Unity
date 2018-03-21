@@ -260,5 +260,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return result;
         }
 #endif
-                    }
+    }
 }
