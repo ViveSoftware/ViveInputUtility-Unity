@@ -89,6 +89,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void Update()
         {
+            if (!IsInstance) { return; }
+
             m_isUpdating = true;
 
             // Get should activate module
