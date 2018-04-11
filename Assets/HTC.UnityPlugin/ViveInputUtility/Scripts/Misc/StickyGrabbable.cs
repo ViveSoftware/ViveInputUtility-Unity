@@ -269,7 +269,7 @@ namespace HTC.UnityPlugin.Vive
 
         private void DoDrop()
         {
-            if (!moveByVelocity && rigid != null && !rigid.isKinematic && m_prevPose != RigidPose.identity)
+            if (isActiveAndEnabled && !moveByVelocity && rigid != null && !rigid.isKinematic && m_prevPose != RigidPose.identity)
             {
                 RigidPose.SetRigidbodyVelocity(rigid, m_prevPose.pos, transform.position, Time.deltaTime);
                 RigidPose.SetRigidbodyAngularVelocity(rigid, m_prevPose.rot, transform.rotation, Time.deltaTime, overrideMaxAngularVelocity);
