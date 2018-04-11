@@ -297,13 +297,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (m_activatedModule == VRModuleActiveEnum.Uninitialized)
             {
-                Debug.LogError("activatedModule is already Uninitialized!");
                 return;
             }
 
             if (m_activatedModuleBase == null)
             {
-                Debug.LogError("activatedModule is already null!");
                 return;
             }
 
