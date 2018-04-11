@@ -1563,7 +1563,6 @@ GameObject:
   - 65: {fileID: 404413083}
   - 23: {fileID: 404413082}
   - 114: {fileID: 404413081}
-  - 114: {fileID: 404413085}
   m_Layer: 0
   m_Name: StickyTransform
   m_TagString: Untagged
@@ -1669,42 +1668,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 404413079}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &404413085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 404413079}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d95cee40c33260044b37578281bc98a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alignPosition: 0
-  alignRotation: 0
-  alignPositionOffset: {x: 0, y: 0, z: 0}
-  alignRotationOffset: {x: 0, y: 0, z: 0}
-  followingDuration: 0.04
-  overrideMaxAngularVelocity: 1
-  unblockableGrab: 1
-  m_grabButton: 3
-  m_toggleToRelease: 1
-  m_multipleGrabbers: 0
-  afterGrabbed:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforeRelease:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  onDrop:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1 &411181630
 GameObject:
   m_ObjectHideFlags: 0
@@ -2818,7 +2781,6 @@ GameObject:
   - 23: {fileID: 717481840}
   - 54: {fileID: 717481839}
   - 114: {fileID: 717481838}
-  - 114: {fileID: 717481843}
   m_Layer: 0
   m_Name: BlockableRigidbody
   m_TagString: Untagged
@@ -2937,40 +2899,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 717481836}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &717481843
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 717481836}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c1e088ce10ab7d4c87f03fd1f2dfcae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alignPosition: 0
-  alignRotation: 0
-  alignPositionOffset: {x: 0, y: 0, z: 0}
-  alignRotationOffset: {x: 0, y: 0, z: 0}
-  followingDuration: 0.04
-  overrideMaxAngularVelocity: 1
-  unblockableGrab: 0
-  m_grabButton: 3
-  afterGrabbed:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforeRelease:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  onDrop:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1 &719353019
 GameObject:
   m_ObjectHideFlags: 0
@@ -3667,7 +3595,7 @@ MonoBehaviour:
   Heightlight: {fileID: 2100000, guid: 38c5f53e7f1806a4a9fc159718f63db0, type: 2}
   Pressed: {fileID: 2100000, guid: 9cdad01e44871fc419f9f98ca8e08ec9, type: 2}
   dragged: {fileID: 2100000, guid: 926919ce7f495aa44b10ce012bb13b43, type: 2}
-  heighlightButton: 0
+  heighlightButton: 3
 --- !u!1 &988571755
 GameObject:
   m_ObjectHideFlags: 0
@@ -4097,7 +4025,6 @@ GameObject:
   - 23: {fileID: 1069099941}
   - 54: {fileID: 1069099940}
   - 114: {fileID: 1069099939}
-  - 114: {fileID: 1069099944}
   m_Layer: 0
   m_Name: StickyBlockableRigidbody
   m_TagString: Untagged
@@ -4218,42 +4145,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1069099937}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1069099944
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1069099937}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d95cee40c33260044b37578281bc98a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alignPosition: 0
-  alignRotation: 0
-  alignPositionOffset: {x: 0, y: 0, z: 0}
-  alignRotationOffset: {x: 0, y: 0, z: 0}
-  followingDuration: 0.04
-  overrideMaxAngularVelocity: 1
-  unblockableGrab: 0
-  m_grabButton: 3
-  m_toggleToRelease: 1
-  m_multipleGrabbers: 0
-  afterGrabbed:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforeRelease:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  onDrop:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1 &1077571495
 GameObject:
   m_ObjectHideFlags: 0
@@ -4439,7 +4330,6 @@ GameObject:
   - 23: {fileID: 1165823175}
   - 54: {fileID: 1165823174}
   - 114: {fileID: 1165823173}
-  - 114: {fileID: 1165823178}
   m_Layer: 0
   m_Name: StickyUnblockableRigidbody
   m_TagString: Untagged
@@ -4560,42 +4450,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1165823171}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1165823178
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1165823171}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d95cee40c33260044b37578281bc98a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alignPosition: 0
-  alignRotation: 0
-  alignPositionOffset: {x: 0, y: 0, z: 0}
-  alignRotationOffset: {x: 0, y: 0, z: 0}
-  followingDuration: 0.04
-  overrideMaxAngularVelocity: 1
-  unblockableGrab: 1
-  m_grabButton: 3
-  m_toggleToRelease: 1
-  m_multipleGrabbers: 0
-  afterGrabbed:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforeRelease:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  onDrop:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.StickyGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1 &1180038083
 GameObject:
   m_ObjectHideFlags: 0
@@ -5306,7 +5160,6 @@ GameObject:
   - 65: {fileID: 1354049793}
   - 23: {fileID: 1354049792}
   - 114: {fileID: 1354049791}
-  - 114: {fileID: 1354049795}
   m_Layer: 0
   m_Name: Transform
   m_TagString: Untagged
@@ -5410,40 +5263,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1354049789}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1354049795
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1354049789}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c1e088ce10ab7d4c87f03fd1f2dfcae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alignPosition: 0
-  alignRotation: 0
-  alignPositionOffset: {x: 0, y: 0, z: 0}
-  alignRotationOffset: {x: 0, y: 0, z: 0}
-  followingDuration: 0.04
-  overrideMaxAngularVelocity: 1
-  unblockableGrab: 1
-  m_grabButton: 3
-  afterGrabbed:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforeRelease:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  onDrop:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1 &1360509611
 GameObject:
   m_ObjectHideFlags: 0
@@ -7896,7 +7715,6 @@ GameObject:
   - 23: {fileID: 1952453244}
   - 54: {fileID: 1952453243}
   - 114: {fileID: 1952453242}
-  - 114: {fileID: 1952453247}
   m_Layer: 0
   m_Name: UnblockableRigidbody
   m_TagString: Untagged
@@ -8015,40 +7833,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1952453240}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1952453247
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1952453240}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c1e088ce10ab7d4c87f03fd1f2dfcae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alignPosition: 0
-  alignRotation: 0
-  alignPositionOffset: {x: 0, y: 0, z: 0}
-  alignRotationOffset: {x: 0, y: 0, z: 0}
-  followingDuration: 0.04
-  overrideMaxAngularVelocity: 1
-  unblockableGrab: 1
-  m_grabButton: 3
-  afterGrabbed:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforeRelease:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  onDrop:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1 &1983302283
 GameObject:
   m_ObjectHideFlags: 0

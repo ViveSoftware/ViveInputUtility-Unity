@@ -75,20 +75,7 @@ namespace HTC.UnityPlugin.Utility
             m_ValueList = new List<TValue>(capacity);
         }
 
-        public int Count
-        {
-            get
-            {
-                if (m_Dictionary.Count != m_KeyList.Count || m_Dictionary.Count != m_ValueList.Count)
-                {
-                    UnityEngine.Debug.LogWarning("m_Dictionary.Count=" + m_Dictionary.Count + " m_KeyList.Count=" + m_KeyList.Count + " m_ValueList.Count=" + m_ValueList.Count);
-                    UnityEngine.Debug.LogWarning(m_Dictionary.ToString());
-                    UnityEngine.Debug.LogWarning(m_KeyList.ToString());
-                    UnityEngine.Debug.LogWarning(m_ValueList.ToString());
-                }
-                return m_Dictionary.Count;
-            }
-        }
+        public int Count { get { return m_Dictionary.Count; } }
 
         public bool IsReadOnly { get { return false; } }
 
@@ -112,6 +99,11 @@ namespace HTC.UnityPlugin.Utility
         public TValue GetValueByIndex(int index)
         {
             return m_ValueList[index];
+        }
+
+        public void SetValueByIndex(int index, TValue value)
+        {
+            m_ValueList[index] = value;
         }
 
         public KeyValuePair<TKey, TValue> GetKeyValuePairByIndex(int index)
