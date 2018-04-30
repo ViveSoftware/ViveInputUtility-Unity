@@ -5,6 +5,7 @@
 /[Bb]uilds/
 /[Pp]ackages/
 /.vs/
+/.vscode/
 /UnityPackageManager/
 
 ProjectSettings/*
