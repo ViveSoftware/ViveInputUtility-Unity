@@ -1,4 +1,5 @@
 ﻿using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.Vive;
 using UnityEngine;
 #if VIU_WAVEVR && UNITY_ANDROID
 using wvr;
@@ -40,7 +41,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool ShouldActiveModule()
         {
-            return true;
+            return !Application.isEditor && VIUSettings.activateWaveVRModule;
         }
 
         public override void OnActivated()
@@ -83,7 +84,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var deviceType = m_poses[i].type;
                 var devicePose = m_poses[i].pose;
 
-                if (deviceType == m_deviceTypes[i] && devicePose.IsValidPose)
+                if (deviceType == m_deviceTypes[i])
                 {
                     currState[i].isConnected = true;
                     if (deviceType == WVR_DeviceType.WVR_DeviceType_HMD)
@@ -99,7 +100,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     var rigidTransform = new WaveVR_Utils.RigidTransform(devicePose.PoseMatrix);
 
-                    currState[i].isPoseValid = true;
+                    currState[i].isPoseValid = devicePose.IsValidPose;
                     currState[i].isOutOfRange = false;
                     currState[i].isCalibrating = false;
                     currState[i].isUninitialized = false;
@@ -130,7 +131,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     //var analogCount = Interop.WVR_GetInputTypeCount(deviceType, WVR_InputType.WVR_InputType_Analog);
                     //if (m_analogStates == null || m_analogStates.Length < analogCount) { m_analogStates = new WVR_AnalogState_t[analogCount]; }
 
+#if VIU_WAVEVR_2_0_32_OR_NEWER
+                    if (Interop.WVR_GetInputDeviceState(deviceType, INPUT_TYPE, ref buttons, ref touches, m_analogStates, (uint)m_analogStates.Length))
+#else
                     if (Interop.WVR_GetInputDeviceState(deviceType, INPUT_TYPE, ref buttons, ref touches, m_analogStates, m_analogStates.Length))
+#endif
                     {
                         const uint dpadMask =
                             (1 << (int)(WVR_InputId.WVR_InputId_Alias1_Touchpad)) |
@@ -265,5 +270,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Interop.WVR_TriggerVibrator(m_deviceTypes[deviceIndex], WVR_InputId.WVR_InputId_Alias1_Touchpad, durationMicroSec);
         }
 #endif
-    }
+                }
 }
