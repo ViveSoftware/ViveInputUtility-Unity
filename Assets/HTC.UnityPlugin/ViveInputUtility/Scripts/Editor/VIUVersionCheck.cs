@@ -189,16 +189,16 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<BuildTarget>()
             {
                 settingTitle = "Build Target",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Standalone || VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Android,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => EditorUserBuildSettings.activeBuildTarget,
                 setValueFunc = v =>
                 {
 #if UNITY_2017_1_OR_NEWER
-                    EditorUserBuildSettings.SwitchActiveBuildTargetAsync(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                    EditorUserBuildSettings.SwitchActiveBuildTargetAsync(BuildTargetGroup.Standalone, v);
 #elif UNITY_5_6_OR_NEWER
-                    EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                    EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, v);
 #else
-                    EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneWindows64);
+                    EditorUserBuildSettings.SwitchActiveBuildTarget(v);
 #endif
                 },
                 recommendedValue = BuildTarget.StandaloneWindows64,
