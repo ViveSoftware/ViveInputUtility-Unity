@@ -49,7 +49,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
             SteamVR_Events.System("TrackedDeviceRoleChanged").AddListener(OnTrackedDeviceRoleChanged);
-#elif VIU_STEAMVR_1_1_1
+#else
             SteamVR_Utils.Event.Listen("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
         }
@@ -65,7 +65,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
             SteamVR_Events.System("TrackedDeviceRoleChanged").RemoveListener(OnTrackedDeviceRoleChanged);
-#elif VIU_STEAMVR_1_1_1
+#else
             SteamVR_Utils.Event.Remove("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
         }
@@ -100,8 +100,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return m_hasInputFocus;
         }
 #if VIU_STEAMVR_1_1_1
-        private void OnInputFocusArgs(params object[] args) { OnInputFocus((bool)args[0]); }
-
         private void OnTrackedDeviceRoleChangedArgs(params object[] args) { OnTrackedDeviceRoleChanged((VREvent_t)args[0]); }
 #endif
         private void OnInputFocus(bool value)
@@ -143,7 +141,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
 #if VIU_STEAMVR_1_2_3_OR_NEWER
             m_hasInputFocus = system == null ? false : system.IsInputAvailable();
-#elif VIU_STEAMVR_1_1_1 || VIU_STEAMVR_1_2_0_OR_NEWER
+#else
             m_hasInputFocus = system == null ? false : !system.IsInputFocusCapturedByAnotherProcess();
 #endif
 
@@ -160,7 +158,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return;
             }
 
-            for (uint i = 0; i < MAX_DEVICE_COUNT; ++i)
+            for (uint i = 0; i < MAX_DEVICE_COUNT && i < OpenVR.k_unMaxTrackedDeviceCount; ++i)
             {
                 currState[i].isConnected = m_rawPoses[i].bDeviceIsConnected;
 
@@ -201,7 +199,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         // get device state from openvr api
 #if VIU_STEAMVR_1_2_0_OR_NEWER
                         if (system == null || !system.GetControllerState(i, ref m_ctrlState, s_sizeOfControllerStats))
-#elif VIU_STEAMVR_1_1_1_OR_NEWER
+#else
                         if (system == null || !system.GetControllerState(i, ref m_ctrlState))
 #endif
                         {

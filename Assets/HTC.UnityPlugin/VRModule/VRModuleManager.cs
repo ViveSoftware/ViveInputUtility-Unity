@@ -188,11 +188,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
 #if VIU_STEAMVR
                 case VRModuleActiveEnum.SteamVR:
-#if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER
+#if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER && !UNITY_5_3
                     Camera.onPreCull += OnCameraPreCull;
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
                     SteamVR_Events.NewPoses.AddListener(OnSteamVRNewPose);
-#elif VIU_STEAMVR_1_1_1
+#else
                     SteamVR_Utils.Event.Listen("new_poses", OnSteamVRNewPoseArgs);
 #endif
                     break;
@@ -309,11 +309,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
 #if VIU_STEAMVR
                 case VRModuleActiveEnum.SteamVR:
-#if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER
+#if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER && !UNITY_5_3
                     Camera.onPreCull -= OnCameraPreCull;
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
                     SteamVR_Events.NewPoses.RemoveListener(OnSteamVRNewPose);
-#elif VIU_STEAMVR_1_1_1
+#else
                     SteamVR_Utils.Event.Remove("new_poses", OnSteamVRNewPoseArgs);
 #endif
                     break;

@@ -10,10 +10,10 @@ namespace HTC.UnityPlugin.Vive
 {
     [AddComponentMenu("HTC/VIU/Object Grabber/Basic Grabbable", 0)]
     public class BasicGrabbable : MonoBehaviour
-    , IColliderEventDragStartHandler
-    , IColliderEventDragFixedUpdateHandler
-    , IColliderEventDragUpdateHandler
-    , IColliderEventDragEndHandler
+        , IColliderEventDragStartHandler
+        , IColliderEventDragFixedUpdateHandler
+        , IColliderEventDragUpdateHandler
+        , IColliderEventDragEndHandler
     {
         [Serializable]
         public class UnityEventGrabbable : UnityEvent<BasicGrabbable> { }
