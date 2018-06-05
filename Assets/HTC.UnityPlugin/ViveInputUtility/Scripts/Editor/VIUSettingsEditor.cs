@@ -643,7 +643,11 @@ namespace HTC.UnityPlugin.Vive
             s_scrollValue = EditorGUILayout.BeginScrollView(s_scrollValue);
 
             EditorGUILayout.LabelField("<b>VIVE Input Utility v" + VIUVersion.current + "</b>", s_labelStyle);
+
+            GUILayout.BeginHorizontal();
             ShowGetReleaseNoteButton();
+            ShowCheckRecommendedSettingsButton();
+            GUILayout.EndHorizontal();
 
             GUILayout.Space(10);
 
@@ -1045,6 +1049,8 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 EditorUtility.SetDirty(VIUSettings.Instance);
+
+                VIUVersionCheck.UpdateIgnoredNotifiedSettingsCount(false);
             }
 
             if (!string.IsNullOrEmpty(assetPath))
@@ -1103,6 +1109,16 @@ namespace HTC.UnityPlugin.Vive
             if (GUILayout.Button("Release Note", GUILayout.ExpandWidth(false)))
             {
                 Application.OpenURL("https://github.com/ViveSoftware/ViveInputUtility-Unity/releases");
+            }
+        }
+
+        private static void ShowCheckRecommendedSettingsButton()
+        {
+            if (VIUVersionCheck.notifiedSettingsCount <= 0) { return; }
+
+            if (GUILayout.Button("View Recommended Settings", GUILayout.ExpandWidth(false)))
+            {
+                VIUVersionCheck.TryOpenRecommendedSettingWindow();
             }
         }
 

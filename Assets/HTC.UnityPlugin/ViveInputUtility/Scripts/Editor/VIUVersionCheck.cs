@@ -132,6 +132,19 @@ namespace HTC.UnityPlugin.Vive
         private static List<IPropSetting> s_settings;
         private Texture2D viuLogo;
 
+        /// <summary>
+        /// Count of settings that are ignored
+        /// </summary>
+        public static int ignoredSettingsCount { get; private set; }
+        /// <summary>
+        /// Count of settings that are not using recommended value
+        /// </summary>
+        public static int shouldNotifiedSettingsCount { get; private set; }
+        /// <summary>
+        /// Count of settings that are not ignored and not using recommended value
+        /// </summary>
+        public static int notifiedSettingsCount { get; private set; }
+
         public static bool recommendedWindowOpened { get { return windowInstance != null; } }
 
         static VIUVersionCheck()
@@ -490,7 +503,9 @@ namespace HTC.UnityPlugin.Vive
 
             showNewVersion = !string.IsNullOrEmpty(ignoreThisVersionKey) && !VIUProjectSettings.HasIgnoreKey(ignoreThisVersionKey) && latestVersion > VIUVersion.current;
 
-            if (showNewVersion || RecommendedSettingPromptCount() > 0)
+            UpdateIgnoredNotifiedSettingsCount(false);
+
+            if (showNewVersion || notifiedSettingsCount > 0)
             {
                 TryOpenRecommendedSettingWindow();
             }
@@ -498,23 +513,44 @@ namespace HTC.UnityPlugin.Vive
             EditorApplication.update -= CheckVersionAndSettings;
         }
 
-        public static int RecommendedSettingPromptCount()
+        public static void UpdateIgnoredNotifiedSettingsCount(bool drawNotifiedPrompt)
         {
-            // check if their is setting that not using recommended value and not ignored
-            var recommendCount = 0; // not ignored and not using recommended value
+            InitializeSettins();
+
+            ignoredSettingsCount = 0;
+            shouldNotifiedSettingsCount = 0;
+            notifiedSettingsCount = 0;
+
             foreach (var setting in s_settings)
             {
                 if (setting.SkipCheck()) { continue; }
 
                 setting.UpdateCurrentValue();
 
-                if (!setting.IsIgnored() && !setting.IsUsingRecommendedValue())
+                var isIgnored = setting.IsIgnored();
+                if (isIgnored) { ++ignoredSettingsCount; }
+
+                if (setting.IsUsingRecommendedValue()) { continue; }
+                else { ++shouldNotifiedSettingsCount; }
+
+                if (!isIgnored)
                 {
-                    ++recommendCount;
+                    ++notifiedSettingsCount;
+
+                    if (drawNotifiedPrompt)
+                    {
+                        if (notifiedSettingsCount == 1)
+                        {
+                            EditorGUILayout.HelpBox("Recommended project settings:", MessageType.Warning);
+
+                            settingScrollPosition = GUILayout.BeginScrollView(settingScrollPosition, GUILayout.ExpandHeight(true));
+                        }
+
+                        setting.DoDrawRecommend();
+                    }
+
                 }
             }
-
-            return recommendCount;
         }
 
         // Open recommended setting window (with possible new version prompt)
@@ -642,44 +678,15 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.EndHorizontal();
             }
 
-            var notRecommendedCount = 0;
-            var ignoredCount = 0; // ignored and not using recommended value
-            var drawCount = 0; // not ignored and not using recommended value
+            UpdateIgnoredNotifiedSettingsCount(true);
 
-            InitializeSettins();
-            foreach (var setting in s_settings)
-            {
-                if (setting.SkipCheck()) { continue; }
-
-                setting.UpdateCurrentValue();
-
-                var isIgnored = setting.IsIgnored();
-                if (isIgnored) { ++ignoredCount; }
-
-                if (setting.IsUsingRecommendedValue()) { continue; }
-                else { ++notRecommendedCount; }
-
-                if (!isIgnored)
-                {
-                    if (drawCount == 0)
-                    {
-                        EditorGUILayout.HelpBox("Recommended project settings:", MessageType.Warning);
-
-                        settingScrollPosition = GUILayout.BeginScrollView(settingScrollPosition, GUILayout.ExpandHeight(true));
-                    }
-
-                    ++drawCount;
-                    setting.DoDrawRecommend();
-                }
-            }
-
-            if (drawCount > 0)
+            if (notifiedSettingsCount > 0)
             {
                 GUILayout.EndScrollView();
 
-                if (ignoredCount > 0)
+                if (ignoredSettingsCount > 0)
                 {
-                    if (GUILayout.Button("Clear All Ignores(" + ignoredCount + ")"))
+                    if (GUILayout.Button("Clear All Ignores(" + ignoredSettingsCount + ")"))
                     {
                         foreach (var setting in s_settings) { setting.DeleteIgnore(); }
                     }
@@ -687,29 +694,32 @@ namespace HTC.UnityPlugin.Vive
 
                 GUILayout.BeginHorizontal();
                 {
-                    if (GUILayout.Button("Accept All(" + drawCount + ")"))
+                    if (GUILayout.Button("Accept All(" + notifiedSettingsCount + ")"))
                     {
-                        for (int i = 10; i >= 0 && RecommendedSettingPromptCount() > 0; --i)
+                        for (int i = 10; i >= 0 && notifiedSettingsCount > 0; --i)
                         {
                             foreach (var setting in s_settings) { if (!setting.SkipCheck() && !setting.IsIgnored()) { setting.AcceptRecommendValue(); } }
+
                             VIUSettingsEditor.ApplySDKChanges();
+
+                            UpdateIgnoredNotifiedSettingsCount(false);
                         }
                     }
 
-                    if (GUILayout.Button("Ignore All(" + drawCount + ")"))
+                    if (GUILayout.Button("Ignore All(" + notifiedSettingsCount + ")"))
                     {
                         foreach (var setting in s_settings) { if (!setting.SkipCheck() && !setting.IsIgnored() && !setting.IsUsingRecommendedValue()) { setting.DoIgnore(); } }
                     }
                 }
                 GUILayout.EndHorizontal();
             }
-            else if (notRecommendedCount > 0)
+            else if (shouldNotifiedSettingsCount > 0)
             {
                 EditorGUILayout.HelpBox("Some recommended settings ignored.", MessageType.Warning);
 
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button("Clear All Ignores(" + ignoredCount + ")"))
+                if (GUILayout.Button("Clear All Ignores(" + ignoredSettingsCount + ")"))
                 {
                     foreach (var setting in s_settings) { setting.DeleteIgnore(); }
                 }
