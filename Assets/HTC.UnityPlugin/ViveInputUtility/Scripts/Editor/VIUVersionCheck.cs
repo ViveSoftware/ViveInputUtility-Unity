@@ -189,7 +189,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<BuildTarget>()
             {
                 settingTitle = "Build Target",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
                 currentValueFunc = () => EditorUserBuildSettings.activeBuildTarget,
                 setValueFunc = v =>
                 {
@@ -238,7 +238,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Stereoscopic Rendering",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyVR,
                 currentValueFunc = () => PlayerSettings.stereoscopic3D,
                 setValueFunc = v => PlayerSettings.stereoscopic3D = v,
                 recommendedValue = false,
@@ -249,7 +249,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<RenderingPath>()
             {
                 settingTitle = "Rendering Path",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyVR,
                 recommendBtnPostfix = "required for MSAA",
                 currentValueFunc = () => PlayerSettings.renderingPath,
                 setValueFunc = v => PlayerSettings.renderingPath = v,
@@ -260,7 +260,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Show Unity Splash Screen",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !InternalEditorUtility.HasPro(),
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !InternalEditorUtility.HasPro() || !VIUSettingsEditor.supportAnyVR,
                 currentValueFunc = () => PlayerSettings.showUnitySplashScreen,
                 setValueFunc = v => PlayerSettings.showUnitySplashScreen = v,
                 recommendedValue = false,
@@ -270,7 +270,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "GPU Skinning",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyVR,
                 currentValueFunc = () => PlayerSettings.gpuSkinning,
                 setValueFunc = v => PlayerSettings.gpuSkinning = v,
                 recommendedValueFunc = () => !VIUSettingsEditor.supportWaveVR,
@@ -279,7 +279,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<Vector2>()
             {
                 settingTitle = "Default Screen Size",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => new Vector2(PlayerSettings.defaultScreenWidth, PlayerSettings.defaultScreenHeight),
                 setValueFunc = v => { PlayerSettings.defaultScreenWidth = (int)v.x; PlayerSettings.defaultScreenHeight = (int)v.y; },
                 recommendedValue = new Vector2(1024f, 768f),
@@ -288,7 +288,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Run In Background",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => PlayerSettings.runInBackground,
                 setValueFunc = v => PlayerSettings.runInBackground = v,
                 recommendedValue = true,
@@ -297,7 +297,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<ResolutionDialogSetting>()
             {
                 settingTitle = "Display Resolution Dialog",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => PlayerSettings.displayResolutionDialog,
                 setValueFunc = v => PlayerSettings.displayResolutionDialog = v,
                 recommendedValue = ResolutionDialogSetting.HiddenByDefault,
@@ -306,7 +306,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Resizable Window",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => PlayerSettings.resizableWindow,
                 setValueFunc = v => PlayerSettings.resizableWindow = v,
                 recommendedValue = true,
@@ -316,7 +316,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Default Is Fullscreen",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => PlayerSettings.defaultIsFullScreen,
                 setValueFunc = v => PlayerSettings.defaultIsFullScreen = v,
                 recommendedValue = false,
@@ -325,7 +325,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<D3D11FullscreenMode>()
             {
                 settingTitle = "D3D11 Fullscreen Mode",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => PlayerSettings.d3d11FullscreenMode,
                 setValueFunc = v => PlayerSettings.d3d11FullscreenMode = v,
                 recommendedValue = D3D11FullscreenMode.FullscreenWindow,
@@ -334,7 +334,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<FullScreenMode>()
             {
                 settingTitle = "Fullscreen Mode",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => PlayerSettings.fullScreenMode,
                 setValueFunc = v => PlayerSettings.fullScreenMode = v,
                 recommendedValue = FullScreenMode.FullScreenWindow,
@@ -344,7 +344,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Visible In Background",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone,
+                skipCheckFunc = () => VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyStandaloneVR,
                 currentValueFunc = () => PlayerSettings.visibleInBackground,
                 setValueFunc = v => PlayerSettings.visibleInBackground = v,
                 recommendedValue = true,
@@ -353,7 +353,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<ColorSpace>()
             {
                 settingTitle = "Color Space",
-                skipCheckFunc = () => VRModule.isSteamVRPluginDetected,
+                skipCheckFunc = () => (VRModule.isSteamVRPluginDetected && VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Standalone) || !VIUSettingsEditor.supportAnyVR,
                 recommendBtnPostfix = "requires reloading scene",
                 currentValueFunc = () => PlayerSettings.colorSpace,
                 setValueFunc = v =>
@@ -385,7 +385,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<UIOrientation>()
             {
                 settingTitle = "Default Interface Orientation",
-                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Android,
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR,
                 currentValueFunc = () => PlayerSettings.defaultInterfaceOrientation,
                 setValueFunc = v => PlayerSettings.defaultInterfaceOrientation = v,
                 recommendedValue = UIOrientation.LandscapeLeft,
@@ -394,7 +394,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Multithreaded Rendering",
-                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Android,
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR,
 #if UNITY_2017_2_OR_NEWER
                 currentValueFunc = () => PlayerSettings.MTRendering,
                 setValueFunc = v => PlayerSettings.MTRendering = v,
@@ -409,11 +409,21 @@ namespace HTC.UnityPlugin.Vive
                 s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Graphic Jobs",
-                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR || VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Android,
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR,
                 currentValueFunc = () => PlayerSettings.graphicsJobs,
                 setValueFunc = v => PlayerSettings.graphicsJobs = v,
                 recommendedValue = true,
             });
+#endif
+        }
+
+        private static void WrightVersionCheckLog(string msg)
+        {
+#if VIU_PRINT_FETCH_VERSION_LOG
+            using (var outputFile = new StreamWriter("VIUVersionCheck.log", true))
+            {
+                outputFile.WriteLine(DateTime.Now.ToString() + " - " + msg + ". Stop fetching until " + UtcDateTimeFromStr(EditorPrefs.GetString(nextVersionCheckTimeKey)).ToLocalTime().ToString());
+            }
 #endif
         }
 
@@ -435,6 +445,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (EditorPrefs.HasKey(nextVersionCheckTimeKey) && DateTime.UtcNow < UtcDateTimeFromStr(EditorPrefs.GetString(nextVersionCheckTimeKey)))
                     {
+                        WrightVersionCheckLog("Skipped");
                         completeCheckVersionFlow = true;
                         return;
                     }
@@ -453,6 +464,7 @@ namespace HTC.UnityPlugin.Vive
                 if (UrlSuccess(www))
                 {
                     latestRepoInfo = JsonUtility.FromJson<RepoInfo>(www.text);
+                    WrightVersionCheckLog("Fetched");
                 }
 
                 // parse latestVersion and ignoreThisVersionKey
@@ -478,7 +490,7 @@ namespace HTC.UnityPlugin.Vive
 
             showNewVersion = !string.IsNullOrEmpty(ignoreThisVersionKey) && !VIUProjectSettings.HasIgnoreKey(ignoreThisVersionKey) && latestVersion > VIUVersion.current;
 
-            if (showNewVersion || (VIUSettingsEditor.supportAnyVR && RecommendedSettingPromptCount() > 0))
+            if (showNewVersion || RecommendedSettingPromptCount() > 0)
             {
                 TryOpenRecommendedSettingWindow();
             }
@@ -556,7 +568,7 @@ namespace HTC.UnityPlugin.Vive
                             Debug.Log("X-RateLimit-Reset:" + TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(double.Parse(responseHeader))).ToString());
                         }
                     }
-
+                    WrightVersionCheckLog("Failed. Rate limit exceeded");
                     return false;
                 }
 
@@ -565,12 +577,14 @@ namespace HTC.UnityPlugin.Vive
                     Debug.Log("url:" + www.url);
                     Debug.Log("error:" + www.error);
                     Debug.Log(www.text);
+                    WrightVersionCheckLog("Failed. 404 not found");
                     return false;
                 }
             }
             catch (Exception e)
             {
                 Debug.LogWarning(e);
+                WrightVersionCheckLog("Failed. " + e.ToString());
                 return false;
             }
 
