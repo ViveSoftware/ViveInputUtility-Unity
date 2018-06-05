@@ -380,7 +380,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static bool supportAnyStandaloneVR { get { return supportOpenVR || supportOculus; } }
 
-        public static bool supportAnyAndroidVR { get { return supportDaydream; } }
+        public static bool supportAnyAndroidVR { get { return supportDaydream || supportWaveVR; } }
 
         public static bool supportAnyVR { get { return supportAnyStandaloneVR || supportAnyAndroidVR; } }
 
