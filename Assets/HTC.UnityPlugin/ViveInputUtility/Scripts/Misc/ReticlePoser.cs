@@ -6,6 +6,11 @@ using UnityEngine.Serialization;
 
 public class ReticlePoser : MonoBehaviour
 {
+    public interface IMaterialChanger
+    {
+        Material reticleMaterial { get; }
+    }
+
     public Pointer3DRaycaster raycaster;
     [FormerlySerializedAs("Target")]
     public Transform reticleForDefaultRay;
@@ -14,13 +19,19 @@ public class ReticlePoser : MonoBehaviour
 
     public GameObject hitTarget;
     public float hitDistance;
+    public Material defaultReticleMaterial;
+    public MeshRenderer[] reticleRenderer;
+
+    private Material m_matFromChanger;
 #if UNITY_EDITOR
     protected virtual void Reset()
     {
         for (var tr = transform; raycaster == null && tr != null; tr = tr.parent)
         {
-            raycaster = tr.GetComponentInChildren<Pointer3DRaycaster>();
+            raycaster = tr.GetComponentInChildren<Pointer3DRaycaster>(true);
         }
+
+        reticleRenderer = GetComponentsInChildren<MeshRenderer>(true);
     }
 #endif
     protected virtual void LateUpdate()
@@ -63,6 +74,33 @@ public class ReticlePoser : MonoBehaviour
 
             hitTarget = null;
             hitDistance = 0f;
+        }
+
+        // Change reticle material according to IReticleMaterialChanger
+        var matChanger = hitTarget == null ? null : hitTarget.GetComponentInParent<IMaterialChanger>();
+        var newMat = matChanger == null ? null : matChanger.reticleMaterial;
+        if (m_matFromChanger != newMat)
+        {
+            m_matFromChanger = newMat;
+
+            if (newMat != null)
+            {
+                SetReticleMaterial(newMat);
+            }
+            else if (defaultReticleMaterial != null)
+            {
+                SetReticleMaterial(defaultReticleMaterial);
+            }
+        }
+    }
+
+    private void SetReticleMaterial(Material mat)
+    {
+        if (reticleRenderer == null || reticleRenderer.Length == 0) { return; }
+
+        foreach (MeshRenderer mr in reticleRenderer)
+        {
+            mr.material = mat;
         }
     }
 

@@ -2453,6 +2453,7 @@ MonoBehaviour:
   target: {fileID: 676368209}
   pivot: {fileID: 0}
   fadeDuration: 0.3
+  m_reticleMaterial: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
   teleportButton: 1
 --- !u!1 &1805808956
 GameObject:
@@ -2960,7 +2961,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 22478724, guid: 26a034c83db7bcb4f99de4ddf57cbcfc, type: 2}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 22437368, guid: 26a034c83db7bcb4f99de4ddf57cbcfc, type: 2}
       propertyPath: m_SizeDelta.x

@@ -250,6 +250,14 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 117550852}
     m_Modifications:
+    - target: {fileID: 11439286, guid: 8c93af22a072961489d61255c39d9659, type: 2}
+      propertyPath: restrictRenderer.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11498228, guid: 8c93af22a072961489d61255c39d9659, type: 2}
+      propertyPath: restrictRenderer.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 419526, guid: 8c93af22a072961489d61255c39d9659, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -282,9 +290,35 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 11498228, guid: 8c93af22a072961489d61255c39d9659, type: 2}
+      propertyPath: originalReticle
+      value: 
+      objectReference: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
+    - target: {fileID: 11439286, guid: 8c93af22a072961489d61255c39d9659, type: 2}
+      propertyPath: originalReticle
+      value: 
+      objectReference: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
+    - target: {fileID: 11439286, guid: 8c93af22a072961489d61255c39d9659, type: 2}
+      propertyPath: restrictRenderer.Array.data[0]
+      value: 
+      objectReference: {fileID: 557133658}
+    - target: {fileID: 11498228, guid: 8c93af22a072961489d61255c39d9659, type: 2}
+      propertyPath: restrictRenderer.Array.data[0]
+      value: 
+      objectReference: {fileID: 557133657}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8c93af22a072961489d61255c39d9659, type: 2}
   m_IsPrefabParent: 0
+--- !u!23 &557133657 stripped
+MeshRenderer:
+  m_PrefabParentObject: {fileID: 2328780, guid: 8c93af22a072961489d61255c39d9659,
+    type: 2}
+  m_PrefabInternal: {fileID: 557133656}
+--- !u!23 &557133658 stripped
+MeshRenderer:
+  m_PrefabParentObject: {fileID: 2387262, guid: 8c93af22a072961489d61255c39d9659,
+    type: 2}
+  m_PrefabInternal: {fileID: 557133656}
 --- !u!1 &585832343
 GameObject:
   m_ObjectHideFlags: 0
@@ -989,6 +1023,7 @@ MonoBehaviour:
   target: {fileID: 1028236663}
   pivot: {fileID: 1127719770}
   fadeDuration: 0.3
+  m_reticleMaterial: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
   teleportButton: 1
 --- !u!4 &1321112045
 Transform:

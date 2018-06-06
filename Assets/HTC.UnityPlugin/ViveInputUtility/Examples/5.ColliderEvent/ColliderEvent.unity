@@ -3595,7 +3595,7 @@ MonoBehaviour:
   Heightlight: {fileID: 2100000, guid: 38c5f53e7f1806a4a9fc159718f63db0, type: 2}
   Pressed: {fileID: 2100000, guid: 9cdad01e44871fc419f9f98ca8e08ec9, type: 2}
   dragged: {fileID: 2100000, guid: 926919ce7f495aa44b10ce012bb13b43, type: 2}
-  heighlightButton: 3
+  heighlightButton: 0
 --- !u!1 &988571755
 GameObject:
   m_ObjectHideFlags: 0
@@ -7081,6 +7081,7 @@ MonoBehaviour:
   target: {fileID: 1828780976}
   pivot: {fileID: 1068854219}
   fadeDuration: 0.3
+  m_reticleMaterial: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
   teleportButton: 1
 --- !u!1 &1790604551
 GameObject:

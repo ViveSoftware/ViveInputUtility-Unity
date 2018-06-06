@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 namespace HTC.UnityPlugin.Vive
 {
     [AddComponentMenu("HTC/VIU/Teleportable", 3)]
-    public class Teleportable : MonoBehaviour
+    public class Teleportable : MonoBehaviour, ReticlePoser.IMaterialChanger
         , IPointer3DPressExitHandler
     {
         public enum TeleportButton
@@ -22,10 +22,14 @@ namespace HTC.UnityPlugin.Vive
         public Transform target;  // The actual transfrom that will be moved Ex. CameraRig
         public Transform pivot;  // The actual pivot point that want to be teleported to the pointed location Ex. CameraHead
         public float fadeDuration = 0.3f;
+        [SerializeField]
+        private Material m_reticleMaterial;
 
         public TeleportButton teleportButton = TeleportButton.Pad;
 
         private Coroutine teleportCoroutine;
+
+        public Material reticleMaterial { get { return m_reticleMaterial; } set { m_reticleMaterial = value; } }
 
 #if UNITY_EDITOR
         private void Reset()

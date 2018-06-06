@@ -965,6 +965,18 @@ namespace HTC.UnityPlugin.Vive
                     EditorGUILayout.HelpBox("JdkPath is empty. Setup at Edit -> Preferences... -> External Tools -> Android JDK", MessageType.Warning);
                 }
 
+#if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
+                if (PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android).Equals("com.Company.ProductName"))
+                {
+                    EditorGUILayout.HelpBox("Please change the package name. Setup at Edit -> Project Settings -> Player -> Android settings -> Other Settings -> Identification(Package Name)", MessageType.Warning);
+                }
+#else
+                if (PlayerSettings.bundleIdentifier.Equals("com.Company.ProductName"))
+                {
+                    EditorGUILayout.HelpBox("Please change the package name. Setup at Edit -> Project Settings -> Player -> Android settings -> Other Settings -> Identification(Package Name)", MessageType.Warning);
+                }
+#endif
+
                 // Optional
                 //if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidNdkRoot")))
                 //{
