@@ -36,7 +36,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public partial class VRModule : SingletonBehaviour<VRModule>
     {
-        public const uint MAX_DEVICE_COUNT = 16u;
+        public const uint MAX_DEVICE_COUNT = 64u;
         public const uint INVALID_DEVICE_INDEX = 4294967295u;
         public const uint HMD_DEVICE_INDEX = 0u;
 

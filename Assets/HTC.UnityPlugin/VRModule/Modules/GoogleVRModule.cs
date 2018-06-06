@@ -19,7 +19,7 @@ using InputTracking = UnityEngine.VR.InputTracking;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
-    public class GoogleVRModule : VRModule.ModuleBase
+    public sealed class GoogleVRModule : VRModule.ModuleBase
     {
 #if VIU_GOOGLEVR && UNITY_5_6_OR_NEWER
         public const uint CONTROLLER_DEVICE_INDEX = 1u;

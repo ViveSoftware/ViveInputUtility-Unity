@@ -20,20 +20,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
         event SimulatorVRModule.UpdateDeviceStateHandler onUpdateDeviceState;
     }
 
-    public class SimulatorVRModule : VRModule.ModuleBase, ISimulatorVRModule
+    public sealed class SimulatorVRModule : VRModule.ModuleBase, ISimulatorVRModule
     {
         public delegate void UpdateDeviceStateHandler(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState);
 
+        public const uint SIMULATOR_MAX_DEVICE_COUNT = 16u;
         private const uint RIGHT_INDEX = 1;
         private const uint LEFT_INDEX = 2;
-        private static readonly RigidPose m_initHmdPose = new RigidPose(new Vector3(0f, 1.75f, 0f), Quaternion.identity);
+
+        private static readonly RigidPose s_initHmdPose = new RigidPose(new Vector3(0f, 1.75f, 0f), Quaternion.identity);
+        private static RigidPose s_offsetLeftController = RigidPose.identity;
+        private static RigidPose s_offsetRightController = RigidPose.identity;
+        private static RigidPose s_offsetTracker = RigidPose.identity;
 
         private bool m_prevXREnabled;
         private bool m_resetDevices;
+        private IMGUIHandle m_guiHandle;
 
         public event Action onActivated;
         public event Action onDeactivated;
         public event UpdateDeviceStateHandler onUpdateDeviceState;
+
+        public uint selectedDeviceIndex { get; private set; }
+
+        public bool hasControlFocus { get; private set; }
 
         public override bool ShouldActiveModule() { return VIUSettings.activateSimulatorModule; }
 
@@ -45,6 +55,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             m_resetDevices = true;
+            hasControlFocus = true;
+            selectedDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
+
+            // Simulator instructions GUI
+            m_guiHandle = VRModule.Instance.gameObject.GetComponent<IMGUIHandle>();
+            if (m_guiHandle == null)
+            {
+                m_guiHandle = VRModule.Instance.gameObject.AddComponent<IMGUIHandle>();
+                m_guiHandle.simulator = this;
+            }
 
             if (onActivated != null)
             {
@@ -54,6 +74,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void OnDeactivated()
         {
+            if (m_guiHandle != null)
+            {
+                m_guiHandle.simulator = null;
+                UnityEngine.Object.Destroy(m_guiHandle);
+                m_guiHandle = null;
+            }
+
             UpdateMainCamTracking();
 
             XRSettings.enabled = m_prevXREnabled;
@@ -72,16 +99,32 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (VIUSettings.enableSimulatorKeyboardMouseControl)
             {
-                UpdateAlphaKeyDown();
+                UpdateKeyDown();
+
+                Cursor.visible = !hasControlFocus;
+                Cursor.lockState = hasControlFocus ? CursorLockMode.Locked : CursorLockMode.None;
             }
         }
 
         public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
         {
-            if (VIUSettings.enableSimulatorKeyboardMouseControl)
+            if (VIUSettings.enableSimulatorKeyboardMouseControl && hasControlFocus)
             {
-                // Reset to default state
-                if (m_resetDevices)
+                if (IsEscapeKeyDown())
+                {
+                    if (IsDeviceSelected())
+                    {
+                        DeselectDevice();
+                    }
+                    else
+                    {
+                        //SetSimulatorActive(false);
+                        hasControlFocus = false;
+                    }
+                }
+
+                // reset to default state
+                if (m_resetDevices || IsResetAllKeyDown())
                 {
                     m_resetDevices = false;
 
@@ -103,15 +146,41 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         }
                     }
 
-                    SelectDevice(currState[VRModule.HMD_DEVICE_INDEX]);
+                    DeselectDevice();
+                }
+
+                // align devices with hmd
+                if (IsResetDevicesKeyDown())
+                {
+                    foreach (var state in currState)
+                    {
+                        switch (state.deviceIndex)
+                        {
+                            case VRModule.HMD_DEVICE_INDEX:
+                                break;
+                            case RIGHT_INDEX:
+                                state.pose = currState[VRModule.HMD_DEVICE_INDEX].pose * s_offsetRightController;
+                                break;
+                            case LEFT_INDEX:
+                                state.pose = currState[VRModule.HMD_DEVICE_INDEX].pose * s_offsetLeftController;
+                                break;
+                            default:
+                                if (state.isConnected)
+                                {
+                                    state.pose = currState[VRModule.HMD_DEVICE_INDEX].pose * s_offsetTracker;
+                                }
+                                break;
+                        }
+                    }
                 }
 
                 // select/deselect device
-                var keySelectDevice = default(IVRModuleDeviceStateRW);
+                IVRModuleDeviceStateRW keySelectDevice;
                 if (GetDeviceByInputDownKeyCode(currState, out keySelectDevice))
                 {
                     if (IsShiftKeyPressed())
                     {
+                        // remove device
                         if (keySelectDevice.isConnected && keySelectDevice.deviceIndex != VRModule.HMD_DEVICE_INDEX)
                         {
                             if (IsSelectedDevice(keySelectDevice))
@@ -126,7 +195,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         if (!IsSelectedDevice(keySelectDevice))
                         {
-                            // select
+                            // select device
                             if (!keySelectDevice.isConnected)
                             {
                                 InitializeDevice(currState[VRModule.HMD_DEVICE_INDEX], keySelectDevice);
@@ -134,27 +203,27 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                             SelectDevice(keySelectDevice);
                         }
-                        else
-                        {
-                            // deselect
-                            DeselectDevice();
-                        }
                     }
                 }
 
-                // control selected device
-                var selectedDevice = VRModule.IsValidDeviceIndex(m_selectedDeviceIndex) && currState[m_selectedDeviceIndex].isConnected ? currState[m_selectedDeviceIndex] : null;
+                var selectedDevice = VRModule.IsValidDeviceIndex(selectedDeviceIndex) && currState[selectedDeviceIndex].isConnected ? currState[selectedDeviceIndex] : null;
                 if (selectedDevice != null)
                 {
+                    // control selected device
                     ControlDevice(selectedDevice);
 
-                    if (selectedDevice.deviceClass != VRModuleDeviceClass.HMD)
+                    if (selectedDevice.deviceClass == VRModuleDeviceClass.Controller || selectedDevice.deviceClass == VRModuleDeviceClass.GenericTracker)
                     {
                         HandleDeviceInput(selectedDevice);
                     }
                 }
+                else if (hasControlFocus)
+                {
+                    // control device group
+                    ControlDeviceGroup(currState);
+                }
 
-                // control camera
+                // control camera (TFGH)
                 if (currState[VRModule.HMD_DEVICE_INDEX].isConnected)
                 {
                     ControlCamera(currState[VRModule.HMD_DEVICE_INDEX]);
@@ -208,36 +277,40 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private uint m_selectedDeviceIndex;
         private bool IsSelectedDevice(IVRModuleDeviceStateRW state)
         {
-            return m_selectedDeviceIndex == state.deviceIndex;
+            return selectedDeviceIndex == state.deviceIndex;
         }
 
         private bool IsDeviceSelected()
         {
-            return VRModule.IsValidDeviceIndex(m_selectedDeviceIndex);
+            return VRModule.IsValidDeviceIndex(selectedDeviceIndex);
         }
 
         private void SelectDevice(IVRModuleDeviceStateRW state)
         {
-            m_selectedDeviceIndex = state.deviceIndex;
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
+            selectedDeviceIndex = state.deviceIndex;
         }
 
         private void DeselectDevice()
         {
-            m_selectedDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
+            selectedDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
         }
 
         // Input.GetKeyDown in UpdateDeviceState is not working
+        private bool m_menuKeyPressed;
+        private bool m_resetDevicesKeyPressed;
+        private bool m_resetAllKeyPressed;
+        private bool m_escapeKeyPressed;
         private bool m_shiftKeyPressed;
         private bool[] m_alphaKeyDownState = new bool[10];
-        private void UpdateAlphaKeyDown()
+
+        private void UpdateKeyDown()
         {
+            m_menuKeyPressed = Input.GetKeyDown(KeyCode.M);
+            m_resetDevicesKeyPressed = Input.GetKeyDown(KeyCode.F2);
+            m_resetAllKeyPressed = Input.GetKeyDown(KeyCode.F3);
+            m_escapeKeyPressed = Input.GetKeyDown(KeyCode.Escape);
             m_shiftKeyPressed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             m_alphaKeyDownState[0] = Input.GetKeyDown(KeyCode.Alpha0) || Input.GetKeyDown(KeyCode.Keypad0);
             m_alphaKeyDownState[1] = Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1);
@@ -251,35 +324,32 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_alphaKeyDownState[9] = Input.GetKeyDown(KeyCode.Alpha9) || Input.GetKeyDown(KeyCode.Keypad9);
         }
 
-        private bool IsShiftKeyPressed()
-        {
-            return m_shiftKeyPressed;
-        }
-
-        private bool IsAlphaKeyDown(int num)
-        {
-            return m_alphaKeyDownState[num];
-        }
+        private bool IsMenuKeyDown() { return m_menuKeyPressed; }
+        private bool IsResetAllKeyDown() { return m_resetAllKeyPressed; }
+        private bool IsResetDevicesKeyDown() { return m_resetDevicesKeyPressed; }
+        private bool IsEscapeKeyDown() { return m_escapeKeyPressed; }
+        private bool IsShiftKeyPressed() { return m_shiftKeyPressed; }
+        private bool IsAlphaKeyDown(int num) { return m_alphaKeyDownState[num]; }
 
         private bool GetDeviceByInputDownKeyCode(IVRModuleDeviceStateRW[] deviceStates, out IVRModuleDeviceStateRW deviceState)
         {
-            var backQuatePressed = Input.GetKey(KeyCode.BackQuote);
-            if (!backQuatePressed && IsAlphaKeyDown(0)) { deviceState = deviceStates[0]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(1)) { deviceState = deviceStates[1]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(2)) { deviceState = deviceStates[2]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(3)) { deviceState = deviceStates[3]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(4)) { deviceState = deviceStates[4]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(5)) { deviceState = deviceStates[5]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(6)) { deviceState = deviceStates[6]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(7)) { deviceState = deviceStates[7]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(8)) { deviceState = deviceStates[8]; return true; }
-            if (!backQuatePressed && IsAlphaKeyDown(9)) { deviceState = deviceStates[9]; return true; }
-            if (backQuatePressed && IsAlphaKeyDown(0)) { deviceState = deviceStates[10]; return true; }
-            if (backQuatePressed && IsAlphaKeyDown(1)) { deviceState = deviceStates[11]; return true; }
-            if (backQuatePressed && IsAlphaKeyDown(2)) { deviceState = deviceStates[12]; return true; }
-            if (backQuatePressed && IsAlphaKeyDown(3)) { deviceState = deviceStates[13]; return true; }
-            if (backQuatePressed && IsAlphaKeyDown(4)) { deviceState = deviceStates[14]; return true; }
-            if (backQuatePressed && IsAlphaKeyDown(5)) { deviceState = deviceStates[15]; return true; }
+            var backQuotePressed = Input.GetKey(KeyCode.BackQuote);
+            if (!backQuotePressed && IsAlphaKeyDown(0)) { deviceState = deviceStates[0]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(1)) { deviceState = deviceStates[1]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(2)) { deviceState = deviceStates[2]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(3)) { deviceState = deviceStates[3]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(4)) { deviceState = deviceStates[4]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(5)) { deviceState = deviceStates[5]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(6)) { deviceState = deviceStates[6]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(7)) { deviceState = deviceStates[7]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(8)) { deviceState = deviceStates[8]; return true; }
+            if (!backQuotePressed && IsAlphaKeyDown(9)) { deviceState = deviceStates[9]; return true; }
+            if (backQuotePressed && IsAlphaKeyDown(0)) { deviceState = deviceStates[10]; return true; }
+            if (backQuotePressed && IsAlphaKeyDown(1)) { deviceState = deviceStates[11]; return true; }
+            if (backQuotePressed && IsAlphaKeyDown(2)) { deviceState = deviceStates[12]; return true; }
+            if (backQuotePressed && IsAlphaKeyDown(3)) { deviceState = deviceStates[13]; return true; }
+            if (backQuotePressed && IsAlphaKeyDown(4)) { deviceState = deviceStates[14]; return true; }
+            if (backQuotePressed && IsAlphaKeyDown(5)) { deviceState = deviceStates[15]; return true; }
 
             deviceState = null;
             return false;
@@ -299,7 +369,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.deviceModel = VRModuleDeviceModel.ViveHMD;
 
                         deviceState.isPoseValid = true;
-                        deviceState.pose = m_initHmdPose;
+                        deviceState.pose = s_initHmdPose;
 
                         break;
                     }
@@ -312,9 +382,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.renderModelName = deviceState.serialNumber;
                         deviceState.deviceModel = VRModuleDeviceModel.ViveController;
 
-                        var pose = new RigidPose(new Vector3(0.3f, -0.7f, 0.4f), Quaternion.identity);
+                        var pose = new RigidPose(new Vector3(0.3f, -0.25f, 0.7f), Quaternion.identity);
                         deviceState.isPoseValid = true;
-                        deviceState.pose = (hmdState.isConnected ? hmdState.pose : m_initHmdPose) * pose;
+                        deviceState.pose = (hmdState.isConnected ? hmdState.pose : s_initHmdPose) * pose;
+                        s_offsetRightController = RigidPose.FromToPose(hmdState.isConnected ? hmdState.pose : s_initHmdPose, deviceState.pose);
                         deviceState.buttonPressed = 0ul;
                         deviceState.buttonTouched = 0ul;
                         deviceState.ResetAxisValues();
@@ -329,9 +400,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.renderModelName = deviceState.serialNumber;
                         deviceState.deviceModel = VRModuleDeviceModel.ViveController;
 
-                        var pose = new RigidPose(new Vector3(-0.3f, -0.7f, 0.4f), Quaternion.identity);
+                        var pose = new RigidPose(new Vector3(-0.3f, -0.25f, 0.7f), Quaternion.identity);
                         deviceState.isPoseValid = true;
-                        deviceState.pose = (hmdState.isConnected ? hmdState.pose : m_initHmdPose) * pose;
+                        deviceState.pose = (hmdState.isConnected ? hmdState.pose : s_initHmdPose) * pose;
+                        s_offsetLeftController = RigidPose.FromToPose(hmdState.isConnected ? hmdState.pose : s_initHmdPose, deviceState.pose);
                         deviceState.buttonPressed = 0ul;
                         deviceState.buttonTouched = 0ul;
                         deviceState.ResetAxisValues();
@@ -346,9 +418,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.renderModelName = deviceState.serialNumber;
                         deviceState.deviceModel = VRModuleDeviceModel.ViveTracker;
 
-                        var pose = new RigidPose(new Vector3(0f, -0.7f, 0.4f), Quaternion.identity);
+                        var pose = new RigidPose(new Vector3(0f, -0.25f, 0.7f), Quaternion.identity);
                         deviceState.isPoseValid = true;
-                        deviceState.pose = (hmdState.isConnected ? hmdState.pose : m_initHmdPose) * pose;
+                        deviceState.pose = (hmdState.isConnected ? hmdState.pose : s_initHmdPose) * pose;
+                        s_offsetTracker = RigidPose.FromToPose(hmdState.isConnected ? hmdState.pose : s_initHmdPose, deviceState.pose);
                         deviceState.buttonPressed = 0ul;
                         deviceState.buttonTouched = 0ul;
                         deviceState.ResetAxisValues();
@@ -424,6 +497,86 @@ namespace HTC.UnityPlugin.VRModuleManagement
             deviceState.pose = pose;
         }
 
+        private void ControlDeviceGroup(IVRModuleDeviceStateRW[] deviceStates)
+        {
+            var hmdPose = deviceStates[VRModule.HMD_DEVICE_INDEX].pose;
+            var hmdPoseEuler = hmdPose.rot.eulerAngles;
+
+            var oldRigPose = new RigidPose(hmdPose.pos, Quaternion.Euler(0f, hmdPoseEuler.y, 0f));
+
+            var deltaAngle = Time.unscaledDeltaTime * VIUSettings.simulatorMouseRotateSpeed;
+            var deltaKeyAngle = Time.unscaledDeltaTime * VIUSettings.simulatorKeyRotateSpeed;
+
+            // translate and rotate HMD
+            hmdPoseEuler.x = Mathf.Repeat(hmdPoseEuler.x + 180f, 360f) - 180f;
+
+            var pitchDelta = -Input.GetAxisRaw("Mouse Y") * deltaAngle;
+            if (pitchDelta > 0f)
+            {
+                if (hmdPoseEuler.x < 90f && hmdPoseEuler.x > -180f)
+                {
+                    hmdPoseEuler.x = Mathf.Min(90f, hmdPoseEuler.x + pitchDelta);
+                }
+            }
+            else if (pitchDelta < 0f)
+            {
+                if (hmdPoseEuler.x < 180f && hmdPoseEuler.x > -90f)
+                {
+                    hmdPoseEuler.x = Mathf.Max(-90f, hmdPoseEuler.x + pitchDelta);
+                }
+            }
+
+            if (Input.GetKey(KeyCode.DownArrow))
+            {
+                if (hmdPoseEuler.x < 90f && hmdPoseEuler.x > -180f)
+                {
+                    hmdPoseEuler.x = Mathf.Min(90f, hmdPoseEuler.x + deltaKeyAngle);
+                }
+            }
+
+            if (Input.GetKey(KeyCode.UpArrow))
+            {
+                if (hmdPoseEuler.x < 180f && hmdPoseEuler.x > -90f)
+                {
+                    hmdPoseEuler.x = Mathf.Max(-90f, hmdPoseEuler.x - deltaKeyAngle);
+                }
+            }
+
+            if (Input.GetKey(KeyCode.RightArrow)) { hmdPoseEuler.y += deltaKeyAngle; }
+            if (Input.GetKey(KeyCode.LeftArrow)) { hmdPoseEuler.y -= deltaKeyAngle; }
+            if (Input.GetKey(KeyCode.C)) { hmdPoseEuler.z += deltaKeyAngle; }
+            if (Input.GetKey(KeyCode.Z)) { hmdPoseEuler.z -= deltaKeyAngle; }
+            if (Input.GetKey(KeyCode.X)) { hmdPoseEuler.z = 0f; }
+
+            hmdPoseEuler.y += Input.GetAxisRaw("Mouse X") * deltaAngle;
+
+            hmdPose.rot = Quaternion.Euler(hmdPoseEuler);
+
+            var deltaMove = Time.unscaledDeltaTime * VIUSettings.simulatorKeyMoveSpeed;
+            var moveForward = Quaternion.Euler(0f, hmdPoseEuler.y, 0f) * Vector3.forward;
+            var moveRight = Quaternion.Euler(0f, hmdPoseEuler.y, 0f) * Vector3.right;
+            if (Input.GetKey(KeyCode.D)) { hmdPose.pos += moveRight * deltaMove; }
+            if (Input.GetKey(KeyCode.A)) { hmdPose.pos -= moveRight * deltaMove; }
+            if (Input.GetKey(KeyCode.E)) { hmdPose.pos += Vector3.up * deltaMove; }
+            if (Input.GetKey(KeyCode.Q)) { hmdPose.pos -= Vector3.up * deltaMove; }
+            if (Input.GetKey(KeyCode.W)) { hmdPose.pos += moveForward * deltaMove; }
+            if (Input.GetKey(KeyCode.S)) { hmdPose.pos -= moveForward * deltaMove; }
+
+            deviceStates[VRModule.HMD_DEVICE_INDEX].pose = hmdPose;
+
+            var rigPoseOffset = new RigidPose(hmdPose.pos, Quaternion.Euler(0f, hmdPose.rot.eulerAngles.y, 0f)) * oldRigPose.GetInverse();
+
+            for (int i = deviceStates.Length - 1; i >= 0; --i)
+            {
+                if (i == VRModule.HMD_DEVICE_INDEX) { continue; }
+
+                var state = deviceStates[i];
+                if (!state.isConnected) { continue; }
+
+                state.pose = rigPoseOffset * state.pose;
+            }
+        }
+
         private void ControlCamera(IVRModuleDeviceStateRW deviceState)
         {
             var pose = deviceState.pose;
@@ -450,6 +603,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             if (Input.GetKey(KeyCode.L)) { poseEuler.y += deltaKeyAngle; }
             if (Input.GetKey(KeyCode.J)) { poseEuler.y -= deltaKeyAngle; }
+
             if (Input.GetKey(KeyCode.N)) { poseEuler.z += deltaKeyAngle; }
             if (Input.GetKey(KeyCode.V)) { poseEuler.z -= deltaKeyAngle; }
             if (Input.GetKey(KeyCode.B)) { poseEuler.z = 0f; }
@@ -472,8 +626,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private void HandleDeviceInput(IVRModuleDeviceStateRW deviceState)
         {
             var leftPressed = Input.GetMouseButton(0);
-            var midPressed = Input.GetMouseButton(1);
-            var rightPressed = Input.GetMouseButton(2);
+            var rightPressed = Input.GetMouseButton(1);
+            var midPressed = Input.GetMouseButton(2);
 
             deviceState.SetButtonPress(VRModuleRawButton.Trigger, leftPressed);
             deviceState.SetButtonTouch(VRModuleRawButton.Trigger, leftPressed);
@@ -484,6 +638,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             deviceState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, midPressed ? 1f : 0f);
 
             deviceState.SetButtonPress(VRModuleRawButton.Touchpad, rightPressed);
+
+            deviceState.SetButtonPress(VRModuleRawButton.ApplicationMenu, IsMenuKeyDown());
+            deviceState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, IsMenuKeyDown());
 
             if (VIUSettings.simulateTrackpadTouch && IsShiftKeyPressed())
             {
@@ -496,6 +653,153 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 deviceState.SetButtonTouch(VRModuleRawButton.Touchpad, rightPressed);
                 deviceState.SetAxisValue(VRModuleRawAxis.TouchpadX, 0f);
                 deviceState.SetAxisValue(VRModuleRawAxis.TouchpadY, 0f);
+            }
+        }
+
+        private class IMGUIHandle : MonoBehaviour
+        {
+            public SimulatorVRModule simulator { get; set; }
+
+            private bool showGUI { get; set; }
+
+            private void Start()
+            {
+                showGUI = true;
+            }
+
+            private void Update()
+            {
+                if (Input.GetKeyDown(KeyCode.F1))
+                {
+                    showGUI = !showGUI;
+                }
+            }
+
+            private static string Bold(string s) { return "<b>" + s + "</b>"; }
+
+            private static string SetColor(string s, string color) { return "<color=" + color + ">" + s + "</color>"; }
+
+            private void OnGUI()
+            {
+                if (!showGUI || simulator == null) { return; }
+
+                var hints = string.Empty;
+
+                if (simulator.hasControlFocus)
+                {
+                    GUI.skin.box.stretchWidth = false;
+                    GUI.skin.box.stretchHeight = false;
+                    GUI.skin.box.alignment = TextAnchor.UpperLeft;
+                    GUI.skin.button.alignment = TextAnchor.MiddleCenter;
+                    GUI.skin.box.normal.textColor = Color.white;
+
+                    // device status grids
+                    GUI.skin.box.padding = new RectOffset(10, 10, 5, 5);
+
+                    GUILayout.BeginArea(new Rect(5f, 5f, Screen.width, 30f));
+                    GUILayout.BeginHorizontal();
+
+                    for (uint i = 0u; i < SIMULATOR_MAX_DEVICE_COUNT; ++i)
+                    {
+                        var isHmd = i == VRModule.HMD_DEVICE_INDEX;
+                        var isSelectedDevice = i == simulator.selectedDeviceIndex;
+                        var isConndected = VRModule.GetCurrentDeviceState(i).isConnected;
+
+                        var deviceName = isHmd ? "HMD 0" : i.ToString();
+                        var colorName = !isConndected ? "grey" : isSelectedDevice ? "lime" : "white";
+
+                        GUILayout.Box(SetColor(Bold(deviceName), colorName));
+                    }
+
+                    GUILayout.EndHorizontal();
+                    GUILayout.EndArea();
+
+                    var selectedDeviceClass = VRModule.GetCurrentDeviceState(simulator.selectedDeviceIndex).deviceClass;
+                    // instructions
+                    if (selectedDeviceClass == VRModuleDeviceClass.Invalid)
+                    {
+                        hints += "Pause simulator: " + Bold("ESC") + "\n";
+                        hints += "Toggle instructions: " + Bold("F1") + "\n";
+                        hints += "Align devices to HMD: " + Bold("F2") + "\n";
+                        hints += "Reset all devices to initial state: " + Bold("F3") + "\n\n";
+
+                        hints += "Move: " + Bold("WASD / QE") + "\n";
+                        hints += "Rotate: " + Bold("Mouse") + "\n";
+                        hints += "Add and select a device: \n";
+                        hints += "    [N] " + Bold("Num 0~9") + "\n";
+                        hints += "    [10+N] " + Bold("` + Num 0~5") + "\n";
+                        hints += "Remove and deselect a device: \n";
+                        hints += "    [N] " + Bold("Shift + Num 0~9") + "\n";
+                        hints += "    [10+N] " + Bold("Shift + ` + Num 0~5") + "\n";
+                    }
+                    else
+                    {
+                        hints += "Toggle instructions: " + Bold("F1") + "\n";
+                        hints += "Align devices with HMD: " + Bold("F2") + "\n";
+                        hints += "Reset all devices to initial state: " + Bold("F3") + "\n\n";
+
+                        hints += "Currently controlling ";
+                        hints += SetColor(Bold("Device " + simulator.selectedDeviceIndex.ToString()) + " " + Bold("(" + selectedDeviceClass.ToString() + ")") + "\n", "lime");
+                        hints += "Deselect this device: " + Bold("ESC") + "\n";
+                        hints += "Add and select a device: \n";
+                        hints += "    [N] " + Bold("Num 0~9") + "\n";
+                        hints += "    [10+N] " + Bold("` + Num 0~5") + "\n";
+                        hints += "Remove and deselect a device: \n";
+                        hints += "    [N] " + Bold("Shift + Num 0~9") + "\n";
+                        hints += "    [10+N] " + Bold("Shift + ` + Num 0~5") + "\n";
+
+                        hints += "\n";
+                        hints += "Move: " + Bold("WASD / QE") + "\n";
+                        hints += "Rotate (pitch and yaw): " + Bold("Mouse") + " or " + Bold("Arrow Keys") + "\n";
+                        hints += "Rotate (roll): " + Bold("ZC") + "\n";
+                        hints += "Reset roll: " + Bold("X") + "\n";
+
+                        if (selectedDeviceClass == VRModuleDeviceClass.Controller || selectedDeviceClass == VRModuleDeviceClass.GenericTracker)
+                        {
+                            hints += "\n";
+                            hints += "Trigger press: " + Bold("Mouse Left") + "\n";
+                            hints += "Grip press: " + Bold("Mouse Middle") + "\n";
+                            hints += "Trackpad press: " + Bold("Mouse Right") + "\n";
+                            hints += "Trackpad touch: " + Bold("Hold Shift") + " + " + Bold("Mouse") + "\n";
+                            hints += "Menu button press: " + Bold("M") + "\n";
+                        }
+                    }
+
+                    hints += "\n";
+                    hints += "HMD Move: " + Bold("TFGH / RY") + "\n";
+                    hints += "HMD Rotate (pitch and yaw): " + Bold("IJKL") + "\n";
+                    hints += "HMD Rotate (roll): " + Bold("VN") + "\n";
+                    hints += "HMD Reset roll: " + Bold("B");
+
+                    GUI.skin.box.padding = new RectOffset(10, 10, 10, 10);
+
+                    GUILayout.BeginArea(new Rect(5f, 35f, Screen.width, Screen.height));
+                    GUILayout.Box(hints);
+                    GUILayout.EndArea();
+                }
+                else
+                {
+                    // simulator resume button
+                    int buttonHeight = 30;
+                    int buttonWidth = 130;
+                    Rect ButtonRect = new Rect((Screen.width * 0.5f) - (buttonWidth * 0.5f), (Screen.height * 0.5f) - buttonHeight, buttonWidth, buttonHeight);
+
+                    if (GUI.Button(ButtonRect, Bold("Back to simulator")))
+                    {
+                        simulator.hasControlFocus = true;
+                    }
+
+                    GUI.skin.box.padding = new RectOffset(10, 10, 5, 5);
+
+                    GUILayout.BeginArea(new Rect(5f, 5f, Screen.width, 30f));
+                    GUILayout.BeginHorizontal();
+
+                    hints += "Toggle instructions: " + Bold("F1");
+                    GUILayout.Box(hints);
+
+                    GUILayout.EndHorizontal();
+                    GUILayout.EndArea();
+                }
             }
         }
     }
