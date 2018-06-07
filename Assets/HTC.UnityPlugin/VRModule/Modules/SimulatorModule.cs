@@ -193,7 +193,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                     else
                     {
-                        if (!IsSelectedDevice(keySelectDevice))
+                        if (IsSelectedDevice(keySelectDevice))
+                        {
+                            DeselectDevice();
+                        }
+                        else
                         {
                             // select device
                             if (!keySelectDevice.isConnected)
@@ -681,6 +685,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             private void OnGUI()
             {
+                if (!VIUSettings.enableSimulatorKeyboardMouseControl) { return; }
+
                 if (!showGUI || simulator == null) { return; }
 
                 var hints = string.Empty;
@@ -740,7 +746,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                         hints += "Currently controlling ";
                         hints += SetColor(Bold("Device " + simulator.selectedDeviceIndex.ToString()) + " " + Bold("(" + selectedDeviceClass.ToString() + ")") + "\n", "lime");
-                        hints += "Deselect this device: " + Bold("ESC") + "\n";
+                        if (simulator.selectedDeviceIndex <= 9)
+                        {
+                            hints += "Deselect this device: " + Bold("ESC") + " / " + Bold("Num " + simulator.selectedDeviceIndex) + "\n";
+                        }
+                        else
+                        {
+                            hints += "Deselect this device: " + Bold("ESC") + " / " + Bold("` + Num " + simulator.selectedDeviceIndex) + "\n";
+                        }
                         hints += "Add and select a device: \n";
                         hints += "    [N] " + Bold("Num 0~9") + "\n";
                         hints += "    [10+N] " + Bold("` + Num 0~5") + "\n";
