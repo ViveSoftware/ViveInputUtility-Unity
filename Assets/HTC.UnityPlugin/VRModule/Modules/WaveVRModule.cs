@@ -7,7 +7,7 @@ using wvr;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
-    public class WaveVRModule : VRModule.ModuleBase
+    public sealed class WaveVRModule : VRModule.ModuleBase
     {
 #if VIU_WAVEVR && UNITY_ANDROID
         private const uint HMD_INDEX = 0;
