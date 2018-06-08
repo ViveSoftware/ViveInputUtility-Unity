@@ -261,7 +261,7 @@ namespace HTC.UnityPlugin.Utility
                 }
                 else
                 {
-                    if (removed != 0)
+                    if (removed > 0)
                     {
                         m_Dictionary[m_KeyList[i]] = i - removed;
                         m_KeyList[i - removed] = m_KeyList[i];
@@ -270,10 +270,21 @@ namespace HTC.UnityPlugin.Utility
                 }
             }
 
-            for (; removed > 0; --removed)
+            if (removed == 0)
             {
-                m_KeyList.RemoveAt(m_KeyList.Count - 1);
-                m_ValueList.RemoveAt(m_ValueList.Count - 1);
+                return;
+            }
+            else if (removed == Count)
+            {
+                Clear();
+            }
+            else
+            {
+                for (; removed > 0; --removed)
+                {
+                    m_KeyList.RemoveAt(m_KeyList.Count - 1);
+                    m_ValueList.RemoveAt(m_ValueList.Count - 1);
+                }
             }
         }
 

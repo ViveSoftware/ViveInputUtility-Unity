@@ -29,6 +29,14 @@ public class MaterialChanger : MonoBehaviour
     private HashSet<ColliderButtonEventData> presses = new HashSet<ColliderButtonEventData>();
     private IndexedSet<ColliderButtonEventData> drags = new IndexedSet<ColliderButtonEventData>();
 
+    public static void SetAllChildrenHeighlightButton(GameObject parent, ColliderButtonEventData.InputButton button)
+    {
+        var matChangers = ListPool<MaterialChanger>.Get();
+        parent.GetComponentsInChildren(matChangers);
+        for (int i = matChangers.Count - 1; i >= 0; --i) { matChangers[i].heighlightButton = button; }
+        ListPool<MaterialChanger>.Release(matChangers);
+    }
+
     private void Start()
     {
         UpdateMaterialState();
