@@ -144,10 +144,8 @@ namespace HTC.UnityPlugin.Utility
         {
             if (origin != null && origin != target.parent)
             {
-                pose = new RigidPose(origin) * pose;
-                pose.pos.Scale(origin.localScale);
-                target.position = pose.pos;
-                target.rotation = pose.rot;
+                target.position = origin.transform.TransformPoint(pose.pos);
+                target.rotation = origin.rotation * pose.rot;
             }
             else
             {

@@ -253,6 +253,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqFileNames = new string[] { "WaveVR.cs" },
             });
 
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_2_0_32_OR_NEWER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "wvr.Interop",
+                        name = "WVR_GetInputDeviceState",
+                        argTypeNames = new string[]
+                        {
+                            "wvr.WVR_DeviceType",
+                            "System.UInt32",
+                            "System.UInt32&",
+                            "System.UInt32&",
+                            "wvr.WVR_AnalogState_t[]",
+                            "System.UInt32",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+
             // Obsolete symbol, will be removed in all condition
             s_symbolReqList.Add(new SymbolRequirement()
             {

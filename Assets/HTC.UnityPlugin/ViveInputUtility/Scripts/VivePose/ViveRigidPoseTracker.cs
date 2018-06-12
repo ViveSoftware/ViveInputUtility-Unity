@@ -55,6 +55,7 @@ namespace HTC.UnityPlugin.Vive
         {
             rigid.velocity = Vector3.zero;
             rigid.angularVelocity = Vector3.zero;
+            base.OnDisable();
         }
 
         public override void OnNewPoses()

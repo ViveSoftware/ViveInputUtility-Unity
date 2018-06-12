@@ -39,16 +39,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void OnActivated()
         {
-            var system = OpenVR.System;
-            if (system != null)
-            {
-#if VIU_STEAMVR_1_2_3_OR_NEWER
-                m_hasInputFocus = system.IsInputAvailable();
-#elif VIU_STEAMVR_1_1_1 || VIU_STEAMVR_1_2_0_OR_NEWER
-                m_hasInputFocus = !system.IsInputFocusCapturedByAnotherProcess();
-#endif
-            }
-
             var compositor = OpenVR.Compositor;
             if (compositor != null)
             {
@@ -56,13 +46,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 UpdateTrackingSpaceType();
             }
 #if VIU_STEAMVR_1_2_1_OR_NEWER
-            SteamVR_Events.InputFocus.AddListener(OnInputFocus);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
-            SteamVR_Events.InputFocus.AddListener(OnInputFocus);
             SteamVR_Events.System("TrackedDeviceRoleChanged").AddListener(OnTrackedDeviceRoleChanged);
-#elif VIU_STEAMVR_1_1_1
-            SteamVR_Utils.Event.Listen("input_focus", OnInputFocusArgs);
+#else
             SteamVR_Utils.Event.Listen("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
         }
@@ -75,13 +62,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 compositor.SetTrackingSpace(m_prevTrackingSpace);
             }
 #if VIU_STEAMVR_1_2_1_OR_NEWER
-            SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
-            SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
             SteamVR_Events.System("TrackedDeviceRoleChanged").RemoveListener(OnTrackedDeviceRoleChanged);
-#elif VIU_STEAMVR_1_1_1
-            SteamVR_Utils.Event.Remove("input_focus", OnInputFocusArgs);
+#else
             SteamVR_Utils.Event.Remove("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
         }
@@ -116,8 +100,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return m_hasInputFocus;
         }
 #if VIU_STEAMVR_1_1_1
-        private void OnInputFocusArgs(params object[] args) { OnInputFocus((bool)args[0]); }
-
         private void OnTrackedDeviceRoleChangedArgs(params object[] args) { OnTrackedDeviceRoleChanged((VREvent_t)args[0]); }
 #endif
         private void OnInputFocus(bool value)
@@ -157,6 +139,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var system = OpenVR.System;
             var compositor = OpenVR.Compositor;
 
+#if VIU_STEAMVR_1_2_3_OR_NEWER
+            m_hasInputFocus = system == null ? false : system.IsInputAvailable();
+#else
+            m_hasInputFocus = system == null ? false : !system.IsInputFocusCapturedByAnotherProcess();
+#endif
+
             if (compositor != null)
             {
                 compositor.GetLastPoses(m_rawPoses, m_rawGamePoses);
@@ -170,7 +158,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return;
             }
 
-            for (uint i = 0; i < MAX_DEVICE_COUNT; ++i)
+            for (uint i = 0; i < MAX_DEVICE_COUNT && i < OpenVR.k_unMaxTrackedDeviceCount; ++i)
             {
                 currState[i].isConnected = m_rawPoses[i].bDeviceIsConnected;
 
@@ -211,7 +199,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         // get device state from openvr api
 #if VIU_STEAMVR_1_2_0_OR_NEWER
                         if (system == null || !system.GetControllerState(i, ref m_ctrlState, s_sizeOfControllerStats))
-#elif VIU_STEAMVR_1_1_1_OR_NEWER
+#else
                         if (system == null || !system.GetControllerState(i, ref m_ctrlState))
 #endif
                         {

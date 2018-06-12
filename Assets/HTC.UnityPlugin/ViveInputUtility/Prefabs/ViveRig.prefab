@@ -2578,7 +2578,7 @@ MeshRenderer:
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
+  - {fileID: 2100000, guid: 50143b523bb80ca4696e4d922443e44f, type: 2}
   m_SubsetIndices: 
   m_StaticBatchRoot: {fileID: 0}
   m_UseLightProbes: 1
@@ -2630,7 +2630,7 @@ MeshRenderer:
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
+  - {fileID: 2100000, guid: 50143b523bb80ca4696e4d922443e44f, type: 2}
   m_SubsetIndices: 
   m_StaticBatchRoot: {fileID: 0}
   m_UseLightProbes: 1
@@ -3378,6 +3378,10 @@ MonoBehaviour:
   showOnHitOnly: 1
   hitTarget: {fileID: 0}
   hitDistance: 0
+  defaultReticleMaterial: {fileID: 2100000, guid: 50143b523bb80ca4696e4d922443e44f,
+    type: 2}
+  reticleRenderer:
+  - {fileID: 2367626}
 --- !u!114 &11452568
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3739,6 +3743,8 @@ MonoBehaviour:
   showOnHitOnly: 1
   hitTarget: {fileID: 0}
   hitDistance: 0
+  defaultReticleMaterial: {fileID: 0}
+  reticleRenderer: []
 --- !u!114 &11480700
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3991,6 +3997,8 @@ MonoBehaviour:
   showOnHitOnly: 1
   hitTarget: {fileID: 0}
   hitDistance: 0
+  defaultReticleMaterial: {fileID: 0}
+  reticleRenderer: []
 --- !u!114 &11494136
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4040,6 +4048,10 @@ MonoBehaviour:
   showOnHitOnly: 1
   hitTarget: {fileID: 0}
   hitDistance: 0
+  defaultReticleMaterial: {fileID: 2100000, guid: 50143b523bb80ca4696e4d922443e44f,
+    type: 2}
+  reticleRenderer:
+  - {fileID: 2394866}
 --- !u!114 &11496784
 MonoBehaviour:
   m_ObjectHideFlags: 1

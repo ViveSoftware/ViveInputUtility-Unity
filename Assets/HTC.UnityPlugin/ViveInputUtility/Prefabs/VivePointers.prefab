@@ -727,6 +727,11 @@ MonoBehaviour:
   showOnHitOnly: 1
   hitTarget: {fileID: 0}
   hitDistance: 0
+  defaultReticleMaterial: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525,
+    type: 2}
+  reticleRenderer:
+  - {fileID: 2371780}
+  - {fileID: 2381596}
 --- !u!114 &11436958
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -804,6 +809,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
 --- !u!114 &11470716
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -821,6 +827,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -924,6 +931,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
   onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
@@ -1007,12 +1015,16 @@ MonoBehaviour:
   m_raycastMode: 0
   m_velocity: 3
   m_gravity: {x: 0, y: -1, z: 0}
-  buttonEventSource: 3
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: LeftHand
-  m_buttonEvents: 7
-  scrollDeltaScale: 50
+    m_roleValueInt: 0
+  m_mouseButtonLeft: 0
+  m_mouseButtonMiddle: 2
+  m_mouseButtonRight: 1
+  m_additionalButtons: 0
+  m_scrollType: 0
+  m_scrollDeltaScale: {x: 1, y: -1}
 --- !u!114 &11493680
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1032,12 +1044,16 @@ MonoBehaviour:
   m_raycastMode: 0
   m_velocity: 3
   m_gravity: {x: 0, y: -1, z: 0}
-  buttonEventSource: 3
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
-  m_buttonEvents: 7
-  scrollDeltaScale: 50
+    m_roleValueInt: 0
+  m_mouseButtonLeft: 0
+  m_mouseButtonMiddle: 2
+  m_mouseButtonRight: 1
+  m_additionalButtons: 0
+  m_scrollType: 0
+  m_scrollDeltaScale: {x: 1, y: -1}
 --- !u!114 &11495674
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1052,6 +1068,7 @@ MonoBehaviour:
   m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
+    m_roleValueInt: 0
 --- !u!114 &11495984
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1069,6 +1086,11 @@ MonoBehaviour:
   showOnHitOnly: 1
   hitTarget: {fileID: 0}
   hitDistance: 0
+  defaultReticleMaterial: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525,
+    type: 2}
+  reticleRenderer:
+  - {fileID: 2332894}
+  - {fileID: 2333998}
 --- !u!114 &11497058
 MonoBehaviour:
   m_ObjectHideFlags: 1

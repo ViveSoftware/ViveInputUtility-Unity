@@ -45,6 +45,14 @@ namespace HTC.UnityPlugin.Vive
                     {
                         gameObject.AddComponent<VivePoseTracker>().viveRole.SetEx(DeviceRole.Hmd);
                     }
+                    if (GetComponentsInChildren<AudioListener>().Length > 1)
+                    {
+                        var listener = GetComponent<AudioListener>();
+                        if (listener != null)
+                        {
+                            Destroy(listener);
+                        }
+                    }
                     break;
 #endif
                 default:

@@ -380,7 +380,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static bool supportAnyStandaloneVR { get { return supportOpenVR || supportOculus; } }
 
-        public static bool supportAnyAndroidVR { get { return supportDaydream; } }
+        public static bool supportAnyAndroidVR { get { return supportDaydream || supportWaveVR; } }
 
         public static bool supportAnyVR { get { return supportAnyStandaloneVR || supportAnyAndroidVR; } }
 
@@ -643,7 +643,11 @@ namespace HTC.UnityPlugin.Vive
             s_scrollValue = EditorGUILayout.BeginScrollView(s_scrollValue);
 
             EditorGUILayout.LabelField("<b>VIVE Input Utility v" + VIUVersion.current + "</b>", s_labelStyle);
+
+            GUILayout.BeginHorizontal();
             ShowGetReleaseNoteButton();
+            ShowCheckRecommendedSettingsButton();
+            GUILayout.EndHorizontal();
 
             GUILayout.Space(10);
 
@@ -967,6 +971,15 @@ namespace HTC.UnityPlugin.Vive
                 //    EditorGUILayout.HelpBox("AndroidNdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
                 //}
 
+#if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
+                if (PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android).Equals("com.Company.ProductName"))
+#else
+                if (PlayerSettings.bundleIdentifier.Equals("com.Company.ProductName"))
+#endif
+                {
+                    EditorGUILayout.HelpBox("Cannot build using default package name. Change at Edit -> Project Settings -> Player -> Android settings -> Other Settings -> Identification(Package Name)", MessageType.Warning);
+                }
+
                 EditorGUI.indentLevel -= 2;
             }
 
@@ -1045,6 +1058,8 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 EditorUtility.SetDirty(VIUSettings.Instance);
+
+                VIUVersionCheck.UpdateIgnoredNotifiedSettingsCount(false);
             }
 
             if (!string.IsNullOrEmpty(assetPath))
@@ -1106,6 +1121,16 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
+        private static void ShowCheckRecommendedSettingsButton()
+        {
+            if (VIUVersionCheck.notifiedSettingsCount <= 0) { return; }
+
+            if (GUILayout.Button("View Recommended Settings", GUILayout.ExpandWidth(false)))
+            {
+                VIUVersionCheck.TryOpenRecommendedSettingWindow();
+            }
+        }
+
         private static void ShowGetSteamVRPluginButton()
         {
             const string url = "https://www.assetstore.unity3d.com/en/#!/content/32647";
@@ -1138,7 +1163,7 @@ namespace HTC.UnityPlugin.Vive
 
         private static void ShowGetWaveVRPluginButton()
         {
-            const string url = "https://hub.vive.com/profile/material-download";
+            const string url = "https://vivedeveloper.com/knowledgebase/wave-sdk/";
 
             if (GUILayout.Button(new GUIContent("Get Plugin", url), GUILayout.ExpandWidth(false)))
             {
