@@ -270,5 +270,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Interop.WVR_TriggerVibrator(m_deviceTypes[deviceIndex], WVR_InputId.WVR_InputId_Alias1_Touchpad, durationMicroSec);
         }
 #endif
-                }
+    }
 }
