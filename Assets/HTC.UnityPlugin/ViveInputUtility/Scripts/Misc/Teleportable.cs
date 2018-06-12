@@ -35,6 +35,12 @@ namespace HTC.UnityPlugin.Vive
         private void Reset()
         {
             FindTeleportPivotAndTarget();
+
+            var scriptDir = System.IO.Path.GetDirectoryName(UnityEditor.AssetDatabase.GetAssetPath(UnityEditor.MonoScript.FromMonoBehaviour(this)));
+            if (!string.IsNullOrEmpty(scriptDir))
+            {
+                m_reticleMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>(scriptDir.Replace("Scripts/Misc", "Materials/Reticle.mat"));
+            }
         }
 #endif
         private void FindTeleportPivotAndTarget()
