@@ -1,30 +1,37 @@
 # VIVE Input Utility for Unity
 Copyright 2016-2018, HTC Corporation. All rights reserved.
 
+## About
 
-## Introduction:
+VIVE Input Utility (VIU) is a toolkit that helps developing/prototyping VR apps, especially with VIVE.
 
-- VIVE Input Utility (VIU) is an Unity plugin that allows developers 
-to access [VIVE](https://www.vive.com/) device status, 
-including [VIVE Tracker](https://www.vive.com/us/vive-tracker/).
+## Requirements
 
-- We also introduce a mouse pointer solution that works in 3D space and 
-is compatible with the Unity Event System, and a device binding 
-system to manage multiple tracking devices.
+- Unity 5.3.6 or newer versions
 
-- Our goal is to accelerate Unity developers making new VR apps and 
-discovering new VR experience by saving their time in writing redundant 
-code managing Vive devices.
+## Features
 
+- API to access device input/tracking by role (eg. LeftHand/RightHand), instead of device index
+- Binding system, able to bind device to specific role, help manage multiple tracking devices
+- UI Pointer (EventSystem compatible)
+- Teleport
+- Object Grabbing/Throwing example
 
-## Requirements:
+## Supporting device
 
-- Unity 5.3.6 or newer versions to open this project
+* Simulator (Usage) 
+* VIVE (OpenVR compatible device) 
+* Oculus Rift & Touch 
+* Daydream 
+* VIVE Focus (WaveVR compatible device)
 
-- If your target device is Vive or other OpenVR compatible device, also import SteamVR plugin form [Unity Asset Store](http://u3d.as/content/valve-corporation/steam-vr-plugin)
+([How to switch device](https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/VIU-Settings))
 
-- If your target device is Oculus, also import OVRPlugin from [Oculus develop website](https://developer.oculus.com/downloads/package/oculus-utilities-for-unity-5/)
+## Contact Us 
 
+Email: ViveSoftware@htc.com
+
+Repository: [GitHub](https://github.com/ViveSoftware/ViveInputUtility-Unity)
 
 ## Contributing guidelines:
 
