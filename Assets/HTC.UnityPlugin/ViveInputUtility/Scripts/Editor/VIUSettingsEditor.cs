@@ -1163,7 +1163,7 @@ namespace HTC.UnityPlugin.Vive
 
         private static void ShowGetWaveVRPluginButton()
         {
-            const string url = "https://vivedeveloper.com/knowledgebase/wave-sdk/";
+            const string url = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
 
             if (GUILayout.Button(new GUIContent("Get Plugin", url), GUILayout.ExpandWidth(false)))
             {
