@@ -19,7 +19,7 @@ The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity
 
 ## Supporting device
 
-* Simulator (Usage) 
+* Simulator ([Usage](https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Simulator)) 
 * VIVE (OpenVR compatible device) 
 * Oculus Rift & Touch 
 * Daydream 
