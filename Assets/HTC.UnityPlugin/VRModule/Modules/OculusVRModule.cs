@@ -118,9 +118,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
             for (uint i = 0; i < MAX_DEVICE_COUNT; ++i)
             {
                 var node = s_index2node[i];
-                if (node == OVRPlugin.Node.HandRight)
+
+                if (node == OVRPlugin.Node.HandRight || node == OVRPlugin.Node.HandLeft)
                 {
-                    OVRInput.Controller activeController = OVRInput.Controller.RTrackedRemote;
+                    OVRInput.Controller activeController;
+
+                    if (node == OVRPlugin.Node.HandRight)
+                    {
+                        activeController = OVRInput.Controller.RTrackedRemote;
+                    }
+                    else
+                    {
+                        activeController = OVRInput.Controller.LTrackedRemote;
+                    }
 
                     currState[i].isConnected = true;
                     currState[i].deviceClass = VRModuleDeviceClass.Controller;
