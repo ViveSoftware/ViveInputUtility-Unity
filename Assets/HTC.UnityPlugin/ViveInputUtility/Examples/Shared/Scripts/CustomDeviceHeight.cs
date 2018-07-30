@@ -48,12 +48,18 @@ namespace HTC.UnityPlugin.Vive
 
         public void UpdateHeight()
         {
+            var pos = transform.localPosition;
+
             switch (VRModule.activeModule)
             {
                 case VRModuleActiveEnum.DayDream:
-                    var pos = transform.localPosition;
                     transform.localPosition = new Vector3(pos.x, m_height, pos.y);
                     break;
+#if UNITY_ANDROID
+                case VRModuleActiveEnum.OculusVR:
+                    transform.localPosition = new Vector3(pos.x, m_height, pos.y);
+                    break;
+#endif
             }
         }
     }

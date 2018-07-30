@@ -454,7 +454,11 @@ namespace HTC.UnityPlugin.Vive
             get
             {
                 return
+#if UNITY_ANDROID
+                    activeBuildTargetGroup == BuildTargetGroup.Android
+#else
                     activeBuildTargetGroup == BuildTargetGroup.Standalone
+#endif
 #if !UNITY_5_5_OR_NEWER
                     && VRModule.isOculusVRPluginDetected
 #endif
