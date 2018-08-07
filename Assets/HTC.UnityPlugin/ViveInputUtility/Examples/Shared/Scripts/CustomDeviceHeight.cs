@@ -55,11 +55,6 @@ namespace HTC.UnityPlugin.Vive
                 case VRModuleActiveEnum.DayDream:
                     transform.localPosition = new Vector3(pos.x, m_height, pos.y);
                     break;
-#if UNITY_ANDROID
-                case VRModuleActiveEnum.OculusVR:
-                    transform.localPosition = new Vector3(pos.x, m_height, pos.y);
-                    break;
-#endif
             }
         }
     }

@@ -32,7 +32,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         DaydreamController,
         ViveFocusHMD,
         ViveFocusFinch,
-        OculusGoController,
+        OculusGoControllerLeft,
+        OculusGoControllerRight,
     }
 
     public enum VRModuleRawButton
