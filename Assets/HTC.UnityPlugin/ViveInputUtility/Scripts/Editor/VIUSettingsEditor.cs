@@ -226,6 +226,7 @@ namespace HTC.UnityPlugin.Vive
                 WaveVR,
                 AutoBinding,
                 BindingUISwitch,
+                OculusGo,
             }
 
             //private static string s_prefKey;
@@ -592,12 +593,7 @@ namespace HTC.UnityPlugin.Vive
         {
             get
             {
-                return
-                    activeBuildTargetGroup == BuildTargetGroup.Android;
-#if UNITY_5_6_0 || UNITY_5_6_1 || UNITY_5_6_2
-                    && VRModule.isOculusVRPluginDetected
-#endif
-                ;
+                return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isOculusVRPluginDetected;
             }
         }
 
@@ -606,7 +602,7 @@ namespace HTC.UnityPlugin.Vive
             get
             {
                 if (!canSupportOculusGo) { return false; }
-                if (!(VIUSettings.activateOculusVRModule || VIUSettings.activateUnityNativeVRModule)) { return false; }
+                if (!VIUSettings.activateOculusVRModule) { return false; }
                 if (!OculusSDK.enabled) { return false; }
                 if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel21) { return false; }
                 if (PlayerSettings.graphicsJobs) { return false; }
@@ -615,11 +611,10 @@ namespace HTC.UnityPlugin.Vive
             }
             set
             {
-                if (supportOculus == value) { return; }
+                if (supportOculusGo == value) { return; }
 
                 OculusSDK.enabled = value;
                 VIUSettings.activateOculusVRModule = value;
-                VIUSettings.activateUnityNativeVRModule = value;
 
                 if (value)
                 {
@@ -987,6 +982,23 @@ namespace HTC.UnityPlugin.Vive
                 EditorGUILayout.HelpBox("WaveVR device not supported in Editor Mode. Please run on target device.", MessageType.Info);
 
                 EditorGUI.indentLevel -= 2;
+            }
+
+            GUILayout.Space(5);
+
+            const string supportOculusGoTitle = "Oculus Go";
+            if (canSupportOculusGo)
+            {
+                supportOculusGo = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(supportOculusGoTitle), supportOculusGo);
+            }
+            else
+            {
+                GUILayout.BeginHorizontal();
+                Foldouter.ShowFoldoutBlank();
+                GUI.enabled = false;
+                ShowToggle(new GUIContent(supportOculusGoTitle), false, GUILayout.Width(226f));
+                GUI.enabled = true;
+                GUILayout.EndHorizontal();
             }
 
             GUILayout.Space(5);

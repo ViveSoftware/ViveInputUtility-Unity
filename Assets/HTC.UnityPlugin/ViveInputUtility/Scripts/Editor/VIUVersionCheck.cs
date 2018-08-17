@@ -443,7 +443,8 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 #endif
-            // OculusGo recommended settings
+            // Oculus mobile recommended settings
+            // https://developer.oculus.com/blog/tech-note-unity-settings-for-mobile-vr/
             s_settings.Add(new RecommendedSetting<MobileTextureSubtarget>()
             {
                 settingTitle = "Texture Compression",
@@ -745,7 +746,7 @@ namespace HTC.UnityPlugin.Vive
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Use Oculus Mobile recommended Graphics Tier Settings",
-                skipCheckFunc = () => VIUSettingsEditor.supportOculusGo,
+                skipCheckFunc = () => !VIUSettingsEditor.supportOculusGo,
                 currentValueFunc = () =>
                 {
                     var tierSettings = default(TierSettings);
