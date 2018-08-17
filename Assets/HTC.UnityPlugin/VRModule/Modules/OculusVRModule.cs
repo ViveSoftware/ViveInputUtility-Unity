@@ -125,13 +125,48 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     if (!prevState[i].isConnected)
                     {
-                        currState[i].deviceClass = s_node2class[(int)node];
-                        // FIXME: how to get product id from OVRPlugin?
-                        currState[i].serialNumber = OVRPlugin.productName + " " + node.ToString();
-                        currState[i].modelNumber = OVRPlugin.productName + " " + node.ToString();
-                        currState[i].renderModelName = OVRPlugin.productName + " " + node.ToString();
+                        var ovrProductName = OVRPlugin.productName;
+                        var deviceClass = s_node2class[(int)node];
 
-                        SetupKnownDeviceModel(currState[i]);
+                        switch (deviceClass)
+                        {
+                            case VRModuleDeviceClass.HMD:
+                                currState[i].deviceModel = VRModuleDeviceModel.OculusHMD;
+                                break;
+                            case VRModuleDeviceClass.TrackingReference:
+                                currState[i].deviceModel = VRModuleDeviceModel.OculusSensor;
+                                break;
+                            case VRModuleDeviceClass.Controller:
+                                switch (ovrProductName)
+                                {
+                                    case "Oculus Go":
+                                        currState[i].deviceModel = VRModuleDeviceModel.OculusGoController;
+                                        break;
+                                    case "Gear VR":
+                                        currState[i].deviceModel = VRModuleDeviceModel.OculusGearVrController;
+                                        break;
+                                    case "Oculus Rift":
+                                    default:
+                                        switch (node)
+                                        {
+                                            case OVRPlugin.Node.HandLeft:
+                                                currState[i].deviceModel = VRModuleDeviceModel.OculusTouchLeft;
+                                                break;
+                                            case OVRPlugin.Node.HandRight:
+                                            default:
+                                                currState[i].deviceModel = VRModuleDeviceModel.OculusTouchRight;
+                                                break;
+                                        }
+                                        break;
+                                }
+                                break;
+                        }
+
+                        currState[i].deviceClass = deviceClass;
+                        // FIXME: how to get device id from OVRPlugin?
+                        currState[i].modelNumber = ovrProductName + " " + deviceClass;
+                        currState[i].renderModelName = ovrProductName + " " + deviceClass;
+                        currState[i].serialNumber = ovrProductName + " " + deviceClass;
                     }
 
                     // update device status
@@ -190,36 +225,43 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 currState[i].SetAxisValue(VRModuleRawAxis.CapSenseGrip, ctrlState.RHandTrigger);
                                 break;
                             }
-                        case VRModuleDeviceModel.OculusGoControllerLeft:
+                        case VRModuleDeviceModel.OculusGoController:
+                        case VRModuleDeviceModel.OculusGearVrController:
+                            switch (node)
                             {
-                                var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.LTrackedRemote);
+                                case OVRPlugin.Node.HandLeft:
+                                    {
+                                        var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.LTrackedRemote);
 
-                                currState[i].SetButtonPress(VRModuleRawButton.Touchpad, (ctrlState.Buttons & (uint)OVRInput.RawButton.LTouchpad) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.ApplicationMenu, (ctrlState.Buttons & (uint)OVRInput.RawButton.Back) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.Trigger, (ctrlState.Buttons & (uint)OVRInput.RawButton.LIndexTrigger) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.DPadLeft, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadLeft) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.DPadUp, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadUp) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.DPadRight, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadRight) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.DPadDown, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadDown) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.Touchpad, (ctrlState.Buttons & (uint)OVRInput.RawButton.LTouchpad) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.ApplicationMenu, (ctrlState.Buttons & (uint)OVRInput.RawButton.Back) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.Trigger, (ctrlState.Buttons & (uint)OVRInput.RawButton.LIndexTrigger) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.DPadLeft, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadLeft) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.DPadUp, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadUp) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.DPadRight, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadRight) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.DPadDown, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadDown) != 0u);
 
-                                currState[i].SetButtonTouch(VRModuleRawButton.Touchpad, (ctrlState.Touches & (uint)OVRInput.RawTouch.None) != 0u);
-                                break;
+                                        currState[i].SetButtonTouch(VRModuleRawButton.Touchpad, (ctrlState.Touches & (uint)OVRInput.RawTouch.None) != 0u);
+                                    }
+                                    break;
+                                case OVRPlugin.Node.HandRight:
+                                default:
+                                    {
+                                        var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.RTrackedRemote);
+
+                                        currState[i].SetButtonPress(VRModuleRawButton.Touchpad, (ctrlState.Buttons & unchecked((uint)OVRInput.RawButton.RTouchpad)) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.ApplicationMenu, (ctrlState.Buttons & (uint)OVRInput.RawButton.Back) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.Trigger, (ctrlState.Buttons & (uint)OVRInput.RawButton.RIndexTrigger) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.DPadLeft, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadLeft) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.DPadUp, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadUp) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.DPadRight, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadRight) != 0u);
+                                        currState[i].SetButtonPress(VRModuleRawButton.DPadDown, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadDown) != 0u);
+
+                                        currState[i].SetButtonTouch(VRModuleRawButton.Touchpad, (ctrlState.Touches & (uint)OVRInput.RawTouch.None) != 0u);
+                                    }
+                                    break;
                             }
-                        case VRModuleDeviceModel.OculusGoControllerRight:
-                            {
-                                var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.RTrackedRemote);
-
-                                currState[i].SetButtonPress(VRModuleRawButton.Touchpad, (ctrlState.Buttons & unchecked((uint)OVRInput.RawButton.RTouchpad)) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.ApplicationMenu, (ctrlState.Buttons & (uint)OVRInput.RawButton.Back) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.Trigger, (ctrlState.Buttons & (uint)OVRInput.RawButton.RIndexTrigger) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.DPadLeft, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadLeft) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.DPadUp, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadUp) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.DPadRight, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadRight) != 0u);
-                                currState[i].SetButtonPress(VRModuleRawButton.DPadDown, (ctrlState.Buttons & (uint)OVRInput.RawButton.DpadDown) != 0u);
-
-                                currState[i].SetButtonTouch(VRModuleRawButton.Touchpad, (ctrlState.Touches & (uint)OVRInput.RawTouch.None) != 0u);
-                                break;
-                            }
+                            break;
                     }
                 }
                 else

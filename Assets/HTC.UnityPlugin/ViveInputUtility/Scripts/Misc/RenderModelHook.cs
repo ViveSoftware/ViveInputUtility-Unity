@@ -50,8 +50,8 @@ namespace HTC.UnityPlugin.Vive
             OculusSensor = VRModuleDeviceModel.OculusSensor,
             KnucklesLeft = VRModuleDeviceModel.KnucklesLeft,
             KnucklesRight = VRModuleDeviceModel.KnucklesRight,
-            OculusGoControllerLeft = VRModuleDeviceModel.OculusGoControllerLeft,
-            OculusGoControllerRight = VRModuleDeviceModel.OculusGoControllerRight,
+            OculusGoController = VRModuleDeviceModel.OculusGoController,
+            OculusGearVrController = VRModuleDeviceModel.OculusGearVrController,
         }
 
         [SerializeField]

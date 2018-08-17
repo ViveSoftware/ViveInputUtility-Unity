@@ -79,18 +79,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.OculusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-#if UNITY_ANDROID
-                            if (s_leftRgx.IsMatch(deviceState.modelNumber))
-                            {
-                                deviceState.deviceModel = VRModuleDeviceModel.OculusGoControllerLeft;
-                                return;
-                            }
-                            else if (s_rightRgx.IsMatch(deviceState.modelNumber))
-                            {
-                                deviceState.deviceModel = VRModuleDeviceModel.OculusGoControllerRight;
-                                return;
-                            }
-#else
                             if (s_leftRgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
@@ -101,7 +89,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 deviceState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
                                 return;
                             }
-#endif
                             break;
                         case VRModuleDeviceClass.TrackingReference:
                             deviceState.deviceModel = VRModuleDeviceModel.OculusSensor;

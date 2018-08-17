@@ -140,6 +140,7 @@ namespace HTC.UnityPlugin.Vive
                     if (element.FindPropertyRelative("m_BuildTarget").stringValue == buildTargetGroupName)
                     {
                         targetVRSettings = element;
+                        break;
                     }
                 }
 
@@ -380,7 +381,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static bool supportAnyStandaloneVR { get { return supportOpenVR || supportOculus; } }
 
-        public static bool supportAnyAndroidVR { get { return supportDaydream || supportWaveVR; } }
+        public static bool supportAnyAndroidVR { get { return supportDaydream || supportWaveVR || supportOculusGo; } }
 
         public static bool supportAnyVR { get { return supportAnyStandaloneVR || supportAnyAndroidVR; } }
 
@@ -454,12 +455,8 @@ namespace HTC.UnityPlugin.Vive
             get
             {
                 return
-#if UNITY_ANDROID
-                    activeBuildTargetGroup == BuildTargetGroup.Android
-#else
                     activeBuildTargetGroup == BuildTargetGroup.Standalone
-#endif
-#if !UNITY_5_5_OR_NEWER
+#if !UNITY_5_5_OR_NEWER || UNITY_5_6_0 || UNITY_5_6_1 || UNITY_5_6_2
                     && VRModule.isOculusVRPluginDetected
 #endif
                     ;
@@ -508,22 +505,11 @@ namespace HTC.UnityPlugin.Vive
         {
             get
             {
-                if (!canSupportDaydream || !VIUSettings.activateGoogleVRModule || !DaydreamSDK.enabled || PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel24)
-                {
-                    return false;
-                }
-
-                if (PlayerSettings.colorSpace == ColorSpace.Linear)
-                {
-                    if (PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android) == true) { return false; }
-
-                    var apiList = ListPool<GraphicsDeviceType>.Get();
-                    apiList.AddRange(PlayerSettings.GetGraphicsAPIs(BuildTarget.Android));
-                    var result = !apiList.Contains(GraphicsDeviceType.OpenGLES2) && apiList.Contains(GraphicsDeviceType.OpenGLES3) && !apiList.Contains(GraphicsDeviceType.Vulkan);
-                    ListPool<GraphicsDeviceType>.Release(apiList);
-                    return result;
-                }
-
+                if (!canSupportDaydream) { return false; }
+                if (!VIUSettings.activateGoogleVRModule) { return false; }
+                if (!DaydreamSDK.enabled) { return false; }
+                if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel24) { return false; }
+                if (PlayerSettings.colorSpace == ColorSpace.Linear && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
                 return true;
             }
             set
@@ -542,15 +528,7 @@ namespace HTC.UnityPlugin.Vive
 
                     if (PlayerSettings.colorSpace == ColorSpace.Linear)
                     {
-                        PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
-                        var listChanged = false;
-                        var apiList = ListPool<GraphicsDeviceType>.Get();
-                        apiList.AddRange(PlayerSettings.GetGraphicsAPIs(BuildTarget.Android));
-                        if (!apiList.Contains(GraphicsDeviceType.OpenGLES3)) { apiList.Add(GraphicsDeviceType.OpenGLES3); listChanged = true; }
-                        // FIXME: Daydream SDK currently not support Vulkan API
-                        if (apiList.Remove(GraphicsDeviceType.Vulkan)) { listChanged = true; }
-                        if (apiList.Remove(GraphicsDeviceType.OpenGLES2)) { listChanged = true; }
-                        if (listChanged) { PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, apiList.ToArray()); }
+                        SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
                     }
                 }
             }
@@ -574,25 +552,11 @@ namespace HTC.UnityPlugin.Vive
         {
             get
             {
-                if (!canSupportWaveVR ||
-                    !VIUSettings.activateWaveVRModule ||
-                    virtualRealitySupported ||
-                    PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23)
-                {
-                    return false;
-                }
-
-                if (PlayerSettings.colorSpace == ColorSpace.Linear)
-                {
-                    if (PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android) == true) { return false; }
-
-                    var apiList = ListPool<GraphicsDeviceType>.Get();
-                    apiList.AddRange(PlayerSettings.GetGraphicsAPIs(BuildTarget.Android));
-                    var result = !apiList.Contains(GraphicsDeviceType.OpenGLES2) && apiList.Contains(GraphicsDeviceType.OpenGLES3) && !apiList.Contains(GraphicsDeviceType.Vulkan);
-                    ListPool<GraphicsDeviceType>.Release(apiList);
-                    return result;
-                }
-
+                if (!canSupportWaveVR) { return false; }
+                if (!VIUSettings.activateWaveVRModule) { return false; }
+                if (virtualRealitySupported) { return false; }
+                if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23) { return false; }
+                if (PlayerSettings.colorSpace == ColorSpace.Linear && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
                 return true;
             }
             set
@@ -612,15 +576,7 @@ namespace HTC.UnityPlugin.Vive
 
                     if (PlayerSettings.colorSpace == ColorSpace.Linear)
                     {
-                        PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
-                        var listChanged = false;
-                        var apiList = ListPool<GraphicsDeviceType>.Get();
-                        apiList.AddRange(PlayerSettings.GetGraphicsAPIs(BuildTarget.Android));
-                        if (!apiList.Contains(GraphicsDeviceType.OpenGLES3)) { apiList.Add(GraphicsDeviceType.OpenGLES3); listChanged = true; }
-                        // FIXME: WaveVR SDK currently not support Vulkan API
-                        if (apiList.Remove(GraphicsDeviceType.Vulkan)) { listChanged = true; }
-                        if (apiList.Remove(GraphicsDeviceType.OpenGLES2)) { listChanged = true; }
-                        if (listChanged) { PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, apiList.ToArray()); }
+                        SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
                     }
                 }
             }
@@ -630,6 +586,87 @@ namespace HTC.UnityPlugin.Vive
 
         public static bool supportWaveVR { get { return false; } set { } }
 #endif
+
+#if UNITY_5_6_OR_NEWER
+        public static bool canSupportOculusGo
+        {
+            get
+            {
+                return
+                    activeBuildTargetGroup == BuildTargetGroup.Android;
+#if UNITY_5_6_0 || UNITY_5_6_1 || UNITY_5_6_2
+                    && VRModule.isOculusVRPluginDetected
+#endif
+                ;
+            }
+        }
+
+        public static bool supportOculusGo
+        {
+            get
+            {
+                if (!canSupportOculusGo) { return false; }
+                if (!(VIUSettings.activateOculusVRModule || VIUSettings.activateUnityNativeVRModule)) { return false; }
+                if (!OculusSDK.enabled) { return false; }
+                if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel21) { return false; }
+                if (PlayerSettings.graphicsJobs) { return false; }
+                if ((PlayerSettings.colorSpace == ColorSpace.Linear || PlayerSettings.gpuSkinning) && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
+                return true;
+            }
+            set
+            {
+                if (supportOculus == value) { return; }
+
+                OculusSDK.enabled = value;
+                VIUSettings.activateOculusVRModule = value;
+                VIUSettings.activateUnityNativeVRModule = value;
+
+                if (value)
+                {
+                    if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel21)
+                    {
+                        PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel21;
+                    }
+
+                    PlayerSettings.graphicsJobs = false;
+
+                    if (PlayerSettings.colorSpace == ColorSpace.Linear || PlayerSettings.gpuSkinning)
+                    {
+                        SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
+                    }
+                }
+            }
+        }
+#else
+        public static bool canSupportOculusGo { get { return false; } }
+
+        public static bool supportOculusGo { get { return false; } set { } }
+#endif
+
+        public static bool GraphicsAPIContainsOnly(BuildTarget buildTarget, params GraphicsDeviceType[] types)
+        {
+            if (PlayerSettings.GetUseDefaultGraphicsAPIs(buildTarget)) { return false; }
+
+            var result = false;
+            var apiList = ListPool<GraphicsDeviceType>.Get();
+            apiList.AddRange(PlayerSettings.GetGraphicsAPIs(buildTarget));
+            if (types.Length == apiList.Count)
+            {
+                result = true;
+                for (int i = 0, imax = apiList.Count; i < imax; ++i)
+                {
+                    if (apiList[i] != types[i]) { result = false; break; }
+                }
+            }
+            ListPool<GraphicsDeviceType>.Release(apiList);
+            return result;
+        }
+
+        public static void SetGraphicsAPI(BuildTarget buildTarget, params GraphicsDeviceType[] types)
+        {
+            PlayerSettings.SetUseDefaultGraphicsAPIs(buildTarget, false);
+            PlayerSettings.SetGraphicsAPIs(buildTarget, types);
+        }
 
         [PreferenceItem("VIU Settings")]
         private static void OnVIUPreferenceGUI()
