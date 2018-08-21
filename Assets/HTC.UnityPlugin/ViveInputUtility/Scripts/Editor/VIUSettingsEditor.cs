@@ -229,7 +229,6 @@ namespace HTC.UnityPlugin.Vive
                 OculusGo,
             }
 
-            //private static string s_prefKey;
             private static bool s_initialized;
             private static uint s_expendedFlags;
             private static GUIStyle s_styleFoleded;
@@ -349,7 +348,12 @@ namespace HTC.UnityPlugin.Vive
             //}
         }
 
-        //private const float s_buttonIndent = 35f;
+        public const string URL_VIU_GITHUB_RELEASE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
+        public const string URL_STEAM_VR_PLUGIN = "https://www.assetstore.unity3d.com/en/#!/content/32647";
+        public const string URL_OCULUS_VR_PLUGIN = "https://developer.oculus.com/downloads/package/oculus-utilities-for-unity-5/";
+        public const string URL_GOOGLE_VR_PLUGIN = "https://developers.google.com/vr/develop/unity/download";
+        public const string URL_WAVE_VR_PLUGIN = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
+
         private static Vector2 s_scrollValue = Vector2.zero;
         private static float s_warningHeight;
         private static GUIStyle s_labelStyle;
@@ -517,9 +521,6 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (supportDaydream == value) { return; }
 
-                DaydreamSDK.enabled = value;
-                VIUSettings.activateGoogleVRModule = value;
-
                 if (value)
                 {
                     if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel24)
@@ -531,7 +532,13 @@ namespace HTC.UnityPlugin.Vive
                     {
                         SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
                     }
+
+                    supportWaveVR = false;
+                    supportOculusGo = false;
                 }
+
+                DaydreamSDK.enabled = value;
+                VIUSettings.activateGoogleVRModule = value;
             }
         }
 #else
@@ -564,8 +571,6 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (supportWaveVR == value) { return; }
 
-                VIUSettings.activateWaveVRModule = value;
-
                 if (value)
                 {
                     virtualRealitySupported = false;
@@ -579,7 +584,12 @@ namespace HTC.UnityPlugin.Vive
                     {
                         SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
                     }
+
+                    supportDaydream = false;
+                    supportOculusGo = false;
                 }
+
+                VIUSettings.activateWaveVRModule = value;
             }
         }
 #else
@@ -613,11 +623,11 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (supportOculusGo == value) { return; }
 
-                OculusSDK.enabled = value;
-                VIUSettings.activateOculusVRModule = value;
-
                 if (value)
                 {
+                    supportWaveVR = false;
+                    supportDaydream = false;
+
                     if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel21)
                     {
                         PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel21;
@@ -630,6 +640,9 @@ namespace HTC.UnityPlugin.Vive
                         SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
                     }
                 }
+
+                OculusSDK.enabled = value;
+                VIUSettings.activateOculusVRModule = value;
             }
         }
 #else
@@ -681,7 +694,7 @@ namespace HTC.UnityPlugin.Vive
             EditorGUILayout.LabelField("<b>VIVE Input Utility v" + VIUVersion.current + "</b>", s_labelStyle);
 
             GUILayout.BeginHorizontal();
-            ShowGetReleaseNoteButton();
+            ShowUrlLinkButton(URL_VIU_GITHUB_RELEASE_PAGE, "Release Note");
             ShowCheckRecommendedSettingsButton();
             GUILayout.EndHorizontal();
 
@@ -750,7 +763,7 @@ namespace HTC.UnityPlugin.Vive
                     ShowToggle(new GUIContent(supportOpenVRTitle, "SteamVR Plugin required."), false, GUILayout.Width(230f));
                     GUI.enabled = true;
                     GUILayout.FlexibleSpace();
-                    ShowGetSteamVRPluginButton();
+                    ShowUrlLinkButton(URL_STEAM_VR_PLUGIN);
                 }
 
                 GUILayout.EndHorizontal();
@@ -826,7 +839,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     GUILayout.BeginVertical(GUILayout.Height(s_warningHeight));
                     GUILayout.FlexibleSpace();
-                    ShowGetSteamVRPluginButton();
+                    ShowUrlLinkButton(URL_STEAM_VR_PLUGIN);
                     GUILayout.FlexibleSpace();
                     GUILayout.EndVertical();
                 }
@@ -861,7 +874,7 @@ namespace HTC.UnityPlugin.Vive
                     ShowToggle(new GUIContent(supportOculusVRTitle, "Oculus VR Plugin required."), false, GUILayout.Width(150f));
                     GUI.enabled = true;
                     GUILayout.FlexibleSpace();
-                    ShowGetOculusVRPluginButton();
+                    ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN);
                 }
 
                 GUILayout.EndHorizontal();
@@ -904,7 +917,7 @@ namespace HTC.UnityPlugin.Vive
                 else if (!VRModule.isGoogleVRPluginDetected)
                 {
                     GUILayout.FlexibleSpace();
-                    ShowGetGoogleVRPluginButton();
+                    ShowUrlLinkButton(URL_GOOGLE_VR_PLUGIN);
                 }
 #endif
                 GUILayout.EndHorizontal();
@@ -941,36 +954,30 @@ namespace HTC.UnityPlugin.Vive
             }
             else
             {
+                const float wvrToggleWidth = 226f;
                 GUILayout.BeginHorizontal();
                 Foldouter.ShowFoldoutBlank();
-
-                var tooltip = string.Empty;
 #if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
                 if (activeBuildTargetGroup != BuildTargetGroup.Android)
                 {
-                    tooltip = "Android platform required.";
-                }
-                else if (!VRModule.isWaveVRPluginDetected)
-                {
-                    tooltip = "Wave VR plugin required.";
-                }
-#else
-                tooltip = "Unity 5.6.3 or later version required.";
-#endif
-                GUI.enabled = false;
-                ShowToggle(new GUIContent(supportWaveVRTitle, tooltip), false, GUILayout.Width(226f));
-                GUI.enabled = true;
-#if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
-                if (activeBuildTargetGroup != BuildTargetGroup.Android)
-                {
+                    GUI.enabled = false;
+                    ShowToggle(new GUIContent(supportWaveVRTitle, "Android platform required."), false, GUILayout.Width(wvrToggleWidth));
+                    GUI.enabled = true;
                     GUILayout.FlexibleSpace();
                     ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
                 }
                 else if (!VRModule.isWaveVRPluginDetected)
                 {
+                    GUI.enabled = false;
+                    ShowToggle(new GUIContent(supportWaveVRTitle, "Wave VR plugin required."), false, GUILayout.Width(wvrToggleWidth));
+                    GUI.enabled = true;
                     GUILayout.FlexibleSpace();
-                    ShowGetWaveVRPluginButton();
+                    ShowUrlLinkButton(URL_WAVE_VR_PLUGIN);
                 }
+#else
+                GUI.enabled = false;
+                ShowToggle(new GUIContent(supportWaveVRTitle, "Unity 5.6.3 or later version required."), false, GUILayout.Width(wvrToggleWidth));
+                GUI.enabled = true;
 #endif
                 GUILayout.EndHorizontal();
             }
@@ -995,9 +1002,24 @@ namespace HTC.UnityPlugin.Vive
             {
                 GUILayout.BeginHorizontal();
                 Foldouter.ShowFoldoutBlank();
-                GUI.enabled = false;
-                ShowToggle(new GUIContent(supportOculusGoTitle), false, GUILayout.Width(226f));
-                GUI.enabled = true;
+
+                if (activeBuildTargetGroup != BuildTargetGroup.Android)
+                {
+                    GUI.enabled = false;
+                    ShowToggle(new GUIContent(supportOculusGoTitle, "Android platform required."), false, GUILayout.Width(150f));
+                    GUI.enabled = true;
+                    GUILayout.FlexibleSpace();
+                    ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
+                }
+                else if (!VRModule.isOculusVRPluginDetected)
+                {
+                    GUI.enabled = false;
+                    ShowToggle(new GUIContent(supportOculusGoTitle, "Oculus VR Plugin required."), false, GUILayout.Width(150f));
+                    GUI.enabled = true;
+                    GUILayout.FlexibleSpace();
+                    ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN);
+                }
+
                 GUILayout.EndHorizontal();
             }
 
@@ -1007,7 +1029,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 EditorGUI.indentLevel += 2;
 
-                // following preferences is stored at HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x\
+                // on Windows, following preferences is stored at HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x\
                 if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidSdkRoot")))
                 {
                     EditorGUILayout.HelpBox("AndroidSdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
@@ -1166,14 +1188,6 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private static void ShowGetReleaseNoteButton()
-        {
-            if (GUILayout.Button("Release Note", GUILayout.ExpandWidth(false)))
-            {
-                Application.OpenURL("https://github.com/ViveSoftware/ViveInputUtility-Unity/releases");
-            }
-        }
-
         private static void ShowCheckRecommendedSettingsButton()
         {
             if (VIUVersionCheck.notifiedSettingsCount <= 0) { return; }
@@ -1184,41 +1198,9 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private static void ShowGetSteamVRPluginButton()
+        private static void ShowUrlLinkButton(string url, string label = "Get Plugin")
         {
-            const string url = "https://www.assetstore.unity3d.com/en/#!/content/32647";
-
-            if (GUILayout.Button(new GUIContent("Get Plugin", url), GUILayout.ExpandWidth(false)))
-            {
-                Application.OpenURL(url);
-            }
-        }
-
-        private static void ShowGetOculusVRPluginButton()
-        {
-            const string url = "https://developer.oculus.com/downloads/package/oculus-utilities-for-unity-5/";
-
-            if (GUILayout.Button(new GUIContent("Get Plugin", url), GUILayout.ExpandWidth(false)))
-            {
-                Application.OpenURL(url);
-            }
-        }
-
-        private static void ShowGetGoogleVRPluginButton()
-        {
-            const string url = "https://developers.google.com/vr/develop/unity/download";
-
-            if (GUILayout.Button(new GUIContent("Get Plugin", url), GUILayout.ExpandWidth(false)))
-            {
-                Application.OpenURL(url);
-            }
-        }
-
-        private static void ShowGetWaveVRPluginButton()
-        {
-            const string url = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
-
-            if (GUILayout.Button(new GUIContent("Get Plugin", url), GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(new GUIContent(label, url), GUILayout.ExpandWidth(false)))
             {
                 Application.OpenURL(url);
             }
