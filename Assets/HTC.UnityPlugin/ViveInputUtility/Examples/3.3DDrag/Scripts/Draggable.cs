@@ -93,7 +93,8 @@ public class Draggable : GrabbableBase<Draggable.Grabber>
     [SerializeField]
     private UnityEventDraggable m_onDrop = new UnityEventDraggable(); // change rigidbody drop velocity here
     [SerializeField]
-    private float m_scrollDelta = 0.01f;
+    [FormerlySerializedAs("m_scrollDelta")]
+    private float m_scrollingSpeed = 0.01f;
 
     public bool isDragged { get { return isGrabbed; } }
 
@@ -117,6 +118,8 @@ public class Draggable : GrabbableBase<Draggable.Grabber>
 
     [Obsolete("Use grabRigidbody instead")]
     public Rigidbody rigid { get { return grabRigidbody; } set { grabRigidbody = value; } }
+
+    public float scrollingSpeed { get { return m_scrollingSpeed; } set { m_scrollingSpeed = value; } }
 
     protected override void Awake()
     {
@@ -195,7 +198,7 @@ public class Draggable : GrabbableBase<Draggable.Grabber>
             OnGrabTransform();
         }
 
-        var scrollDelta = currentGrabber.eventData.scrollDelta * m_scrollDelta;
+        var scrollDelta = currentGrabber.eventData.scrollDelta * m_scrollingSpeed;
         if (scrollDelta != Vector2.zero)
         {
             currentGrabber.hitDistance = Mathf.Max(0f, currentGrabber.hitDistance + scrollDelta.y);
