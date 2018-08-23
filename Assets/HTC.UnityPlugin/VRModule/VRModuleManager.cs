@@ -3,6 +3,9 @@
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
 using UnityEngine;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+using Valve.VR;
+#endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -186,7 +189,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             switch (m_activatedModule)
             {
-#if VIU_STEAMVR
+#if VIU_STEAMVR && !VIU_STEAMVR_2_0_0_OR_NEWER
                 case VRModuleActiveEnum.SteamVR:
 #if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER && !UNITY_5_3
                     Camera.onPreCull += OnCameraPreCull;
@@ -307,7 +310,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             switch (m_activatedModule)
             {
-#if VIU_STEAMVR
+#if VIU_STEAMVR && !VIU_STEAMVR_2_0_0_OR_NEWER
                 case VRModuleActiveEnum.SteamVR:
 #if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER && !UNITY_5_3
                     Camera.onPreCull -= OnCameraPreCull;

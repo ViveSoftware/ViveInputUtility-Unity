@@ -5,6 +5,9 @@ using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.IO;
 using UnityEngine;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+using Valve.VR;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -195,7 +198,12 @@ namespace HTC.UnityPlugin.Vive
             var oldExternalCam = SteamVR_Render.instance.externalCamera;
             if (oldExternalCam != null)
             {
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+                // FIXME: SteamVR_ControllerManager is removed in SteamVR 2.0, what to replace?
+                if (oldExternalCam.transform.parent != null && oldExternalCam.transform.parent.GetComponent<SteamVR_RenderModel>() != null)
+#else
                 if (oldExternalCam.transform.parent != null && oldExternalCam.transform.parent.GetComponent<SteamVR_ControllerManager>() != null)
+#endif
                 {
                     Destroy(oldExternalCam.transform.parent.gameObject);
                     SteamVR_Render.instance.externalCamera = null;

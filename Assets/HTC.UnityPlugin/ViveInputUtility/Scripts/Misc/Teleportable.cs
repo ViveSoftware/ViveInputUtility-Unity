@@ -5,6 +5,9 @@ using HTC.UnityPlugin.VRModuleManagement;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+using Valve.VR;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {

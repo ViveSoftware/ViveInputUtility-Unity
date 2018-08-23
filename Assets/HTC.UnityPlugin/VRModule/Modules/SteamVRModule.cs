@@ -45,7 +45,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_prevTrackingSpace = compositor.GetTrackingSpace();
                 UpdateTrackingSpaceType();
             }
-#if VIU_STEAMVR_1_2_1_OR_NEWER
+#if VIU_STEAMVR_1_2_1_OR_NEWER || VIU_STEAMVR_2_0_0_OR_NEWER
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
             SteamVR_Events.System("TrackedDeviceRoleChanged").AddListener(OnTrackedDeviceRoleChanged);
@@ -61,7 +61,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 compositor.SetTrackingSpace(m_prevTrackingSpace);
             }
-#if VIU_STEAMVR_1_2_1_OR_NEWER
+#if VIU_STEAMVR_1_2_1_OR_NEWER || VIU_STEAMVR_2_0_0_OR_NEWER
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
             SteamVR_Events.System("TrackedDeviceRoleChanged").RemoveListener(OnTrackedDeviceRoleChanged);
@@ -91,7 +91,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (SteamVR.active)
             {
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+                SteamVR_Settings.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
+#else
                 SteamVR_Render.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
+#endif
             }
         }
 
@@ -197,7 +201,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (currState[i].deviceClass == VRModuleDeviceClass.Controller || currState[i].deviceClass == VRModuleDeviceClass.GenericTracker)
                     {
                         // get device state from openvr api
-#if VIU_STEAMVR_1_2_0_OR_NEWER
+#if VIU_STEAMVR_1_2_0_OR_NEWER || VIU_STEAMVR_2_0_0_OR_NEWER
                         if (system == null || !system.GetControllerState(i, ref m_ctrlState, s_sizeOfControllerStats))
 #else
                         if (system == null || !system.GetControllerState(i, ref m_ctrlState))
@@ -248,5 +252,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return result;
         }
 #endif
-    }
+            }
 }
