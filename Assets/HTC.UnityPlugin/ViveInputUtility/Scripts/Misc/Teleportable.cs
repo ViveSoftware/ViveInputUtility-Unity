@@ -109,7 +109,7 @@ namespace HTC.UnityPlugin.Vive
 
         public IEnumerator StartTeleport(Vector3 position, float duration)
         {
-#if VIU_STEAMVR
+#if VIU_STEAMVR && !VIU_STEAMVR_2_0_0_OR_NEWER
             var halfDuration = Mathf.Max(0f, duration * 0.5f);
 
             if (VRModule.activeModule == VRModuleActiveEnum.SteamVR && !Mathf.Approximately(halfDuration, 0f))
