@@ -14,6 +14,8 @@ namespace HTC.UnityPlugin.Vive
         public const string SIMULATOR_KEY_MOVE_SPEED_TOOLTIP = "W/A/S/D";
         public const string SIMULATOR_KEY_ROTATE_SPEED_TOOLTIP = "Arrow Up/Down/Left/Right";
 
+        public const bool AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE = true;
+
         public const bool AUTO_LOAD_BINDING_CONFIG_ON_START_DEFAULT_VALUE = true;
         public const string BINDING_CONFIG_FILE_PATH_DEFAULT_VALUE = "vive_role_bindings.cfg";
         public const bool ENABLE_BINDING_INTERFACE_SWITCH_DEFAULT_VALUE = true;
@@ -44,6 +46,9 @@ namespace HTC.UnityPlugin.Vive
         public const bool ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE = true;
 
         private static VIUSettings s_instance = null;
+
+        [SerializeField]
+        private bool m_autoCheckNewVIUVersion = AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE;
 
         [SerializeField]
         private bool m_autoLoadBindingConfigOnStart = AUTO_LOAD_BINDING_CONFIG_ON_START_DEFAULT_VALUE;
@@ -97,6 +102,8 @@ namespace HTC.UnityPlugin.Vive
         private bool m_activateOculusVRModule = ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE;
         [SerializeField]
         private bool m_activateWaveVRModule = ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE;
+
+        public static bool autoCheckNewVIUVersion { get { return Instance == null ? AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE : s_instance.m_autoCheckNewVIUVersion; } set { if (Instance != null) { Instance.m_autoCheckNewVIUVersion = value; } } }
 
         public static bool autoLoadBindingConfigOnStart { get { return Instance == null ? AUTO_LOAD_BINDING_CONFIG_ON_START_DEFAULT_VALUE : s_instance.m_autoLoadBindingConfigOnStart; } set { if (Instance != null) { Instance.m_autoLoadBindingConfigOnStart = value; } } }
         public static string bindingConfigFilePath { get { return Instance == null ? BINDING_CONFIG_FILE_PATH_DEFAULT_VALUE : s_instance.m_bindingConfigFilePath; } set { if (Instance != null) { Instance.m_bindingConfigFilePath = value; } } }

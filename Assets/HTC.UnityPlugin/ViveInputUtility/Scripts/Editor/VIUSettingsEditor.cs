@@ -692,9 +692,10 @@ namespace HTC.UnityPlugin.Vive
             s_scrollValue = EditorGUILayout.BeginScrollView(s_scrollValue);
 
             EditorGUILayout.LabelField("<b>VIVE Input Utility v" + VIUVersion.current + "</b>", s_labelStyle);
+            VIUSettings.autoCheckNewVIUVersion = EditorGUILayout.ToggleLeft("Auto Check Latest Version", VIUSettings.autoCheckNewVIUVersion);
 
             GUILayout.BeginHorizontal();
-            ShowUrlLinkButton(URL_VIU_GITHUB_RELEASE_PAGE, "Release Note");
+            ShowUrlLinkButton(URL_VIU_GITHUB_RELEASE_PAGE, "Get Latest Release");
             ShowCheckRecommendedSettingsButton();
             GUILayout.EndHorizontal();
 

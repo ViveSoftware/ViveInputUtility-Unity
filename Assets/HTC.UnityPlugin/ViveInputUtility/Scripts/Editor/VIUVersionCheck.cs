@@ -826,7 +826,7 @@ namespace HTC.UnityPlugin.Vive
             InitializeSettins();
 
             // fetch new version info from github release site
-            if (!completeCheckVersionFlow)
+            if (!completeCheckVersionFlow && VIUSettings.autoCheckNewVIUVersion)
             {
                 if (www == null) // web request not running
                 {
