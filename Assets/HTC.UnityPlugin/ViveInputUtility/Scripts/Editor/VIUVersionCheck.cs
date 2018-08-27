@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
+#if UNITY_5_4_OR_NEWER
 using UnityEditor.Rendering;
+#endif
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -580,6 +582,7 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
+#if UNITY_5_5_OR_NEWER
             s_settings.Add(new RecommendedSetting<StereoRenderingPath>()
             {
                 settingTitle = "Stereo Rendering Method",
@@ -588,7 +591,9 @@ namespace HTC.UnityPlugin.Vive
                 setValueFunc = v => PlayerSettings.stereoRenderingPath = v,
                 recommendedValue = StereoRenderingPath.SinglePass,
             });
+#endif
 
+#if UNITY_2017_1_OR_NEWER
             s_settings.Add(new RecommendedSetting<ScriptingImplementation>()
             {
                 settingTitle = "Scripting Backend",
@@ -597,6 +602,7 @@ namespace HTC.UnityPlugin.Vive
                 setValueFunc = v => PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, v),
                 recommendedValue = ScriptingImplementation.IL2CPP,
             });
+#endif
 
             s_settings.Add(new RecommendedSetting<bool>()
             {
@@ -638,6 +644,7 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
+#if UNITY_5_5_OR_NEWER
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Use Oculus Mobile recommended Quality Settings",
@@ -741,6 +748,7 @@ namespace HTC.UnityPlugin.Vive
                 },
                 recommendedValue = true,
             });
+#endif
 
 #if UNITY_5_6_OR_NEWER
             s_settings.Add(new RecommendedSetting<bool>()
