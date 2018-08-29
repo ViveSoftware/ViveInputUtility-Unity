@@ -42,6 +42,11 @@ namespace HTC.UnityPlugin.Vive
 
         public const bool ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE = true;
         public const bool SIMULATE_WAVE_VR_6DOF_CONTROLLER_DEFAULT_VALUE = false;
+        public static readonly Vector3 WAVE_VR_VIRTUAL_NECK_POSITION_DEFAULT_VALUE = new Vector3(0.0f, -0.15f, 0.0f);
+        public static readonly Vector3 WAVE_VR_VIRTUAL_ELBOW_REST_POSITION_DEFAULT_VALUE = new Vector3(0.195f, -0.5f, 0.005f);
+        public static readonly Vector3 WAVE_VR_VIRTUAL_WRIST_REST_POSITION_DEFAULT_VALUE = new Vector3(0.0f, 0.0f, 0.25f);
+        public static readonly Vector3 WAVE_VR_VIRTUAL_HAND_REST_POSITION_DEFAULT_VALUE = new Vector3(0.0f, 0.0f, 0.05f);
+        public static readonly Vector3 WAVE_VR_VIRTUAL_ARM_EXTENSION_OFFSET_DEFAULT_VALUE = new Vector3(-0.13f, 0.14f, 0.08f);
 
         public const bool ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE = true;
@@ -98,6 +103,16 @@ namespace HTC.UnityPlugin.Vive
         private bool m_activateWaveVRModule = ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE;
         [SerializeField]
         private bool m_simulateWaveVRSixDofController = SIMULATE_WAVE_VR_6DOF_CONTROLLER_DEFAULT_VALUE;
+        [SerializeField]
+        private Vector3 m_waveVRVirtualNeckPosition = WAVE_VR_VIRTUAL_NECK_POSITION_DEFAULT_VALUE;
+        [SerializeField]
+        private Vector3 m_waveVRVirtualElbowRestPosition = WAVE_VR_VIRTUAL_ELBOW_REST_POSITION_DEFAULT_VALUE;
+        [SerializeField]
+        private Vector3 m_waveVRVirtualWristRestPosition = WAVE_VR_VIRTUAL_WRIST_REST_POSITION_DEFAULT_VALUE;
+        [SerializeField]
+        private Vector3 m_waveVRVirtualHandRestPosition = WAVE_VR_VIRTUAL_HAND_REST_POSITION_DEFAULT_VALUE;
+        [SerializeField]
+        private Vector3 m_waveVRVirtualArmExtensionOffset = WAVE_VR_VIRTUAL_ARM_EXTENSION_OFFSET_DEFAULT_VALUE;
 
         [SerializeField]
         private bool m_activateSimulatorModule = ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE;
@@ -135,6 +150,11 @@ namespace HTC.UnityPlugin.Vive
 
         public static bool activateWaveVRModule { get { return Instance == null ? ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateWaveVRModule; } set { if (Instance != null) { Instance.m_activateWaveVRModule = value; } } }
         public static bool simulateWaveVR6DofController { get { return Instance == null ? SIMULATE_WAVE_VR_6DOF_CONTROLLER_DEFAULT_VALUE : s_instance.m_simulateWaveVRSixDofController; } set { if (Instance != null) { Instance.m_simulateWaveVRSixDofController = value; } } }
+        public static Vector3 waveVRVirtualNeckPosition { get { return Instance == null ? WAVE_VR_VIRTUAL_NECK_POSITION_DEFAULT_VALUE : s_instance.m_waveVRVirtualNeckPosition; } set { if (Instance != null) { Instance.m_waveVRVirtualNeckPosition = value; } } }
+        public static Vector3 waveVRVirtualElbowRestPosition { get { return Instance == null ? WAVE_VR_VIRTUAL_ELBOW_REST_POSITION_DEFAULT_VALUE : s_instance.m_waveVRVirtualElbowRestPosition; } set { if (Instance != null) { Instance.m_waveVRVirtualElbowRestPosition = value; } } }
+        public static Vector3 waveVRVirtualWristRestPosition { get { return Instance == null ? WAVE_VR_VIRTUAL_WRIST_REST_POSITION_DEFAULT_VALUE : s_instance.m_waveVRVirtualWristRestPosition; } set { if (Instance != null) { Instance.m_waveVRVirtualWristRestPosition = value; } } }
+        public static Vector3 waveVRVirtualHandRestPosition { get { return Instance == null ? WAVE_VR_VIRTUAL_HAND_REST_POSITION_DEFAULT_VALUE : s_instance.m_waveVRVirtualHandRestPosition; } set { if (Instance != null) { Instance.m_waveVRVirtualHandRestPosition = value; } } }
+        public static Vector3 waveVRVirtualArmExtensionOffset { get { return Instance == null ? WAVE_VR_VIRTUAL_ARM_EXTENSION_OFFSET_DEFAULT_VALUE : s_instance.m_waveVRVirtualArmExtensionOffset; } set { if (Instance != null) { Instance.m_waveVRVirtualArmExtensionOffset = value; } } }
 
         public static bool activateSimulatorModule { get { return Instance == null ? ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE : s_instance.m_activateSimulatorModule; } set { if (Instance != null) { Instance.m_activateSimulatorModule = value; } } }
         public static bool activateUnityNativeVRModule { get { return Instance == null ? ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateUnityNativeVRModule; } set { if (Instance != null) { Instance.m_activateUnityNativeVRModule = value; } } }

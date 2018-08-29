@@ -12,11 +12,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #if VIU_WAVEVR && UNITY_ANDROID
         private const uint DEVICE_COUNT = 3;
 
-        public static readonly Vector3 DEFAULT_NECK_POSITION = new Vector3(0.0f, -0.15f, 0.0f);
-        public static readonly Vector3 DEFAULT_ELBOW_REST_POSITION = new Vector3(0.195f, -0.5f, 0.005f);
-        public static readonly Vector3 DEFAULT_WRIST_REST_POSITION = new Vector3(0.0f, 0.0f, 0.25f);
-        public static readonly Vector3 DEFAULT_CONTROLLER_REST_POSITION = new Vector3(0.0f, 0.0f, 0.05f);
-        public static readonly Vector3 DEFAULT_ARM_EXTENSION_OFFSET = new Vector3(-0.13f, 0.14f, 0.08f);
         public static readonly Vector3 RIGHT_ARM_MULTIPLIER = new Vector3(1f, 1f, 1f);
         public static readonly Vector3 LEFT_ARM_MULTIPLIER = new Vector3(-1f, 1f, 1f);
         public const float DEFAULT_ELBOW_BEND_RATIO = 0.6f;
@@ -322,7 +317,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static RigidPose GetNeckPose(RigidPose headPose)
         {
             var headForward = headPose.forward;
-            return new RigidPose(headPose.pos + DEFAULT_NECK_POSITION, Quaternion.FromToRotation(Vector3.forward, new Vector3(headForward.x, 0f, headForward.z)));
+            return new RigidPose(headPose.pos + VIUSettings.waveVRVirtualNeckPosition, Quaternion.FromToRotation(Vector3.forward, new Vector3(headForward.x, 0f, headForward.z)));
         }
 
         private static float GetExtensionRatio(Vector3 v)
@@ -349,13 +344,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var lerpRotation = GetLerpRotation(localCtrlXYRot, extensionRatio);
 
             var elbowPose = new RigidPose(
-                Vector3.Scale(DEFAULT_ELBOW_REST_POSITION, sideMultiplier) + Vector3.Scale(DEFAULT_ARM_EXTENSION_OFFSET, sideMultiplier) * extensionRatio,
+                Vector3.Scale(VIUSettings.waveVRVirtualElbowRestPosition, sideMultiplier) + Vector3.Scale(VIUSettings.waveVRVirtualArmExtensionOffset, sideMultiplier) * extensionRatio,
                 Quaternion.Inverse(lerpRotation) * localCtrlXYRot);
             var wristPose = new RigidPose(
-                Vector3.Scale(DEFAULT_WRIST_REST_POSITION, sideMultiplier),
+                Vector3.Scale(VIUSettings.waveVRVirtualWristRestPosition, sideMultiplier),
                 lerpRotation);
             var palmPose = new RigidPose(
-                Vector3.Scale(DEFAULT_CONTROLLER_REST_POSITION, sideMultiplier),
+                Vector3.Scale(VIUSettings.waveVRVirtualHandRestPosition, sideMultiplier),
                 Quaternion.identity);
 
             var finalCtrlPose = neckPose * elbowPose * wristPose * palmPose;
