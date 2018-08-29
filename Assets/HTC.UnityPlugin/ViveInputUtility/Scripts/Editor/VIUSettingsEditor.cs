@@ -353,6 +353,7 @@ namespace HTC.UnityPlugin.Vive
         public const string URL_OCULUS_VR_PLUGIN = "https://developer.oculus.com/downloads/package/oculus-utilities-for-unity-5/";
         public const string URL_GOOGLE_VR_PLUGIN = "https://developers.google.com/vr/develop/unity/download";
         public const string URL_WAVE_VR_PLUGIN = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
+        public const string URL_WAVE_VR_6DOF_SUMULATOR_USAGE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Wave-VR-6-DoF-Controller-Simulator";
 
         private static Vector2 s_scrollValue = Vector2.zero;
         private static float s_warningHeight;
@@ -951,7 +952,7 @@ namespace HTC.UnityPlugin.Vive
             const string supportWaveVRTitle = "VIVE Focus <size=9>(WaveVR compatible device)</size>";
             if (canSupportWaveVR)
             {
-                supportWaveVR = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(supportWaveVRTitle), supportWaveVR);
+                supportWaveVR = Foldouter.ShowFoldoutButtonOnToggleEnabled(Foldouter.Index.WaveVR, new GUIContent(supportWaveVRTitle), supportWaveVR);
             }
             else
             {
@@ -981,6 +982,24 @@ namespace HTC.UnityPlugin.Vive
                 GUI.enabled = true;
 #endif
                 GUILayout.EndHorizontal();
+            }
+
+            if (supportWaveVR && Foldouter.IsExpended(Foldouter.Index.WaveVR))
+            {
+                if (supportWaveVR) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                {
+                    EditorGUI.indentLevel += 2;
+
+                    EditorGUILayout.BeginHorizontal();
+                    VIUSettings.simulateWaveVR6DofController = EditorGUILayout.ToggleLeft(new GUIContent("Enable 6 Dof Simulator (Experimental)", "Connect HMD with Type-C keyboard to perform simulation"), VIUSettings.simulateWaveVR6DofController);
+                    ShowUrlLinkButton(URL_WAVE_VR_6DOF_SUMULATOR_USAGE_PAGE, "Usage");
+                    EditorGUILayout.EndHorizontal();
+
+                    if (!VIUSettings.enableSimulatorKeyboardMouseControl && supportSimulator) { GUI.enabled = true; }
+
+                    EditorGUI.indentLevel -= 2;
+                }
+                if (supportWaveVR) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
             }
 
             if (supportWaveVR)

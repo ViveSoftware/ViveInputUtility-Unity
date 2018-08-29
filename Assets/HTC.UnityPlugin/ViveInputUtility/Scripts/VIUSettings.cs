@@ -40,10 +40,12 @@ namespace HTC.UnityPlugin.Vive
         public const bool ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE = true;
         public const bool DAYDREAM_SYNC_PAD_PRESS_TO_TRIGGER_DEFAULT_VALUE = true;
 
+        public const bool ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE = true;
+        public const bool SIMULATE_WAVE_VR_6DOF_CONTROLLER_DEFAULT_VALUE = false;
+
         public const bool ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE = true;
-        public const bool ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE = true;
 
         private static VIUSettings s_instance = null;
 
@@ -93,6 +95,11 @@ namespace HTC.UnityPlugin.Vive
         private bool m_daydreamSyncPadPressToTrigger = DAYDREAM_SYNC_PAD_PRESS_TO_TRIGGER_DEFAULT_VALUE;
 
         [SerializeField]
+        private bool m_activateWaveVRModule = ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE;
+        [SerializeField]
+        private bool m_simulateWaveVRSixDofController = SIMULATE_WAVE_VR_6DOF_CONTROLLER_DEFAULT_VALUE;
+
+        [SerializeField]
         private bool m_activateSimulatorModule = ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE;
         [SerializeField]
         private bool m_activateUnityNativeVRModule = ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE;
@@ -100,8 +107,6 @@ namespace HTC.UnityPlugin.Vive
         private bool m_activateSteamVRModule = ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE;
         [SerializeField]
         private bool m_activateOculusVRModule = ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE;
-        [SerializeField]
-        private bool m_activateWaveVRModule = ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE;
 
         public static bool autoCheckNewVIUVersion { get { return Instance == null ? AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE : s_instance.m_autoCheckNewVIUVersion; } set { if (Instance != null) { Instance.m_autoCheckNewVIUVersion = value; } } }
 
@@ -128,11 +133,13 @@ namespace HTC.UnityPlugin.Vive
         public static bool activateGoogleVRModule { get { return Instance == null ? ACTIVATE_GOOGLE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateGoogleVRModule; } set { if (Instance != null) { Instance.m_activateGoogleVRModule = value; } } }
         public static bool daydreamSyncPadPressToTrigger { get { return Instance == null ? DAYDREAM_SYNC_PAD_PRESS_TO_TRIGGER_DEFAULT_VALUE : s_instance.m_daydreamSyncPadPressToTrigger; } set { if (Instance != null) { Instance.m_daydreamSyncPadPressToTrigger = value; } } }
 
+        public static bool activateWaveVRModule { get { return Instance == null ? ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateWaveVRModule; } set { if (Instance != null) { Instance.m_activateWaveVRModule = value; } } }
+        public static bool simulateWaveVR6DofController { get { return Instance == null ? SIMULATE_WAVE_VR_6DOF_CONTROLLER_DEFAULT_VALUE : s_instance.m_simulateWaveVRSixDofController; } set { if (Instance != null) { Instance.m_simulateWaveVRSixDofController = value; } } }
+
         public static bool activateSimulatorModule { get { return Instance == null ? ACTIVATE_SIMULATOR_MODULE_DEFAULT_VALUE : s_instance.m_activateSimulatorModule; } set { if (Instance != null) { Instance.m_activateSimulatorModule = value; } } }
         public static bool activateUnityNativeVRModule { get { return Instance == null ? ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateUnityNativeVRModule; } set { if (Instance != null) { Instance.m_activateUnityNativeVRModule = value; } } }
         public static bool activateSteamVRModule { get { return Instance == null ? ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateSteamVRModule; } set { if (Instance != null) { Instance.m_activateSteamVRModule = value; } } }
         public static bool activateOculusVRModule { get { return Instance == null ? ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateOculusVRModule; } set { if (Instance != null) { Instance.m_activateOculusVRModule = value; } } }
-        public static bool activateWaveVRModule { get { return Instance == null ? ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateWaveVRModule; } set { if (Instance != null) { Instance.m_activateWaveVRModule = value; } } }
 
         public static VIUSettings Instance
         {
