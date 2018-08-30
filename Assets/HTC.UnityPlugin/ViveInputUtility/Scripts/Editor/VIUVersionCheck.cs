@@ -593,17 +593,6 @@ namespace HTC.UnityPlugin.Vive
             });
 #endif
 
-#if UNITY_2017_1_OR_NEWER
-            s_settings.Add(new RecommendedSetting<ScriptingImplementation>()
-            {
-                settingTitle = "Scripting Backend",
-                skipCheckFunc = () => !VIUSettingsEditor.supportOculusGo,
-                currentValueFunc = () => PlayerSettings.GetScriptingBackend(BuildTargetGroup.Android),
-                setValueFunc = v => PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, v),
-                recommendedValue = ScriptingImplementation.IL2CPP,
-            });
-#endif
-
             s_settings.Add(new RecommendedSetting<bool>()
             {
                 settingTitle = "Prebake Collision Meshes",
