@@ -176,7 +176,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                         const uint triggerBumperMask =
                             (1 << (int)(WVR_InputId.WVR_InputId_Alias1_Trigger)) |
+#if VIU_WAVEVR_2_1_0_OR_NEWER
+                            (1 << (int)(WVR_InputId.WVR_InputId_Alias1_Digital_Trigger));
+#else
                             (1 << (int)(WVR_InputId.WVR_InputId_Alias1_Bumper));
+#endif
 
                         cState.SetButtonPress(VRModuleRawButton.System, (buttons & (1 << (int)WVR_InputId.WVR_InputId_Alias1_System)) != 0u);
                         cState.SetButtonPress(VRModuleRawButton.ApplicationMenu, (buttons & (1 << (int)WVR_InputId.WVR_InputId_Alias1_Menu)) != 0u);
@@ -362,5 +366,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Interop.WVR_TriggerVibrator(s_index2type[deviceIndex], WVR_InputId.WVR_InputId_Alias1_Touchpad, durationMicroSec);
         }
 #endif
-    }
+                    }
 }
