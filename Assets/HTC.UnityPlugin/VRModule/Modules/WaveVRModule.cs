@@ -306,13 +306,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // add right arm
-            if (rightState.isConnected && headState.isConnected && rightState.position == Vector3.zero)
+            if (rightState.isConnected && headState.isConnected && Interop.WVR_GetDegreeOfFreedom(WVR_DeviceType.WVR_DeviceType_Controller_Right) == WVR_NumDoF.WVR_NumDoF_3DoF)
             {
                 rightState.position = GetControllerPositionWithVirtualArm(neckPose, rightState.rotation, RIGHT_ARM_MULTIPLIER);
             }
 
             // add left arm
-            if (leftState.isConnected && headState.isConnected && leftState.position == Vector3.zero)
+            if (leftState.isConnected && headState.isConnected && Interop.WVR_GetDegreeOfFreedom(WVR_DeviceType.WVR_DeviceType_Controller_Left) == WVR_NumDoF.WVR_NumDoF_3DoF)
             {
                 leftState.position = GetControllerPositionWithVirtualArm(neckPose, leftState.rotation, LEFT_ARM_MULTIPLIER);
             }
