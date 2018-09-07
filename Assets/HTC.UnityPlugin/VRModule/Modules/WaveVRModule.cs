@@ -37,8 +37,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             KeyboardModifierTrackpad,
         }
 
-        private Simulate6DoFControllerMode simulationMode = Simulate6DoFControllerMode.KeyboardWASD;
-        private Vector3 simulatedCtrlPos = new Vector3(0f, 0f, 0f);
+        private static Simulate6DoFControllerMode s_simulationMode = Simulate6DoFControllerMode.KeyboardWASD;
+        private static Vector3[] s_simulatedCtrlPosArray;
 
         #endregion
 
@@ -66,6 +66,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_type2model[(int)WVR_DeviceType.WVR_DeviceType_HMD] = VRModuleDeviceModel.ViveFocusHMD;
             s_type2model[(int)WVR_DeviceType.WVR_DeviceType_Controller_Right] = VRModuleDeviceModel.ViveFocusFinch;
             s_type2model[(int)WVR_DeviceType.WVR_DeviceType_Controller_Left] = VRModuleDeviceModel.ViveFocusFinch;
+
+            s_simulatedCtrlPosArray = new Vector3[s_type2index.Length];
         }
 
         public override bool ShouldActiveModule()
@@ -246,32 +248,40 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var headState = currState[s_type2index[(int)WVR_DeviceType.WVR_DeviceType_HMD]];
             var rightState = currState[s_type2index[(int)WVR_DeviceType.WVR_DeviceType_Controller_Right]];
             var leftState = currState[s_type2index[(int)WVR_DeviceType.WVR_DeviceType_Controller_Left]];
+            ApplyVirtualArmAndSimulateInput(rightState, headState, RIGHT_ARM_MULTIPLIER);
+            ApplyVirtualArmAndSimulateInput(leftState, headState, LEFT_ARM_MULTIPLIER);
+        }
 
-            RigidPose neckPose;
+        private void ApplyVirtualArmAndSimulateInput(IVRModuleDeviceStateRW ctrlState, IVRModuleDeviceStateRW headState, Vector3 handSideMultiplier)
+        {
+            if (!ctrlState.isConnected) { return; }
+            if (!VIUSettings.waveVRAddVirtualArmTo3DoFController && !VIUSettings.simulateWaveVR6DofController) { return; }
 
-            if (VIUSettings.simulateWaveVR6DofController && (rightState.isConnected || leftState.isConnected))
+            var deviceType = (int)s_index2type[ctrlState.deviceIndex];
+            if (Interop.WVR_GetDegreeOfFreedom((WVR_DeviceType)deviceType) != WVR_NumDoF.WVR_NumDoF_3DoF) { return; }
+
+
+            if (VIUSettings.simulateWaveVR6DofController)
             {
-                var ctrlState = rightState.isConnected ? rightState : leftState;
-
-                if (Input.GetKeyDown(KeyCode.Alpha1)) { simulationMode = Simulate6DoFControllerMode.KeyboardWASD; }
-                if (Input.GetKeyDown(KeyCode.Alpha2)) { simulationMode = Simulate6DoFControllerMode.KeyboardModifierTrackpad; }
-                if (Input.GetKeyDown(KeyCode.BackQuote)) { simulatedCtrlPos = Vector3.zero; }
+                if (Input.GetKeyDown(KeyCode.Alpha1)) { s_simulationMode = Simulate6DoFControllerMode.KeyboardWASD; }
+                if (Input.GetKeyDown(KeyCode.Alpha2)) { s_simulationMode = Simulate6DoFControllerMode.KeyboardModifierTrackpad; }
+                if (Input.GetKeyDown(KeyCode.BackQuote)) { s_simulatedCtrlPosArray[deviceType] = Vector3.zero; }
 
                 var deltaMove = Time.unscaledDeltaTime;
                 var rotY = Quaternion.Euler(0f, ctrlState.rotation.eulerAngles.y, 0f);
                 var moveForward = rotY * Vector3.forward;
                 var moveRight = rotY * Vector3.right;
 
-                switch (simulationMode)
+                switch (s_simulationMode)
                 {
                     case Simulate6DoFControllerMode.KeyboardWASD:
                         {
-                            if (Input.GetKey(KeyCode.D)) { simulatedCtrlPos += moveRight * deltaMove; }
-                            if (Input.GetKey(KeyCode.A)) { simulatedCtrlPos -= moveRight * deltaMove; }
-                            if (Input.GetKey(KeyCode.E)) { simulatedCtrlPos += Vector3.up * deltaMove; }
-                            if (Input.GetKey(KeyCode.Q)) { simulatedCtrlPos -= Vector3.up * deltaMove; }
-                            if (Input.GetKey(KeyCode.W)) { simulatedCtrlPos += moveForward * deltaMove; }
-                            if (Input.GetKey(KeyCode.S)) { simulatedCtrlPos -= moveForward * deltaMove; }
+                            if (Input.GetKey(KeyCode.D)) { s_simulatedCtrlPosArray[deviceType] += moveRight * deltaMove; }
+                            if (Input.GetKey(KeyCode.A)) { s_simulatedCtrlPosArray[deviceType] -= moveRight * deltaMove; }
+                            if (Input.GetKey(KeyCode.E)) { s_simulatedCtrlPosArray[deviceType] += Vector3.up * deltaMove; }
+                            if (Input.GetKey(KeyCode.Q)) { s_simulatedCtrlPosArray[deviceType] -= Vector3.up * deltaMove; }
+                            if (Input.GetKey(KeyCode.W)) { s_simulatedCtrlPosArray[deviceType] += moveForward * deltaMove; }
+                            if (Input.GetKey(KeyCode.S)) { s_simulatedCtrlPosArray[deviceType] -= moveForward * deltaMove; }
 
                             break;
                         }
@@ -284,37 +294,29 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                             if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
                             {
-                                simulatedCtrlPos += x * moveRight * deltaMove;
-                                simulatedCtrlPos += y * moveForward * deltaMove;
+                                s_simulatedCtrlPosArray[deviceType] += x * moveRight * deltaMove;
+                                s_simulatedCtrlPosArray[deviceType] += y * moveForward * deltaMove;
                             }
 
                             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                             {
-                                simulatedCtrlPos += x * moveRight * deltaMove;
-                                simulatedCtrlPos += y * Vector3.up * deltaMove;
+                                s_simulatedCtrlPosArray[deviceType] += x * moveRight * deltaMove;
+                                s_simulatedCtrlPosArray[deviceType] += y * Vector3.up * deltaMove;
                             }
 
                             break;
                         }
                 }
+            }
 
-                neckPose = GetNeckPose(new RigidPose(headState.position + simulatedCtrlPos, headState.rotation));
+            if (VIUSettings.waveVRAddVirtualArmTo3DoFController)
+            {
+                var neckPose = new RigidPose(s_simulatedCtrlPosArray[deviceType], Quaternion.identity) * GetNeckPose(headState.pose);
+                ctrlState.position = GetControllerPositionWithVirtualArm(neckPose, ctrlState.rotation, handSideMultiplier);
             }
             else
             {
-                neckPose = GetNeckPose(headState.pose);
-            }
-
-            // add right arm
-            if (rightState.isConnected && headState.isConnected && Interop.WVR_GetDegreeOfFreedom(WVR_DeviceType.WVR_DeviceType_Controller_Right) == WVR_NumDoF.WVR_NumDoF_3DoF)
-            {
-                rightState.position = GetControllerPositionWithVirtualArm(neckPose, rightState.rotation, RIGHT_ARM_MULTIPLIER);
-            }
-
-            // add left arm
-            if (leftState.isConnected && headState.isConnected && Interop.WVR_GetDegreeOfFreedom(WVR_DeviceType.WVR_DeviceType_Controller_Left) == WVR_NumDoF.WVR_NumDoF_3DoF)
-            {
-                leftState.position = GetControllerPositionWithVirtualArm(neckPose, leftState.rotation, LEFT_ARM_MULTIPLIER);
+                ctrlState.position += s_simulatedCtrlPosArray[deviceType];
             }
         }
 
@@ -366,5 +368,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Interop.WVR_TriggerVibrator(s_index2type[deviceIndex], WVR_InputId.WVR_InputId_Alias1_Touchpad, durationMicroSec);
         }
 #endif
-                    }
+    }
 }

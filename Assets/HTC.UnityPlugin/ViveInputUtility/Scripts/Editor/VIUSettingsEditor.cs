@@ -249,7 +249,7 @@ namespace HTC.UnityPlugin.Vive
                 //{
                 //    s_expendedFlags = (uint)EditorPrefs.GetInt(s_prefKey);
                 //}
-                s_expendedFlags = 0u;
+                s_expendedFlags = ~0u;
 
                 s_styleFoleded = new GUIStyle(EditorStyles.foldout);
                 s_styleExpended = new GUIStyle(EditorStyles.foldout);
@@ -990,9 +990,26 @@ namespace HTC.UnityPlugin.Vive
                 {
                     EditorGUI.indentLevel += 2;
 
+                    VIUSettings.waveVRAddVirtualArmTo3DoFController = EditorGUILayout.ToggleLeft(new GUIContent("Add Airtual Arm for 3 Dof Controller"), VIUSettings.waveVRAddVirtualArmTo3DoFController);
+                    if (!VIUSettings.waveVRAddVirtualArmTo3DoFController) { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel++;
+
+                        VIUSettings.waveVRVirtualNeckPosition = EditorGUILayout.Vector3Field("Neck", VIUSettings.waveVRVirtualNeckPosition);
+                        VIUSettings.waveVRVirtualElbowRestPosition = EditorGUILayout.Vector3Field("Elbow", VIUSettings.waveVRVirtualElbowRestPosition);
+                        VIUSettings.waveVRVirtualArmExtensionOffset = EditorGUILayout.Vector3Field("Arm", VIUSettings.waveVRVirtualArmExtensionOffset);
+                        VIUSettings.waveVRVirtualWristRestPosition = EditorGUILayout.Vector3Field("Wrist", VIUSettings.waveVRVirtualWristRestPosition);
+                        VIUSettings.waveVRVirtualHandRestPosition = EditorGUILayout.Vector3Field("Hand", VIUSettings.waveVRVirtualHandRestPosition);
+
+                        EditorGUI.indentLevel--;
+                    }
+                    if (!VIUSettings.waveVRAddVirtualArmTo3DoFController) { GUI.enabled = true; }
+
                     EditorGUILayout.BeginHorizontal();
                     VIUSettings.simulateWaveVR6DofController = EditorGUILayout.ToggleLeft(new GUIContent("Enable 6 Dof Simulator (Experimental)", "Connect HMD with Type-C keyboard to perform simulation"), VIUSettings.simulateWaveVR6DofController);
+                    s_guiChanged |= EditorGUI.EndChangeCheck();
                     ShowUrlLinkButton(URL_WAVE_VR_6DOF_SUMULATOR_USAGE_PAGE, "Usage");
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.EndHorizontal();
 
                     if (!VIUSettings.enableSimulatorKeyboardMouseControl && supportSimulator) { GUI.enabled = true; }
