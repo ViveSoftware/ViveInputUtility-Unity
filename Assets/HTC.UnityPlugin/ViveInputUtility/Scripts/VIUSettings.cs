@@ -46,7 +46,7 @@ namespace HTC.UnityPlugin.Vive
         public static readonly Vector3 WAVE_VR_VIRTUAL_NECK_POSITION_DEFAULT_VALUE = new Vector3(0.0f, -0.15f, 0.0f);
         public static readonly Vector3 WAVE_VR_VIRTUAL_ELBOW_REST_POSITION_DEFAULT_VALUE = new Vector3(0.195f, -0.5f, 0.005f);
         public static readonly Vector3 WAVE_VR_VIRTUAL_ARM_EXTENSION_OFFSET_DEFAULT_VALUE = new Vector3(-0.13f, 0.14f, 0.08f);
-        public static readonly Vector3 WAVE_VR_VIRTUAL_WRIST_REST_POSITION_DEFAULT_VALUE = new Vector3(0.0f, 0.0f, 0.25f);
+        public static readonly Vector3 WAVE_VR_VIRTUAL_WRIST_REST_POSITION_DEFAULT_VALUE = new Vector3(0.0f, 0.0f, 0.35f);
         public static readonly Vector3 WAVE_VR_VIRTUAL_HAND_REST_POSITION_DEFAULT_VALUE = new Vector3(0.0f, 0.0f, 0.05f);
 
         public const bool ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE = true;
