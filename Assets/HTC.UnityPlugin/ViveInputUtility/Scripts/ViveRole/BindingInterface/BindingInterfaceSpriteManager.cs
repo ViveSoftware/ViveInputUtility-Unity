@@ -73,16 +73,13 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             }
         }
 
-        public static void SetupTrackingDeviceIcon(Image image, VRModuleDeviceModel deviceModel, bool bound)
+        public static void SetupTrackingDeviceIcon(Image image, IVRModuleDeviceState deviceState, bool bound)
         {
+            VRModuleDeviceModel deviceModel;
             string spriteName;
             var scale = Vector3.one;
-            switch (deviceModel)
+            switch (deviceState.deviceModel)
             {
-                case VRModuleDeviceModel.ViveHMD:
-                case VRModuleDeviceModel.OculusHMD:
-                    spriteName = "binding_ui_project_HMD";
-                    break;
                 case VRModuleDeviceModel.KnucklesLeft:
                     spriteName = MODEL_PROJECT_SPRITE_PREFIX + VRModuleDeviceModel.KnucklesRight;
                     scale.x = -1f;
@@ -92,7 +89,21 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
                     scale.x = -1f;
                     break;
                 default:
-                    spriteName = MODEL_PROJECT_SPRITE_PREFIX + deviceModel.ToString();
+                    switch (deviceState.deviceClass)
+                    {
+                        case VRModuleDeviceClass.HMD:
+                            spriteName = "binding_ui_project_HMD";
+                            break;
+                        case VRModuleDeviceClass.Controller:
+                            spriteName = MODEL_PROJECT_SPRITE_PREFIX + VRModuleDeviceModel.ViveController;
+                            break;
+                        case VRModuleDeviceClass.GenericTracker:
+                            spriteName = MODEL_PROJECT_SPRITE_PREFIX + VRModuleDeviceModel.ViveTracker;
+                            break;
+                        default:
+                            spriteName = MODEL_PROJECT_SPRITE_PREFIX + deviceState.deviceModel.ToString();
+                            break;
+                    }
                     break;
             }
 
