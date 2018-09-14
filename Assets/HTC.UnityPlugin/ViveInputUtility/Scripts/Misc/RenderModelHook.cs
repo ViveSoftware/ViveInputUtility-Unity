@@ -158,6 +158,11 @@ namespace HTC.UnityPlugin.Vive
                         UpdateSteamVRModel();
                         break;
 #endif
+#if VIU_WAVEVR
+                    case VRModuleActiveEnum.WaveVR:
+                        UpdateWaveVRModel();
+                        break;
+#endif
                     case VRModuleActiveEnum.Uninitialized:
                         if (m_modelObj != null)
                         {
@@ -236,6 +241,105 @@ namespace HTC.UnityPlugin.Vive
         }
 #endif
 
+#if VIU_WAVEVR
+        private UniversalControllerActions m_wavevrModel;
+
+        private void UpdateWaveVRModel()
+        {
+            if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
+            {
+                var hasValidModel = false;
+                var deviceHand = default(wvr.WVR_DeviceType);
+
+                if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))
+                {
+                    if (m_currentDeviceIndex == VRModule.GetRightControllerDeviceIndex())
+                    {
+                        deviceHand = wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right;
+                        hasValidModel = true;
+                    }
+                    else if (m_currentDeviceIndex == VRModule.GetLeftControllerDeviceIndex())
+                    {
+                        deviceHand = wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left;
+                        hasValidModel = true;
+                    }
+                }
+
+                if (hasValidModel)
+                {
+                    if (m_modelObj != null && m_wavevrModel == null)
+                    {
+                        CleanUpModelObj();
+                    }
+
+                    if (m_modelObj == null)
+                    {
+                        // find UniversalControllerActions in child object
+                        for (int i = 0, imax = transform.childCount; i < imax; ++i)
+                        {
+                            if ((m_wavevrModel = GetComponentInChildren<UniversalControllerActions>()) != null)
+                            {
+                                m_modelObj = m_wavevrModel.gameObject;
+                                break;
+                            }
+                        }
+
+                        var loaderGO = new GameObject("Loader");
+                        loaderGO.transform.SetParent(transform, false);
+                        loaderGO.SetActive(false);
+                        var loader = loaderGO.AddComponent<WaveVR_ControllerLoader>();
+                        loader.enabled = false;
+                        loader.TrackPosition = false;
+                        loader.TrackRotation = false;
+                        loader.showIndicator = false;
+                        loaderGO.SetActive(true);
+
+                        switch (deviceHand)
+                        {
+                            case wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right:
+                                loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Right;
+                                loaderGO.SendMessage("onLoadController", wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                                break;
+                            case wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left:
+                                loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Left;
+                                loaderGO.SendMessage("onLoadController", wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                                break;
+                        }
+
+                        var actionController = GetComponentInChildren<UniversalControllerActions>(true);
+                        if (actionController != null)
+                        {
+                            actionController.transform.SetParent(transform, false);
+                            actionController.transform.SetAsLastSibling();
+
+                            for (int i = transform.childCount - 2; i >= 0; --i)
+                            {
+                                Destroy(transform.GetChild(i).gameObject);
+                            }
+
+                            actionController.gameObject.SetActive(true);
+                            m_modelObj = actionController.gameObject;
+                        }
+                        else
+                        {
+                            for (int i = transform.childCount - 1; i >= 0; --i)
+                            {
+                                Destroy(transform.GetChild(i).gameObject);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (m_modelObj != null)
+                    {
+                        m_modelObj.SetActive(false);
+                    }
+                }
+            }
+        }
+#endif
+
         private void UpdateDefaultModel()
         {
             if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
@@ -286,6 +390,9 @@ namespace HTC.UnityPlugin.Vive
             {
 #if VIU_STEAMVR
                 m_renderModel = null;
+#endif
+#if VIU_WAVEVR
+                m_wavevrModel = null;
 #endif
                 Destroy(m_modelObj);
                 m_modelObj = null;
