@@ -3,7 +3,7 @@ Copyright 2016-2018, HTC Corporation. All rights reserved.
 
 ## About
 
-The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity, especially with the VIVE/VIVE Pro but also targeting many platforms from a common code base including Oculus, Daydream, WaveSDK (e.g. VIVE Focus standalone) and additional VR platforms as supported by Unity such as Microsoft's 'Mixed Reality' VR headsets.
+The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity, especially with the VIVE/VIVE Pro but also targeting many platforms from a common code base including Oculus Rift and Go, Daydream, VIVE Wave SDK (e.g. VIVE Focus standalone) and additional VR platforms as supported by Unity such as Microsoft's 'Mixed Reality' VR headsets and more. For the latest release notes click on the Releases link above.
 
 ## Requirements
 
