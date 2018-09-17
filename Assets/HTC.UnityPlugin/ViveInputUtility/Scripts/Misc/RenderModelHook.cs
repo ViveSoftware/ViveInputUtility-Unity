@@ -2,6 +2,7 @@
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
@@ -242,101 +243,136 @@ namespace HTC.UnityPlugin.Vive
 #endif
 
 #if VIU_WAVEVR
-        private UniversalControllerActions m_wavevrModel;
+        private bool m_waveVRModelLoaded;
+        private wvr.WVR_DeviceType m_currentWaveVRHandType;
 
         private void UpdateWaveVRModel()
         {
-            if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
-            {
-                var hasValidModel = false;
-                var deviceHand = default(wvr.WVR_DeviceType);
+            if (!ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex())) { return; }
 
-                if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))
+            var hasValidModel = false;
+            var handType = default(wvr.WVR_DeviceType);
+            if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))
+            {
+                if (m_currentDeviceIndex == VRModule.GetRightControllerDeviceIndex())
                 {
-                    if (m_currentDeviceIndex == VRModule.GetRightControllerDeviceIndex())
+                    hasValidModel = true;
+                    handType = wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right;
+                }
+                else if (m_currentDeviceIndex == VRModule.GetLeftControllerDeviceIndex())
+                {
+                    hasValidModel = true;
+                    handType = wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left;
+                }
+            }
+
+            // NOTE: load renderModel only if it hasen't been loaded or user changes handType
+            if (hasValidModel)
+            {
+                if (m_modelObj != null)
+                {
+                    if (!m_waveVRModelLoaded)
                     {
-                        deviceHand = wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right;
-                        hasValidModel = true;
+                        // Clean up model that created by other module
+                        CleanUpModelObj();
                     }
-                    else if (m_currentDeviceIndex == VRModule.GetLeftControllerDeviceIndex())
+                    else if (m_currentWaveVRHandType != handType)
                     {
-                        deviceHand = wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left;
-                        hasValidModel = true;
+                        // Clean up model if changed to different hand
+                        CleanUpModelObj();
                     }
                 }
 
-                if (hasValidModel)
+                m_currentWaveVRHandType = handType;
+
+                if (!m_waveVRModelLoaded)
                 {
-                    if (m_modelObj != null && m_wavevrModel == null)
+                    // Create WaveVR_ControllerLoader silently (to avoid Start and OnEnable)
+                    var loaderGO = new GameObject("Loader");
+                    loaderGO.transform.SetParent(transform, false);
+                    loaderGO.SetActive(false);
+                    var loader = loaderGO.AddComponent<WaveVR_ControllerLoader>();
+                    loader.enabled = false;
+                    loader.TrackPosition = false;
+                    loader.TrackRotation = false;
+                    loader.showIndicator = false;
+                    loaderGO.SetActive(true);
+                    // Call onLoadController to create model (chould be Finch/Link/Pico/QIYIVR)
+                    switch (handType)
                     {
-                        CleanUpModelObj();
+                        case wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right:
+                            loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Right;
+                            loaderGO.SendMessage("onLoadController", wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                            break;
+                        case wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left:
+                            loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Left;
+                            loaderGO.SendMessage("onLoadController", wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                            break;
                     }
 
-                    if (m_modelObj == null)
+                    // Find transform that only contains controller model (include animator, exclude PoseTracker/Beam/UIPointer)
+                    // and remove other unnecessary objects
+                    var ctrllerActions = FindWaveVRControllerActionsObjInChildren();
+                    if (ctrllerActions != null)
                     {
-                        // find UniversalControllerActions in child object
-                        for (int i = 0, imax = transform.childCount; i < imax; ++i)
+                        ctrllerActions.transform.SetParent(transform, false);
+                        ctrllerActions.transform.SetAsFirstSibling();
+                        for (int i = transform.childCount - 1; i >= 1; --i)
                         {
-                            if ((m_wavevrModel = GetComponentInChildren<UniversalControllerActions>()) != null)
-                            {
-                                m_modelObj = m_wavevrModel.gameObject;
-                                break;
-                            }
+                            Destroy(transform.GetChild(i).gameObject);
                         }
-
-                        var loaderGO = new GameObject("Loader");
-                        loaderGO.transform.SetParent(transform, false);
-                        loaderGO.SetActive(false);
-                        var loader = loaderGO.AddComponent<WaveVR_ControllerLoader>();
-                        loader.enabled = false;
-                        loader.TrackPosition = false;
-                        loader.TrackRotation = false;
-                        loader.showIndicator = false;
-                        loaderGO.SetActive(true);
-
-                        switch (deviceHand)
+                        ctrllerActions.gameObject.SetActive(true);
+                        m_modelObj = ctrllerActions.gameObject;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("FindWaveVRControllerActionsObjInChildren failed");
+                        for (int i = transform.childCount - 1; i >= 0; --i)
                         {
-                            case wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right:
-                                loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Right;
-                                loaderGO.SendMessage("onLoadController", wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right);
-                                break;
-                            case wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left:
-                                loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Left;
-                                loaderGO.SendMessage("onLoadController", wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left);
-                                break;
-                        }
-
-                        var actionController = GetComponentInChildren<UniversalControllerActions>(true);
-                        if (actionController != null)
-                        {
-                            actionController.transform.SetParent(transform, false);
-                            actionController.transform.SetAsLastSibling();
-
-                            for (int i = transform.childCount - 2; i >= 0; --i)
-                            {
-                                Destroy(transform.GetChild(i).gameObject);
-                            }
-
-                            actionController.gameObject.SetActive(true);
-                            m_modelObj = actionController.gameObject;
-                        }
-                        else
-                        {
-                            for (int i = transform.childCount - 1; i >= 0; --i)
-                            {
-                                Destroy(transform.GetChild(i).gameObject);
-                            }
+                            Destroy(transform.GetChild(i).gameObject);
                         }
                     }
+
+                    m_waveVRModelLoaded = true;
                 }
                 else
                 {
                     if (m_modelObj != null)
                     {
-                        m_modelObj.SetActive(false);
+                        m_modelObj.SetActive(true);
                     }
                 }
             }
+            else
+            {
+                if (m_modelObj != null)
+                {
+                    m_modelObj.SetActive(false);
+                }
+            }
+        }
+
+        // FIXME: This is for finding Controller model with animator, is reliable?
+        private Transform FindWaveVRControllerActionsObjInChildren()
+        {
+            var nodes = new List<Transform>();
+            nodes.Add(transform);
+            for (int i = 0; i < nodes.Count; ++i)
+            {
+                var parent = nodes[i];
+                for (int j = 0, jmax = parent.childCount; j < jmax; ++j)
+                {
+                    var child = parent.GetChild(j);
+                    nodes.Add(child);
+                    if (child.GetComponent<WaveVR_PoseTrackerManager>() != null) { continue; }
+                    if (child.GetComponent<WaveVR_Beam>() != null) { continue; }
+                    if (child.GetComponent<WaveVR_ControllerPointer>() != null) { continue; }
+                    if (child.GetComponent<WaveVR_ControllerLoader>() != null) { continue; }
+                    return child;
+                }
+            }
+
+            return null;
         }
 #endif
 
@@ -392,7 +428,7 @@ namespace HTC.UnityPlugin.Vive
                 m_renderModel = null;
 #endif
 #if VIU_WAVEVR
-                m_wavevrModel = null;
+                m_waveVRModelLoaded = false;
 #endif
                 Destroy(m_modelObj);
                 m_modelObj = null;
