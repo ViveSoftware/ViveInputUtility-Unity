@@ -39,8 +39,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public string[] reqFileNames = null;
             public ReqFieldInfo[] reqFields = null;
             public ReqMethodInfo[] reqMethods = null;
+            public Func<SymbolRequirement, bool> validateFunc = null;
 
-            private static Dictionary<string, Type> s_foundTypes;
+            public static Dictionary<string, Type> s_foundTypes;
 
             public static void ResetFoundTypes()
             {
@@ -146,6 +147,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         var files = Directory.GetFiles(Application.dataPath, requiredFile, SearchOption.AllDirectories);
                         if (files == null || files.Length == 0) { return false; }
                     }
+                }
+
+                if (validateFunc != null)
+                {
+                    if (!validateFunc(this)) { return false; }
                 }
 
                 return true;
@@ -273,6 +279,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         },
                         bindingAttr = BindingFlags.Public | BindingFlags.Static,
                     }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+            
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_2_1_0_OR_NEWER",
+                reqTypeNames = new string[] { "wvr.WVR_InputId" },
+                validateFunc = (req) =>
+                {
+                    Type wvrInputIdType;
+                    if (SymbolRequirement.s_foundTypes.TryGetValue("wvr.WVR_InputId", out wvrInputIdType) && wvrInputIdType.IsEnum)
+                    {
+                        if (Enum.IsDefined(wvrInputIdType, "WVR_InputId_Alias1_Digital_Trigger"))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
                 },
                 reqFileNames = new string[] { "wvr.cs" },
             });
