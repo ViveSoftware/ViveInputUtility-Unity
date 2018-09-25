@@ -5,6 +5,9 @@ using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.IO;
 using UnityEngine;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+using Valve.VR;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -195,7 +198,11 @@ namespace HTC.UnityPlugin.Vive
             var oldExternalCam = SteamVR_Render.instance.externalCamera;
             if (oldExternalCam != null)
             {
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+                if (oldExternalCam.transform.parent != null)
+#else
                 if (oldExternalCam.transform.parent != null && oldExternalCam.transform.parent.GetComponent<SteamVR_ControllerManager>() != null)
+#endif
                 {
                     Destroy(oldExternalCam.transform.parent.gameObject);
                     SteamVR_Render.instance.externalCamera = null;

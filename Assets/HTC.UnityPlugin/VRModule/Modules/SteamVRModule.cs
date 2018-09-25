@@ -94,7 +94,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (SteamVR.active)
             {
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+                SteamVR.settings.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
+#else
                 SteamVR_Render.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
+#endif
             }
         }
 

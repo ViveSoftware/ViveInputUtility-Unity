@@ -3,6 +3,9 @@
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
 using UnityEngine;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+using Valve.VR;
+#endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
