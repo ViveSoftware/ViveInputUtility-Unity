@@ -22,7 +22,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static readonly StringBuilder s_sb = new StringBuilder();
 
         private ETrackingUniverseOrigin m_prevTrackingSpace;
-        private VRControllerState_t m_ctrlState;
         private readonly TrackedDevicePose_t[] m_rawPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private readonly TrackedDevicePose_t[] m_rawGamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
 
@@ -48,6 +47,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_prevTrackingSpace = compositor.GetTrackingSpace();
                 UpdateTrackingSpaceType();
             }
+
 #if VIU_STEAMVR_1_2_1_OR_NEWER
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
@@ -73,20 +73,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #endif
         }
 
+        private static ETrackingUniverseOrigin GetTrackingUniverse()
+        {
+            switch (VRModule.trackingSpaceType)
+            {
+                case VRModuleTrackingSpaceType.RoomScale:
+                    return ETrackingUniverseOrigin.TrackingUniverseStanding;
+                case VRModuleTrackingSpaceType.Stationary:
+                default:
+                    return ETrackingUniverseOrigin.TrackingUniverseSeated;
+            }
+        }
+
         public override void UpdateTrackingSpaceType()
         {
             var compositor = OpenVR.Compositor;
             if (compositor != null)
             {
-                switch (VRModule.trackingSpaceType)
-                {
-                    case VRModuleTrackingSpaceType.RoomScale:
-                        compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseStanding);
-                        break;
-                    case VRModuleTrackingSpaceType.Stationary:
-                        compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseSeated);
-                        break;
-                }
+                compositor.SetTrackingSpace(GetTrackingUniverse());
             }
         }
 
@@ -204,30 +208,31 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (currState[i].deviceClass == VRModuleDeviceClass.Controller || currState[i].deviceClass == VRModuleDeviceClass.GenericTracker)
                     {
                         // get device state from openvr api
-#if VIU_STEAMVR_1_2_0_OR_NEWER
-                        if (system == null || !system.GetControllerState(i, ref m_ctrlState, s_sizeOfControllerStats))
-#else
-                        if (system == null || !system.GetControllerState(i, ref m_ctrlState))
-#endif
+                        var ctrlState = default(VRControllerState_t);
+                        if (system != null)
                         {
-                            m_ctrlState = default(VRControllerState_t);
+#if VIU_STEAMVR_1_2_0_OR_NEWER
+                            system.GetControllerState(i, ref ctrlState, s_sizeOfControllerStats);
+#else
+                            system.GetControllerState(i, ref ctrlState);
+#endif
                         }
 
                         // update device input button
-                        currState[i].buttonPressed = m_ctrlState.ulButtonPressed;
-                        currState[i].buttonTouched = m_ctrlState.ulButtonTouched;
+                        currState[i].buttonPressed = ctrlState.ulButtonPressed;
+                        currState[i].buttonTouched = ctrlState.ulButtonTouched;
 
                         // update device input axis
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis0X, m_ctrlState.rAxis0.x);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis0Y, m_ctrlState.rAxis0.y);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis1X, m_ctrlState.rAxis1.x);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis1Y, m_ctrlState.rAxis1.y);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis2X, m_ctrlState.rAxis2.x);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis2Y, m_ctrlState.rAxis2.y);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis3X, m_ctrlState.rAxis3.x);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis3Y, m_ctrlState.rAxis3.y);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis4X, m_ctrlState.rAxis4.x);
-                        currState[i].SetAxisValue(VRModuleRawAxis.Axis4Y, m_ctrlState.rAxis4.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis0X, ctrlState.rAxis0.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis0Y, ctrlState.rAxis0.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis1X, ctrlState.rAxis1.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis1Y, ctrlState.rAxis1.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis2X, ctrlState.rAxis2.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis2Y, ctrlState.rAxis2.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis3X, ctrlState.rAxis3.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis3Y, ctrlState.rAxis3.y);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis4X, ctrlState.rAxis4.x);
+                        currState[i].SetAxisValue(VRModuleRawAxis.Axis4Y, ctrlState.rAxis4.y);
                     }
                 }
                 else

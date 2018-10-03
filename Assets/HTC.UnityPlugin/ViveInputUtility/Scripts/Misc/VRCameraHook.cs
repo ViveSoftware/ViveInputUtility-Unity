@@ -2,7 +2,7 @@
 
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEngine;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if !UNITY_5_4_OR_NEWER && VIU_STEAMVR_2_0_0_OR_NEWER
 using Valve.VR;
 #endif
 
@@ -30,7 +30,7 @@ namespace HTC.UnityPlugin.Vive
         {
             switch (activatedModule)
             {
-#if VIU_STEAMVR
+#if !UNITY_5_4_OR_NEWER && VIU_STEAMVR
                 case VRModuleActiveEnum.SteamVR:
                     if (GetComponent<SteamVR_Camera>() == null)
                     {
