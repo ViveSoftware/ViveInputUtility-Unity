@@ -254,6 +254,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             s_symbolReqList.Add(new SymbolRequirement()
             {
+                symbol = "VIU_GOOGLEVR_1_150_0_NEWER",
+                reqTypeNames = new string[] { "GvrControllerInputDevice" },
+                reqFileNames = new string[] { "GvrControllerInputDevice.cs" },
+            });
+
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
                 symbol = "VIU_WAVEVR",
                 reqTypeNames = new string[] { "WaveVR" },
                 reqFileNames = new string[] { "WaveVR.cs" },
