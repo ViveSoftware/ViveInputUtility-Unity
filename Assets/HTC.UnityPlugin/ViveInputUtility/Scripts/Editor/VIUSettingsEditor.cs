@@ -990,7 +990,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     EditorGUI.indentLevel += 2;
 
-                    VIUSettings.waveVRAddVirtualArmTo3DoFController = EditorGUILayout.ToggleLeft(new GUIContent("Add Airtual Arm for 3 Dof Controller"), VIUSettings.waveVRAddVirtualArmTo3DoFController);
+                    VIUSettings.waveVRAddVirtualArmTo3DoFController = EditorGUILayout.ToggleLeft(new GUIContent("Add Virtual Arm for 3 Dof Controller"), VIUSettings.waveVRAddVirtualArmTo3DoFController);
                     if (!VIUSettings.waveVRAddVirtualArmTo3DoFController) { GUI.enabled = false; }
                     {
                         EditorGUI.indentLevel++;

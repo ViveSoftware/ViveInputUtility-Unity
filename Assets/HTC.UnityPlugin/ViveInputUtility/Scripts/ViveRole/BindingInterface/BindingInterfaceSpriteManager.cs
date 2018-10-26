@@ -75,7 +75,6 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         public static void SetupTrackingDeviceIcon(Image image, IVRModuleDeviceState deviceState, bool bound)
         {
-            VRModuleDeviceModel deviceModel;
             string spriteName;
             var scale = Vector3.one;
             switch (deviceState.deviceModel)
