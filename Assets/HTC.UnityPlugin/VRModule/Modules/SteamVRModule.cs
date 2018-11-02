@@ -39,6 +39,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void OnActivated()
         {
+            // Make sure SteamVR_Render instance exist. It Polls New Poses Event
+            if (SteamVR_Render.instance == null) { }
+
             var compositor = OpenVR.Compositor;
             if (compositor != null)
             {

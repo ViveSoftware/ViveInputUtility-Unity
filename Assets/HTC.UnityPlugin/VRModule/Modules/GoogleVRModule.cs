@@ -28,6 +28,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private GvrControllerInput m_gvrCtrlInputInstance;
         private GvrArmModel m_gvrArmModelInstance;
 
+#if VIU_GOOGLEVR_1_150_0_NEWER
+        private GvrControllerInputDevice m_gvrCtrlInputDevice;
+#endif
+
         public override uint GetRightControllerDeviceIndex() { return CONTROLLER_DEVICE_INDEX; }
 
         public override bool ShouldActiveModule()
@@ -44,14 +48,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (m_gvrCtrlInputInstance == null)
                 {
                     m_gvrCtrlInputInstance = VRModule.Instance.gameObject.AddComponent<GvrControllerInput>();
+#if VIU_GOOGLEVR_1_150_0_NEWER
+                    m_gvrCtrlInputDevice = GvrControllerInput.GetDevice(GvrControllerHand.Dominant);
+#endif
                 }
             }
-
+#if VIU_GOOGLEVR_1_150_0_NEWER
+            if (m_gvrCtrlInputDevice.State == GvrConnectionState.Error)
+            {
+                Debug.LogError(m_gvrCtrlInputDevice.ErrorDetails);
+                return;
+            }
+#else
             if (GvrControllerInput.State == GvrConnectionState.Error)
             {
                 Debug.LogError(GvrControllerInput.ErrorDetails);
                 return;
             }
+#endif
 
             if (m_gvrArmModelInstance == null)
             {
@@ -60,6 +74,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (m_gvrArmModelInstance == null)
                 {
                     m_gvrArmModelInstance = VRModule.Instance.gameObject.AddComponent<GvrArmModel>();
+#if VIU_GOOGLEVR_1_150_0_NEWER
+                    m_gvrArmModelInstance.ControllerInputDevice = m_gvrCtrlInputDevice;
+#endif
                 }
             }
 
@@ -107,7 +124,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var ctrlPrevState = prevState[CONTROLLER_DEVICE_INDEX];
             var ctrlCurrState = currState[CONTROLLER_DEVICE_INDEX];
 
+#if VIU_GOOGLEVR_1_150_0_NEWER
+            ctrlCurrState.isConnected = m_gvrCtrlInputDevice.State == GvrConnectionState.Connected;
+#else
             ctrlCurrState.isConnected = GvrControllerInput.State == GvrConnectionState.Connected;
+#endif
 
             if (ctrlCurrState.isConnected)
             {
@@ -122,6 +143,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
 
                 ctrlCurrState.pose = new RigidPose(m_gvrArmModelInstance.ControllerPositionFromHead, m_gvrArmModelInstance.ControllerRotationFromHead);
+
+#if VIU_GOOGLEVR_1_150_0_NEWER
+                ctrlCurrState.isPoseValid = m_gvrCtrlInputDevice.Orientation != Quaternion.identity;
+                ctrlCurrState.velocity = m_gvrCtrlInputDevice.Accel;
+                ctrlCurrState.angularVelocity = m_gvrCtrlInputDevice.Gyro;
+
+                ctrlCurrState.SetButtonPress(VRModuleRawButton.Touchpad, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadButton));
+                ctrlCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.App));
+                ctrlCurrState.SetButtonPress(VRModuleRawButton.System, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.System));
+
+                ctrlCurrState.SetButtonTouch(VRModuleRawButton.Touchpad, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadTouch));
+#else
                 ctrlCurrState.isPoseValid = GvrControllerInput.Orientation != Quaternion.identity;
                 ctrlCurrState.velocity = GvrControllerInput.Accel;
                 ctrlCurrState.angularVelocity = GvrControllerInput.Gyro;
@@ -131,10 +164,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 ctrlCurrState.SetButtonPress(VRModuleRawButton.System, GvrControllerInput.HomeButtonState);
 
                 ctrlCurrState.SetButtonTouch(VRModuleRawButton.Touchpad, GvrControllerInput.IsTouching);
+#endif
 
+#if VIU_GOOGLEVR_1_150_0_NEWER
+                if (m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadTouch))
+#else
                 if (GvrControllerInput.IsTouching)
+#endif
                 {
+#if VIU_GOOGLEVR_1_150_0_NEWER
+                    var touchPadPosCentered = m_gvrCtrlInputDevice.TouchPos;
+#else
                     var touchPadPosCentered = GvrControllerInput.TouchPosCentered;
+#endif
                     ctrlCurrState.SetAxisValue(VRModuleRawAxis.TouchpadX, touchPadPosCentered.x);
                     ctrlCurrState.SetAxisValue(VRModuleRawAxis.TouchpadY, touchPadPosCentered.y);
                 }
@@ -146,9 +188,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (VIUSettings.daydreamSyncPadPressToTrigger)
                 {
+#if VIU_GOOGLEVR_1_150_0_NEWER
+                    ctrlCurrState.SetButtonPress(VRModuleRawButton.Trigger, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadButton));
+                    ctrlCurrState.SetButtonTouch(VRModuleRawButton.Trigger, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadTouch));
+                    ctrlCurrState.SetAxisValue(VRModuleRawAxis.Trigger, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadButton) ? 1f : 0f);
+#else
                     ctrlCurrState.SetButtonPress(VRModuleRawButton.Trigger, GvrControllerInput.ClickButton);
                     ctrlCurrState.SetButtonTouch(VRModuleRawButton.Trigger, GvrControllerInput.IsTouching);
                     ctrlCurrState.SetAxisValue(VRModuleRawAxis.Trigger, GvrControllerInput.ClickButton ? 1f : 0f);
+#endif
                 }
             }
             else
@@ -160,5 +208,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 #endif
-    }
+                }
 }

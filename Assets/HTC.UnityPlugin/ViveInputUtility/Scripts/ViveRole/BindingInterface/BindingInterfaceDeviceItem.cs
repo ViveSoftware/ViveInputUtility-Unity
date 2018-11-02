@@ -46,7 +46,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
 
         public void UpdateModel()
         {
-            BindingInterfaceSpriteManager.SetupTrackingDeviceIcon(m_imageModel, VRModule.GetCurrentDeviceState(deviceIndex).deviceModel, isBound);
+            BindingInterfaceSpriteManager.SetupTrackingDeviceIcon(m_imageModel, VRModule.GetCurrentDeviceState(deviceIndex), isBound);
         }
 
         public void UpdatePosition()
