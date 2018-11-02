@@ -203,11 +203,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             // device input state
             [SerializeField]
-            public ulong m_buttonPressed;
+            private ulong m_buttonPressed;
             [SerializeField]
-            public ulong m_buttonTouched;
+            private ulong m_buttonTouched;
             [SerializeField]
-            public float[] m_axisValue;
+            private float[] m_axisValue;
 
             public ulong buttonPressed { get { return m_buttonPressed; } set { m_buttonPressed = value; } }
             public ulong buttonTouched { get { return m_buttonTouched; } set { m_buttonTouched = value; } }

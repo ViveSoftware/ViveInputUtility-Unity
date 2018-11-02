@@ -98,34 +98,52 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static bool IsDeviceConnected(string deviceSerialNumber)
         {
-            return s_deviceSerialNumberTable.ContainsKey(deviceSerialNumber);
+            return (string.IsNullOrEmpty(deviceSerialNumber) || s_deviceSerialNumberTable == null) ? false : s_deviceSerialNumberTable.ContainsKey(deviceSerialNumber);
         }
 
         public static uint GetConnectedDeviceIndex(string deviceSerialNumber)
         {
             uint deviceIndex;
-            if (s_deviceSerialNumberTable.TryGetValue(deviceSerialNumber, out deviceIndex)) { return deviceIndex; }
-            return INVALID_DEVICE_INDEX;
+            if (string.IsNullOrEmpty(deviceSerialNumber) || s_deviceSerialNumberTable == null || !s_deviceSerialNumberTable.TryGetValue(deviceSerialNumber, out deviceIndex))
+            {
+                return INVALID_DEVICE_INDEX;
+            }
+            else
+            {
+                return deviceIndex;
+            }
         }
 
         public static bool TryGetConnectedDeviceIndex(string deviceSerialNumber, out uint deviceIndex)
         {
-            return s_deviceSerialNumberTable.TryGetValue(deviceSerialNumber, out deviceIndex);
+            if (string.IsNullOrEmpty(deviceSerialNumber) || s_deviceSerialNumberTable == null)
+            {
+                deviceIndex = INVALID_DEVICE_INDEX;
+                return false;
+            }
+            else
+            {
+                return s_deviceSerialNumberTable.TryGetValue(deviceSerialNumber, out deviceIndex);
+            }
         }
+
+        public static uint GetDeviceStateCount() { return Instance == null ? 0u : Instance.GetDeviceStateLength(); }
 
         public static IVRModuleDeviceState GetCurrentDeviceState(uint deviceIndex)
         {
-            return Instance == null || !IsValidDeviceIndex(deviceIndex) ? s_defaultState : Instance.m_currStates[deviceIndex];
+            if (!IsValidDeviceIndex(deviceIndex) || Instance == null || Instance.m_currStates == null) { return s_defaultState; }
+            return Instance.m_currStates[deviceIndex] ?? s_defaultState;
         }
 
         public static IVRModuleDeviceState GetPreviousDeviceState(uint deviceIndex)
         {
-            return Instance == null || !IsValidDeviceIndex(deviceIndex) ? s_defaultState : Instance.m_prevStates[deviceIndex];
+            if (!IsValidDeviceIndex(deviceIndex) || Instance == null || Instance.m_prevStates == null) { return s_defaultState; }
+            return Instance.m_prevStates[deviceIndex] ?? s_defaultState;
         }
 
         public static IVRModuleDeviceState GetDeviceState(uint deviceIndex, bool usePrevious = false)
         {
-            return Instance == null || !IsValidDeviceIndex(deviceIndex) ? s_defaultState : (usePrevious ? Instance.m_prevStates[deviceIndex] : Instance.m_currStates[deviceIndex]);
+            return usePrevious ? GetPreviousDeviceState(deviceIndex) : GetCurrentDeviceState(deviceIndex);
         }
 
         public static uint GetLeftControllerDeviceIndex()

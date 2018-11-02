@@ -90,6 +90,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+#if VIU_STEAMVR_1_1_1
+        private void OnSteamVRNewPoseArgs(params object[] args) { OnSteamVRNewPose((Valve.VR.TrackedDevicePose_t[])args[0]); }
+#endif
+        private void OnSteamVRNewPose(TrackedDevicePose_t[] poses) { }
+
         public override void Update()
         {
             if (SteamVR.active)
@@ -138,6 +143,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (system != null)
             {
                 system.TriggerHapticPulse(deviceIndex, (uint)EVRButtonId.k_EButton_SteamVR_Touchpad - (uint)EVRButtonId.k_EButton_Axis0, (char)durationMicroSec);
+            }
+        }
+
+        private void UpdateConnectedDevice()
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+            var compositor = OpenVR.Compositor;
+
+            if (compositor != null)
+            {
+                compositor.GetLastPoses(m_rawPoses, m_rawGamePoses);
+
+
+            }
+            else
+            {
+                for (uint i = 0, imax = GetDeviceStateLength(); i < imax; ++i)
+                {
+                    if (TryGetValidDeviceState(i, out prevState, out currState))
+                    {
+                        if (prevState.isConnected) { currState.Reset(); }
+                    }
+                }
             }
         }
 
@@ -255,5 +284,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return result;
         }
 #endif
-            }
+    }
 }

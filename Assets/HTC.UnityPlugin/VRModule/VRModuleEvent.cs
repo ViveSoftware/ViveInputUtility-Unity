@@ -11,6 +11,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [Serializable]
         public class NewPosesEvent : UnityEvent { }
         [Serializable]
+        public class NewInputEvent : UnityEvent { }
+        [Serializable]
         public class ControllerRoleChangedEvent : UnityEvent { }
         [Serializable]
         public class InputFocusEvent : UnityEvent<bool> { }
@@ -20,18 +22,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public class ActiveModuleChangedEvent : UnityEvent<VRModuleActiveEnum> { }
 
         public delegate void NewPosesListener();
+        public delegate void NesInputListener();
         public delegate void ControllerRoleChangedListener();
         public delegate void InputFocusListener(bool value);
         public delegate void DeviceConnectedListener(uint deviceIndex, bool connected);
         public delegate void ActiveModuleChangedListener(VRModuleActiveEnum activeModule);
 
         private static NewPosesListener s_onNewPoses;
+        private static NesInputListener s_onNewInput;
         private static ControllerRoleChangedListener s_onControllerRoleChanged;
         private static InputFocusListener s_onInputFocus;
         private static DeviceConnectedListener s_onDeviceConnected;
         private static ActiveModuleChangedListener s_onActiveModuleChanged;
 
         public static event NewPosesListener onNewPoses { add { s_onNewPoses += value; } remove { s_onNewPoses -= value; } } // invoke by manager
+        public static event NesInputListener onNewInput { add { s_onNewInput += value; } remove { s_onNewInput -= value; } } // invoke by manager
         public static event ControllerRoleChangedListener onControllerRoleChanged { add { s_onControllerRoleChanged += value; } remove { s_onControllerRoleChanged -= value; } } // invoke by module
         public static event InputFocusListener onInputFocus { add { s_onInputFocus += value; } remove { s_onInputFocus -= value; } } // invoke by module
         public static event DeviceConnectedListener onDeviceConnected { add { s_onDeviceConnected += value; } remove { s_onDeviceConnected -= value; } }// invoke by manager
@@ -41,6 +46,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (s_onNewPoses != null) { s_onNewPoses(); }
             if (Active) { Instance.m_onNewPoses.Invoke(); }
+        }
+
+        private static void InvokeNewInputEvent()
+        {
+            if (s_onNewInput != null) { s_onNewInput(); }
+            if (Active) { Instance.m_onNewInput.Invoke(); }
         }
 
         private static void InvokeControllerRoleChangedEvent()

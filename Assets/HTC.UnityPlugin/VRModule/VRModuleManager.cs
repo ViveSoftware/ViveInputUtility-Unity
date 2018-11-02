@@ -13,7 +13,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     {
         private static readonly DeviceState s_defaultState;
         private static readonly SimulatorVRModule s_simulator;
-        private static readonly Dictionary<string, uint> s_deviceSerialNumberTable = new Dictionary<string, uint>((int)MAX_DEVICE_COUNT);
+        private static readonly Dictionary<string, uint> s_deviceSerialNumberTable;
 
         [SerializeField]
         private bool m_dontDestroyOnLoad = true;
@@ -27,6 +27,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [SerializeField]
         private NewPosesEvent m_onNewPoses = new NewPosesEvent();
         [SerializeField]
+        private NewInputEvent m_onNewInput = new NewInputEvent();
+        [SerializeField]
         private ControllerRoleChangedEvent m_onControllerRoleChanged = new ControllerRoleChangedEvent();
         [SerializeField]
         private InputFocusEvent m_onInputFocus = new InputFocusEvent();
@@ -35,7 +37,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [SerializeField]
         private ActiveModuleChangedEvent m_onActiveModuleChanged = new ActiveModuleChangedEvent();
 
-        private bool m_isUpdating = false;
+        private bool m_isProcessing = false;
         private bool m_isDestoryed = false;
 
         private ModuleBase[] m_modules;
@@ -80,21 +82,49 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_modules[(int)VRModuleActiveEnum.OculusVR] = new OculusVRModule();
             m_modules[(int)VRModuleActiveEnum.DayDream] = new GoogleVRModule();
             m_modules[(int)VRModuleActiveEnum.WaveVR] = new WaveVRModule();
+        }
 
-            s_deviceSerialNumberTable.Clear();
+        private uint GetDeviceStateLength() { return m_currStates == null ? 0u : (uint)m_currStates.Length; }
 
-            m_currStates = new DeviceState[MAX_DEVICE_COUNT];
-            for (var i = 0u; i < MAX_DEVICE_COUNT; ++i) { m_currStates[i] = new DeviceState(i); }
+        private void EnsureDeviceStateLength(uint capacity)
+        {
+            // NOTE: this will clear out the array
+            var cap = Mathf.Min((int)capacity, (int)MAX_DEVICE_COUNT);
+            if (GetDeviceStateLength() < cap)
+            {
+                m_prevStates = new DeviceState[cap];
+                m_currStates = new DeviceState[cap];
+            }
+        }
 
-            m_prevStates = new DeviceState[MAX_DEVICE_COUNT];
-            for (var i = 0u; i < MAX_DEVICE_COUNT; ++i) { m_prevStates[i] = new DeviceState(i); }
+        private bool TryGetValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+        {
+            if (m_currStates[index] == null)
+            {
+                prevState = null;
+                currState = null;
+                return false;
+            }
+            else
+            {
+                prevState = m_prevStates[index];
+                currState = m_currStates[index];
+                return true;
+            }
+        }
+
+        private void EnsureValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+        {
+            if (!TryGetValidDeviceState(index, out prevState, out currState))
+            {
+                prevState = m_prevStates[index] = new DeviceState(index);
+                currState = m_currStates[index] = new DeviceState(index);
+            }
         }
 
         private void Update()
         {
             if (!IsInstance) { return; }
-
-            m_isUpdating = true;
 
             // Get should activate module
             var shouldActivateModule = GetShouldActivateModule();
@@ -114,17 +144,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            if (m_activatedModule != VRModuleActiveEnum.Uninitialized)
+            if (m_activatedModuleBase != null)
             {
                 m_activatedModuleBase.Update();
             }
+        }
 
-            if (m_isDestoryed)
+        private void FixedUpdate()
+        {
+            if (!IsInstance) { return; }
+
+            if (m_activatedModuleBase != null)
             {
-                DeactivateModule();
+                m_activatedModuleBase.FixedUpdate();
             }
+        }
 
-            m_isUpdating = false;
+        private void LateUpdate()
+        {
+            if (!IsInstance) { return; }
+
+            if (m_activatedModuleBase != null)
+            {
+                m_activatedModuleBase.LateUpdate();
+            }
         }
 
         protected override void OnDestroy()
@@ -133,7 +176,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 m_isDestoryed = true;
 
-                if (!m_isUpdating)
+                if (!m_isProcessing)
                 {
                     DeactivateModule();
                 }
@@ -144,6 +187,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private VRModuleActiveEnum GetShouldActivateModule()
         {
+            if (m_isDestoryed) { return VRModuleActiveEnum.Uninitialized; }
+
             if (m_selectModule == VRModuleSelectEnum.Auto)
             {
                 for (int i = m_modules.Length - 1; i >= 0; --i)
@@ -154,7 +199,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
             }
-            else if ((int)m_selectModule >= 0 && (int)m_selectModule < m_modules.Length)
+            else if (m_selectModule >= 0 && (int)m_selectModule < m_modules.Length)
             {
                 return (VRModuleActiveEnum)m_selectModule;
             }
@@ -185,46 +230,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_activatedModuleBase = m_modules[(int)module];
             m_activatedModuleBase.OnActivated();
 
-            VRModule.InvokeActiveModuleChangedEvent(m_activatedModule);
-
-            switch (m_activatedModule)
-            {
-#if VIU_STEAMVR && !VIU_STEAMVR_2_0_0_OR_NEWER
-                case VRModuleActiveEnum.SteamVR:
-#if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER && !UNITY_5_3
-                    Camera.onPreCull += OnCameraPreCull;
-#elif VIU_STEAMVR_1_2_0_OR_NEWER
-                    SteamVR_Events.NewPoses.AddListener(OnSteamVRNewPose);
-#else
-                    SteamVR_Utils.Event.Listen("new_poses", OnSteamVRNewPoseArgs);
-#endif
-                    break;
-#endif
-#if VIU_WAVEVR
-                case VRModuleActiveEnum.WaveVR:
-                    WaveVR_Utils.Event.Listen(WaveVR_Utils.Event.NEW_POSES, OnWaveVRNewPoseArgs);
-                    break;
-#endif
-                default:
 #if UNITY_2017_1_OR_NEWER
-                    Application.onBeforeRender += UpdateActiveModuleDeviceState;
+            Application.onBeforeRender += BeforeRenderUpdateModule;
 #else
-                    Camera.onPreCull += OnCameraPreCull;
+            Camera.onPreCull += OnCameraPreCull;
 #endif
-                    break;
-            }
+
+            InvokeActiveModuleChangedEvent(m_activatedModule);
         }
-
-#if VIU_STEAMVR
-#if VIU_STEAMVR_1_1_1
-        private void OnSteamVRNewPoseArgs(params object[] args) { OnSteamVRNewPose((Valve.VR.TrackedDevicePose_t[])args[0]); }
-#endif
-        private void OnSteamVRNewPose(Valve.VR.TrackedDevicePose_t[] poses) { UpdateActiveModuleDeviceState(); }
-#endif
-
-#if VIU_WAVEVR
-        private void OnWaveVRNewPoseArgs(params object[] args) { UpdateActiveModuleDeviceState(); }
-#endif
 
 #if !UNITY_2017_1_OR_NEWER
         private int m_poseUpdatedFrame = -1;
@@ -240,60 +253,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #endif
 
             m_poseUpdatedFrame = thisFrame;
-            UpdateActiveModuleDeviceState();
+            BeforeRenderUpdateModule();
         }
 #endif
 
-        private void UpdateActiveModuleDeviceState()
+        private void BeforeRenderUpdateModule()
         {
-            m_isUpdating = true;
-
-            // copy status to from current state to previous state
-            for (var i = 0u; i < MAX_DEVICE_COUNT; ++i)
+            if (m_activatedModuleBase != null)
             {
-                if (m_prevStates[i].isConnected || m_currStates[i].isConnected)
-                {
-                    m_prevStates[i].CopyFrom(m_currStates[i]);
-                }
+                m_activatedModuleBase.BeforeRenderUpdate();
             }
-
-            // update status
-            m_activatedModuleBase.UpdateDeviceState(m_prevStates, m_currStates);
-
-            // send connect/disconnect event
-            for (var i = 0u; i < MAX_DEVICE_COUNT; ++i)
-            {
-                if (m_prevStates[i].isConnected != m_currStates[i].isConnected)
-                {
-                    if (m_currStates[i].isConnected)
-                    {
-                        try
-                        {
-                            s_deviceSerialNumberTable.Add(m_currStates[i].serialNumber, i);
-                        }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogError(m_currStates[i].serialNumber + ":" + e.ToString());
-                        }
-                    }
-                    else
-                    {
-                        s_deviceSerialNumberTable.Remove(m_prevStates[i].serialNumber);
-                    }
-
-                    VRModule.InvokeDeviceConnectedEvent(i, m_currStates[i].isConnected);
-                }
-            }
-
-            // send new poses event
-            VRModule.InvokeNewPosesEvent();
-
-            if (m_isDestoryed)
-            {
-                DeactivateModule();
-            }
-
-            m_isUpdating = false;
         }
 
         private void DeactivateModule()
@@ -308,35 +277,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return;
             }
 
-            switch (m_activatedModule)
-            {
-#if VIU_STEAMVR && !VIU_STEAMVR_2_0_0_OR_NEWER
-                case VRModuleActiveEnum.SteamVR:
-#if VIU_STEAMVR_1_2_3_OR_NEWER && !UNITY_2017_1_OR_NEWER && !UNITY_5_3
-                    Camera.onPreCull -= OnCameraPreCull;
-#elif VIU_STEAMVR_1_2_0_OR_NEWER
-                    SteamVR_Events.NewPoses.RemoveListener(OnSteamVRNewPose);
-#else
-                    SteamVR_Utils.Event.Remove("new_poses", OnSteamVRNewPoseArgs);
-#endif
-                    break;
-#endif
-#if VIU_WAVEVR
-                case VRModuleActiveEnum.WaveVR:
-                    WaveVR_Utils.Event.Remove(WaveVR_Utils.Event.NEW_POSES, OnWaveVRNewPoseArgs);
-                    break;
-#endif
-                default:
+            m_isProcessing = false;
+
 #if UNITY_2017_1_OR_NEWER
-                    Application.onBeforeRender -= UpdateActiveModuleDeviceState;
+            Application.onBeforeRender -= BeforeRenderUpdateModule;
 #else
-                    Camera.onPreCull -= OnCameraPreCull;
+            Camera.onPreCull -= OnCameraPreCull;
 #endif
-                    break;
-            }
 
             // copy status to from current state to previous state, and reset current state
-            for (var i = 0u; i < MAX_DEVICE_COUNT; ++i)
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
                 if (m_prevStates[i].isConnected || m_currStates[i].isConnected)
                 {
@@ -346,22 +296,99 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // send disconnect event
-            for (var i = 0u; i < MAX_DEVICE_COUNT; ++i)
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
                 if (m_prevStates[i].isConnected)
                 {
-                    VRModule.InvokeDeviceConnectedEvent(i, false);
+                    InvokeDeviceConnectedEvent(i, false);
                 }
             }
 
             var deactivatedModuleBase = m_activatedModuleBase;
-
             m_activatedModule = VRModuleActiveEnum.Uninitialized;
             m_activatedModuleBase = null;
-
             deactivatedModuleBase.OnDeactivated();
 
-            VRModule.InvokeActiveModuleChangedEvent(VRModuleActiveEnum.Uninitialized);
+            InvokeActiveModuleChangedEvent(VRModuleActiveEnum.Uninitialized);
+        }
+
+        private void ModuleStartUpdateProcess()
+        {
+            if (m_isProcessing) { return; }
+            m_isProcessing = true;
+
+            var prevStates = m_prevStates;
+            var currStates = m_currStates;
+
+            // copy status to from current state to previous state
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
+            {
+                if (currStates[i] == null) { continue; }
+                prevStates[i].CopyFrom(currStates[i]);
+            }
+        }
+
+        private void ModuleConnectedDeviceChanged()
+        {
+            if (!m_isProcessing) { return; }
+
+            var prevStates = m_prevStates;
+            var currStates = m_currStates;
+
+            // send connect/disconnect event
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
+            {
+                if (prevStates[i].isConnected != currStates[i].isConnected)
+                {
+                    if (currStates[i].isConnected)
+                    {
+                        if (string.IsNullOrEmpty(currStates[i].serialNumber))
+                        {
+                            Debug.LogError("Device connected with empty serialNumber");
+                        }
+                        else if (s_deviceSerialNumberTable.ContainsKey(currStates[i].serialNumber))
+                        {
+                            Debug.LogError("Device connected with duplicate serialNumber: " + currStates[i].serialNumber + " index:" + i + "(" + s_deviceSerialNumberTable[currStates[i].serialNumber] + ")");
+                        }
+                        else
+                        {
+                            s_deviceSerialNumberTable.Add(currStates[i].serialNumber, i);
+                        }
+
+                        InvokeDeviceConnectedEvent(i, true);
+                    }
+                    else
+                    {
+                        s_deviceSerialNumberTable.Remove(prevStates[i].serialNumber);
+
+                        InvokeDeviceConnectedEvent(i, false);
+                    }
+                }
+            }
+        }
+
+        private void ModuleDevicePoseChanged()
+        {
+            if (!m_isProcessing) { return; }
+            InvokeNewPosesEvent();
+        }
+
+        private void ModuleDeviceInputChanged()
+        {
+            if (!m_isProcessing) { return; }
+            InvokeNewInputEvent();
+        }
+
+        private void ModuleEndUpdateProcess()
+        {
+            if (!m_isProcessing) { return; }
+            m_isProcessing = false;
+
+            if (m_isDestoryed)
+            {
+                DeactivateModule();
+            }
+
         }
     }
 }

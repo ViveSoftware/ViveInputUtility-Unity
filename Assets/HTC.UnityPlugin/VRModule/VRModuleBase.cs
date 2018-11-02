@@ -30,6 +30,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public virtual uint GetRightControllerDeviceIndex() { return INVALID_DEVICE_INDEX; }
             public virtual void UpdateTrackingSpaceType() { }
             public virtual void Update() { }
+            public virtual void FixedUpdate() { }
+            public virtual void LateUpdate() { }
+            public virtual void BeforeRenderUpdate() { }
 
             public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
             {
@@ -49,6 +52,51 @@ namespace HTC.UnityPlugin.VRModuleManagement
             protected void InvokeControllerRoleChangedEvent()
             {
                 VRModule.InvokeControllerRoleChangedEvent();
+            }
+
+            protected uint GetDeviceStateLength()
+            {
+                return Instance.GetDeviceStateLength();
+            }
+
+            protected void EnsureDeviceStateLength(uint capacity)
+            {
+                Instance.EnsureDeviceStateLength(capacity);
+            }
+
+            protected bool TryGetValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                return Instance.TryGetValidDeviceState(index, out prevState, out currState);
+            }
+
+            protected void EnsureValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                Instance.EnsureValidDeviceState(index, out prevState, out currState);
+            }
+
+            protected void StartUpdateProcess()
+            {
+                Instance.ModuleStartUpdateProcess();
+            }
+
+            protected void ProcessConnectedDeviceChanged()
+            {
+                Instance.ModuleConnectedDeviceChanged();
+            }
+
+            protected void ProcessDevicePoseChanged()
+            {
+                Instance.ModuleDevicePoseChanged();
+            }
+
+            protected void ProcessDeviceInputChanged()
+            {
+                Instance.ModuleDeviceInputChanged();
+            }
+
+            protected void EndUpdateProcess()
+            {
+                Instance.ModuleEndUpdateProcess();
             }
 
             protected static void SetupKnownDeviceModel(IVRModuleDeviceStateRW deviceState)
