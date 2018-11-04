@@ -37,7 +37,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [SerializeField]
         private ActiveModuleChangedEvent m_onActiveModuleChanged = new ActiveModuleChangedEvent();
 
-        private bool m_isProcessing = false;
+        private bool m_delayDeactivate = false;
         private bool m_isDestoryed = false;
 
         private ModuleBase[] m_modules;
@@ -176,7 +176,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 m_isDestoryed = true;
 
-                if (!m_isProcessing)
+                if (!m_delayDeactivate)
                 {
                     DeactivateModule();
                 }
@@ -277,7 +277,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return;
             }
 
-            m_isProcessing = false;
+            m_delayDeactivate = false;
 
 #if UNITY_2017_1_OR_NEWER
             Application.onBeforeRender -= BeforeRenderUpdateModule;
@@ -312,10 +312,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             InvokeActiveModuleChangedEvent(VRModuleActiveEnum.Uninitialized);
         }
 
-        private void ModuleStartUpdateProcess()
+        private void ModuleFlushDeviceState()
         {
-            if (m_isProcessing) { return; }
-            m_isProcessing = true;
+            if (m_delayDeactivate) { return; }
+            m_delayDeactivate = true;
 
             var prevStates = m_prevStates;
             var currStates = m_currStates;
@@ -330,11 +330,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void ModuleConnectedDeviceChanged()
         {
-            if (!m_isProcessing) { return; }
+            if (!m_delayDeactivate) { return; }
 
             var prevStates = m_prevStates;
             var currStates = m_currStates;
 
+            m_delayDeactivate = true;
             // send connect/disconnect event
             for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
@@ -365,30 +366,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
             }
-        }
 
-        private void ModuleDevicePoseChanged()
-        {
-            if (!m_isProcessing) { return; }
-            InvokeNewPosesEvent();
-        }
-
-        private void ModuleDeviceInputChanged()
-        {
-            if (!m_isProcessing) { return; }
-            InvokeNewInputEvent();
-        }
-
-        private void ModuleEndUpdateProcess()
-        {
-            if (!m_isProcessing) { return; }
-            m_isProcessing = false;
-
+            m_delayDeactivate = false;
             if (m_isDestoryed)
             {
                 DeactivateModule();
             }
-
         }
     }
 }

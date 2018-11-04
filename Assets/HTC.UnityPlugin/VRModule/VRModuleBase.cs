@@ -74,9 +74,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Instance.EnsureValidDeviceState(index, out prevState, out currState);
             }
 
-            protected void StartUpdateProcess()
+            protected void FlushDeviceState()
             {
-                Instance.ModuleStartUpdateProcess();
+                Instance.ModuleFlushDeviceState();
             }
 
             protected void ProcessConnectedDeviceChanged()
@@ -86,17 +86,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             protected void ProcessDevicePoseChanged()
             {
-                Instance.ModuleDevicePoseChanged();
+                InvokeNewPosesEvent();
             }
 
             protected void ProcessDeviceInputChanged()
             {
-                Instance.ModuleDeviceInputChanged();
-            }
-
-            protected void EndUpdateProcess()
-            {
-                Instance.ModuleEndUpdateProcess();
+                InvokeNewInputEvent();
             }
 
             protected static void SetupKnownDeviceModel(IVRModuleDeviceStateRW deviceState)
