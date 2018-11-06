@@ -331,9 +331,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void ModuleFlushDeviceState()
         {
-            if (m_delayDeactivate) { return; }
-            m_delayDeactivate = true;
-
             DeviceState prevState;
             DeviceState currState;
 
@@ -342,12 +339,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
 
-                if (!prevState.isConnected && !currState.isConnected)
-                {
-                    m_prevStates[i] = null;
-                    m_currStates[i] = null;
-                }
-                else
+                if (prevState.isConnected || currState.isConnected)
                 {
                     prevState.CopyFrom(currState);
                 }
@@ -356,8 +348,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void ModuleConnectedDeviceChanged()
         {
-            if (!m_delayDeactivate) { return; }
-
             DeviceState prevState;
             DeviceState currState;
 
