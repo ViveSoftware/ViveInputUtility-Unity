@@ -33,6 +33,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             m_prevTrackingSpace = VRDevice.GetTrackingSpaceType();
             UpdateTrackingSpaceType();
+
+            EnsureDeviceStateLength(3);
         }
 
         public override void OnDeactivated()
@@ -58,13 +60,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
 
-        public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
+        public override void BeforeRenderUpdate()
         {
             var joystickNames = default(string[]);
 
+            FlushDeviceState();
+
             // head
-            var headCurrState = currState[m_headIndex];
-            var headPrevState = prevState[m_headIndex];
+            IVRModuleDeviceState headPrevState;
+            IVRModuleDeviceStateRW headCurrState;
+            EnsureValidDeviceState(m_headIndex, out headPrevState, out headCurrState);
 
             headCurrState.isConnected = VRDevice.isPresent;
 
@@ -105,8 +110,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // right
-            var rightCurrState = currState[m_rightIndex];
-            var rightPrevState = prevState[m_rightIndex];
+            IVRModuleDeviceState rightPrevState;
+            IVRModuleDeviceStateRW rightCurrState;
+            EnsureValidDeviceState(m_rightIndex, out rightPrevState, out rightCurrState);
 
             rightCurrState.position = InputTracking.GetLocalPosition(VRNode.RightHand);
             rightCurrState.rotation = InputTracking.GetLocalRotation(VRNode.RightHand);
@@ -209,8 +215,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // left
-            var leftCurrState = currState[m_leftIndex];
-            var leftPrevState = prevState[m_leftIndex];
+            IVRModuleDeviceState leftPrevState;
+            IVRModuleDeviceStateRW leftCurrState;
+            EnsureValidDeviceState(m_leftIndex, out leftPrevState, out leftCurrState);
 
             leftCurrState.position = InputTracking.GetLocalPosition(VRNode.LeftHand);
             leftCurrState.rotation = InputTracking.GetLocalRotation(VRNode.LeftHand);
@@ -310,6 +317,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     leftCurrState.Reset();
                 }
             }
+
+            ProcessConnectedDeviceChanged();
+            ProcessDevicePoseChanged();
+            ProcessDeviceInputChanged();
         }
 #endif
     }

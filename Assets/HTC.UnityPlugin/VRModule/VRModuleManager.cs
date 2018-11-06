@@ -363,7 +363,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     if (string.IsNullOrEmpty(currState.serialNumber))
                     {
-                        Debug.LogError("Device connected with empty serialNumber");
+                        Debug.LogError("Device connected with empty serialNumber. index:" + i);
                     }
                     else if (s_deviceSerialNumberTable.ContainsKey(currState.serialNumber))
                     {
