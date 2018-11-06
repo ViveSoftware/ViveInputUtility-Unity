@@ -52,6 +52,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             s_defaultState = new DeviceState(INVALID_DEVICE_INDEX);
             s_simulator = new SimulatorVRModule();
+            s_deviceSerialNumberTable = new Dictionary<string, uint>(16);
         }
 
         private static GameObject GetDefaultInitGameObject()
@@ -99,7 +100,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private bool TryGetValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
         {
-            if (m_currStates[index] == null)
+            DeviceState prevRawState;
+            DeviceState currRawState;
+            if (TryGetValidDeviceState(index, out prevRawState, out currRawState))
+            {
+                prevState = prevRawState;
+                currState = currRawState;
+                return true;
+            }
+            else
+            {
+                prevState = null;
+                currState = null;
+                return false;
+            }
+        }
+
+        private bool TryGetValidDeviceState(uint index, out DeviceState prevState, out DeviceState currState)
+        {
+            if (m_currStates == null || m_currStates[index] == null)
             {
                 prevState = null;
                 currState = null;
@@ -240,19 +259,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 
 #if !UNITY_2017_1_OR_NEWER
-        private int m_poseUpdatedFrame = -1;
+        private int m_preCullOnceFrame = -1;
         private void OnCameraPreCull(Camera cam)
         {
             var thisFrame = Time.frameCount;
-            if (m_poseUpdatedFrame == thisFrame) { return; }
-
+            if (m_preCullOnceFrame == thisFrame) { return; }
 #if UNITY_5_5_OR_NEWER
-            if (cam.cameraType != CameraType.Game && cam.cameraType != CameraType.VR) { return; }
+            if ((cam.cameraType & (CameraType.Game | CameraType.VR)) == 0) { return; }
 #else
-            if (cam.cameraType != CameraType.Game) { return; }
+            if ((cam.cameraType & CameraType.Game) == 0) { return; }
 #endif
-
-            m_poseUpdatedFrame = thisFrame;
+            m_preCullOnceFrame = thisFrame;
             BeforeRenderUpdateModule();
         }
 #endif
@@ -285,24 +302,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Camera.onPreCull -= OnCameraPreCull;
 #endif
 
+            DeviceState prevState;
+            DeviceState currState;
             // copy status to from current state to previous state, and reset current state
             for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
-                if (m_prevStates[i].isConnected || m_currStates[i].isConnected)
+                if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
+
+                if (prevState.isConnected || currState.isConnected)
                 {
-                    m_prevStates[i].CopyFrom(m_currStates[i]);
-                    m_currStates[i].Reset();
+                    prevState.CopyFrom(currState);
+                    currState.Reset();
                 }
             }
 
+            s_deviceSerialNumberTable.Clear();
+
             // send disconnect event
-            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
-            {
-                if (m_prevStates[i].isConnected)
-                {
-                    InvokeDeviceConnectedEvent(i, false);
-                }
-            }
+            SendAllDeviceConnectedEvent();
 
             var deactivatedModuleBase = m_activatedModuleBase;
             m_activatedModule = VRModuleActiveEnum.Uninitialized;
@@ -317,14 +334,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (m_delayDeactivate) { return; }
             m_delayDeactivate = true;
 
-            var prevStates = m_prevStates;
-            var currStates = m_currStates;
+            DeviceState prevState;
+            DeviceState currState;
 
             // copy status to from current state to previous state
             for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
-                if (currStates[i] == null) { continue; }
-                prevStates[i].CopyFrom(currStates[i]);
+                if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
+
+                if (!prevState.isConnected && !currState.isConnected)
+                {
+                    m_prevStates[i] = null;
+                    m_currStates[i] = null;
+                }
+                else
+                {
+                    prevState.CopyFrom(currState);
+                }
             }
         }
 
@@ -332,45 +358,60 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (!m_delayDeactivate) { return; }
 
-            var prevStates = m_prevStates;
-            var currStates = m_currStates;
+            DeviceState prevState;
+            DeviceState currState;
 
             m_delayDeactivate = true;
             // send connect/disconnect event
             for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
-                if (prevStates[i].isConnected != currStates[i].isConnected)
-                {
-                    if (currStates[i].isConnected)
-                    {
-                        if (string.IsNullOrEmpty(currStates[i].serialNumber))
-                        {
-                            Debug.LogError("Device connected with empty serialNumber");
-                        }
-                        else if (s_deviceSerialNumberTable.ContainsKey(currStates[i].serialNumber))
-                        {
-                            Debug.LogError("Device connected with duplicate serialNumber: " + currStates[i].serialNumber + " index:" + i + "(" + s_deviceSerialNumberTable[currStates[i].serialNumber] + ")");
-                        }
-                        else
-                        {
-                            s_deviceSerialNumberTable.Add(currStates[i].serialNumber, i);
-                        }
+                if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
 
-                        InvokeDeviceConnectedEvent(i, true);
+                if (prevState.isConnected == currState.isConnected) { continue; }
+
+                if (currState.isConnected)
+                {
+                    if (string.IsNullOrEmpty(currState.serialNumber))
+                    {
+                        Debug.LogError("Device connected with empty serialNumber");
+                    }
+                    else if (s_deviceSerialNumberTable.ContainsKey(currState.serialNumber))
+                    {
+                        Debug.LogError("Device connected with duplicate serialNumber: " + currState.serialNumber + " index:" + i + "(" + s_deviceSerialNumberTable[currState.serialNumber] + ")");
                     }
                     else
                     {
-                        s_deviceSerialNumberTable.Remove(prevStates[i].serialNumber);
-
-                        InvokeDeviceConnectedEvent(i, false);
+                        s_deviceSerialNumberTable.Add(currState.serialNumber, i);
                     }
                 }
+                else
+                {
+                    s_deviceSerialNumberTable.Remove(prevState.serialNumber);
+                }
             }
+
+            SendAllDeviceConnectedEvent();
 
             m_delayDeactivate = false;
             if (m_isDestoryed)
             {
                 DeactivateModule();
+            }
+        }
+
+        private void SendAllDeviceConnectedEvent()
+        {
+            DeviceState prevState;
+            DeviceState currState;
+
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
+            {
+                if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
+
+                if (prevState.isConnected != currState.isConnected)
+                {
+                    InvokeDeviceConnectedEvent(i, currState.isConnected);
+                }
             }
         }
     }

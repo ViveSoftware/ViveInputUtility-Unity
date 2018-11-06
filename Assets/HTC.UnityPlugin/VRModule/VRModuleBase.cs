@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using System;
 using System.Text.RegularExpressions;
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -34,13 +35,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public virtual void LateUpdate() { }
             public virtual void BeforeRenderUpdate() { }
 
-            public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
-            {
-                for (uint i = 0; i < MAX_DEVICE_COUNT; ++i)
-                {
-                    if (prevState[i].isConnected) { currState[i].Reset(); }
-                }
-            }
+            [Obsolete]
+            public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState) { }
 
             public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { }
 
