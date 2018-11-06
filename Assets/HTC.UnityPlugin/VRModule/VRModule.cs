@@ -88,7 +88,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static bool IsValidDeviceIndex(uint deviceIndex)
         {
-            return deviceIndex < MAX_DEVICE_COUNT;
+            if (!Active) { return false; }
+            return deviceIndex < Instance.GetDeviceStateLength();
         }
 
         public static bool HasInputFocus()
