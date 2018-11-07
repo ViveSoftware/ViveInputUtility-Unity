@@ -381,22 +381,29 @@ namespace HTC.UnityPlugin.Vive
 
         private void UpdateDefaultModel()
         {
+            var prevIndex = m_currentDeviceIndex;
             if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
             {
                 if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))
                 {
-                    if (ChangeProp.Set(ref m_currentLoadedStaticModel, VRModule.GetCurrentDeviceState(m_currentDeviceIndex).deviceModel) || m_modelObj == null)
+                    if (ChangeProp.Set(ref m_currentLoadedStaticModel, VRModule.GetCurrentDeviceState(m_currentDeviceIndex).deviceModel))
                     {
                         ReloadedStaticModel(m_currentLoadedStaticModel);
                     }
                     else
                     {
-                        m_modelObj.SetActive(true);
+                        if (m_modelObj != null)
+                        {
+                            m_modelObj.SetActive(true);
+                        }
                     }
                 }
                 else
                 {
-                    m_modelObj.SetActive(false);
+                    if (m_modelObj != null)
+                    {
+                        m_modelObj.SetActive(false);
+                    }
                 }
             }
         }
