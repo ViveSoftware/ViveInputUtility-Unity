@@ -381,7 +381,6 @@ namespace HTC.UnityPlugin.Vive
 
         private void UpdateDefaultModel()
         {
-            var prevIndex = m_currentDeviceIndex;
             if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
             {
                 if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))

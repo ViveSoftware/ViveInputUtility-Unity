@@ -117,7 +117,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     if (m_index2nodeValidity[0])
                     {
-                        Debug.LogWarning("[" + Time.frameCount + "] Multiple Head node found! drop node id:" + nodeState.uniqueID.ToString("X8") + " type:" + nodeState.nodeType + " name:" + InputTracking.GetNodeName(nodeState.uniqueID) + " tracked=" + nodeState.tracked);
+                        //Debug.LogWarning("[" + Time.frameCount + "] Multiple Head node found! drop node id:" + nodeState.uniqueID.ToString("X8") + " type:" + nodeState.nodeType + " name:" + InputTracking.GetNodeName(nodeState.uniqueID) + " tracked=" + nodeState.tracked);
                         deviceIndex = INVALID_DEVICE_INDEX;
                         return false;
                     }
