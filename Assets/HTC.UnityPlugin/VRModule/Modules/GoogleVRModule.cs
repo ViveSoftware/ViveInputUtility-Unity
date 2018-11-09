@@ -22,191 +22,395 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public sealed class GoogleVRModule : VRModule.ModuleBase
     {
 #if VIU_GOOGLEVR && UNITY_5_6_OR_NEWER
-        public const uint CONTROLLER_DEVICE_INDEX = 1u;
+        private const uint HEAD_INDEX = 0u;
 
-        private GvrHeadset m_gvrHeadSetInstance;
-        private GvrControllerInput m_gvrCtrlInputInstance;
-        private GvrArmModel m_gvrArmModelInstance;
+        private uint m_rightIndex = INVALID_DEVICE_INDEX;
+        private uint m_leftIndex = INVALID_DEVICE_INDEX;
 
-#if VIU_GOOGLEVR_1_150_0_NEWER
-        private GvrControllerInputDevice m_gvrCtrlInputDevice;
-#endif
+        public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
 
-        public override uint GetRightControllerDeviceIndex() { return CONTROLLER_DEVICE_INDEX; }
+        public override uint GetLeftControllerDeviceIndex() { return m_leftIndex; }
 
         public override bool ShouldActiveModule()
         {
             return VIUSettings.activateGoogleVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "daydream";
         }
 
-        public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
+        public override void BeforeRenderUpdate()
         {
-            if (m_gvrCtrlInputInstance == null)
-            {
-                m_gvrCtrlInputInstance = Object.FindObjectOfType<GvrControllerInput>();
+            FlushDeviceState();
+            UpdateConnectedDevices();
+            ProcessConnectedDeviceChanged();
+            UpdateDevicePose();
+            ProcessDevicePoseChanged();
+            UpdateDeviceInput();
+            ProcessDeviceInputChanged();
+        }
 
-                if (m_gvrCtrlInputInstance == null)
-                {
-                    m_gvrCtrlInputInstance = VRModule.Instance.gameObject.AddComponent<GvrControllerInput>();
 #if VIU_GOOGLEVR_1_150_0_NEWER
-                    m_gvrCtrlInputDevice = GvrControllerInput.GetDevice(GvrControllerHand.Dominant);
-#endif
-                }
-            }
-#if VIU_GOOGLEVR_1_150_0_NEWER
-            if (m_gvrCtrlInputDevice.State == GvrConnectionState.Error)
-            {
-                Debug.LogError(m_gvrCtrlInputDevice.ErrorDetails);
-                return;
-            }
-#else
-            if (GvrControllerInput.State == GvrConnectionState.Error)
-            {
-                Debug.LogError(GvrControllerInput.ErrorDetails);
-                return;
-            }
-#endif
+        private const uint RIGHT_HAND_INDEX = 1u;
+        private const uint LEFT_HAND_INDEX = 2u;
 
-            if (m_gvrArmModelInstance == null)
-            {
-                m_gvrArmModelInstance = VRModule.Instance.GetComponent<GvrArmModel>();
+        private GvrControllerInputDevice m_rightDevice;
+        private GvrControllerInputDevice m_leftDevice;
+        private GvrArmModel m_rightArm;
+        private GvrArmModel m_leftArm;
 
-                if (m_gvrArmModelInstance == null)
-                {
-                    m_gvrArmModelInstance = VRModule.Instance.gameObject.AddComponent<GvrArmModel>();
-#if VIU_GOOGLEVR_1_150_0_NEWER
-                    m_gvrArmModelInstance.ControllerInputDevice = m_gvrCtrlInputDevice;
-#endif
-                }
+        public override void OnActivated()
+        {
+            EnsureDeviceStateLength(3);
+
+            if (Object.FindObjectOfType<GvrHeadset>() == null)
+            {
+                VRModule.Instance.gameObject.AddComponent<GvrHeadset>();
             }
 
-            if (m_gvrHeadSetInstance == null)
+            if (Object.FindObjectOfType<GvrControllerInput>() == null)
             {
-                m_gvrHeadSetInstance = Object.FindObjectOfType<GvrHeadset>();
-
-                if (m_gvrHeadSetInstance == null)
-                {
-                    m_gvrHeadSetInstance = VRModule.Instance.gameObject.AddComponent<GvrHeadset>();
-                }
+                VRModule.Instance.gameObject.AddComponent<GvrControllerInput>();
             }
 
-            var headPrevState = prevState[VRModule.HMD_DEVICE_INDEX];
-            var headCurrState = currState[VRModule.HMD_DEVICE_INDEX];
+            m_rightDevice = GvrControllerInput.GetDevice(GvrControllerHand.Right);
+            m_leftDevice = GvrControllerInput.GetDevice(GvrControllerHand.Left);
 
-            headCurrState.isConnected = XRDevice.isPresent;
+            var armModels = VRModule.Instance.GetComponents<GvrArmModel>();
 
-            if (headCurrState.isConnected)
+            if (armModels != null && armModels.Length >= 1)
             {
-                if (!headPrevState.isConnected)
-                {
-                    headCurrState.deviceClass = VRModuleDeviceClass.HMD;
-                    headCurrState.serialNumber = XRDevice.model + " HMD";
-                    headCurrState.modelNumber = XRDevice.model + " HMD";
-
-                    headCurrState.deviceModel = VRModuleDeviceModel.DaydreamHMD;
-                    headCurrState.renderModelName = string.Empty;
-                }
-
-                headCurrState.position = InputTracking.GetLocalPosition(XRNode.Head);
-                headCurrState.rotation = InputTracking.GetLocalRotation(XRNode.Head);
-                headCurrState.isPoseValid = headCurrState.pose != RigidPose.identity;
-
-                headCurrState.pose = headCurrState.pose;
+                m_rightArm = armModels[0];
             }
             else
             {
-                if (headPrevState.isConnected)
+                m_rightArm = VRModule.Instance.GetComponent<GvrArmModel>();
+            }
+            m_rightArm.ControllerInputDevice = m_rightDevice;
+
+            if (armModels != null && armModels.Length >= 2)
+            {
+                m_leftArm = armModels[1];
+            }
+            else
+            {
+                m_leftArm = VRModule.Instance.GetComponent<GvrArmModel>();
+            }
+            m_leftArm.ControllerInputDevice = m_leftDevice;
+        }
+
+        // update connected devices
+        private void UpdateConnectedDevices()
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            EnsureValidDeviceState(HEAD_INDEX, out prevState, out currState);
+            if (!XRDevice.isPresent)
+            {
+                if (prevState.isConnected)
                 {
-                    headCurrState.Reset();
+                    currState.Reset();
+                }
+            }
+            else
+            {
+                if (!prevState.isConnected)
+                {
+                    currState.isConnected = true;
+                    currState.deviceClass = VRModuleDeviceClass.HMD;
+                    currState.serialNumber = XRDevice.model + " HMD";
+                    currState.modelNumber = XRDevice.model + " HMD";
+                    currState.deviceModel = VRModuleDeviceModel.DaydreamHMD;
+                    currState.renderModelName = string.Empty;
                 }
             }
 
-            var ctrlPrevState = prevState[CONTROLLER_DEVICE_INDEX];
-            var ctrlCurrState = currState[CONTROLLER_DEVICE_INDEX];
-
-#if VIU_GOOGLEVR_1_150_0_NEWER
-            ctrlCurrState.isConnected = m_gvrCtrlInputDevice.State == GvrConnectionState.Connected;
-#else
-            ctrlCurrState.isConnected = GvrControllerInput.State == GvrConnectionState.Connected;
-#endif
-
-            if (ctrlCurrState.isConnected)
+            EnsureValidDeviceState(RIGHT_HAND_INDEX, out prevState, out currState);
+            if (m_rightDevice.State != GvrConnectionState.Connected)
             {
-                if (!ctrlPrevState.isConnected)
+                if (prevState.isConnected)
                 {
-                    ctrlCurrState.deviceClass = VRModuleDeviceClass.Controller;
-                    ctrlCurrState.serialNumber = XRDevice.model + " Controller";
-                    ctrlCurrState.modelNumber = XRDevice.model + " Controller";
-
-                    ctrlCurrState.deviceModel = VRModuleDeviceModel.DaydreamController;
-                    ctrlCurrState.renderModelName = string.Empty;
+                    currState.Reset();
+                    m_rightIndex = INVALID_DEVICE_INDEX;
                 }
-
-                ctrlCurrState.pose = new RigidPose(m_gvrArmModelInstance.ControllerPositionFromHead, m_gvrArmModelInstance.ControllerRotationFromHead);
-
-#if VIU_GOOGLEVR_1_150_0_NEWER
-                ctrlCurrState.isPoseValid = m_gvrCtrlInputDevice.Orientation != Quaternion.identity;
-                ctrlCurrState.velocity = m_gvrCtrlInputDevice.Accel;
-                ctrlCurrState.angularVelocity = m_gvrCtrlInputDevice.Gyro;
-
-                ctrlCurrState.SetButtonPress(VRModuleRawButton.Touchpad, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadButton));
-                ctrlCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.App));
-                ctrlCurrState.SetButtonPress(VRModuleRawButton.System, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.System));
-
-                ctrlCurrState.SetButtonTouch(VRModuleRawButton.Touchpad, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadTouch));
-#else
-                ctrlCurrState.isPoseValid = GvrControllerInput.Orientation != Quaternion.identity;
-                ctrlCurrState.velocity = GvrControllerInput.Accel;
-                ctrlCurrState.angularVelocity = GvrControllerInput.Gyro;
-
-                ctrlCurrState.SetButtonPress(VRModuleRawButton.Touchpad, GvrControllerInput.ClickButton);
-                ctrlCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, GvrControllerInput.AppButton);
-                ctrlCurrState.SetButtonPress(VRModuleRawButton.System, GvrControllerInput.HomeButtonState);
-
-                ctrlCurrState.SetButtonTouch(VRModuleRawButton.Touchpad, GvrControllerInput.IsTouching);
-#endif
-
-#if VIU_GOOGLEVR_1_150_0_NEWER
-                if (m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadTouch))
-#else
-                if (GvrControllerInput.IsTouching)
-#endif
+            }
+            else
+            {
+                if (!prevState.isConnected)
                 {
-#if VIU_GOOGLEVR_1_150_0_NEWER
-                    var touchPadPosCentered = m_gvrCtrlInputDevice.TouchPos;
-#else
-                    var touchPadPosCentered = GvrControllerInput.TouchPosCentered;
-#endif
-                    ctrlCurrState.SetAxisValue(VRModuleRawAxis.TouchpadX, touchPadPosCentered.x);
-                    ctrlCurrState.SetAxisValue(VRModuleRawAxis.TouchpadY, touchPadPosCentered.y);
+                    currState.isConnected = true;
+                    currState.deviceClass = VRModuleDeviceClass.Controller;
+                    currState.serialNumber = XRDevice.model + " Controller Right";
+                    currState.modelNumber = XRDevice.model + " Controller Right";
+                    currState.deviceModel = VRModuleDeviceModel.DaydreamController;
+                    currState.renderModelName = string.Empty;
+                    m_rightIndex = RIGHT_HAND_INDEX;
                 }
-                else
+            }
+
+            EnsureValidDeviceState(LEFT_HAND_INDEX, out prevState, out currState);
+            if (m_leftDevice.State != GvrConnectionState.Connected)
+            {
+                if (prevState.isConnected)
                 {
-                    ctrlCurrState.SetAxisValue(VRModuleRawAxis.TouchpadX, 0f);
-                    ctrlCurrState.SetAxisValue(VRModuleRawAxis.TouchpadY, 0f);
+                    currState.Reset();
+                    m_leftIndex = INVALID_DEVICE_INDEX;
                 }
+            }
+            else
+            {
+                if (!prevState.isConnected)
+                {
+                    currState.isConnected = true;
+                    currState.deviceClass = VRModuleDeviceClass.Controller;
+                    currState.serialNumber = XRDevice.model + " Controller Left";
+                    currState.modelNumber = XRDevice.model + " Controller Left";
+                    currState.deviceModel = VRModuleDeviceModel.DaydreamController;
+                    currState.renderModelName = string.Empty;
+                    m_leftIndex = RIGHT_HAND_INDEX;
+                }
+            }
+        }
+
+        private void UpdateDevicePose()
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            EnsureValidDeviceState(HEAD_INDEX, out prevState, out currState);
+            if (currState.isConnected)
+            {
+                currState.position = InputTracking.GetLocalPosition(XRNode.Head);
+                currState.rotation = InputTracking.GetLocalRotation(XRNode.Head);
+                currState.isPoseValid = currState.pose != RigidPose.identity;
+            }
+
+            EnsureValidDeviceState(RIGHT_HAND_INDEX, out prevState, out currState);
+            if (currState.isConnected)
+            {
+                currState.position = m_rightArm.ControllerPositionFromHead;
+                currState.rotation = m_rightArm.ControllerRotationFromHead;
+                currState.isPoseValid = m_rightDevice.Orientation != Quaternion.identity;
+            }
+
+            EnsureValidDeviceState(LEFT_HAND_INDEX, out prevState, out currState);
+            if (currState.isConnected)
+            {
+                currState.position = m_leftArm.ControllerPositionFromHead;
+                currState.rotation = m_leftArm.ControllerRotationFromHead;
+                currState.isPoseValid = m_leftDevice.Orientation != Quaternion.identity;
+            }
+        }
+
+        private void UpdateDeviceInput()
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            EnsureValidDeviceState(RIGHT_HAND_INDEX, out prevState, out currState);
+            if (currState.isConnected)
+            {
+                var appPressed = m_rightDevice.GetButton(GvrControllerButton.App);
+                var systemPressed = m_rightDevice.GetButton(GvrControllerButton.System);
+                var padPressed = m_rightDevice.GetButton(GvrControllerButton.TouchPadButton);
+                var padTouched = m_rightDevice.GetButton(GvrControllerButton.TouchPadTouch);
+                var padAxis = m_rightDevice.TouchPos;
+
+                currState.SetButtonPress(VRModuleRawButton.Touchpad, padPressed);
+                currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, appPressed);
+                currState.SetButtonPress(VRModuleRawButton.System, systemPressed);
+
+                currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouched);
+
+                currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padAxis.x);
+                currState.SetAxisValue(VRModuleRawAxis.TouchpadY, padAxis.y);
 
                 if (VIUSettings.daydreamSyncPadPressToTrigger)
                 {
-#if VIU_GOOGLEVR_1_150_0_NEWER
-                    ctrlCurrState.SetButtonPress(VRModuleRawButton.Trigger, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadButton));
-                    ctrlCurrState.SetButtonTouch(VRModuleRawButton.Trigger, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadTouch));
-                    ctrlCurrState.SetAxisValue(VRModuleRawAxis.Trigger, m_gvrCtrlInputDevice.GetButton(GvrControllerButton.TouchPadButton) ? 1f : 0f);
+                    currState.SetButtonPress(VRModuleRawButton.Trigger, padPressed);
+                    currState.SetButtonTouch(VRModuleRawButton.Trigger, padTouched);
+                    currState.SetAxisValue(VRModuleRawAxis.Trigger, padPressed ? 1f : 0f);
+                }
+            }
+
+            EnsureValidDeviceState(LEFT_HAND_INDEX, out prevState, out currState);
+            if (currState.isConnected)
+            {
+                var appPressed = m_leftDevice.GetButton(GvrControllerButton.App);
+                var systemPressed = m_leftDevice.GetButton(GvrControllerButton.System);
+                var padPressed = m_leftDevice.GetButton(GvrControllerButton.TouchPadButton);
+                var padTouched = m_leftDevice.GetButton(GvrControllerButton.TouchPadTouch);
+                var padAxis = m_leftDevice.TouchPos;
+
+                currState.SetButtonPress(VRModuleRawButton.Touchpad, padPressed);
+                currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, appPressed);
+                currState.SetButtonPress(VRModuleRawButton.System, systemPressed);
+
+                currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouched);
+
+                currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padAxis.x);
+                currState.SetAxisValue(VRModuleRawAxis.TouchpadY, padAxis.y);
+
+                if (VIUSettings.daydreamSyncPadPressToTrigger)
+                {
+                    currState.SetButtonPress(VRModuleRawButton.Trigger, padPressed);
+                    currState.SetButtonTouch(VRModuleRawButton.Trigger, padTouched);
+                    currState.SetAxisValue(VRModuleRawAxis.Trigger, padPressed ? 1f : 0f);
+                }
+            }
+        }
 #else
-                    ctrlCurrState.SetButtonPress(VRModuleRawButton.Trigger, GvrControllerInput.ClickButton);
-                    ctrlCurrState.SetButtonTouch(VRModuleRawButton.Trigger, GvrControllerInput.IsTouching);
-                    ctrlCurrState.SetAxisValue(VRModuleRawAxis.Trigger, GvrControllerInput.ClickButton ? 1f : 0f);
-#endif
+        public const uint CONTROLLER_INDEX = 1u;
+
+        private GvrArmModel m_gvrArmModel;
+
+        public override void OnActivated()
+        {
+            EnsureDeviceStateLength(2);
+
+            if (Object.FindObjectOfType<GvrHeadset>() == null)
+            {
+                VRModule.Instance.gameObject.AddComponent<GvrHeadset>();
+            }
+
+            if (Object.FindObjectOfType<GvrControllerInput>() == null)
+            {
+                VRModule.Instance.gameObject.AddComponent<GvrControllerInput>();
+            }
+
+            m_gvrArmModel = VRModule.Instance.GetComponent<GvrArmModel>();
+            if (m_gvrArmModel == null)
+            {
+                m_gvrArmModel = VRModule.Instance.gameObject.AddComponent<GvrArmModel>();
+            }
+        }
+
+        // update connected devices
+        private void UpdateConnectedDevices()
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            EnsureValidDeviceState(HEAD_INDEX, out prevState, out currState);
+            if (!XRDevice.isPresent)
+            {
+                if (prevState.isConnected)
+                {
+                    currState.Reset();
                 }
             }
             else
             {
-                if (ctrlPrevState.isConnected)
+                if (!prevState.isConnected)
                 {
-                    ctrlCurrState.Reset();
+                    currState.isConnected = true;
+                    currState.deviceClass = VRModuleDeviceClass.HMD;
+                    currState.serialNumber = XRDevice.model + " HMD";
+                    currState.modelNumber = XRDevice.model + " HMD";
+                    currState.deviceModel = VRModuleDeviceModel.DaydreamHMD;
+                    currState.renderModelName = string.Empty;
+                }
+            }
+
+            var controllerRoleChanged = false;
+            EnsureValidDeviceState(CONTROLLER_INDEX, out prevState, out currState);
+            if (GvrControllerInput.State != GvrConnectionState.Connected)
+            {
+                if (prevState.isConnected)
+                {
+                    currState.Reset();
+                }
+            }
+            else
+            {
+                if (!prevState.isConnected)
+                {
+                    currState.isConnected = true;
+                    currState.deviceClass = VRModuleDeviceClass.Controller;
+                    currState.serialNumber = XRDevice.model + " Controller";
+                    currState.modelNumber = XRDevice.model + " Controller";
+                    currState.deviceModel = VRModuleDeviceModel.DaydreamController;
+                    currState.renderModelName = string.Empty;
+                }
+
+                switch (GvrSettings.Handedness)
+                {
+                    case GvrSettings.UserPrefsHandedness.Right:
+                        controllerRoleChanged = !VRModule.IsValidDeviceIndex(m_rightIndex) && m_leftIndex == CONTROLLER_INDEX;
+                        m_rightIndex = CONTROLLER_INDEX;
+                        m_leftIndex = INVALID_DEVICE_INDEX;
+                        break;
+                    case GvrSettings.UserPrefsHandedness.Left:
+                        controllerRoleChanged = m_rightIndex == CONTROLLER_INDEX && !VRModule.IsValidDeviceIndex(m_leftIndex);
+                        m_rightIndex = INVALID_DEVICE_INDEX;
+                        m_leftIndex = CONTROLLER_INDEX;
+                        break;
+                    case GvrSettings.UserPrefsHandedness.Error:
+                    default:
+                        Debug.LogError("GvrSettings.Handedness error");
+                        break;
+                }
+            }
+
+            if (controllerRoleChanged)
+            {
+                InvokeControllerRoleChangedEvent();
+            }
+        }
+
+        private void UpdateDevicePose()
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            EnsureValidDeviceState(HEAD_INDEX, out prevState, out currState);
+            if (currState.isConnected)
+            {
+                currState.position = InputTracking.GetLocalPosition(XRNode.Head);
+                currState.rotation = InputTracking.GetLocalRotation(XRNode.Head);
+                currState.isPoseValid = currState.pose != RigidPose.identity;
+            }
+
+            EnsureValidDeviceState(CONTROLLER_INDEX, out prevState, out currState);
+            if (currState.isConnected)
+            {
+                currState.position = m_gvrArmModel.ControllerPositionFromHead;
+                currState.rotation = m_gvrArmModel.ControllerRotationFromHead;
+                currState.isPoseValid = GvrControllerInput.Orientation != Quaternion.identity;
+            }
+        }
+
+        private void UpdateDeviceInput()
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            EnsureValidDeviceState(CONTROLLER_INDEX, out prevState, out currState);
+            if (currState.isConnected)
+            {
+                var appPressed = GvrControllerInput.AppButton;
+                var homePressed = GvrControllerInput.HomeButtonState;
+                var padPressed = GvrControllerInput.ClickButton;
+                var padTouched = GvrControllerInput.IsTouching;
+                var padAxis = GvrControllerInput.TouchPosCentered;
+
+                currState.SetButtonPress(VRModuleRawButton.Touchpad, padPressed);
+                currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, appPressed);
+                currState.SetButtonPress(VRModuleRawButton.System, homePressed);
+
+                currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouched);
+
+                currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padAxis.x);
+                currState.SetAxisValue(VRModuleRawAxis.TouchpadY, padAxis.y);
+
+                if (VIUSettings.daydreamSyncPadPressToTrigger)
+                {
+                    currState.SetButtonPress(VRModuleRawButton.Trigger, padPressed);
+                    currState.SetButtonTouch(VRModuleRawButton.Trigger, padTouched);
+                    currState.SetAxisValue(VRModuleRawAxis.Trigger, padPressed ? 1f : 0f);
                 }
             }
         }
 #endif
-                }
+
+#endif
+    }
 }
