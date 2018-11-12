@@ -25,8 +25,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private bool m_hasInputFocus;
         private Vector3 m_handedMultiplier;
-        private WVR_DevicePosePair_t[] m_poses = new WVR_DevicePosePair_t[DEVICE_COUNT];  // HMD, R, L controllers.
-        private WVR_AnalogState_t[] m_analogStates = new WVR_AnalogState_t[2];
+        private readonly WVR_DevicePosePair_t[] m_poses = new WVR_DevicePosePair_t[DEVICE_COUNT];  // HMD, R, L controllers.
+        private readonly WVR_AnalogState_t[] m_analogStates = new WVR_AnalogState_t[2];
+        private readonly bool[] m_index2deviceTouched = new bool[DEVICE_COUNT];
         private WVR_PoseOriginModel m_poseOrigin;
 
         #region 6Dof Controller Simulation
@@ -44,7 +45,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         static WaveVRModule()
         {
-            s_index2type = new WVR_DeviceType[VRModule.MAX_DEVICE_COUNT];
+            s_index2type = new WVR_DeviceType[DEVICE_COUNT];
             s_index2type[0] = WVR_DeviceType.WVR_DeviceType_HMD;
             s_index2type[1] = WVR_DeviceType.WVR_DeviceType_Controller_Right;
             s_index2type[2] = WVR_DeviceType.WVR_DeviceType_Controller_Left;
@@ -77,16 +78,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void OnActivated()
         {
-            var instance = Object.FindObjectOfType<WaveVR_Init>();
-            if (instance == null)
+            if (Object.FindObjectOfType<WaveVR_Init>() == null)
             {
                 VRModule.Instance.gameObject.AddComponent<WaveVR_Init>();
             }
 
+            EnsureDeviceStateLength(DEVICE_COUNT);
+
             UpdateTrackingSpaceType();
         }
-
-        public override void OnDeactivated() { }
 
         public override void UpdateTrackingSpaceType()
         {
@@ -101,6 +101,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        public override void BeforeRenderUpdate()
+        {
+            if (WaveVR.Instance == null) { return; }
+
+            Interop.WVR_GetSyncPose(m_poseOrigin, m_poses, DEVICE_COUNT);
+
+            FlushDeviceState();
+            UpdateConnectedDevices();
+            ProcessConnectedDeviceChanged();
+            UpdateDevicePose();
+            ProcessDevicePoseChanged();
+            UpdateDeviceInput();
+            ProcessDeviceInputChanged();
+        }
+
+        public override void OnDeactivated() { }
+
         // FIXME: WVR_IsInputFocusCapturedBySystem currently not implemented yet
         //public override bool HasInputFocus()
         //{
@@ -110,6 +127,128 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override uint GetRightControllerDeviceIndex() { return s_type2index[(int)WVR_DeviceType.WVR_DeviceType_Controller_Right]; }
 
         public override uint GetLeftControllerDeviceIndex() { return s_type2index[(int)WVR_DeviceType.WVR_DeviceType_Controller_Left]; }
+
+        private void UpdateConnectedDevices()
+        {
+            for (int i = 0, imax = m_poses.Length; i < imax; ++i)
+            {
+                uint deviceIndex;
+                var deviceType = m_poses[i].type;
+                if (!TryGetAndTouchDeviceIndexByType(deviceType, out deviceIndex)) { continue; }
+
+                IVRModuleDeviceState prevState;
+                IVRModuleDeviceStateRW currState;
+                EnsureValidDeviceState(deviceIndex, out prevState, out currState);
+
+                if (!Interop.WVR_IsDeviceConnected(deviceType))
+                {
+                    if (prevState.isConnected)
+                    {
+                        currState.Reset();
+                    }
+                }
+                else
+                {
+                    if (!prevState.isConnected)
+                    {
+                        currState.isConnected = true;
+                        currState.deviceClass = s_type2class[(int)deviceType];
+                        currState.deviceModel = s_type2model[(int)deviceType];
+                        currState.serialNumber = deviceType.ToString();
+                        currState.modelNumber = deviceType.ToString();
+                        currState.renderModelName = deviceType.ToString();
+                    }
+                }
+            }
+
+            ResetAndDisconnectUntouchedDevices();
+        }
+
+        private void UpdateDevicePose()
+        {
+            for (int i = 0; i < DEVICE_COUNT; ++i)
+            {
+                var deviceIndex = s_type2index[(int)deviceType];
+                if (!VRModule.IsValidDeviceIndex(deviceIndex)) { continue; }
+
+                IVRModuleDeviceState prevState;
+                IVRModuleDeviceStateRW currState;
+                EnsureValidDeviceState(i, out prevState, out currState);
+
+                // fetch tracking data
+                cState.isOutOfRange = false;
+                cState.isCalibrating = false;
+                cState.isUninitialized = false;
+
+                var devicePose = m_poses[i].pose;
+                cState.velocity = new Vector3(devicePose.Velocity.v0, devicePose.Velocity.v1, -devicePose.Velocity.v2);
+                cState.angularVelocity = new Vector3(-devicePose.AngularVelocity.v0, -devicePose.AngularVelocity.v1, devicePose.AngularVelocity.v2);
+
+                var rigidTransform = new WaveVR_Utils.RigidTransform(devicePose.PoseMatrix);
+                cState.position = rigidTransform.pos;
+                cState.rotation = rigidTransform.rot;
+
+                cState.isPoseValid = cState.pose != RigidPose.identity;
+            }
+        }
+
+        private bool TryGetAndTouchDeviceIndexByType(WVR_DeviceType type, out uint deviceIndex)
+        {
+            if (type < 0 || (int)type >= s_type2index.Length)
+            {
+                deviceIndex = INVALID_DEVICE_INDEX;
+                return false;
+            }
+
+            deviceIndex = s_type2index[(int)type];
+            if (VRModule.IsValidDeviceIndex(deviceIndex))
+            {
+                m_index2deviceTouched[deviceIndex] = true;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private int ResetAndDisconnectUntouchedDevices()
+        {
+            var disconnectedCout = 0;
+            for (uint i = 0u, imax = (uint)m_index2deviceTouched.Length; i < imax; ++i)
+            {
+                IVRModuleDeviceState prevState;
+                IVRModuleDeviceStateRW currState;
+                if (!TryGetValidDeviceState(i, out prevState, out currState))
+                {
+                    Debug.Assert(!m_index2deviceTouched[i]);
+                    continue;
+                }
+
+                if (!m_index2deviceTouched[i])
+                {
+                    if (currState.isConnected)
+                    {
+                        currState.Reset();
+                        ++disconnectedCout;
+                    }
+                }
+                else
+                {
+                    m_index2deviceTouched[i] = false;
+                }
+            }
+
+            return disconnectedCout;
+        }
+
+        private void ResetTouchState()
+        {
+            for (int i = 0, imax = m_index2deviceTouched.Length; i < imax; ++i)
+            {
+                m_index2deviceTouched[i] = false;
+            }
+        }
 
         public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
         {

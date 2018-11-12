@@ -170,7 +170,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         m_node2Index.Remove(m_index2nodeID[i]);
                         //m_index2nodeID[i] = 0;
                         m_index2nodeValidity[i] = false;
-                        m_index2nodeTouched[i] = false;
 
                         onTrimmed(i);
                     }
