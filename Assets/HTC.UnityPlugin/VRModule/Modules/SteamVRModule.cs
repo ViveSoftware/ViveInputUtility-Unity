@@ -15,9 +15,9 @@ using XRSettings = UnityEngine.VR.VRSettings;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
-    public sealed class SteamVRModule : VRModule.ModuleBase
+    public sealed partial class SteamVRModule : VRModule.ModuleBase
     {
-#if VIU_STEAMVR
+#if !VIU_STEAMVR_2_0_0_OR_NEWER
         private static readonly uint s_sizeOfControllerStats = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t));
 
         private ETrackingUniverseOrigin m_prevTrackingSpace;
