@@ -7,6 +7,7 @@ using System.Text;
 using UnityEngine;
 using Valve.VR;
 using System;
+using System.Runtime.InteropServices;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #elif UNITY_5_4_OR_NEWER
@@ -33,8 +34,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static ulong[] s_pressActions;
         private static ulong[] s_touchActions;
         private static ulong[] s_axisActions;
+        private static string s_poseActionPath;
+        private static ulong s_poseAction;
         private static string[] s_inputSourcePaths;
         private static ulong[] s_inputSources;
+        private static uint s_digitalDataSize;
+        private static uint s_analogDataSize;
+        private static uint s_poseDataSize;
+
+        private ETrackingUniverseOrigin m_trackingSpace;
+        private bool m_hasInputFocus = true;
+        private ulong[] m_activeOrigins;
 
         public static void InitializePaths()
         {
@@ -60,6 +70,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var axisName = Enum.GetName(typeof(VRModuleRawAxis), value).ToLower();
                 s_axisActionPaths[i] = "/actions/htc_viu_actions/in/viu_axis_" + axisName;
             }
+
+            s_poseActionPath = "/actions/htc_viu_actions/in/viu_pose";
 
             s_inputSourcePaths = new string[DEVICE_COUNT]
             {
@@ -133,6 +145,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+            {
+                EVRInputError error;
+
+                if (!string.IsNullOrEmpty(s_poseActionPath))
+                {
+                    error = inputSystem.GetActionHandle(s_poseActionPath, ref s_poseAction);
+                    if (error != EVRInputError.None)
+                    {
+                        Debug.LogError("Load " + s_poseActionPath + " action failed! " + error);
+                    }
+                }
+            }
+
             s_inputSources = new ulong[DEVICE_COUNT];
             for (int i = 0; i < DEVICE_COUNT; ++i)
             {
@@ -160,10 +185,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void OnActivated()
         {
+            s_digitalDataSize = (uint)Marshal.SizeOf(new InputDigitalActionData_t());
+            s_analogDataSize = (uint)Marshal.SizeOf(new InputAnalogActionData_t());
+            s_poseDataSize = (uint)Marshal.SizeOf(new InputPoseActionData_t());
+
+            m_activeOrigins = new ulong[DEVICE_COUNT];
+
             InitializeHandles();
 
             SteamVR_Input.OnNonVisualActionsUpdated += UpdateDeviceInput;
             SteamVR_Input.OnPosesUpdated += UpdateDevicePose;
+
+            EnsureDeviceStateLength(DEVICE_COUNT);
+
+            // setup tracking space
+            UpdateTrackingSpaceType();
         }
 
         private void UpdateDeviceInput()
@@ -173,7 +209,108 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateDevicePose(bool obj)
         {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
 
+            var vrSystem = OpenVR.System;
+            var vrInput = OpenVR.Input;
+            if (vrSystem == null || vrInput == null)
+            {
+                for (uint i = 0; i < DEVICE_COUNT; ++i)
+                {
+                    if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
+                    {
+                        currState.Reset();
+                    }
+                }
+
+                return;
+            }
+
+            // update connected device
+            for (uint i = 0; i < DEVICE_COUNT; ++i)
+            {
+                var poseData = default(InputPoseActionData_t);
+                vrInput.GetPoseActionData(s_poseAction, m_trackingSpace, 0f, ref poseData, s_poseDataSize, s_inputSources[i]);
+
+                if (!poseData.pose.bDeviceIsConnected)
+                {
+                    if (TryGetValidDeviceState(i, out prevState, out currState) && prevState.isConnected)
+                    {
+                        currState.Reset();
+                    }
+                }
+                else
+                {
+                    EnsureValidDeviceState(i, out prevState, out currState);
+
+                    if (!prevState.isConnected || m_activeOrigins[i] != poseData.activeOrigin)
+                    {
+                        // FIXME: what will happen when changing rendermodel?
+                        m_activeOrigins[i] = poseData.activeOrigin;
+
+                        currState.isConnected = true;
+                        currState.deviceClass = (VRModuleDeviceClass)vrSystem.GetTrackedDeviceClass(i);
+                        currState.serialNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_SerialNumber_String);
+                        currState.modelNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_ModelNumber_String);
+                        currState.renderModelName = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_RenderModelName_String);
+
+                        SetupKnownDeviceModel(currState);
+                    }
+
+                    // update device status
+                    currState.isPoseValid = poseData.pose.bPoseIsValid;
+                    currState.isOutOfRange = poseData.pose.eTrackingResult == ETrackingResult.Running_OutOfRange || poseData.pose.eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
+                    currState.isCalibrating = poseData.pose.eTrackingResult == ETrackingResult.Calibrating_InProgress || poseData.pose.eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
+                    currState.isUninitialized = poseData.pose.eTrackingResult == ETrackingResult.Uninitialized;
+                    currState.velocity = new Vector3(poseData.pose.vVelocity.v0, poseData.pose.vVelocity.v1, -poseData.pose.vVelocity.v2);
+                    currState.angularVelocity = new Vector3(-poseData.pose.vAngularVelocity.v0, -poseData.pose.vAngularVelocity.v1, poseData.pose.vAngularVelocity.v2);
+
+                    // update poses
+                    if (poseData.pose.bPoseIsValid)
+                    {
+                        var rigidTransform = new SteamVR_Utils.RigidTransform(poseData.pose.mDeviceToAbsoluteTracking);
+                        currState.position = rigidTransform.pos;
+                        currState.rotation = rigidTransform.rot;
+                    }
+                    else if (prevState.isPoseValid)
+                    {
+                        currState.pose = RigidPose.identity;
+                    }
+                }
+            }
+        }
+
+        public override void UpdateTrackingSpaceType()
+        {
+            switch (VRModule.trackingSpaceType)
+            {
+                case VRModuleTrackingSpaceType.RoomScale:
+                    m_trackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
+                    break;
+                case VRModuleTrackingSpaceType.Stationary:
+                    m_trackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
+                    break;
+            }
+        }
+
+        private StringBuilder m_sb;
+        private string QueryDeviceStringProperty(CVRSystem system, uint deviceIndex, ETrackedDeviceProperty prop)
+        {
+            var error = default(ETrackedPropertyError);
+            var capacity = (int)system.GetStringTrackedDeviceProperty(deviceIndex, prop, null, 0, ref error);
+            if (capacity <= 1 || capacity > 128) { return string.Empty; }
+
+            if (m_sb == null) { m_sb = new StringBuilder(capacity); }
+            else { m_sb.EnsureCapacity(capacity); }
+
+            system.GetStringTrackedDeviceProperty(deviceIndex, prop, m_sb, (uint)m_sb.Capacity, ref error);
+            if (error != ETrackedPropertyError.TrackedProp_Success) { return string.Empty; }
+
+            var result = m_sb.ToString();
+            m_sb.Length = 0;
+
+            return result;
         }
 #endif
     }
