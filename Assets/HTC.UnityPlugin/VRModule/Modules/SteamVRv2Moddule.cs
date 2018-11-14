@@ -63,6 +63,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_touchActionPaths = new string[s_buttonActionLength];
             for (int i = 0, v = s_buttonInfo.minValue, vmax = s_buttonInfo.maxValue; v <= vmax; ++i, ++v)
             {
+                if (!Enum.IsDefined(typeof(VRModuleRawButton), v)) { continue; }
                 var buttonName = Enum.GetName(typeof(VRModuleRawButton), v).ToLower();
                 s_pressActionPaths[i] = ACTIONSET_PATH + "/in/viu_press_" + buttonName;
                 s_touchActionPaths[i] = ACTIONSET_PATH + "/in/viu_touch_" + buttonName;
@@ -73,6 +74,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_axisActionPaths = new string[s_axisActionLength];
             for (int i = 0, v = s_axisInfo.minValue, vmax = s_axisInfo.maxValue; v <= vmax; ++i, ++v)
             {
+                if (!Enum.IsDefined(typeof(VRModuleRawAxis), v)) { continue; }
                 var axisName = Enum.GetName(typeof(VRModuleRawAxis), v).ToLower();
                 s_axisActionPaths[i] = ACTIONSET_PATH + "/in/viu_axis_" + axisName;
             }
@@ -104,6 +106,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             InitializePaths();
 
+            SteamVR.Initialize();
+            SteamVR_Input.PreInitialize();
             SteamVR_Input.Initialize();
 
             var vrInput = OpenVR.Input;
@@ -399,6 +403,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_sb.Length = 0;
 
             return result;
+        }
+
+        public override void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500)
+        {
+            var vrInput = OpenVR.Input;
+            if (vrInput == null) { return; }
+
+            var err = vrInput.TriggerHapticVibrationAction(s_hapticsAction, 0f, 0.000001f * durationMicroSec, 200, 1f, s_inputSources[deviceIndex]);
         }
 #endif
     }
