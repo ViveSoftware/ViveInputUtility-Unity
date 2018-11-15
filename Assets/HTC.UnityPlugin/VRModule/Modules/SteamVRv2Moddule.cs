@@ -310,7 +310,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     var poseData = default(InputPoseActionData_t);
                     vrInput.GetPoseActionData(s_poseAction, m_trackingSpace, 0f, ref poseData, s_poseDataSize, s_inputSources[i]);
 
-                    if (!poseData.pose.bDeviceIsConnected && poseData.bActive && poseData.activeOrigin != 0ul)
+                    if (!poseData.pose.bDeviceIsConnected || !poseData.bActive || poseData.activeOrigin == 0ul)
                     {
                         if (TryGetValidDeviceState(i, out prevState, out currState) && prevState.isConnected)
                         {

@@ -17,7 +17,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class SteamVRModule : VRModule.ModuleBase
     {
-#if !VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR && !VIU_STEAMVR_2_0_0_OR_NEWER
         private static readonly uint s_sizeOfControllerStats = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t));
 
         private ETrackingUniverseOrigin m_prevTrackingSpace;
