@@ -41,6 +41,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static ulong s_hapticsAction;
         private static string[] s_inputSourcePaths;
         private static ulong[] s_inputSources;
+        private static string s_actionSetPath;
+        private static ulong s_actionSet;
 
         private static uint s_digitalDataSize;
         private static uint s_analogDataSize;
@@ -82,6 +84,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_poseActionPath = ACTIONSET_PATH + "/in/viu_pose";
 
             s_hapticActionPath = ACTIONSET_PATH + "/out/viu_haptic";
+
+            s_actionSetPath = ACTIONSET_PATH;
 
             s_inputSourcePaths = new string[INPUT_SOURCE_COUNT]
             {
@@ -133,6 +137,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             s_poseAction = SafeGetActionHandle(vrInput, s_poseActionPath);
             s_hapticsAction = SafeGetActionHandle(vrInput, s_hapticActionPath);
+            s_actionSet = SafeGetActionSetHandle(vrInput, s_actionSetPath);
 
             s_inputSources = new ulong[INPUT_SOURCE_COUNT];
             for (int i = 0; i < INPUT_SOURCE_COUNT; ++i)
@@ -141,15 +146,29 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        private static ulong SafeGetActionSetHandle(CVRInput vrInput, string path)
+        {
+            if (string.IsNullOrEmpty(path)) { return 0ul; }
+
+            var handle = 0ul;
+            var error = vrInput.GetActionSetHandle(path, ref handle);
+            if (error != EVRInputError.None)
+            {
+                Debug.LogError("Load " + path + " action failed! error=" + error);
+            }
+
+            return handle;
+        }
+
         private static ulong SafeGetActionHandle(CVRInput vrInput, string path)
         {
             if (string.IsNullOrEmpty(path)) { return 0ul; }
 
             var handle = 0ul;
-            var error = vrInput.GetActionHandle(s_poseActionPath, ref handle);
+            var error = vrInput.GetActionHandle(path, ref handle);
             if (error != EVRInputError.None)
             {
-                Debug.LogError("Load " + s_poseActionPath + " action failed! error=" + error);
+                Debug.LogError("Load " + path + " action failed! error=" + error);
             }
 
             return handle;
@@ -160,10 +179,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (string.IsNullOrEmpty(path)) { return 0ul; }
 
             var handle = 0ul;
-            var error = vrInput.GetInputSourceHandle(s_poseActionPath, ref handle);
+            var error = vrInput.GetInputSourceHandle(path, ref handle);
             if (error != EVRInputError.None)
             {
-                Debug.LogError("Load " + s_poseActionPath + " action failed! error=" + error);
+                Debug.LogError("Load " + path + " action failed! error=" + error);
             }
 
             return handle;
