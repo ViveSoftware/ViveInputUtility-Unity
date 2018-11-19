@@ -41,6 +41,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static ulong[] s_axisActions;
         private static string s_actionSetPath;
         private static ulong s_actionSet;
+        private static ulong[] s_deviceOrigins;
 
         private uint m_digitalDataSize;
         private uint m_analogDataSize;
@@ -81,7 +82,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             for (int i = 0, v = s_buttonInfo.minValue, vmax = s_buttonInfo.maxValue; v <= vmax; ++i, ++v)
             {
                 if (string.IsNullOrEmpty(s_buttonNames[i])) { continue; }
-                var buttonName = Enum.GetName(typeof(VRModuleRawButton), v).ToLower();
                 s_pressActionPaths[i] = ACTIONSET_PATH + "/in/viu_press_" + s_buttonNames[i];
                 s_touchActionPaths[i] = ACTIONSET_PATH + "/in/viu_touch_" + s_buttonNames[i];
             }
@@ -103,7 +103,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             for (int i = 0, v = s_axisInfo.minValue, vmax = s_axisInfo.maxValue; v <= vmax; ++i, ++v)
             {
                 if (string.IsNullOrEmpty(s_axisNames[i])) { continue; }
-                var axisName = Enum.GetName(typeof(VRModuleRawAxis), v).ToLower();
                 s_axisActionPaths[i] = ACTIONSET_PATH + "/in/viu_axis_" + s_axisNames[i];
             }
 
@@ -183,6 +182,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static string GetAxisActionPath(int index) { InitializePaths(); return s_axisActionPaths[index]; }
 
+        public static bool GetInputSrouceHAndleForDevice(uint deviceIndex, out ulong inputSourceHandle)
+        {
+            if (s_deviceOrigins == null || deviceIndex >= s_deviceOrigins.Length)
+            {
+                inputSourceHandle = OpenVR.k_ulInvalidInputValueHandle;
+                return false;
+            }
+            else
+            {
+                inputSourceHandle = s_deviceOrigins[deviceIndex];
+                return true;
+            }
+        }
+
         public override bool ShouldActiveModule()
         {
 #if UNITY_5_4_OR_NEWER
@@ -194,6 +207,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void OnActivated()
         {
+
             m_digitalDataSize = (uint)Marshal.SizeOf(new InputDigitalActionData_t());
             m_analogDataSize = (uint)Marshal.SizeOf(new InputAnalogActionData_t());
             m_originInfoSize = (uint)Marshal.SizeOf(new InputOriginInfo_t());
@@ -217,6 +231,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 actionSet.ActivatePrimary();
             }
 
+            s_deviceOrigins = new ulong[OpenVR.k_unMaxTrackedDeviceCount];
             EnsureDeviceStateLength(OpenVR.k_unMaxTrackedDeviceCount);
 
             // setup tracking space
@@ -337,7 +352,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         if (!TryGetValidDeviceState(deviceIndex, out prevState, out currState) || !currState.isConnected) { continue; }
 
                         var analogData = default(InputAnalogActionData_t);
-                        error = vrInput.GetAnalogActionData(s_axisActions[iAxs], ref analogData, m_digitalDataSize, m_actionOrigins[iOrg]);
+                        error = vrInput.GetAnalogActionData(s_axisActions[iAxs], ref analogData, m_analogDataSize, m_actionOrigins[iOrg]);
                         if (error != EVRInputError.None)
                         {
                             Debug.LogError("GetAnalogActionData failed! action=" + s_axisActionPaths[iAxs] + " error=" + error);
@@ -382,6 +397,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     if (TryGetValidDeviceState(i, out prevState, out currState) && prevState.isConnected)
                     {
+                        s_deviceOrigins[i] = OpenVR.k_ulInvalidInputValueHandle;
                         currState.Reset();
                     }
                 }
@@ -447,6 +463,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 deviceIndex = originInfo.trackedDeviceIndex;
                 m_origin2deviceIndex.Add(origin, originInfo.trackedDeviceIndex);
+                s_deviceOrigins[originInfo.trackedDeviceIndex] = origin;
             }
 
             return true;
