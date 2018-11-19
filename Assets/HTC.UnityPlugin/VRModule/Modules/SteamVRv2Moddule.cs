@@ -173,19 +173,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return handle;
         }
 
-        private static ulong SafeGetInputSource(CVRInput vrInput, string path)
-        {
-            if (string.IsNullOrEmpty(path)) { return 0ul; }
+        public static int GetButtonActionLength() { InitializePaths(); return s_buttonLength; }
 
-            var handle = 0ul;
-            var error = vrInput.GetInputSourceHandle(path, ref handle);
-            if (error != EVRInputError.None)
-            {
-                Debug.LogError("Load " + path + " action failed! error=" + error);
-            }
+        public static string GetButtonPressActionPath(int index) { InitializePaths(); return s_pressActionPaths[index]; }
 
-            return handle;
-        }
+        public static string GetButtonTouchActionPath(int index) { InitializePaths(); return s_touchActionPaths[index]; }
+
+        public static int GetAxisActionLength() { InitializePaths(); return s_axisLength; }
+
+        public static string GetAxisActionPath(int index) { InitializePaths(); return s_axisActionPaths[index]; }
 
         public override bool ShouldActiveModule()
         {
