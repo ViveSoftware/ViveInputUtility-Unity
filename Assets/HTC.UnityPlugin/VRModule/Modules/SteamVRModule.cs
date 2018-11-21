@@ -66,16 +66,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
 #if VIU_STEAMVR_1_2_1_OR_NEWER
             SteamVR_Events.NewPoses.RemoveListener(OnSteamVRNewPose);
-            SteamVR_Events.InputFocus.AddListener(OnInputFocus);
-            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
+            SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
+            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_2_0_OR_NEWER
             SteamVR_Events.NewPoses.RemoveListener(OnSteamVRNewPose);
-            SteamVR_Events.InputFocus.AddListener(OnInputFocus);
-            SteamVR_Events.System("TrackedDeviceRoleChanged").AddListener(OnTrackedDeviceRoleChanged);
+            SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
+            SteamVR_Events.System("TrackedDeviceRoleChanged").RemoveListener(OnTrackedDeviceRoleChanged);
 #elif VIU_STEAMVR_1_1_1
             SteamVR_Utils.Event.Remove("new_poses", OnSteamVRNewPoseArgs);
-            SteamVR_Utils.Event.Listen("input_focus", OnInputFocusArgs);
-            SteamVR_Utils.Event.Listen("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
+            SteamVR_Utils.Event.Remove("input_focus", OnInputFocusArgs);
+            SteamVR_Utils.Event.Remove("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
         }
 
@@ -83,11 +83,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (SteamVR.active)
             {
-#if VIU_STEAMVR_2_0_0_OR_NEWER
-                SteamVR_Settings.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
-#else
                 SteamVR_Render.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
-#endif
             }
 
             UpdateDeviceInput();
