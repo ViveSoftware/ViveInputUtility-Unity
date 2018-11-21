@@ -36,6 +36,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return VIUSettings.activateGoogleVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "daydream";
         }
 
+        public override void Update()
+        {
+            UpdateDeviceInput();
+            ProcessDeviceInputChanged();
+        }
+
         public override void BeforeRenderUpdate()
         {
             FlushDeviceState();
@@ -43,8 +49,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessConnectedDeviceChanged();
             UpdateDevicePose();
             ProcessDevicePoseChanged();
-            UpdateDeviceInput();
-            ProcessDeviceInputChanged();
         }
 
 #if VIU_GOOGLEVR_1_150_0_NEWER
