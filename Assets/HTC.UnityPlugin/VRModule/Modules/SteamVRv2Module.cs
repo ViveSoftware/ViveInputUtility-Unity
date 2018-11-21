@@ -48,7 +48,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint m_originInfoSize;
         private uint m_activeActionSetSize;
 
-        private ETrackingUniverseOrigin m_trackingSpace;
+        private ETrackingUniverseOrigin m_prevTrackingSpace;
         private bool m_hasInputFocus = true;
         private TrackedDevicePose_t[] m_poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] m_gamePoses = new TrackedDevicePose_t[0];
@@ -266,8 +266,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_devicePathHandle = new ulong[OpenVR.k_unMaxTrackedDeviceCount];
             EnsureDeviceStateLength(OpenVR.k_unMaxTrackedDeviceCount);
 
-            // setup tracking space
-            UpdateTrackingSpaceType();
+            // preserve previous tracking space
+            m_prevTrackingSpace = trackingSpace;
 
             m_hasInputFocus = inputFocus;
 
@@ -288,6 +288,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             SteamVR_Input.OnNonVisualActionsUpdated -= UpdateDeviceInput;
             SteamVR_Input.OnPosesUpdated -= UpdateDevicePose;
+
+            trackingSpace = m_prevTrackingSpace;
         }
 
         private void UpdateDeviceInput()
@@ -499,10 +501,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (VRModule.trackingSpaceType)
             {
                 case VRModuleTrackingSpaceType.RoomScale:
-                    m_trackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
+                    trackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
                     break;
                 case VRModuleTrackingSpaceType.Stationary:
-                    m_trackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
+                    trackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
                     break;
             }
         }

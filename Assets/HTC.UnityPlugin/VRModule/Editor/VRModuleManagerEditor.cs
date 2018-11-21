@@ -320,7 +320,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 },
                 reqFileNames = new string[] { "wvr.cs" },
             });
-            
+
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_WAVEVR_2_1_0_OR_NEWER",
@@ -433,6 +433,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             foreach (var symbolReq in s_symbolReqList)
             {
+                if (symbolReq == null) { continue; }
+
                 foreach (var reqFileName in symbolReq.reqFileNames)
                 {
                     if (isDir)
