@@ -50,8 +50,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private ETrackingUniverseOrigin m_prevTrackingSpace;
         private bool m_hasInputFocus = true;
-        private TrackedDevicePose_t[] m_poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-        private TrackedDevicePose_t[] m_gamePoses = new TrackedDevicePose_t[0];
+        private TrackedDevicePose_t[] m_poses;
+        private TrackedDevicePose_t[] m_gamePoses;
         private ulong[] m_actionOrigins;
 
         private struct OriginData
@@ -223,17 +223,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static string GetAxisActionPath(int index) { InitializePaths(); return s_axisActionPaths[index]; }
 
-        public static bool TryGetInputSrouceHandleForDevice(uint deviceIndex, out ulong inputSourceHandle)
+        public static ulong GetInputSrouceHandleForDevice(uint deviceIndex)
         {
             if (s_devicePathHandle == null || deviceIndex >= s_devicePathHandle.Length)
             {
-                inputSourceHandle = OpenVR.k_ulInvalidInputValueHandle;
-                return false;
+                return OpenVR.k_ulInvalidInputValueHandle;
             }
             else
             {
-                inputSourceHandle = s_devicePathHandle[deviceIndex];
-                return true;
+                return s_devicePathHandle[deviceIndex];
             }
         }
 
@@ -253,6 +251,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_originInfoSize = (uint)Marshal.SizeOf(new InputOriginInfo_t());
             m_activeActionSetSize = (uint)Marshal.SizeOf(new VRActiveActionSet_t());
 
+
+            m_poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+            m_gamePoses = new TrackedDevicePose_t[0];
             m_actionOrigins = new ulong[OpenVR.k_unMaxActionOriginCount];
             m_originDataCache = new Dictionary<ulong, OriginData>((int)OpenVR.k_unMaxActionOriginCount);
 
@@ -273,12 +274,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             SteamVR_Events.InputFocus.AddListener(OnInputFocus);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
-
-            var error = OpenVR.Input.GetActionOrigins(0ul, 0ul, m_actionOrigins);
-            if (error != EVRInputError.None)
-            {
-                Debug.LogError("OnActivated GetActionOrigins failed! error=" + error);
-            }
         }
 
         public override void OnDeactivated()
@@ -349,6 +344,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             }
 
                             currState.SetButtonPress((VRModuleRawButton)vBtn, digitalData.bState);
+                            //if (vBtn == (int)VRModuleRawButton.Trigger) { Debug.Log("GetDigitalActionData " + originData.deviceIndex); }
                         }
                     }
 
@@ -468,6 +464,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         currState.renderModelName = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_RenderModelName_String);
 
                         SetupKnownDeviceModel(currState);
+
+                        m_originDataCache.Clear();
                     }
 
                     // update device status
@@ -531,7 +529,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         devicePath = originInfo.devicePath,
                         deviceIndex = originInfo.trackedDeviceIndex,
                     };
+
                     s_devicePathHandle[originInfo.trackedDeviceIndex] = originInfo.devicePath;
+                    //Debug.Log("Set device path " + originInfo.trackedDeviceIndex + " to " + originInfo.devicePath);
                     m_originDataCache.Add(origin, originData);
                     return true;
                 }
@@ -554,6 +554,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private void OnTrackedDeviceRoleChanged(VREvent_t arg)
         {
             InvokeControllerRoleChangedEvent();
+            m_originDataCache.Clear();
         }
 
         public override uint GetLeftControllerDeviceIndex()
