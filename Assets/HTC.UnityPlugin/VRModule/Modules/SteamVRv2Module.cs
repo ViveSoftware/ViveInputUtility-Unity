@@ -152,8 +152,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             InitializePaths();
 
             SteamVR.Initialize();
-            SteamVR_Input.PreInitialize();
-            SteamVR_Input.Initialize();
+            SteamVR_ActionSet.UpdateActionSetsState();
 
             var vrInput = OpenVR.Input;
             if (vrInput == null)
