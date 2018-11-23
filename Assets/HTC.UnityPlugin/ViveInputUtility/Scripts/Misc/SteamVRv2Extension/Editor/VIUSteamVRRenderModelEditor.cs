@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 #if VIU_STEAMVR_2_0_0_OR_NEWER

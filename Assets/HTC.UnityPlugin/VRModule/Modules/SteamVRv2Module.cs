@@ -53,6 +53,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private TrackedDevicePose_t[] m_poses;
         private TrackedDevicePose_t[] m_gamePoses;
         private ulong[] m_actionOrigins;
+        private VRActiveActionSet_t[] m_activeActionSets;
 
         private struct OriginData
         {
@@ -152,7 +153,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             InitializePaths();
 
             SteamVR.Initialize();
+#if VIU_STEAMVR_2_1_0_OR_NEWER
+            SteamVR_ActionSet_Manager.UpdateActionSetsState();
+#else
             SteamVR_ActionSet.UpdateActionSetsState();
+#endif
 
             var vrInput = OpenVR.Input;
             if (vrInput == null)
@@ -415,7 +420,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessDeviceInputChanged();
         }
 
-        private VRActiveActionSet_t[] m_activeActionSets;
         private void UpdateDevicePose(bool obj)
         {
             IVRModuleDeviceState prevState;
@@ -596,5 +600,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 #endif
-    }
+        }
 }

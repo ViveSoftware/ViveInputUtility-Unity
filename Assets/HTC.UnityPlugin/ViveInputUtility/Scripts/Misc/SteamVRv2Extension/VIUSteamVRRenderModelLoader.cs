@@ -1,4 +1,6 @@
-﻿using System;
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -13,7 +15,6 @@ namespace HTC.UnityPlugin.Vive
 {
     public static class VIUSteamVRRenderModelLoader
     {
-#if VIU_STEAMVR
         public class RenderModel
         {
             public string name;
@@ -67,11 +68,13 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
+#if VIU_STEAMVR
+            private static readonly bool s_verbose = false;
             // Should not do job after interrupted
             public void InterruptAndComplete()
             {
                 var vrRenderModels = OpenVR.RenderModels;
-                if (vrRenderModels == null) { return; }
+                if (vrRenderModels == null) { DoComplete(); return; }
 
                 if (m_loadedPtr.texture != IntPtr.Zero) { vrRenderModels.FreeTexture(m_loadedPtr.texture); }
                 if (m_loadedPtr.model != IntPtr.Zero) { vrRenderModels.FreeRenderModel(m_loadedPtr.model); }
@@ -93,7 +96,7 @@ namespace HTC.UnityPlugin.Vive
                 if (!s_renderModelsCache.ContainsKey(m_name))
                 {
                     var vrRenderModels = OpenVR.RenderModels;
-                    if (vrRenderModels == null) { return true; }
+                    if (vrRenderModels == null) { DoComplete(); return true; }
 
                     if (m_unreadyRM == null)
                     {
@@ -322,9 +325,66 @@ namespace HTC.UnityPlugin.Vive
 
                 return true;
             }
+
+            /// <summary>
+            /// Helper function to handle the inconvenient fact that the packing for RenderModel_t is 
+            /// different on Linux/OSX (4) than it is on Windows (8)
+            /// </summary>
+            /// <param name="pRenderModel">native pointer to the RenderModel_t</param>
+            /// <returns></returns>
+            private static RenderModel_t MarshalRenderModel(IntPtr pRenderModel)
+            {
+                if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
+                    (Environment.OSVersion.Platform == PlatformID.Unix))
+                {
+                    var packedModel = (RenderModel_t_Packed)Marshal.PtrToStructure(pRenderModel, typeof(RenderModel_t_Packed));
+                    var model = new RenderModel_t();
+                    packedModel.Unpack(ref model);
+                    return model;
+                }
+                else
+                {
+                    return (RenderModel_t)Marshal.PtrToStructure(pRenderModel, typeof(RenderModel_t));
+                }
+            }
+
+            /// <summary>
+            /// Helper function to handle the inconvenient fact that the packing for RenderModel_TextureMap_t is 
+            /// different on Linux/OSX (4) than it is on Windows (8)
+            /// </summary>
+            /// <param name="pTextureMap">native pointer to the RenderModel_TextureMap_t</param>
+            /// <returns></returns>
+            private static RenderModel_TextureMap_t MarshalRenderModelTextureMap(IntPtr pTextureMap)
+            {
+                if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
+                    (Environment.OSVersion.Platform == PlatformID.Unix))
+                {
+                    var packedModel = (RenderModel_TextureMap_t_Packed)Marshal.PtrToStructure(pTextureMap, typeof(RenderModel_TextureMap_t_Packed));
+                    var model = new RenderModel_TextureMap_t();
+                    packedModel.Unpack(ref model);
+                    return model;
+                }
+                else
+                {
+                    return (RenderModel_TextureMap_t)Marshal.PtrToStructure(pTextureMap, typeof(RenderModel_TextureMap_t));
+                }
+            }
+#else
+            public void InterruptAndComplete()
+            {
+                DoComplete();
+            }
+
+            public bool DoJob()
+            {
+                if (m_isDone) { return true; }
+
+                DoComplete();
+                return true;
+            }
+#endif
         }
 
-        private static readonly bool s_verbose = false;
 
         private static Dictionary<string, RenderModel> s_renderModelsCache = new Dictionary<string, RenderModel>();
         private static Dictionary<string, Model> s_modelsCache = new Dictionary<string, Model>();
@@ -413,52 +473,5 @@ namespace HTC.UnityPlugin.Vive
             }
         }
         #endregion
-
-        #region Marshal Functions
-        /// <summary>
-        /// Helper function to handle the inconvenient fact that the packing for RenderModel_t is 
-        /// different on Linux/OSX (4) than it is on Windows (8)
-        /// </summary>
-        /// <param name="pRenderModel">native pointer to the RenderModel_t</param>
-        /// <returns></returns>
-        public static RenderModel_t MarshalRenderModel(IntPtr pRenderModel)
-        {
-            if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
-                (Environment.OSVersion.Platform == PlatformID.Unix))
-            {
-                var packedModel = (RenderModel_t_Packed)Marshal.PtrToStructure(pRenderModel, typeof(RenderModel_t_Packed));
-                var model = new RenderModel_t();
-                packedModel.Unpack(ref model);
-                return model;
-            }
-            else
-            {
-                return (RenderModel_t)Marshal.PtrToStructure(pRenderModel, typeof(RenderModel_t));
-            }
-        }
-
-        /// <summary>
-        /// Helper function to handle the inconvenient fact that the packing for RenderModel_TextureMap_t is 
-        /// different on Linux/OSX (4) than it is on Windows (8)
-        /// </summary>
-        /// <param name="pTextureMap">native pointer to the RenderModel_TextureMap_t</param>
-        /// <returns></returns>
-        public static RenderModel_TextureMap_t MarshalRenderModelTextureMap(IntPtr pTextureMap)
-        {
-            if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
-                (Environment.OSVersion.Platform == PlatformID.Unix))
-            {
-                var packedModel = (RenderModel_TextureMap_t_Packed)Marshal.PtrToStructure(pTextureMap, typeof(RenderModel_TextureMap_t_Packed));
-                var model = new RenderModel_TextureMap_t();
-                packedModel.Unpack(ref model);
-                return model;
-            }
-            else
-            {
-                return (RenderModel_TextureMap_t)Marshal.PtrToStructure(pTextureMap, typeof(RenderModel_TextureMap_t));
-            }
-        }
-        #endregion
-#endif
     }
 }

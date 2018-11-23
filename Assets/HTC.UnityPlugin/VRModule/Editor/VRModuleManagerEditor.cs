@@ -271,6 +271,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             s_symbolReqList.Add(new SymbolRequirement()
             {
+                symbol = "VIU_STEAMVR_2_1_0_OR_NEWER",
+                reqTypeNames = new string[] { "Valve.VR.SteamVR_ActionSet_Manager" },
+            });
+
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
                 symbol = "VIU_OCULUSVR",
                 reqTypeNames = new string[] { "OVRInput" },
                 reqFileNames = new string[] { "OVRInput.cs" },
