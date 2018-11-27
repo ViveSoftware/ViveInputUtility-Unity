@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR
 using Valve.VR;
 #endif
 

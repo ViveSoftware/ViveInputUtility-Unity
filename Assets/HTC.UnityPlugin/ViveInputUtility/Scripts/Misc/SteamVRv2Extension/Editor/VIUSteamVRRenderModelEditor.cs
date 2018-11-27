@@ -3,7 +3,7 @@
 using System.Text;
 using UnityEditor;
 using UnityEngine;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR
 using Valve.VR;
 #endif
 
@@ -12,7 +12,7 @@ namespace HTC.UnityPlugin.Vive
     [CustomEditor(typeof(VIUSteamVRRenderModel)), CanEditMultipleObjects]
     public class VIUSteamVRRenderModelEditr : Editor
     {
-        private static string[] s_renderModelNames;
+        private static GUIContent[] s_renderModelNames;
 
         private SerializedProperty m_scriptProp;
         private SerializedProperty m_modelOverrideProp;
@@ -39,9 +39,9 @@ namespace HTC.UnityPlugin.Vive
             var selectedModelName = m_modelOverrideProp.stringValue;
             if (!string.IsNullOrEmpty(selectedModelName))
             {
-                for (int i = 0, imax = s_renderModelNames.Length; i < imax; i++)
+                for (int i = 1, imax = s_renderModelNames.Length; i < imax; i++)
                 {
-                    if (selectedModelName == s_renderModelNames[i])
+                    if (selectedModelName == s_renderModelNames[i].text)
                     {
                         m_selectedModelIndex = i;
                         break;
@@ -50,9 +50,9 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private static string[] LoadRenderModelNames()
+        private static GUIContent[] LoadRenderModelNames()
         {
-            var results = default(string[]);
+            var results = default(GUIContent[]);
 #if VIU_STEAMVR
             var needsShutdown = false;
             var vrRenderModels = OpenVR.RenderModels;
@@ -71,8 +71,8 @@ namespace HTC.UnityPlugin.Vive
             {
                 var strBuilder = new StringBuilder();
                 var count = vrRenderModels.GetRenderModelCount();
-                results = new string[count + 1];
-                results[0] = "None";
+                results = new GUIContent[count + 1];
+                results[0] = new GUIContent("None");
 
                 for (uint i = 0; i < count; i++)
                 {
@@ -81,7 +81,7 @@ namespace HTC.UnityPlugin.Vive
 
                     strBuilder.EnsureCapacity((int)strLen);
                     vrRenderModels.GetRenderModelName(i, strBuilder, strLen);
-                    results[i + 1] = strBuilder.ToString();
+                    results[i + 1] = new GUIContent(strBuilder.ToString());
                 }
             }
 
@@ -90,7 +90,7 @@ namespace HTC.UnityPlugin.Vive
                 OpenVR.Shutdown();
             }
 #endif
-            return results == null ? new string[] { "None" } : results;
+            return results == null ? new GUIContent[] { new GUIContent("None") } : results;
         }
 
         public override void OnInspectorGUI()
@@ -105,7 +105,7 @@ namespace HTC.UnityPlugin.Vive
             if (selectedIndex != m_selectedModelIndex)
             {
                 m_selectedModelIndex = selectedIndex;
-                m_modelOverrideProp.stringValue = selectedIndex == 0 ? string.Empty : s_renderModelNames[selectedIndex];
+                m_modelOverrideProp.stringValue = selectedIndex == 0 ? string.Empty : s_renderModelNames[selectedIndex].text;
             }
 
             EditorGUILayout.PropertyField(m_shaderOverrideProp);
