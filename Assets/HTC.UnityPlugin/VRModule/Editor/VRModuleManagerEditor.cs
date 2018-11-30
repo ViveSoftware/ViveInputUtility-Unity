@@ -439,7 +439,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             foreach (var symbolReq in s_symbolReqList)
             {
-                if (symbolReq == null) { continue; }
+                if (symbolReq == null || symbolReq.reqFileNames == null) { continue; }
 
                 foreach (var reqFileName in symbolReq.reqFileNames)
                 {
