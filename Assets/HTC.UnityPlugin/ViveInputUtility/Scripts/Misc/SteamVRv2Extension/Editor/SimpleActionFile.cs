@@ -107,7 +107,6 @@ namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
 
             if (s_fileLastModTime == null) { s_fileLastModTime = new Dictionary<string, DateTime>(); }
             if (s_fileCache == null) { s_fileCache = new Dictionary<string, SimpleActionFile>(); }
-
             s_fileLastModTime[fullPath] = File.GetLastWriteTime(fullPath);
             s_fileCache[fullPath] = actionFile;
             return true;
@@ -128,9 +127,9 @@ namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
 
         public static void Merge(SimpleActionFile src, SimpleActionFile dst)
         {
-            // merge localization
-            // merge action set
-            // merge action
+            MergeActionSets(src, dst);
+            MergeActions(src, dst);
+            MergeLocalization(src, dst);
         }
 
         public static bool Includes(SimpleActionFile first, SimpleActionFile second, out string falseReason)
@@ -204,6 +203,128 @@ namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
             return true;
         }
 
+        public static int MergeActionSets(SimpleActionFile src, SimpleActionFile dst)
+        {
+            int count = 0;
+
+            foreach (var newSet in src.action_sets)
+            {
+                if (dst.action_sets.Any(setInCurrent => newSet.name == setInCurrent.name) == false)
+                {
+                    ActionSet actionset = new ActionSet();
+                    actionset.name = newSet.name;
+                    actionset.usage = newSet.usage;
+                    dst.action_sets.Add(actionset);
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        public static int MergeActions(SimpleActionFile src, SimpleActionFile dst)
+        {
+            int count = 0;
+
+            foreach (var newAction in src.actions)
+            {
+                if (dst.actions.Any(actionInCurrent => newAction.name == actionInCurrent.name) == false)
+                {
+                    Action action = new Action();
+                    action.name = newAction.name;
+                    action.type = newAction.type;
+                    action.scope = newAction.scope;
+                    action.skeleton = newAction.skeleton;
+                    action.requirement = newAction.requirement;
+                    dst.actions.Add(action);
+                    count++;
+                }
+                else
+                {
+                    Action existingAction = dst.actions.First(actionInCurrent => newAction.name == actionInCurrent.name);
+
+                    //todo: better merge? should we overwrite?
+                    existingAction.type = newAction.type;
+                    existingAction.scope = newAction.scope;
+                    existingAction.skeleton = newAction.skeleton;
+                    existingAction.requirement = newAction.requirement;
+                }
+            }
+
+            return count;
+        }
+
+        public static int MergeLocalization(SimpleActionFile src, SimpleActionFile dst)
+        {
+            int count = 0;
+
+            foreach (var newLocalDictionary in src.localization)
+            {
+                string newLanguage = FindLanguageInDictionary(newLocalDictionary);
+
+                if (string.IsNullOrEmpty(newLanguage))
+                {
+                    Debug.LogError("Actions file is missing a language tag");
+                    continue;
+                }
+
+                int currentLanguage = -1;
+                for (int currentLanguageIndex = 0; currentLanguageIndex < src.localization.Count; currentLanguageIndex++)
+                {
+                    string language = FindLanguageInDictionary(src.localization[currentLanguageIndex]);
+                    if (newLanguage == language)
+                    {
+                        currentLanguage = currentLanguageIndex;
+                        break;
+                    }
+                }
+
+                if (currentLanguage == -1)
+                {
+                    Dictionary<string, string> newDictionary = new Dictionary<string, string>();
+                    foreach (var element in newLocalDictionary)
+                    {
+                        newDictionary.Add(element.Key, element.Value);
+                        count++;
+                    }
+
+                    src.localization.Add(newDictionary);
+                }
+                else
+                {
+                    foreach (var element in newLocalDictionary)
+                    {
+                        Dictionary<string, string> currentDictionary = dst.localization[currentLanguage];
+                        bool exists = currentDictionary.Any(inCurrent => inCurrent.Key == element.Key);
+
+                        if (exists)
+                        {
+                            //todo: should we overwrite?
+                            currentDictionary[element.Key] = element.Value;
+                        }
+                        else
+                        {
+                            currentDictionary.Add(element.Key, element.Value);
+                            count++;
+                        }
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        private static string FindLanguageInDictionary(Dictionary<string, string> dictionary)
+        {
+            foreach (var localizationMember in dictionary)
+            {
+                if (localizationMember.Key == Localization.languageTagKeyName)
+                    return localizationMember.Value;
+            }
+
+            return null;
+        }
+
         [Serializable]
         public class Action
         {
@@ -226,6 +347,14 @@ namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
         {
             public string name;
             public string usage;
+        }
+
+        [Serializable]
+        public class Localization
+        {
+            public const string languageTagKeyName = "language_tag";
+            public string language;
+            public Dictionary<string, string> items = new Dictionary<string, string>();
         }
     }
 }
