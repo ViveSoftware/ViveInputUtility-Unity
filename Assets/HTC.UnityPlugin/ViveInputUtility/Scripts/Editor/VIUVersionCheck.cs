@@ -115,6 +115,65 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
+#if VIU_STEAMVR_2_1_0_OR_NEWER
+        private class RecommendedSteamVRInputFileSettings : RecommendedSetting<bool>
+        {
+            private readonly string m_mainDirPath;
+            private readonly string m_mainFileName = "actions.json";
+            private readonly string m_partialDirPath;
+            private readonly string m_partialFileName = "actions.json";
+            private DateTime m_mainFileVersion;
+            private DateTime m_partialFileVersion;
+            private bool m_lastCheckMergedResult;
+
+            public RecommendedSteamVRInputFileSettings()
+            {
+                m_mainDirPath = Path.GetFullPath(Application.dataPath + "/../");
+                m_partialDirPath = Path.GetFullPath(Path.GetDirectoryName(VIUProjectSettings.defaultAssetPath) + "/../Misc/SteamVRExtension/PartialInputBindings");
+
+                settingTitle = "Apply VIU Action Set for SteamVR Input";
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportOpenVR;
+                currentValueFunc = IsMerged;
+                setValueFunc = Merge;
+                recommendedValue = true;
+            }
+
+            private bool IsMerged()
+            {
+                SteamVRv2Extension.VIUSteamVRActionFile mainFile;
+                SteamVRv2Extension.VIUSteamVRActionFile partialFile;
+
+                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_mainDirPath, m_mainFileName, out mainFile)) { return true; }
+                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return true; }
+
+                if (m_mainFileVersion != mainFile.lastWriteTime || m_partialFileVersion != partialFile.lastWriteTime)
+                {
+                    m_mainFileVersion = mainFile.lastWriteTime;
+                    m_partialFileVersion = partialFile.lastWriteTime;
+                    m_lastCheckMergedResult = mainFile.IsMerged(partialFile);
+                }
+
+                return m_lastCheckMergedResult;
+            }
+
+            private void Merge(bool value)
+            {
+                if (!value) { return; }
+
+                SteamVRv2Extension.VIUSteamVRActionFile mainFile;
+                SteamVRv2Extension.VIUSteamVRActionFile partialFile;
+
+                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_mainDirPath, m_mainFileName, out mainFile)) { return; }
+                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return; }
+
+                mainFile.Merge(partialFile);
+                mainFile.Save();
+
+                m_mainFileVersion = m_partialFileVersion = default(DateTime);
+            }
+        }
+#endif
+
         public const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
         public const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
         public const double versionCheckIntervalMinutes = 30.0;
@@ -790,6 +849,10 @@ namespace HTC.UnityPlugin.Vive
                 },
                 recommendedValue = true,
             });
+#endif
+
+#if VIU_STEAMVR_2_1_0_OR_NEWER
+            s_settings.Add(new RecommendedSteamVRInputFileSettings());
 #endif
         }
 
