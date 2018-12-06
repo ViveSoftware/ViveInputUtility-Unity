@@ -1,0 +1,249 @@
+{
+  "actions": [
+    {
+      "name": "/actions/htc_viu/in/viu_press_system",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_applicationmenu",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_grip",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_dpadleft",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_dpadup",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_dpadright",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_dpaddown",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_a",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_proximitysensor",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_touchpad",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_trigger",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_capsensegrip",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_system",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_applicationmenu",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_grip",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_dpadleft",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_dpadup",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_dpadright",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_dpaddown",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_a",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_proximitysensor",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_touchpad",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_trigger",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_capsensegrip",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_touchpadx",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_touchpady",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_trigger",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_capsensegrip",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_indexcurl",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_middlecurl",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_ringcurl",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_pinkycurl",
+      "type": "vector1",
+      "requirement": "optional"
+    }
+  ],
+  "action_sets": [
+    {
+      "name": "/actions/htc_viu",
+      "usage": "leftright"
+    }
+  ],
+  "default_bindings": [
+    {
+      "controller_type": "vive",
+      "binding_url": "binding_vive.json"
+    },
+    {
+      "controller_type": "vive_pro",
+      "binding_url": "binding_vive_pro.json"
+    },
+    {
+      "controller_type": "rift",
+      "binding_url": "binding_rift.json"
+    },
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "bindings_oculus_touch.json"
+    },
+    {
+      "controller_type": "knuckles",
+      "binding_url": "bindings_knuckles.json"
+    },
+    {
+      "controller_type": "holographic_controller",
+      "binding_url": "bindings_holographic_controller.json"
+    },
+    {
+      "controller_type": "vive_controller",
+      "binding_url": "bindings_vive_controller.json"
+    },
+    {
+      "controller_type": "vive_tracker",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_handed",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_left_foot",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_right_foot",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_left_shoulder",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_right_shoulder",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_waist",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_chest",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_gamepad",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_camera",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_keyboard",
+      "binding_url": "bindings_vive_tracker.json"
+    }
+  ],
+  "localization": [
+    {
+      "language_tag": "en_US",
+    }
+  ]
+}

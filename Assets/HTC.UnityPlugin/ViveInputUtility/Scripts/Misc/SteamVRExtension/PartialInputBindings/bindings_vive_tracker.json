@@ -1,0 +1,507 @@
+{
+   "bindings" : {
+      "/actions/htc_viu" : {
+         "haptics" : [],
+         "poses" : [],
+         "sources" : [
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/left/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/left/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/left/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/left/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/left/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/right/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/right/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/right/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/right/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/foot/right/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/left/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/left/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/left/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/left/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/left/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/right/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/right/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/right/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/right/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/shoulder/right/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/waist/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/waist/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/waist/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/waist/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/waist/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/chest/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/chest/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/chest/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/chest/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/chest/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/camera/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/camera/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/camera/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/camera/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/camera/input/thumb"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_system"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/keyboard/input/power"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_trigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/keyboard/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_grip"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/keyboard/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_applicationmenu"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/keyboard/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/keyboard/input/thumb"
+            }
+         ]
+      }
+   },
+   "controller_type" : "vive_tracker",
+   "name" : "vive_tracker defaults",
+}
