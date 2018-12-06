@@ -115,7 +115,7 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-#if VIU_STEAMVR_2_1_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER
         private class RecommendedSteamVRInputFileSettings : RecommendedSetting<bool>
         {
             private readonly string m_mainDirPath;
@@ -851,7 +851,7 @@ namespace HTC.UnityPlugin.Vive
             });
 #endif
 
-#if VIU_STEAMVR_2_1_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER
             s_settings.Add(new RecommendedSteamVRInputFileSettings());
 #endif
         }
