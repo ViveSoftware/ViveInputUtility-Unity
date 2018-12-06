@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
-#if VIU_STEAMVR_2_1_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER
 using System;
 using System.Collections.Generic;
 using System.IO;
