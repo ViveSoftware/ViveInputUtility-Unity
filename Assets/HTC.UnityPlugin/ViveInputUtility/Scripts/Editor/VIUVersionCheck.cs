@@ -13,6 +13,8 @@ using UnityEditor.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Valve.Newtonsoft.Json;
+using Valve.VR;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -143,7 +145,7 @@ namespace HTC.UnityPlugin.Vive
                 SteamVRv2Extension.VIUSteamVRActionFile mainFile;
                 SteamVRv2Extension.VIUSteamVRActionFile partialFile;
 
-                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_mainDirPath, m_mainFileName, out mainFile)) { return true; }
+                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_mainDirPath, m_mainFileName, out mainFile)) { return false; }
                 if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return true; }
 
                 if (m_mainFileVersion != mainFile.lastWriteTime || m_partialFileVersion != partialFile.lastWriteTime)
@@ -160,6 +162,8 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (!value) { return; }
 
+                GetWindow<SteamVR_Input_EditorWindow>().Close();
+
                 SteamVRv2Extension.VIUSteamVRActionFile mainFile;
                 SteamVRv2Extension.VIUSteamVRActionFile partialFile;
 
@@ -170,6 +174,8 @@ namespace HTC.UnityPlugin.Vive
                 mainFile.Save();
 
                 m_mainFileVersion = m_partialFileVersion = default(DateTime);
+
+                EditorApplication.delayCall += () => SteamVR_Input_Generator.BeginGeneration();
             }
         }
 #endif
