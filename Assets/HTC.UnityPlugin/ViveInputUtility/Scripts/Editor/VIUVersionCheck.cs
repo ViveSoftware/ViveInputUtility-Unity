@@ -13,8 +13,10 @@ using UnityEditor.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
 using Valve.Newtonsoft.Json;
 using Valve.VR;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {
