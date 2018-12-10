@@ -5,6 +5,7 @@ using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 #if UNITY_5_4_OR_NEWER
@@ -13,10 +14,6 @@ using UnityEditor.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
-using Valve.Newtonsoft.Json;
-using Valve.VR;
-#endif
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -123,12 +120,23 @@ namespace HTC.UnityPlugin.Vive
         private class RecommendedSteamVRInputFileSettings : RecommendedSetting<bool>
         {
             private readonly string m_mainDirPath;
-            private readonly string m_mainFileName = "actions.json";
             private readonly string m_partialDirPath;
             private readonly string m_partialFileName = "actions.json";
             private DateTime m_mainFileVersion;
             private DateTime m_partialFileVersion;
             private bool m_lastCheckMergedResult;
+
+            private string mainFileName { get { return Valve.VR.SteamVR_Settings.instance.actionsFilePath; } }
+
+            private string exampleDirPath
+            {
+                get
+                {
+                    var monoScripts = MonoImporter.GetAllRuntimeMonoScripts();
+                    var monoScript = monoScripts.FirstOrDefault(script => script.GetClass() == typeof(Valve.VR.SteamVR_Input));
+                    return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(AssetDatabase.GetAssetPath(monoScript)), Valve.VR.SteamVR_CopyExampleInputFiles.exampleJSONFolderName));
+                }
+            }
 
             public RecommendedSteamVRInputFileSettings()
             {
@@ -147,7 +155,7 @@ namespace HTC.UnityPlugin.Vive
                 SteamVRv2Extension.VIUSteamVRActionFile mainFile;
                 SteamVRv2Extension.VIUSteamVRActionFile partialFile;
 
-                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_mainDirPath, m_mainFileName, out mainFile)) { return false; }
+                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_mainDirPath, mainFileName, out mainFile)) { return false; }
                 if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return true; }
 
                 if (m_mainFileVersion != mainFile.lastWriteTime || m_partialFileVersion != partialFile.lastWriteTime)
@@ -164,20 +172,43 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (!value) { return; }
 
-                GetWindow<SteamVR_Input_EditorWindow>().Close();
-
                 SteamVRv2Extension.VIUSteamVRActionFile mainFile;
                 SteamVRv2Extension.VIUSteamVRActionFile partialFile;
 
-                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_mainDirPath, m_mainFileName, out mainFile)) { return; }
+                if (Valve.VR.SteamVR_Input.actionFile != null)
+                {
+                    GetWindow<Valve.VR.SteamVR_Input_EditorWindow>().Close();
+                }
+
                 if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return; }
 
-                mainFile.Merge(partialFile);
-                mainFile.Save();
+                if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(m_mainDirPath, mainFileName, out mainFile))
+                {
+                    if (EditorUtility.DisplayDialog("Import SteamVR Example Inputs", "Would you also like to import SteamVR Example Input File? Click yes if you want SteamVR plugin example scene to work.", "Yes", "No"))
+                    {
+                        if (!SteamVRv2Extension.VIUSteamVRActionFile.TryLoad(exampleDirPath, mainFileName, out mainFile))
+                        {
+                            Debug.LogError("Example Input file not found: " + Path.Combine(exampleDirPath, mainFileName));
+                            return;
+                        }
+
+                        mainFile.Merge(partialFile);
+                        mainFile.Save(m_mainDirPath);
+                    }
+                    else
+                    {
+                        partialFile.Save(m_mainDirPath);
+                    }
+                }
+                else
+                {
+                    mainFile.Merge(partialFile);
+                    mainFile.Save();
+                }
 
                 m_mainFileVersion = m_partialFileVersion = default(DateTime);
 
-                EditorApplication.delayCall += () => SteamVR_Input_Generator.BeginGeneration();
+                EditorApplication.delayCall += Valve.VR.SteamVR_Input_Generator.BeginGeneration;
             }
         }
 #endif

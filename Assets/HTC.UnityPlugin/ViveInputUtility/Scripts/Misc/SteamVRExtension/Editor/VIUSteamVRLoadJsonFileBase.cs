@@ -63,21 +63,29 @@ namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
 
         protected virtual void OnAfterLoaded() { }
 
-        public void Save(string path = null)
+        public void Save() { Save(dirPath); }
+
+        public void Save(string dirPath)
         {
-            if (string.IsNullOrEmpty(path)) { path = fullPath; }
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(dirPath))
             {
-                Debug.LogWarning("Cannot save to empty path");
+                Debug.LogWarning("dirPath is empty");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(fileName))
+            {
+                Debug.LogWarning("fileName is empty");
                 return;
             }
 
             try
             {
-                OnBeforeSave();
+                OnBeforeSave(dirPath);
 
                 var json = JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                File.WriteAllText(path, json);
+                File.WriteAllText(Path.Combine(dirPath, fileName), json);
+
             }
             catch (Exception e)
             {
@@ -85,7 +93,7 @@ namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
             }
         }
 
-        protected virtual void OnBeforeSave() { }
+        protected virtual void OnBeforeSave(string dirPash) { }
     }
 
     public interface IStringKey

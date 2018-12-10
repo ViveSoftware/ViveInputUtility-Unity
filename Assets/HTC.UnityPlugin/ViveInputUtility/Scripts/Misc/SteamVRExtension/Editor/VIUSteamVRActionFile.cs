@@ -77,16 +77,12 @@ namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
             m_bindingFiles.Merge(dst.m_bindingFiles);
         }
 
-        protected override void OnBeforeSave()
+        protected override void OnBeforeSave(string dirPash)
         {
-            var saved = new HashSet<VIUSteamVRBindingFile>();
             foreach (var pair in m_bindingFiles)
             {
                 var bindingFile = pair.Value;
-
-                if (saved.Contains(bindingFile)) { continue; }
-                bindingFile.Save();
-                saved.Add(bindingFile);
+                bindingFile.Save(dirPash);
             }
         }
 
