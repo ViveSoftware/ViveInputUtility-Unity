@@ -208,7 +208,11 @@ namespace HTC.UnityPlugin.Vive
 
                 m_mainFileVersion = m_partialFileVersion = default(DateTime);
 
-                EditorApplication.delayCall += Valve.VR.SteamVR_Input_Generator.BeginGeneration;
+                EditorApplication.delayCall += () =>
+                {
+                    GetWindow<Valve.VR.SteamVR_Input_EditorWindow>();
+                    Valve.VR.SteamVR_Input_Generator.BeginGeneration();
+                };
             }
         }
 #endif
