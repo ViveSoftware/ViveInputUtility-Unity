@@ -159,6 +159,31 @@
       "name": "/actions/htc_viu/in/viu_axis_pinkycurl",
       "type": "vector1",
       "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_0",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_1",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_2",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_3",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_4",
+      "type": "vector2",
+      "requirement": "optional"
     }
   ],
   "action_sets": [
@@ -244,6 +269,8 @@
   "localization": [
     {
       "language_tag": "en_US",
+      "/actions/htc_viu/in/viu_axis_0": "Touchpad or Trackpad",
+      "/actions/htc_viu/in/viu_axis_2": "Joystick",
     }
   ]
 }

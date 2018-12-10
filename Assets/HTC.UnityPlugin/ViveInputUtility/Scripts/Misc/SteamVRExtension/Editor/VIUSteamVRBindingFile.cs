@@ -3,7 +3,7 @@
 #if VIU_STEAMVR_2_0_0_OR_NEWER
 using System;
 
-namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
+namespace HTC.UnityPlugin.Vive.SteamVRExtension
 {
     [Serializable]
     public class VIUSteamVRBindingFile : VIUSteamVRLoadJsonFileBase<VIUSteamVRBindingFile>, IMergable<VIUSteamVRBindingFile>

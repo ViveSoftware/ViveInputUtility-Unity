@@ -7,18 +7,6 @@
             {
                "inputs" : {
                   "click" : {
-                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
-                  },
-                  "touch" : {
-                     "output" : "/actions/htc_viu/in/viu_touch_touchpad"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/left/input/trackpad"
-            },
-            {
-               "inputs" : {
-                  "click" : {
                      "output" : "/actions/htc_viu/in/viu_press_trigger"
                   }
                },
@@ -42,42 +30,6 @@
                },
                "mode" : "trigger",
                "path" : "/user/hand/left/input/trigger"
-            },
-            {
-               "inputs" : {
-                  "pull" : {
-                     "output" : "/actions/htc_viu/in/viu_axis_touchpadx"
-                  }
-               },
-			   "mode" : "trigger",
-               "path" : "/user/hand/left/input/trackpad/x"
-            },
-            {
-               "inputs" : {
-                  "pull" : {
-                     "output" : "/actions/htc_viu/in/viu_axis_touchpady"
-                  }
-               },
-			   "mode" : "trigger",
-               "path" : "/user/hand/left/input/trackpad/y"
-            },
-            {
-               "inputs" : {
-                  "pull" : {
-                     "output" : "/actions/htc_viu/in/viu_axis_touchpadx"
-                  }
-               },
-			   "mode" : "trigger",
-               "path" : "/user/hand/right/input/trackpad/x"
-            },
-            {
-               "inputs" : {
-                  "pull" : {
-                     "output" : "/actions/htc_viu/in/viu_axis_touchpady"
-                  }
-               },
-			   "mode" : "trigger",
-               "path" : "/user/hand/right/input/trackpad/y"
             },
             {
                "inputs" : {
@@ -222,18 +174,6 @@
             },
             {
                "inputs" : {
-                  "click" : {
-                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
-                  },
-                  "touch" : {
-                     "output" : "/actions/htc_viu/in/viu_touch_touchpad"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/right/input/trackpad"
-            },
-            {
-               "inputs" : {
                   "east" : {
                      "output" : "/actions/htc_viu/in/viu_press_dpadright"
                   },
@@ -272,6 +212,36 @@
                "parameters" : {
                   "sub_mode" : "touch"
                },
+               "path" : "/user/hand/right/input/trackpad"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  },
+                  "position" : {
+                     "output" : "/actions/htc_viu/in/viu_axis_0"
+                  },
+                  "touch" : {
+                     "output" : "/actions/htc_viu/in/viu_touch_touchpad"
+                  }
+               },
+               "mode" : "trackpad",
+               "path" : "/user/hand/left/input/trackpad"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/htc_viu/in/viu_press_touchpad"
+                  },
+                  "position" : {
+                     "output" : "/actions/htc_viu/in/viu_axis_0"
+                  },
+                  "touch" : {
+                     "output" : "/actions/htc_viu/in/viu_touch_touchpad"
+                  }
+               },
+               "mode" : "trackpad",
                "path" : "/user/hand/right/input/trackpad"
             }
          ]

@@ -7,7 +7,7 @@ using System.IO;
 using UnityEngine;
 using Valve.Newtonsoft.Json;
 
-namespace HTC.UnityPlugin.Vive.SteamVRv2Extension
+namespace HTC.UnityPlugin.Vive.SteamVRExtension
 {
     [Serializable]
     public class VIUSteamVRLoadJsonFileBase<T> where T : VIUSteamVRLoadJsonFileBase<T>
