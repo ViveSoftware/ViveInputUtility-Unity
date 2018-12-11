@@ -34,6 +34,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         ViveFocusFinch,
         OculusGoController,
         OculusGearVrController,
+
+        WMRControllerLeft,
+        WMRControllerRight,
     }
 
     public enum VRModuleRawButton
@@ -70,6 +73,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         MiddleCurl = Axis3Y,
         RingCurl = Axis4X,
         PinkyCurl = Axis4Y,
+
+        JoystickX = Axis2X,
+        JoystickY = Axis2Y,
 
         // alias
         Axis0X = 0,

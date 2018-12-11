@@ -92,6 +92,9 @@ namespace HTC.UnityPlugin.Vive
         MiddleCurl, // Knuckles only
         RingCurl, // Knuckles only
         PinkyCurl, // Knuckles only
+
+        JoystickX,
+        JoystickY,
     }
 
     public enum ScrollType
