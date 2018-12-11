@@ -145,7 +145,8 @@ namespace HTC.UnityPlugin.Vive
             public RecommendedSteamVRInputFileSettings()
             {
                 m_mainDirPath = Path.GetFullPath(Application.dataPath + "/../");
-                m_partialDirPath = Path.GetFullPath(Path.GetDirectoryName(VIUProjectSettings.defaultAssetPath) + "/../Misc/SteamVRExtension/PartialInputBindings");
+                m_partialDirPath = VIUProjectSettings.partialActionDirPath;
+                m_partialFileName = VIUProjectSettings.partialActionFileName;
 
                 settingTitle = "Apply VIU Action Set for SteamVR Input";
                 skipCheckFunc = () => !VIUSettingsEditor.canSupportOpenVR;
@@ -177,6 +178,7 @@ namespace HTC.UnityPlugin.Vive
                 if (!value) { return; }
 
                 VIUSteamVRActionFile mainFile;
+                VIUSteamVRActionFile exampleFile;
                 VIUSteamVRActionFile partialFile;
 
                 if (SteamVR_Input.actionFile != null)
@@ -186,29 +188,28 @@ namespace HTC.UnityPlugin.Vive
 
                 if (!VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return; }
 
-                if (!VIUSteamVRActionFile.TryLoad(m_mainDirPath, mainFileName, out mainFile))
+                VIUSteamVRActionFile.TryLoad(m_mainDirPath, mainFileName, out mainFile);
+                VIUSteamVRActionFile.TryLoad(exampleDirPath, mainFileName, out exampleFile);
+
+                if (exampleFile != null && (mainFile == null || !mainFile.IsMerged(exampleFile)))
                 {
                     if (EditorUtility.DisplayDialog("Import SteamVR Example Inputs", "Would you also like to import SteamVR Example Input File? Click yes if you want SteamVR plugin example scene to work.", "Yes", "No"))
                     {
-                        if (!VIUSteamVRActionFile.TryLoad(exampleDirPath, mainFileName, out mainFile))
+                        if (mainFile == null)
                         {
-                            Debug.LogError("Example Input file not found: " + Path.Combine(exampleDirPath, mainFileName));
-                            return;
+                            mainFile = exampleFile;
+                        }
+                        else
+                        {
+                            mainFile.Merge(exampleFile);
                         }
 
-                        mainFile.Merge(partialFile);
-                        mainFile.Save(m_mainDirPath);
-                    }
-                    else
-                    {
-                        partialFile.Save(m_mainDirPath);
+                        EditorPrefs.SetBool(SteamVR_CopyExampleInputFiles.steamVRInputExampleJSONCopiedKey, true);
                     }
                 }
-                else
-                {
-                    mainFile.Merge(partialFile);
-                    mainFile.Save();
-                }
+
+                mainFile.Merge(partialFile);
+                mainFile.Save(m_mainDirPath);
 
                 m_mainFileVersion = m_partialFileVersion = default(DateTime);
 
@@ -1110,6 +1111,13 @@ namespace HTC.UnityPlugin.Vive
 
         public void OnGUI()
         {
+#if UNITY_2017_1_OR_NEWER
+            if (EditorApplication.isCompiling)
+            {
+                EditorGUILayout.LabelField("Compiling...");
+                return;
+            }
+#endif
             if (viuLogo == null)
             {
                 var currentDir = Path.GetDirectoryName(AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(this)));

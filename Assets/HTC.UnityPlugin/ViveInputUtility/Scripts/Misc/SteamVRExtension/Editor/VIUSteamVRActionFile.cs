@@ -79,6 +79,7 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
 
         protected override void OnBeforeSave(string dirPash)
         {
+            if (m_bindingFiles == null || m_bindingFiles.Count == 0) { return; }
             foreach (var pair in m_bindingFiles)
             {
                 var bindingFile = pair.Value;
