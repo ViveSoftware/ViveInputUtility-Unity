@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         ViveFocusFinch,
         OculusGoController,
         OculusGearVrController,
-
+        WMRHMD,
         WMRControllerLeft,
         WMRControllerRight,
     }
