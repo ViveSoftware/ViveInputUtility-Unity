@@ -10,7 +10,7 @@
             {
                "inputs" : {
                   "click" : {
-                     "output" : "/actions/htc_viu/in/viu_press_proximitysensor"
+                     "output" : "/actions/htc_viu/in/viu_press_31"
                   }
                },
                "mode" : "button",
