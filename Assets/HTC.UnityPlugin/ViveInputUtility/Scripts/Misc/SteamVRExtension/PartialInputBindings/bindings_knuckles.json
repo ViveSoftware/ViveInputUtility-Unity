@@ -1,5 +1,4 @@
 {
-   "bindings" : {},
-   "controller_type" : "knuckles",
-   "name" : "knuckles defaults"
+  "controller_type": "knuckles",
+  "bindings": {}
 }
