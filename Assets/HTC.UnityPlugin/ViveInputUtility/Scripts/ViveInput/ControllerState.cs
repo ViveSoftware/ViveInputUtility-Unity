@@ -126,6 +126,15 @@ namespace HTC.UnityPlugin.Vive
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4, currState.GetButtonPress(VRModuleRawButton.Axis4));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4Touch, currState.GetButtonTouch(VRModuleRawButton.Axis4));
 
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRightTouch, currState.GetButtonPress(VRModuleRawButton.DPadRight));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpTouch, currState.GetButtonPress(VRModuleRawButton.DPadUp));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeftTouch, currState.GetButtonPress(VRModuleRawButton.DPadLeft));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDownTouch, currState.GetButtonPress(VRModuleRawButton.DPadDown));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRight, currState.GetButtonTouch(VRModuleRawButton.DPadRight));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUp, currState.GetButtonTouch(VRModuleRawButton.DPadUp));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeft, currState.GetButtonTouch(VRModuleRawButton.DPadLeft));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDown, currState.GetButtonTouch(VRModuleRawButton.DPadDown));
+
                 // update axis values
                 currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
                 currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
@@ -146,18 +155,7 @@ namespace HTC.UnityPlugin.Vive
                     currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
                     currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
                 }
-
-                // update dpad values
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRightTouch, currState.GetButtonPress(VRModuleRawButton.DPadRight));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpTouch, currState.GetButtonPress(VRModuleRawButton.DPadUp));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeftTouch, currState.GetButtonPress(VRModuleRawButton.DPadLeft));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDownTouch, currState.GetButtonPress(VRModuleRawButton.DPadDown));
-
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRight, currState.GetButtonTouch(VRModuleRawButton.DPadRight));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUp, currState.GetButtonTouch(VRModuleRawButton.DPadUp));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeft, currState.GetButtonTouch(VRModuleRawButton.DPadLeft));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDown, currState.GetButtonTouch(VRModuleRawButton.DPadDown));
-
+                
                 // update hair trigger
                 var currTriggerValue = currAxisValue[(int)ControllerAxis.Trigger];
 

@@ -18,6 +18,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knuckles).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_wmrRgx = new Regex("^.*(asus|acer|dell|lenovo|hp|samsung)", RegexOptions.IgnoreCase);
             private static readonly Regex s_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
 
@@ -133,6 +134,27 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         case VRModuleDeviceClass.TrackingReference:
                             deviceState.deviceModel = VRModuleDeviceModel.OculusSensor;
                             return;
+                    }
+                }
+                else if (s_wmrRgx.IsMatch(deviceState.modelNumber) || s_wmrRgx.IsMatch(deviceState.renderModelName))
+                {
+                    switch (deviceState.deviceClass)
+                    {
+                        case VRModuleDeviceClass.HMD:
+                            deviceState.deviceModel = VRModuleDeviceModel.WMRHMD;
+                            return;
+                        case VRModuleDeviceClass.Controller:
+                            if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                            {
+                                deviceState.deviceModel = VRModuleDeviceModel.WMRControllerLeft;
+                                return;
+                            }
+                            else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                            {
+                                deviceState.deviceModel = VRModuleDeviceModel.WMRControllerRight;
+                                return;
+                            }
+                            break;
                     }
                 }
                 else if (deviceState.deviceClass == VRModuleDeviceClass.Controller && s_knucklesRgx.IsMatch(deviceState.modelNumber))
