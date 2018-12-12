@@ -34,6 +34,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         ViveFocusFinch,
         OculusGoController,
         OculusGearVrController,
+        WMRHMD,
+        WMRControllerLeft,
+        WMRControllerRight,
     }
 
     public enum VRModuleRawButton
@@ -47,22 +50,35 @@ namespace HTC.UnityPlugin.VRModuleManagement
         DPadDown = 6,
         A = 7,
         ProximitySensor = 31,
+        DashboardBack = 2, // Grip
+        Touchpad = 32, // Axis0
+        Trigger = 33, // Axis1
+        CapSenseGrip = 34, // Axis2
+
+        // alias
         Axis0 = 32,
         Axis1 = 33,
         Axis2 = 34,
         Axis3 = 35,
         Axis4 = 36,
-
-        // alias
-        DashboardBack = 2, // Grip
-        Touchpad = 32, // Axis0
-        Trigger = 33, // Axis1
-        CapSenseGrip = 34, // Axis2
     }
 
     public enum VRModuleRawAxis
     {
-        Axis0X,
+        TouchpadX = Axis0X,
+        TouchpadY = Axis0Y,
+        Trigger = Axis1X,
+        CapSenseGrip = Axis2X,
+        IndexCurl = Axis3X,
+        MiddleCurl = Axis3Y,
+        RingCurl = Axis4X,
+        PinkyCurl = Axis4Y,
+
+        JoystickX = Axis2X,
+        JoystickY = Axis2Y,
+
+        // alias
+        Axis0X = 0,
         Axis0Y,
         Axis1X,
         Axis1Y,
@@ -72,16 +88,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Axis3Y,
         Axis4X,
         Axis4Y,
-
-        // alias
-        TouchpadX = Axis0X,
-        TouchpadY = Axis0Y,
-        Trigger = Axis1X,
-        CapSenseGrip = Axis2X,
-        IndexCurl = Axis3X,
-        MiddleCurl = Axis3Y,
-        RingCurl = Axis4X,
-        PinkyCurl = Axis4Y,
     }
 
     public interface IVRModuleDeviceStateRW
@@ -203,11 +209,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             // device input state
             [SerializeField]
-            public ulong m_buttonPressed;
+            private ulong m_buttonPressed;
             [SerializeField]
-            public ulong m_buttonTouched;
+            private ulong m_buttonTouched;
             [SerializeField]
-            public float[] m_axisValue;
+            private float[] m_axisValue;
 
             public ulong buttonPressed { get { return m_buttonPressed; } set { m_buttonPressed = value; } }
             public ulong buttonTouched { get { return m_buttonTouched; } set { m_buttonTouched = value; } }

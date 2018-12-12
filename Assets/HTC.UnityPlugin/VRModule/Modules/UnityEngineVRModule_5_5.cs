@@ -17,9 +17,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static readonly Regex m_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
 
-        private readonly uint m_headIndex = 0u;
-        private readonly uint m_leftIndex = 1u;
-        private readonly uint m_rightIndex = 2u;
+        private const uint HEAD_INDEX = 0u;
+        private const uint LEFT_INDEX = 1u;
+        private const uint RIGHT_INDEX = 2u;
+
+        private uint m_leftIndex = INVALID_DEVICE_INDEX;
+        private uint m_rightIndex = INVALID_DEVICE_INDEX;
 
         private string m_leftJoystickName = string.Empty;
         private string m_rightJoystickName = string.Empty;
@@ -33,6 +36,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             m_prevTrackingSpace = VRDevice.GetTrackingSpaceType();
             UpdateTrackingSpaceType();
+
+            EnsureDeviceStateLength(3);
         }
 
         public override void OnDeactivated()
@@ -58,13 +63,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
 
-        public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
+        public override void BeforeRenderUpdate()
         {
             var joystickNames = default(string[]);
 
+            FlushDeviceState();
+
             // head
-            var headCurrState = currState[m_headIndex];
-            var headPrevState = prevState[m_headIndex];
+            IVRModuleDeviceState headPrevState;
+            IVRModuleDeviceStateRW headCurrState;
+            EnsureValidDeviceState(HEAD_INDEX, out headPrevState, out headCurrState);
 
             headCurrState.isConnected = VRDevice.isPresent;
 
@@ -105,8 +113,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // right
-            var rightCurrState = currState[m_rightIndex];
-            var rightPrevState = prevState[m_rightIndex];
+            IVRModuleDeviceState rightPrevState;
+            IVRModuleDeviceStateRW rightCurrState;
+            EnsureValidDeviceState(RIGHT_INDEX, out rightPrevState, out rightCurrState);
 
             rightCurrState.position = InputTracking.GetLocalPosition(VRNode.RightHand);
             rightCurrState.rotation = InputTracking.GetLocalRotation(VRNode.RightHand);
@@ -125,6 +134,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             rightCurrState.isConnected = true;
                             m_rightJoystickName = joystickNames[i];
                             m_rightJoystickNameIndex = i;
+                            m_rightIndex = RIGHT_INDEX;
                             break;
                         }
                     }
@@ -140,6 +150,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         rightCurrState.isConnected = false;
                         m_rightJoystickName = string.Empty;
                         m_rightJoystickNameIndex = -1;
+                        m_rightIndex = INVALID_DEVICE_INDEX;
                     }
                 }
             }
@@ -209,8 +220,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // left
-            var leftCurrState = currState[m_leftIndex];
-            var leftPrevState = prevState[m_leftIndex];
+            IVRModuleDeviceState leftPrevState;
+            IVRModuleDeviceStateRW leftCurrState;
+            EnsureValidDeviceState(LEFT_INDEX, out leftPrevState, out leftCurrState);
 
             leftCurrState.position = InputTracking.GetLocalPosition(VRNode.LeftHand);
             leftCurrState.rotation = InputTracking.GetLocalRotation(VRNode.LeftHand);
@@ -228,6 +240,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             leftCurrState.isConnected = true;
                             m_leftJoystickName = joystickNames[i];
                             m_leftJoystickNameIndex = i;
+                            m_leftIndex = LEFT_INDEX;
                             break;
                         }
                     }
@@ -243,6 +256,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         leftCurrState.isConnected = false;
                         m_leftJoystickName = string.Empty;
                         m_leftJoystickNameIndex = -1;
+                        m_leftIndex = INVALID_DEVICE_INDEX;
                     }
                 }
             }
@@ -310,6 +324,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     leftCurrState.Reset();
                 }
             }
+
+            ProcessConnectedDeviceChanged();
+            ProcessDevicePoseChanged();
+            ProcessDeviceInputChanged();
         }
 #endif
     }

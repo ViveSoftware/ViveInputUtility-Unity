@@ -36,6 +36,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private bool m_prevXREnabled;
         private bool m_resetDevices;
         private IMGUIHandle m_guiHandle;
+        private IVRModuleDeviceState[] m_prevStates;
+        private IVRModuleDeviceStateRW[] m_currStates;
 
         public event Action onActivated;
         public event Action onDeactivated;
@@ -64,6 +66,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 m_guiHandle = VRModule.Instance.gameObject.AddComponent<IMGUIHandle>();
                 m_guiHandle.simulator = this;
+            }
+
+            m_prevStates = new IVRModuleDeviceState[SIMULATOR_MAX_DEVICE_COUNT];
+            m_currStates = new IVRModuleDeviceStateRW[SIMULATOR_MAX_DEVICE_COUNT];
+            EnsureDeviceStateLength(SIMULATOR_MAX_DEVICE_COUNT);
+            for (uint i = 0u; i < SIMULATOR_MAX_DEVICE_COUNT; ++i)
+            {
+                EnsureValidDeviceState(i, out m_prevStates[i], out m_currStates[i]);
             }
 
             if (onActivated != null)
@@ -106,7 +116,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
+        public override void BeforeRenderUpdate()
+        {
+            FlushDeviceState();
+            InternalUpdateDeviceState(m_prevStates, m_currStates);
+            ProcessConnectedDeviceChanged();
+            ProcessDevicePoseChanged();
+            ProcessDeviceInputChanged();
+        }
+
+        public void InternalUpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
         {
             if (VIUSettings.enableSimulatorKeyboardMouseControl && hasControlFocus)
             {
@@ -307,6 +326,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private bool m_resetAllKeyPressed;
         private bool m_escapeKeyPressed;
         private bool m_shiftKeyPressed;
+        private bool m_backQuotePressed;
         private bool[] m_alphaKeyDownState = new bool[10];
 
         private void UpdateKeyDown()
@@ -316,6 +336,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_resetAllKeyPressed = Input.GetKeyDown(KeyCode.F3);
             m_escapeKeyPressed = Input.GetKeyDown(KeyCode.Escape);
             m_shiftKeyPressed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            m_backQuotePressed = Input.GetKey(KeyCode.BackQuote);
             m_alphaKeyDownState[0] = Input.GetKeyDown(KeyCode.Alpha0) || Input.GetKeyDown(KeyCode.Keypad0);
             m_alphaKeyDownState[1] = Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1);
             m_alphaKeyDownState[2] = Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2);
@@ -333,27 +354,31 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private bool IsResetDevicesKeyDown() { return m_resetDevicesKeyPressed; }
         private bool IsEscapeKeyDown() { return m_escapeKeyPressed; }
         private bool IsShiftKeyPressed() { return m_shiftKeyPressed; }
-        private bool IsAlphaKeyDown(int num) { return m_alphaKeyDownState[num]; }
 
         private bool GetDeviceByInputDownKeyCode(IVRModuleDeviceStateRW[] deviceStates, out IVRModuleDeviceStateRW deviceState)
         {
-            var backQuotePressed = Input.GetKey(KeyCode.BackQuote);
-            if (!backQuotePressed && IsAlphaKeyDown(0)) { deviceState = deviceStates[0]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(1)) { deviceState = deviceStates[1]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(2)) { deviceState = deviceStates[2]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(3)) { deviceState = deviceStates[3]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(4)) { deviceState = deviceStates[4]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(5)) { deviceState = deviceStates[5]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(6)) { deviceState = deviceStates[6]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(7)) { deviceState = deviceStates[7]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(8)) { deviceState = deviceStates[8]; return true; }
-            if (!backQuotePressed && IsAlphaKeyDown(9)) { deviceState = deviceStates[9]; return true; }
-            if (backQuotePressed && IsAlphaKeyDown(0)) { deviceState = deviceStates[10]; return true; }
-            if (backQuotePressed && IsAlphaKeyDown(1)) { deviceState = deviceStates[11]; return true; }
-            if (backQuotePressed && IsAlphaKeyDown(2)) { deviceState = deviceStates[12]; return true; }
-            if (backQuotePressed && IsAlphaKeyDown(3)) { deviceState = deviceStates[13]; return true; }
-            if (backQuotePressed && IsAlphaKeyDown(4)) { deviceState = deviceStates[14]; return true; }
-            if (backQuotePressed && IsAlphaKeyDown(5)) { deviceState = deviceStates[15]; return true; }
+            if (!m_backQuotePressed)
+            {
+                if (m_alphaKeyDownState[0]) { deviceState = deviceStates[0]; return true; }
+                if (m_alphaKeyDownState[1]) { deviceState = deviceStates[1]; return true; }
+                if (m_alphaKeyDownState[2]) { deviceState = deviceStates[2]; return true; }
+                if (m_alphaKeyDownState[3]) { deviceState = deviceStates[3]; return true; }
+                if (m_alphaKeyDownState[4]) { deviceState = deviceStates[4]; return true; }
+                if (m_alphaKeyDownState[5]) { deviceState = deviceStates[5]; return true; }
+                if (m_alphaKeyDownState[6]) { deviceState = deviceStates[6]; return true; }
+                if (m_alphaKeyDownState[7]) { deviceState = deviceStates[7]; return true; }
+                if (m_alphaKeyDownState[8]) { deviceState = deviceStates[8]; return true; }
+                if (m_alphaKeyDownState[9]) { deviceState = deviceStates[9]; return true; }
+            }
+            else
+            {
+                if (m_alphaKeyDownState[0]) { deviceState = deviceStates[10]; return true; }
+                if (m_alphaKeyDownState[1]) { deviceState = deviceStates[11]; return true; }
+                if (m_alphaKeyDownState[2]) { deviceState = deviceStates[12]; return true; }
+                if (m_alphaKeyDownState[3]) { deviceState = deviceStates[13]; return true; }
+                if (m_alphaKeyDownState[4]) { deviceState = deviceStates[14]; return true; }
+                if (m_alphaKeyDownState[5]) { deviceState = deviceStates[15]; return true; }
+            }
 
             deviceState = null;
             return false;

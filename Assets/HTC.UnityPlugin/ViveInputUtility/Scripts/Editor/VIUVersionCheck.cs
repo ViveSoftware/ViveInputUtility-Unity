@@ -5,6 +5,7 @@ using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 #if UNITY_5_4_OR_NEWER
@@ -13,6 +14,10 @@ using UnityEditor.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+using Valve.VR;
+using HTC.UnityPlugin.Vive.SteamVRExtension;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -114,6 +119,108 @@ namespace HTC.UnityPlugin.Vive
                 VIUProjectSettings.RemoveIgnoreKey(ignoreKey);
             }
         }
+
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+        private class RecommendedSteamVRInputFileSettings : RecommendedSetting<bool>
+        {
+            private readonly string m_mainDirPath;
+            private readonly string m_partialDirPath;
+            private readonly string m_partialFileName = "actions.json";
+            private DateTime m_mainFileVersion;
+            private DateTime m_partialFileVersion;
+            private bool m_lastCheckMergedResult;
+
+            private string mainFileName { get { return SteamVR_Settings.instance.actionsFilePath; } }
+
+            private string exampleDirPath
+            {
+                get
+                {
+                    var monoScripts = MonoImporter.GetAllRuntimeMonoScripts();
+                    var monoScript = monoScripts.FirstOrDefault(script => script.GetClass() == typeof(SteamVR_Input));
+                    return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(AssetDatabase.GetAssetPath(monoScript)), SteamVR_CopyExampleInputFiles.exampleJSONFolderName));
+                }
+            }
+
+            public RecommendedSteamVRInputFileSettings()
+            {
+                m_mainDirPath = Path.GetFullPath(Application.dataPath + "/../");
+                m_partialDirPath = VIUProjectSettings.partialActionDirPath;
+                m_partialFileName = VIUProjectSettings.partialActionFileName;
+
+                settingTitle = "Apply VIU Action Set for SteamVR Input";
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportOpenVR;
+                currentValueFunc = IsMerged;
+                setValueFunc = Merge;
+                recommendedValue = true;
+            }
+
+            private bool IsMerged()
+            {
+                VIUSteamVRActionFile mainFile;
+                VIUSteamVRActionFile partialFile;
+
+                if (!VIUSteamVRActionFile.TryLoad(m_mainDirPath, mainFileName, out mainFile)) { return false; }
+                if (!VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return true; }
+
+                if (m_mainFileVersion != mainFile.lastWriteTime || m_partialFileVersion != partialFile.lastWriteTime)
+                {
+                    m_mainFileVersion = mainFile.lastWriteTime;
+                    m_partialFileVersion = partialFile.lastWriteTime;
+                    m_lastCheckMergedResult = mainFile.IsMerged(partialFile);
+                }
+
+                return m_lastCheckMergedResult;
+            }
+
+            private void Merge(bool value)
+            {
+                if (!value) { return; }
+
+                VIUSteamVRActionFile mainFile;
+                VIUSteamVRActionFile exampleFile;
+                VIUSteamVRActionFile partialFile;
+
+                if (SteamVR_Input.actionFile != null)
+                {
+                    GetWindow<SteamVR_Input_EditorWindow>(false, "SteamVR Input", true).Close();
+                }
+
+                if (!VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return; }
+
+                VIUSteamVRActionFile.TryLoad(m_mainDirPath, mainFileName, out mainFile);
+                VIUSteamVRActionFile.TryLoad(exampleDirPath, mainFileName, out exampleFile);
+
+                if (exampleFile != null && (mainFile == null || !mainFile.IsMerged(exampleFile)))
+                {
+                    if (EditorUtility.DisplayDialog("Import SteamVR Example Inputs", "Would you also like to import SteamVR Example Input File? Click yes if you want SteamVR plugin example scene to work.", "Yes", "No"))
+                    {
+                        if (mainFile == null)
+                        {
+                            mainFile = exampleFile;
+                        }
+                        else
+                        {
+                            mainFile.Merge(exampleFile);
+                        }
+
+                        EditorPrefs.SetBool(SteamVR_CopyExampleInputFiles.steamVRInputExampleJSONCopiedKey, true);
+                    }
+                }
+
+                mainFile.Merge(partialFile);
+                mainFile.Save(m_mainDirPath);
+
+                m_mainFileVersion = m_partialFileVersion = default(DateTime);
+
+                EditorApplication.delayCall += () =>
+                {
+                    GetWindow<SteamVR_Input_EditorWindow>(false, "SteamVR Input", true);
+                    SteamVR_Input_Generator.BeginGeneration();
+                };
+            }
+        }
+#endif
 
         public const string lastestVersionUrl = "https://api.github.com/repos/ViveSoftware/ViveInputUtility-Unity/releases/latest";
         public const string pluginUrl = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
@@ -791,6 +898,10 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 #endif
+
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+            s_settings.Add(new RecommendedSteamVRInputFileSettings());
+#endif
         }
 
         private static void WrightVersionCheckLog(string msg)
@@ -1000,6 +1111,13 @@ namespace HTC.UnityPlugin.Vive
 
         public void OnGUI()
         {
+#if UNITY_2017_1_OR_NEWER
+            if (EditorApplication.isCompiling)
+            {
+                EditorGUILayout.LabelField("Compiling...");
+                return;
+            }
+#endif
             if (viuLogo == null)
             {
                 var currentDir = Path.GetDirectoryName(AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(this)));

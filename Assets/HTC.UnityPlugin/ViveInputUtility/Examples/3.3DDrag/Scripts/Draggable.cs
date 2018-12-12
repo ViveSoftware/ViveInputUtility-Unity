@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
+using GrabberPool = HTC.UnityPlugin.Utility.ObjectPool<Draggable.Grabber>;
 
 // demonstrate of dragging things useing built in EventSystem handlers
 public class Draggable : GrabbableBase<Draggable.Grabber>
@@ -18,13 +19,13 @@ public class Draggable : GrabbableBase<Draggable.Grabber>
 
     public class Grabber : IGrabber
     {
-        private static ObjectPool<Grabber> m_pool;
+        private static GrabberPool m_pool;
 
         public static Grabber Get(PointerEventData eventData)
         {
             if (m_pool == null)
             {
-                m_pool = new ObjectPool<Grabber>(() => new Grabber());
+                m_pool = new GrabberPool(() => new Grabber());
             }
 
             var grabber = m_pool.Get();

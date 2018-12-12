@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using System;
 using System.Text.RegularExpressions;
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -9,6 +10,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     {
         public abstract class ModuleBase
         {
+            [Obsolete("Module should set their own MAX_DEVICE_COUNT, use EnsureDeviceStateLength to set, VRModule.GetDeviceStateCount() to get")]
             protected const uint MAX_DEVICE_COUNT = VRModule.MAX_DEVICE_COUNT;
             protected const uint INVALID_DEVICE_INDEX = VRModule.INVALID_DEVICE_INDEX;
 
@@ -16,6 +18,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knuckles).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_wmrRgx = new Regex("^.*(asus|acer|dell|lenovo|hp|samsung)", RegexOptions.IgnoreCase);
             private static readonly Regex s_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
 
@@ -30,14 +33,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public virtual uint GetRightControllerDeviceIndex() { return INVALID_DEVICE_INDEX; }
             public virtual void UpdateTrackingSpaceType() { }
             public virtual void Update() { }
+            public virtual void FixedUpdate() { }
+            public virtual void LateUpdate() { }
+            public virtual void BeforeRenderUpdate() { }
 
-            public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
-            {
-                for (uint i = 0; i < MAX_DEVICE_COUNT; ++i)
-                {
-                    if (prevState[i].isConnected) { currState[i].Reset(); }
-                }
-            }
+            [Obsolete]
+            public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState) { }
 
             public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { }
 
@@ -49,6 +50,46 @@ namespace HTC.UnityPlugin.VRModuleManagement
             protected void InvokeControllerRoleChangedEvent()
             {
                 VRModule.InvokeControllerRoleChangedEvent();
+            }
+
+            protected uint GetDeviceStateLength()
+            {
+                return Instance.GetDeviceStateLength();
+            }
+
+            protected void EnsureDeviceStateLength(uint capacity)
+            {
+                Instance.EnsureDeviceStateLength(capacity);
+            }
+
+            protected bool TryGetValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                return Instance.TryGetValidDeviceState(index, out prevState, out currState);
+            }
+
+            protected void EnsureValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                Instance.EnsureValidDeviceState(index, out prevState, out currState);
+            }
+
+            protected void FlushDeviceState()
+            {
+                Instance.ModuleFlushDeviceState();
+            }
+
+            protected void ProcessConnectedDeviceChanged()
+            {
+                Instance.ModuleConnectedDeviceChanged();
+            }
+
+            protected void ProcessDevicePoseChanged()
+            {
+                InvokeNewPosesEvent();
+            }
+
+            protected void ProcessDeviceInputChanged()
+            {
+                InvokeNewInputEvent();
             }
 
             protected static void SetupKnownDeviceModel(IVRModuleDeviceStateRW deviceState)
@@ -93,6 +134,27 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         case VRModuleDeviceClass.TrackingReference:
                             deviceState.deviceModel = VRModuleDeviceModel.OculusSensor;
                             return;
+                    }
+                }
+                else if (s_wmrRgx.IsMatch(deviceState.modelNumber) || s_wmrRgx.IsMatch(deviceState.renderModelName))
+                {
+                    switch (deviceState.deviceClass)
+                    {
+                        case VRModuleDeviceClass.HMD:
+                            deviceState.deviceModel = VRModuleDeviceModel.WMRHMD;
+                            return;
+                        case VRModuleDeviceClass.Controller:
+                            if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                            {
+                                deviceState.deviceModel = VRModuleDeviceModel.WMRControllerLeft;
+                                return;
+                            }
+                            else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                            {
+                                deviceState.deviceModel = VRModuleDeviceModel.WMRControllerRight;
+                                return;
+                            }
+                            break;
                     }
                 }
                 else if (deviceState.deviceClass == VRModuleDeviceClass.Controller && s_knucklesRgx.IsMatch(deviceState.modelNumber))

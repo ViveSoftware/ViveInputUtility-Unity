@@ -267,8 +267,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_STEAMVR",
-                reqAnyTypeNames = new string[] { "SteamVR", "Valve.VR.SteamVR" },
-                reqFileNames = new string[] { "SteamVR.cs" },
+                reqTypeNames = new string[] { "Valve.VR.OpenVR" },
+                reqFileNames = new string[] { "openvr_api.cs" },
             });
 
             s_symbolReqList.Add(new SymbolRequirement()
@@ -348,7 +348,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 symbol = "VIU_STEAMVR_2_0_0_OR_NEWER",
                 reqTypeNames = new string[] { "Valve.VR.SteamVR" },
-                reqFileNames = new string[] { "SteamVR.cs" },
+            });
+
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
+                symbol = "VIU_STEAMVR_2_1_0_OR_NEWER",
+                reqTypeNames = new string[] { "Valve.VR.SteamVR_ActionSet_Manager" },
             });
 
             s_symbolReqList.Add(new SymbolRequirement()
@@ -363,6 +368,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 symbol = "VIU_GOOGLEVR",
                 reqTypeNames = new string[] { "GvrUnitySdkVersion" },
                 reqFileNames = new string[] { "GvrUnitySdkVersion.cs" },
+            });
+
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
+                symbol = "VIU_GOOGLEVR_1_150_0_NEWER",
+                reqTypeNames = new string[] { "GvrControllerInputDevice" },
+                reqFileNames = new string[] { "GvrControllerInputDevice.cs" },
             });
 
             s_symbolReqList.Add(new SymbolRequirement()
@@ -508,6 +520,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             foreach (var symbolReq in s_symbolReqList)
             {
+                if (symbolReq == null || symbolReq.reqFileNames == null) { continue; }
+
                 foreach (var reqFileName in symbolReq.reqFileNames)
                 {
                     if (isDir)

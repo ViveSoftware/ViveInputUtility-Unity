@@ -174,7 +174,7 @@ namespace HTC.UnityPlugin.Vive
                 else
 #endif
                 {
-                    for (uint deviceIndex = 1u; deviceIndex < VRModule.MAX_DEVICE_COUNT; ++deviceIndex)
+                    for (uint deviceIndex = 1u, imax = VRModule.GetDeviceStateCount(); deviceIndex < imax; ++deviceIndex)
                     {
                         if (IsController(deviceIndex) && deviceIndex != rightIndex && deviceIndex != leftIndex && !RoleMap.IsDeviceConnectedAndBound(deviceIndex))
                         {

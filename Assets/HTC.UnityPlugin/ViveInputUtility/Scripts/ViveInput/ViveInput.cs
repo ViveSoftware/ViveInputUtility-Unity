@@ -50,6 +50,11 @@ namespace HTC.UnityPlugin.Vive
         AKey = 12, // Oculus Touch only, RightHandA or LeftHandX pressed
         AKeyTouch = 13, // Oculus Touch only, RightHandA or LeftHandX touched
 
+        BKey = Menu,
+        BkeyTouch = MenuTouch,
+        Bumper = Axis3,
+        BumperTouch = Axis3Touch,
+
         // button alias
         OuterFaceButton = Menu, // 7
         OuterFaceButtonTouch = MenuTouch, // 9
@@ -75,10 +80,20 @@ namespace HTC.UnityPlugin.Vive
         Axis3Touch = 16,
         [HideInInspector]
         Axis4Touch = 17,
-
+        
         // virtual buttons
         HairTrigger = 5, // Pressed if trigger button is pressing, unpressed if trigger button is releasing
         FullTrigger = 6, // on:1.00 off:1.00
+
+        DPadLeft = 18,
+        DPadUp = 19,
+        DPadRight = 20,
+        DPadDown = 21,
+
+        DPadLeftTouch = 22,
+        DPadUpTouch = 23,
+        DPadRightTouch = 24,
+        DPadDownTouch = 25,
     }
 
     public enum ControllerAxis
@@ -92,6 +107,9 @@ namespace HTC.UnityPlugin.Vive
         MiddleCurl, // Knuckles only
         RingCurl, // Knuckles only
         PinkyCurl, // Knuckles only
+
+        JoystickX,
+        JoystickY,
     }
 
     public enum ScrollType
