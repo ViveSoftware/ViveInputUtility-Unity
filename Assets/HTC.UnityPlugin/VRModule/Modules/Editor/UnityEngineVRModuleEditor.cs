@@ -18,11 +18,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             try
             {
                 var axisObj = new Axis();
-                for (int i = 0; i < UnityEngineVRModule.ButtonAxisID.Count; ++i)
+                for (int i = 0, imax = UnityEngineVRModule.GetUnityAxisCount(); i < imax; ++i)
                 {
-                    axisObj.name = UnityEngineVRModule.ButtonAxisName.Index(i);
-                    axisObj.axis = UnityEngineVRModule.ButtonAxisID.Index(i);
-                    axisObj.invert = axisObj.axis == UnityEngineVRModule.ButtonAxisID.LPadY || axisObj.axis == UnityEngineVRModule.ButtonAxisID.RPadY;
+                    axisObj.name = UnityEngineVRModule.GetUnityAxisNameByIndex(i);
+                    axisObj.axis = UnityEngineVRModule.GetUnityAxisIdByIndex(i);
                     BindAxis(axisObj);
                 }
             }
