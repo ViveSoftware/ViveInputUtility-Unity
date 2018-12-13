@@ -126,14 +126,14 @@ namespace HTC.UnityPlugin.Vive
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4, currState.GetButtonPress(VRModuleRawButton.Axis4));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4Touch, currState.GetButtonTouch(VRModuleRawButton.Axis4));
 
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRightTouch, currState.GetButtonPress(VRModuleRawButton.DPadRight));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpTouch, currState.GetButtonPress(VRModuleRawButton.DPadUp));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeftTouch, currState.GetButtonPress(VRModuleRawButton.DPadLeft));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDownTouch, currState.GetButtonPress(VRModuleRawButton.DPadDown));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRight, currState.GetButtonTouch(VRModuleRawButton.DPadRight));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUp, currState.GetButtonTouch(VRModuleRawButton.DPadUp));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeft, currState.GetButtonTouch(VRModuleRawButton.DPadLeft));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDown, currState.GetButtonTouch(VRModuleRawButton.DPadDown));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRightTouch, currState.GetButtonTouch(VRModuleRawButton.DPadRight));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpTouch, currState.GetButtonTouch(VRModuleRawButton.DPadUp));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeftTouch, currState.GetButtonTouch(VRModuleRawButton.DPadLeft));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDownTouch, currState.GetButtonTouch(VRModuleRawButton.DPadDown));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRight, currState.GetButtonPress(VRModuleRawButton.DPadRight));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUp, currState.GetButtonPress(VRModuleRawButton.DPadUp));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeft, currState.GetButtonPress(VRModuleRawButton.DPadLeft));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDown, currState.GetButtonPress(VRModuleRawButton.DPadDown));
 
                 // update axis values
                 currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);

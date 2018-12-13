@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using System;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -18,7 +19,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knuckles).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_wmrRgx = new Regex("^.*(asus|acer|dell|lenovo|hp|samsung)", RegexOptions.IgnoreCase);
+            private static readonly Regex s_wmrRgx = new Regex("^.*(mr|wmr|windowsmr|asus|acer|dell|lenovo|hp|samsung)", RegexOptions.IgnoreCase);
             private static readonly Regex s_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
 
