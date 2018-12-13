@@ -205,7 +205,7 @@
   "default_bindings": [
     {
       "controller_type": "holographic_hmd",
-      "binding_url": "binding_holographic_hmd.json"
+      "binding_url": "bindings_holographic_hmd.json"
     },
     {
       "controller_type": "holographic_controller",
