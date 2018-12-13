@@ -83,7 +83,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static string GetUnityAxisNameByIndex(int index) { return s_axisNames[index]; }
 
-        public static int GetUnityAxisIdByIndex(int index) { return index + 1; }
+        public static int GetUnityAxisIdByIndex(int index) { return index; }
 #endif
         public override bool ShouldActiveModule() { return VIUSettings.activateUnityNativeVRModule && XRSettings.enabled; }
 
@@ -343,16 +343,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
             currState.SetButtonPress(VRModuleRawButton.A, stickPress);
             currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
             currState.SetButtonPress(VRModuleRawButton.Trigger, triggerPress);
-            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
+            currState.SetButtonPress(VRModuleRawButton.Grip, gripPress);
 
             currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouch);
             currState.SetButtonTouch(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.25f, 0.20f));
 
             currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padX);
-            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, padY);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -padY);
             currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
             currState.SetAxisValue(VRModuleRawAxis.JoystickX, stickX);
-            currState.SetAxisValue(VRModuleRawAxis.JoystickY, stickY);
+            currState.SetAxisValue(VRModuleRawAxis.JoystickY, -stickY);
         }
 
         private static void Update_R_MicrosoftMR(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
@@ -375,16 +376,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
             currState.SetButtonPress(VRModuleRawButton.A, stickPress);
             currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
             currState.SetButtonPress(VRModuleRawButton.Trigger, triggerPress);
-            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
+            currState.SetButtonPress(VRModuleRawButton.Grip, gripPress);
 
             currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouch);
             currState.SetButtonTouch(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.25f, 0.20f));
 
             currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padX);
-            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, padY);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -padY);
             currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
             currState.SetAxisValue(VRModuleRawAxis.JoystickX, stickX);
-            currState.SetAxisValue(VRModuleRawAxis.JoystickY, stickY);
+            currState.SetAxisValue(VRModuleRawAxis.JoystickY, -stickY);
         }
     }
 }
