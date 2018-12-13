@@ -85,15 +85,25 @@ namespace HTC.UnityPlugin.Vive
         HairTrigger = 5, // Pressed if trigger button is pressing, unpressed if trigger button is releasing
         FullTrigger = 6, // on:1.00 off:1.00
 
-        DPadLeft = 18,
-        DPadUp = 19,
-        DPadRight = 20,
-        DPadDown = 21,
+        DPadLeft = 15,
+        DPadUp = 17,
+        DPadRight = 18,
+        DPadDown = 19,
 
-        DPadLeftTouch = 22,
-        DPadUpTouch = 23,
-        DPadRightTouch = 24,
-        DPadDownTouch = 25,
+        DPadLeftTouch = 20,
+        DPadUpTouch = 21,
+        DPadRightTouch = 22,
+        DPadDownTouch = 23,
+
+        DPadUpperLeft = 24,
+        DPadUpperRight = 25,
+        DPadLowerRight = 26,
+        DPadLowerLeft = 27,
+
+        DPadUpperLeftTouch = 28,
+        DPadUpperRightTouch = 29,
+        DPadLowerRightTouch = 30,
+        DPadLowerLeftTouch = 31,
     }
 
     public enum ControllerAxis
