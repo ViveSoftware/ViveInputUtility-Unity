@@ -220,8 +220,8 @@
       "binding_url": "bindings_oculus_touch.json"
     },
     {
-      "controller_type": "knuckles",
-      "binding_url": "bindings_knuckles.json"
+      "controller_type": "knuckles_ev1",
+      "binding_url": "bindings_knuckles_ev1.json"
     },
     {
       "controller_type": "vive",
