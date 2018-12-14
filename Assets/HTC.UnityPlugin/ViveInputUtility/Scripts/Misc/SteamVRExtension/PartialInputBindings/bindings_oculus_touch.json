@@ -1,5 +1,5 @@
 {
-  "controller_type" : "oculus_touch",
+  "controller_type": "oculus_touch",
   "bindings": {
     "/actions/htc_viu": {
       "sources": [
@@ -16,6 +16,11 @@
             }
           },
           "mode": "trigger",
+          "parameters": {
+            "click_activate_threshold": "0.55",
+            "click_deactivate_threshold": "0.45",
+            "haptic_amplitude": "0.2"
+          },
           "path": "/user/hand/left/input/trigger"
         },
         {
@@ -79,6 +84,11 @@
             }
           },
           "mode": "trigger",
+          "parameters": {
+            "click_activate_threshold": "0.55",
+            "click_deactivate_threshold": "0.45",
+            "haptic_amplitude": "0.2"
+          },
           "path": "/user/hand/right/input/trigger"
         },
         {
@@ -146,24 +156,6 @@
           },
           "mode": "button",
           "path": "/user/hand/right/input/b"
-        },
-        {
-          "inputs": {
-            "position": {
-              "output": "/actions/htc_viu/in/viu_axis_2xy"
-            }
-          },
-          "mode": "joystick",
-          "path": "/user/hand/left/input/joystick"
-        },
-        {
-          "inputs": {
-            "position": {
-              "output": "/actions/htc_viu/in/viu_axis_2xy"
-            }
-          },
-          "mode": "joystick",
-          "path": "/user/hand/right/input/joystick"
         }
       ]
     }
