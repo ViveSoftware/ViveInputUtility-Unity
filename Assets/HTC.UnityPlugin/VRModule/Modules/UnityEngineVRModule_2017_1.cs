@@ -198,6 +198,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void BeforeRenderUpdate()
         {
+            var roleChanged = false;
             var rightIndex = INVALID_DEVICE_INDEX;
             var leftIndex = INVALID_DEVICE_INDEX;
 
@@ -222,6 +223,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 IVRModuleDeviceState prevState;
                 IVRModuleDeviceStateRW currState;
                 EnsureValidDeviceState(deviceIndex, out prevState, out currState);
+
+                if (m_rightIndex != rightIndex || m_leftIndex != leftIndex)
+                {
+                    m_rightIndex = rightIndex;
+                    m_leftIndex = leftIndex;
+                    roleChanged = true;
+                }
 
                 if (!prevState.isConnected)
                 {
@@ -282,10 +290,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             ProcessConnectedDeviceChanged();
 
-            if (m_rightIndex != rightIndex || m_leftIndex != leftIndex)
+            if (roleChanged)
             {
-                m_rightIndex = rightIndex;
-                m_leftIndex = leftIndex;
                 InvokeControllerRoleChangedEvent();
             }
 

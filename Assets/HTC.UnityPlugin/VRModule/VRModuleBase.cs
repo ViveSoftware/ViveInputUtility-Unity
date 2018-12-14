@@ -19,9 +19,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knuckles).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_wmrRgx = new Regex("^.*(mr|wmr|windowsmr|asus|acer|dell|lenovo|hp|samsung)", RegexOptions.IgnoreCase);
-            private static readonly Regex s_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_wmrRgx = new Regex("^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$)", RegexOptions.IgnoreCase);
+            private static readonly Regex s_leftRgx = new Regex("^.*(left|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_rightRgx = new Regex("^.*(right|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
 
             public virtual bool ShouldActiveModule() { return false; }
 
@@ -145,12 +145,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.WMRHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                            if (s_leftRgx.IsMatch(deviceState.modelNumber) && VRModule.GetLeftControllerDeviceIndex() == deviceState.deviceIndex)
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.WMRControllerLeft;
                                 return;
                             }
-                            else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                            else if (s_rightRgx.IsMatch(deviceState.modelNumber) && VRModule.GetRightControllerDeviceIndex() == deviceState.deviceIndex)
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.WMRControllerRight;
                                 return;
