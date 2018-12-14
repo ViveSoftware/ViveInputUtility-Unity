@@ -21,7 +21,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 for (int i = 0, imax = UnityEngineVRModule.GetUnityAxisCount(); i < imax; ++i)
                 {
                     axisObj.name = UnityEngineVRModule.GetUnityAxisNameByIndex(i);
-                    axisObj.axis = UnityEngineVRModule.GetUnityAxisIdByIndex(i);
+                    axisObj.axis = UnityEngineVRModule.GetUnityAxisIdByIndex(i) - 1;
                     BindAxis(axisObj);
                 }
             }

@@ -76,6 +76,9 @@ namespace HTC.UnityPlugin.Vive
             private Vector2 padDownAxis;
             private Vector2 padTouchDownAxis;
 
+            private bool hasTouchpad;
+            private bool hasJoystick;
+
             private const float hairDelta = 0.1f; // amount trigger must be pulled or released to change state
             private float hairTriggerLimit;
 
@@ -130,21 +133,32 @@ namespace HTC.UnityPlugin.Vive
                 currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
                 currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
                 currAxisValue[(int)ControllerAxis.Trigger] = currState.GetAxisValue(VRModuleRawAxis.Trigger);
+                currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.JoystickX);
+                currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.JoystickY);
                 currAxisValue[(int)ControllerAxis.CapSenseGrip] = currState.GetAxisValue(VRModuleRawAxis.CapSenseGrip);
                 currAxisValue[(int)ControllerAxis.IndexCurl] = currState.GetAxisValue(VRModuleRawAxis.IndexCurl);
                 currAxisValue[(int)ControllerAxis.MiddleCurl] = currState.GetAxisValue(VRModuleRawAxis.MiddleCurl);
                 currAxisValue[(int)ControllerAxis.RingCurl] = currState.GetAxisValue(VRModuleRawAxis.RingCurl);
                 currAxisValue[(int)ControllerAxis.PinkyCurl] = currState.GetAxisValue(VRModuleRawAxis.PinkyCurl);
 
-                if (trackedDeviceModel.Equals(VRModuleDeviceModel.WMRControllerLeft) || trackedDeviceModel.Equals(VRModuleDeviceModel.WMRControllerRight))
+                hasTouchpad = currAxisValue[(int)ControllerAxis.PadX] != 0f || currAxisValue[(int)ControllerAxis.PadY] != 0f;
+                hasJoystick = currAxisValue[(int)ControllerAxis.JoystickX] != 0f || currAxisValue[(int)ControllerAxis.JoystickY] != 0f;
+
+                if (hasTouchpad)
                 {
-                    currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.JoystickX);
-                    currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.JoystickY);
+                    if (!hasJoystick)
+                    {
+                        currAxisValue[(int)ControllerAxis.JoystickX] = currAxisValue[(int)ControllerAxis.PadX];
+                        currAxisValue[(int)ControllerAxis.JoystickY] = currAxisValue[(int)ControllerAxis.PadY];
+                    }
                 }
                 else
                 {
-                    currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
-                    currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                    if (hasJoystick)
+                    {
+                        currAxisValue[(int)ControllerAxis.PadX] = currAxisValue[(int)ControllerAxis.JoystickX];
+                        currAxisValue[(int)ControllerAxis.PadY] = currAxisValue[(int)ControllerAxis.JoystickY];
+                    }
                 }
 
                 // update d-pad
@@ -154,7 +168,7 @@ namespace HTC.UnityPlugin.Vive
                 var up = Vector2.Angle(Vector2.up, axis) < 45f;
                 var left = Vector2.Angle(Vector2.left, axis) < 45f;
                 var down = Vector2.Angle(Vector2.down, axis) < 45f;
-                
+
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRight, GetPress(ControllerButton.Pad) && right);
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUp, GetPress(ControllerButton.Pad) && up);
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeft, GetPress(ControllerButton.Pad) && left);
@@ -394,19 +408,17 @@ namespace HTC.UnityPlugin.Vive
                 ScrollType mode;
                 if (scrollType == ScrollType.Auto)
                 {
-                    switch (trackedDeviceModel)
+                    if (hasTouchpad)
                     {
-                        case VRModuleDeviceModel.KnucklesLeft:
-                        case VRModuleDeviceModel.KnucklesRight:
-                        case VRModuleDeviceModel.ViveController:
-                        case VRModuleDeviceModel.DaydreamController:
-                        case VRModuleDeviceModel.ViveFocusFinch:
-                            mode = ScrollType.Trackpad; break;
-                        case VRModuleDeviceModel.OculusTouchLeft:
-                        case VRModuleDeviceModel.OculusTouchRight:
-                            mode = ScrollType.Thumbstick; break;
-                        default:
-                            mode = ScrollType.None; break;
+                        mode = ScrollType.Trackpad;
+                    }
+                    else if (hasJoystick)
+                    {
+                        mode = ScrollType.Thumbstick;
+                    }
+                    else
+                    {
+                        mode = ScrollType.None;
                     }
                 }
                 else
