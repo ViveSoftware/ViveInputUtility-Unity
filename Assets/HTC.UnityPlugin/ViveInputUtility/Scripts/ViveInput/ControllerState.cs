@@ -443,7 +443,7 @@ namespace HTC.UnityPlugin.Vive
                             var currX = GetAxis(xAxis, false);
                             var currY = GetAxis(yAxis, false);
 
-                            scrollDelta = new Vector2(currX, currY) * 5f;
+                            scrollDelta = new Vector2(-currX, -currY) * 5f;
 
                             break;
                         }
