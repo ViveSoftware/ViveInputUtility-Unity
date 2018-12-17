@@ -8,7 +8,7 @@ using UnityEngine;
 using Valve.VR;
 #endif
 
-namespace HTC.UnityPlugin.Vive
+namespace HTC.UnityPlugin.Vive.SteamVRExtension
 {
     // Only works in playing mode
     public class VIUSteamVRRenderModel : MonoBehaviour

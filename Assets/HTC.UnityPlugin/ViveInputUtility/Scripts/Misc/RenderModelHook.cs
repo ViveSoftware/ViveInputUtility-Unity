@@ -1,12 +1,10 @@
 ﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.Vive.SteamVRExtension;
 using HTC.UnityPlugin.VRModuleManagement;
 using System.Collections.Generic;
 using UnityEngine;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
-using Valve.VR;
-#endif
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -191,7 +189,6 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-#if VIU_STEAMVR
         private VIUSteamVRRenderModel m_renderModel;
 
         private void UpdateSteamVRModel()
@@ -242,7 +239,6 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
         }
-#endif
 
 #if VIU_WAVEVR
         private bool m_waveVRModelLoaded;

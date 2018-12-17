@@ -7,7 +7,7 @@ using UnityEngine;
 using Valve.VR;
 #endif
 
-namespace HTC.UnityPlugin.Vive
+namespace HTC.UnityPlugin.Vive.SteamVRExtension
 {
     [CustomEditor(typeof(VIUSteamVRRenderModel)), CanEditMultipleObjects]
     public class VIUSteamVRRenderModelEditr : Editor
