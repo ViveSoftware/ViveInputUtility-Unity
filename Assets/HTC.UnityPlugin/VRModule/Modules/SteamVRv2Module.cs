@@ -129,7 +129,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 EVRInputError error;
                 if (!s_moduleInstance.TryGetDeviceIndexFromOrigin(vrInput, CurrentOrigin, out originData, out error))
                 {
-                    Debug.Log("GetOriginTrackedDeviceInfo failed! error=" + error + " action=" + pressActions.CurrentPath);
+                    Debug.LogError("GetOriginTrackedDeviceInfo failed! error=" + error + " action=" + pressActions.CurrentPath);
                     prevState = null;
                     currState = null;
                     originDevicePath = 0ul;
