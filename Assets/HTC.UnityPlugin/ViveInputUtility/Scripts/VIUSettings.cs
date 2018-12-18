@@ -53,6 +53,8 @@ namespace HTC.UnityPlugin.Vive
         public const bool ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE = true;
         public const bool ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE = true;
 
+        public const float VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE = 0.15f;
+
         private static VIUSettings s_instance = null;
 
         [SerializeField]
@@ -126,6 +128,9 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private bool m_activateOculusVRModule = ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE;
 
+        [SerializeField]
+        private float m_virtualDPadDeadZone = VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE;
+
         public static bool autoCheckNewVIUVersion { get { return Instance == null ? AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE : s_instance.m_autoCheckNewVIUVersion; } set { if (Instance != null) { Instance.m_autoCheckNewVIUVersion = value; } } }
 
         public static bool autoLoadBindingConfigOnStart { get { return Instance == null ? AUTO_LOAD_BINDING_CONFIG_ON_START_DEFAULT_VALUE : s_instance.m_autoLoadBindingConfigOnStart; } set { if (Instance != null) { Instance.m_autoLoadBindingConfigOnStart = value; } } }
@@ -164,6 +169,8 @@ namespace HTC.UnityPlugin.Vive
         public static bool activateUnityNativeVRModule { get { return Instance == null ? ACTIVATE_UNITY_NATIVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateUnityNativeVRModule; } set { if (Instance != null) { Instance.m_activateUnityNativeVRModule = value; } } }
         public static bool activateSteamVRModule { get { return Instance == null ? ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateSteamVRModule; } set { if (Instance != null) { Instance.m_activateSteamVRModule = value; } } }
         public static bool activateOculusVRModule { get { return Instance == null ? ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateOculusVRModule; } set { if (Instance != null) { Instance.m_activateOculusVRModule = value; } } }
+
+        public static float virtualDPadDeadZone { get { return Instance == null ? VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE : s_instance.m_virtualDPadDeadZone; } set { if (Instance != null) { Instance.m_virtualDPadDeadZone = value; } } }
 
         public static VIUSettings Instance
         {
