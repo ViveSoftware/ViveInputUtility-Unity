@@ -1237,6 +1237,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 showNewVersion = false;
                 VIUProjectSettings.AddIgnoreKey(ignoreThisVersionKey);
+                VIUProjectSettings.Save();
             }
 
             if (windowInstance == this)
