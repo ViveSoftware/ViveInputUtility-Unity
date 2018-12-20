@@ -17,9 +17,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static readonly Regex m_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
 
-        private readonly uint m_headIndex = 0u;
-        private readonly uint m_leftIndex = 1u;
-        private readonly uint m_rightIndex = 2u;
+        private const uint HEAD_INDEX = 0u;
+        private const uint LEFT_INDEX = 1u;
+        private const uint RIGHT_INDEX = 2u;
+
+        private uint m_leftIndex = INVALID_DEVICE_INDEX;
+        private uint m_rightIndex = INVALID_DEVICE_INDEX;
 
         private string m_leftJoystickName = string.Empty;
         private string m_rightJoystickName = string.Empty;
@@ -33,6 +36,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             m_prevTrackingSpace = VRDevice.GetTrackingSpaceType();
             UpdateTrackingSpaceType();
+
+            EnsureDeviceStateLength(3);
         }
 
         public override void OnDeactivated()
@@ -58,13 +63,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override uint GetRightControllerDeviceIndex() { return m_rightIndex; }
 
-        public override void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState)
+        public override void BeforeRenderUpdate()
         {
             var joystickNames = default(string[]);
 
+            FlushDeviceState();
+
             // head
-            var headCurrState = currState[m_headIndex];
-            var headPrevState = prevState[m_headIndex];
+            IVRModuleDeviceState headPrevState;
+            IVRModuleDeviceStateRW headCurrState;
+            EnsureValidDeviceState(HEAD_INDEX, out headPrevState, out headCurrState);
 
             headCurrState.isConnected = VRDevice.isPresent;
 
@@ -105,8 +113,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // right
-            var rightCurrState = currState[m_rightIndex];
-            var rightPrevState = prevState[m_rightIndex];
+            IVRModuleDeviceState rightPrevState;
+            IVRModuleDeviceStateRW rightCurrState;
+            EnsureValidDeviceState(RIGHT_INDEX, out rightPrevState, out rightCurrState);
 
             rightCurrState.position = InputTracking.GetLocalPosition(VRNode.RightHand);
             rightCurrState.rotation = InputTracking.GetLocalRotation(VRNode.RightHand);
@@ -125,6 +134,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             rightCurrState.isConnected = true;
                             m_rightJoystickName = joystickNames[i];
                             m_rightJoystickNameIndex = i;
+                            m_rightIndex = RIGHT_INDEX;
                             break;
                         }
                     }
@@ -140,6 +150,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         rightCurrState.isConnected = false;
                         m_rightJoystickName = string.Empty;
                         m_rightJoystickNameIndex = -1;
+                        m_rightIndex = INVALID_DEVICE_INDEX;
                     }
                 }
             }
@@ -168,37 +179,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     rightCurrState.renderModelName = VRDevice.model + " " + rightCurrState.deviceModel.ToString();
                 }
 
-                var rightMenuPress = Input.GetKey(ButtonKeyCode.RMenuPress);
-                var rightAButtonPress = Input.GetKey(ButtonKeyCode.RAKeyPress);
-                var rightPadPress = Input.GetKey(ButtonKeyCode.RPadPress);
-
-                var rightMenuTouch = Input.GetKey(ButtonKeyCode.RMenuTouch);
-                var rightAButtonTouch = Input.GetKey(ButtonKeyCode.RAKeyTouch);
-                var rightPadTouch = Input.GetKey(ButtonKeyCode.RPadTouch);
-                var rightTriggerTouch = Input.GetKey(ButtonKeyCode.RTriggerTouch);
-
-                var rightTrackpadX = Input.GetAxisRaw(ButtonAxisName.RPadX);
-                var rightTrackpadY = Input.GetAxisRaw(ButtonAxisName.RPadY);
-                var rightTrigger = Input.GetAxisRaw(ButtonAxisName.RTrigger);
-                var rightGrip = Input.GetAxisRaw(ButtonAxisName.RGrip);
-
-                rightCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, rightMenuPress);
-                rightCurrState.SetButtonPress(VRModuleRawButton.A, rightAButtonPress);
-                rightCurrState.SetButtonPress(VRModuleRawButton.Touchpad, rightPadPress);
-                rightCurrState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(rightPrevState.GetButtonPress(VRModuleRawButton.Trigger), rightTrigger, 0.55f, 0.45f));
-                rightCurrState.SetButtonPress(VRModuleRawButton.Grip, AxisToPress(rightPrevState.GetButtonPress(VRModuleRawButton.Grip), rightGrip, 0.55f, 0.45f));
-                rightCurrState.SetButtonPress(VRModuleRawButton.CapSenseGrip, AxisToPress(rightPrevState.GetButtonPress(VRModuleRawButton.CapSenseGrip), rightGrip, 0.55f, 0.45f));
-
-                rightCurrState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, rightMenuTouch);
-                rightCurrState.SetButtonTouch(VRModuleRawButton.A, rightAButtonTouch);
-                rightCurrState.SetButtonTouch(VRModuleRawButton.Touchpad, rightPadTouch);
-                rightCurrState.SetButtonTouch(VRModuleRawButton.Trigger, rightTriggerTouch);
-                rightCurrState.SetButtonTouch(VRModuleRawButton.CapSenseGrip, AxisToPress(rightPrevState.GetButtonTouch(VRModuleRawButton.CapSenseGrip), rightGrip, 0.25f, 0.20f));
-
-                rightCurrState.SetAxisValue(VRModuleRawAxis.TouchpadX, rightTrackpadX);
-                rightCurrState.SetAxisValue(VRModuleRawAxis.TouchpadY, rightTrackpadY);
-                rightCurrState.SetAxisValue(VRModuleRawAxis.Trigger, rightTrigger);
-                rightCurrState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, rightGrip);
+                UpdateRightControllerInput(rightPrevState, rightCurrState);
             }
             else
             {
@@ -209,8 +190,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // left
-            var leftCurrState = currState[m_leftIndex];
-            var leftPrevState = prevState[m_leftIndex];
+            IVRModuleDeviceState leftPrevState;
+            IVRModuleDeviceStateRW leftCurrState;
+            EnsureValidDeviceState(LEFT_INDEX, out leftPrevState, out leftCurrState);
 
             leftCurrState.position = InputTracking.GetLocalPosition(VRNode.LeftHand);
             leftCurrState.rotation = InputTracking.GetLocalRotation(VRNode.LeftHand);
@@ -228,6 +210,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             leftCurrState.isConnected = true;
                             m_leftJoystickName = joystickNames[i];
                             m_leftJoystickNameIndex = i;
+                            m_leftIndex = LEFT_INDEX;
                             break;
                         }
                     }
@@ -243,6 +226,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         leftCurrState.isConnected = false;
                         m_leftJoystickName = string.Empty;
                         m_leftJoystickNameIndex = -1;
+                        m_leftIndex = INVALID_DEVICE_INDEX;
                     }
                 }
             }
@@ -271,37 +255,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     leftCurrState.renderModelName = VRDevice.model + " " + leftCurrState.deviceModel.ToString();
                 }
 
-                var leftMenuPress = Input.GetKey(ButtonKeyCode.LMenuPress);
-                var leftAButtonPress = Input.GetKey(ButtonKeyCode.LAKeyPress);
-                var leftPadPress = Input.GetKey(ButtonKeyCode.LPadPress);
-
-                var leftMenuTouch = Input.GetKey(ButtonKeyCode.LMenuTouch);
-                var leftAButtonTouch = Input.GetKey(ButtonKeyCode.LAKeyTouch);
-                var leftPadTouch = Input.GetKey(ButtonKeyCode.LPadTouch);
-                var leftTriggerTouch = Input.GetKey(ButtonKeyCode.LTriggerTouch);
-
-                var leftTrackpadX = Input.GetAxisRaw(ButtonAxisName.LPadX);
-                var leftTrackpadY = Input.GetAxisRaw(ButtonAxisName.LPadY);
-                var leftTrigger = Input.GetAxisRaw(ButtonAxisName.LTrigger);
-                var leftGrip = Input.GetAxisRaw(ButtonAxisName.LGrip);
-
-                leftCurrState.SetButtonPress(VRModuleRawButton.ApplicationMenu, leftMenuPress);
-                leftCurrState.SetButtonPress(VRModuleRawButton.A, leftAButtonPress);
-                leftCurrState.SetButtonPress(VRModuleRawButton.Touchpad, leftPadPress);
-                leftCurrState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(leftPrevState.GetButtonPress(VRModuleRawButton.Trigger), leftTrigger, 0.55f, 0.45f));
-                leftCurrState.SetButtonPress(VRModuleRawButton.Grip, AxisToPress(leftPrevState.GetButtonPress(VRModuleRawButton.Grip), leftGrip, 0.55f, 0.45f));
-                leftCurrState.SetButtonPress(VRModuleRawButton.CapSenseGrip, AxisToPress(leftPrevState.GetButtonPress(VRModuleRawButton.CapSenseGrip), leftGrip, 0.55f, 0.45f));
-
-                leftCurrState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, leftMenuTouch);
-                leftCurrState.SetButtonTouch(VRModuleRawButton.A, leftAButtonTouch);
-                leftCurrState.SetButtonTouch(VRModuleRawButton.Touchpad, leftPadTouch);
-                leftCurrState.SetButtonTouch(VRModuleRawButton.Trigger, leftTriggerTouch);
-                leftCurrState.SetButtonTouch(VRModuleRawButton.CapSenseGrip, AxisToPress(leftPrevState.GetButtonTouch(VRModuleRawButton.CapSenseGrip), leftGrip, 0.25f, 0.20f));
-
-                leftCurrState.SetAxisValue(VRModuleRawAxis.TouchpadX, leftTrackpadX);
-                leftCurrState.SetAxisValue(VRModuleRawAxis.TouchpadY, leftTrackpadY);
-                leftCurrState.SetAxisValue(VRModuleRawAxis.Trigger, leftTrigger);
-                leftCurrState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, leftGrip);
+                UpdateLeftControllerInput(leftPrevState, leftCurrState);
             }
             else
             {
@@ -310,6 +264,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     leftCurrState.Reset();
                 }
             }
+
+            ProcessConnectedDeviceChanged();
+            ProcessDevicePoseChanged();
+            ProcessDeviceInputChanged();
         }
 #endif
     }

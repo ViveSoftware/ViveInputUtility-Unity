@@ -36,6 +36,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public string symbol = string.Empty;
             public string[] reqTypeNames = null;
+            public string[] reqAnyTypeNames = null;
             public string[] reqFileNames = null;
             public ReqFieldInfo[] reqFields = null;
             public ReqMethodInfo[] reqMethods = null;
@@ -56,6 +57,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (reqTypeNames != null)
                 {
                     foreach (var name in reqTypeNames)
+                    {
+                        TryAddTypeFromAssembly(name, assembly);
+                    }
+                }
+
+                if (reqAnyTypeNames != null)
+                {
+                    foreach (var name in reqAnyTypeNames)
                     {
                         TryAddTypeFromAssembly(name, assembly);
                     }
@@ -111,6 +120,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         if (!s_foundTypes.ContainsKey(name)) { return false; }
                     }
+                }
+
+                if (reqAnyTypeNames != null)
+                {
+                    var found = false;
+
+                    foreach (var name in reqAnyTypeNames)
+                    {
+                        if (s_foundTypes.ContainsKey(name))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) { return false; }
                 }
 
                 if (reqFields != null)
@@ -174,8 +199,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_STEAMVR",
-                reqTypeNames = new string[] { "SteamVR" },
-                reqFileNames = new string[] { "SteamVR.cs" },
+                reqTypeNames = new string[] { "Valve.VR.OpenVR" },
+                reqFileNames = new string[] { "openvr_api.cs" },
             });
 
             s_symbolReqList.Add(new SymbolRequirement()
@@ -240,6 +265,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             s_symbolReqList.Add(new SymbolRequirement()
             {
+                symbol = "VIU_STEAMVR_2_0_0_OR_NEWER",
+                reqTypeNames = new string[] { "Valve.VR.SteamVR" },
+            });
+
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
+                symbol = "VIU_STEAMVR_2_1_0_OR_NEWER",
+                reqTypeNames = new string[] { "Valve.VR.SteamVR_ActionSet_Manager" },
+            });
+
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
                 symbol = "VIU_OCULUSVR",
                 reqTypeNames = new string[] { "OVRInput" },
                 reqFileNames = new string[] { "OVRInput.cs" },
@@ -250,6 +287,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 symbol = "VIU_GOOGLEVR",
                 reqTypeNames = new string[] { "GvrUnitySdkVersion" },
                 reqFileNames = new string[] { "GvrUnitySdkVersion.cs" },
+            });
+
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
+                symbol = "VIU_GOOGLEVR_1_150_0_NEWER",
+                reqTypeNames = new string[] { "GvrControllerInputDevice" },
+                reqFileNames = new string[] { "GvrControllerInputDevice.cs" },
             });
 
             s_symbolReqList.Add(new SymbolRequirement()
@@ -282,7 +326,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 },
                 reqFileNames = new string[] { "wvr.cs" },
             });
-            
+
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_WAVEVR_2_1_0_OR_NEWER",
@@ -395,6 +439,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             foreach (var symbolReq in s_symbolReqList)
             {
+                if (symbolReq == null || symbolReq.reqFileNames == null) { continue; }
+
                 foreach (var reqFileName in symbolReq.reqFileNames)
                 {
                     if (isDir)

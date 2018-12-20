@@ -1,0 +1,163 @@
+{
+  "controller_type": "oculus_touch",
+  "bindings": {
+    "/actions/htc_viu": {
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_33"
+            },
+            "pull": {
+              "output": "/actions/htc_viu/in/viu_axis_1x"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_33"
+            }
+          },
+          "mode": "trigger",
+          "parameters": {
+            "click_activate_threshold": "0.55",
+            "click_deactivate_threshold": "0.45",
+            "haptic_amplitude": "0.2"
+          },
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_32"
+            },
+            "position": {
+              "output": "/actions/htc_viu/in/viu_axis_0xy"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_32"
+            }
+          },
+          "mode": "joystick",
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_02"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_07"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_07"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_01"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_01"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/y"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_33"
+            },
+            "pull": {
+              "output": "/actions/htc_viu/in/viu_axis_1x"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_33"
+            }
+          },
+          "mode": "trigger",
+          "parameters": {
+            "click_activate_threshold": "0.55",
+            "click_deactivate_threshold": "0.45",
+            "haptic_amplitude": "0.2"
+          },
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_32"
+            },
+            "position": {
+              "output": "/actions/htc_viu/in/viu_axis_0xy"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_32"
+            }
+          },
+          "mode": "joystick",
+          "path": "/user/hand/right/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_touch_02"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_02"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_touch_02"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_07"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_07"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/a"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_01"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_01"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/b"
+        }
+      ]
+    }
+  }
+}

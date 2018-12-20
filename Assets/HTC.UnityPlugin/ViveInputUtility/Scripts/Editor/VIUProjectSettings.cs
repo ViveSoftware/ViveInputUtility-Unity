@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace HTC.UnityPlugin.Vive
     {
         private static VIUProjectSettings s_instance = null;
         private static string s_defaultAssetPath;
+        private static string s_partialActionDirPath;
 
         [SerializeField]
         private List<string> m_ignoreKeys;
@@ -44,6 +46,21 @@ namespace HTC.UnityPlugin.Vive
                 return s_defaultAssetPath;
             }
         }
+
+        public static string partialActionDirPath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(s_partialActionDirPath))
+                {
+                    s_partialActionDirPath = Path.GetFullPath(Path.GetDirectoryName(defaultAssetPath) + "/../Misc/SteamVRExtension/PartialInputBindings");
+                }
+
+                return s_partialActionDirPath;
+            }
+        }
+
+        public static string partialActionFileName { get { return "actions.json"; } }
 
         public static bool hasChanged { get { return Instance.m_isDirty; } }
 

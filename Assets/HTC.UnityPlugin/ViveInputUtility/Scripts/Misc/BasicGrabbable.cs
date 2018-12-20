@@ -6,6 +6,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using GrabberPool = HTC.UnityPlugin.Utility.ObjectPool<HTC.UnityPlugin.Vive.BasicGrabbable.Grabber>;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -21,13 +22,13 @@ namespace HTC.UnityPlugin.Vive
 
         public class Grabber : IGrabber
         {
-            private static ObjectPool<Grabber> m_pool;
+            private static GrabberPool m_pool;
 
             public static Grabber Get(ColliderButtonEventData eventData)
             {
                 if (m_pool == null)
                 {
-                    m_pool = new ObjectPool<Grabber>(() => new Grabber());
+                    m_pool = new GrabberPool(() => new Grabber());
                 }
 
                 var grabber = m_pool.Get();

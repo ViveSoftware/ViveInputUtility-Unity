@@ -1,0 +1,142 @@
+{
+  "controller_type": "vive_controller",
+  "bindings": {
+    "/actions/htc_viu": {
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_02"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_02"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_01"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/application_menu"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_01"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/application_menu"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/htc_viu/in/viu_axis_1x"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/htc_viu/in/viu_axis_1x"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_32"
+            },
+            "position": {
+              "output": "/actions/htc_viu/in/viu_axis_0xy"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_32"
+            }
+          },
+          "mode": "trackpad",
+          "path": "/user/hand/left/input/trackpad"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_32"
+            },
+            "position": {
+              "output": "/actions/htc_viu/in/viu_axis_0xy"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_32"
+            }
+          },
+          "mode": "trackpad",
+          "path": "/user/hand/right/input/trackpad"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_33"
+            }
+          },
+          "mode": "button",
+          "parameters": {
+            "click_activate_threshold": "0.55",
+            "click_deactivate_threshold": "0.45",
+            "haptic_amplitude": "0.2"
+          },
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_33"
+            }
+          },
+          "mode": "button",
+          "parameters": {
+            "click_activate_threshold": "0.55",
+            "click_deactivate_threshold": "0.45",
+            "haptic_amplitude": "0.2"
+          },
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_touch_33"
+            }
+          },
+          "mode": "button",
+          "parameters": {
+            "haptic_amplitude": "0"
+          },
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_touch_33"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/trigger"
+        }
+      ]
+    }
+  }
+}

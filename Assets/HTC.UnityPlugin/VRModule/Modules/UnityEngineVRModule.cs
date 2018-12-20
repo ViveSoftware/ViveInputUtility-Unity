@@ -14,102 +14,76 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-        public static class ButtonKeyCode
+        private static KeyCode[] s_keyCodes = new KeyCode[]
         {
-            private static KeyCode[] s_codes = new KeyCode[]
-            {
-                KeyCode.JoystickButton0,
-                KeyCode.JoystickButton2,
-                KeyCode.JoystickButton10,
-                KeyCode.JoystickButton12,
-                KeyCode.JoystickButton9,
-                KeyCode.JoystickButton8,
-                KeyCode.JoystickButton17,
-                KeyCode.JoystickButton16,
-                KeyCode.JoystickButton1,
-                KeyCode.JoystickButton3,
-                KeyCode.JoystickButton11,
-                KeyCode.JoystickButton13,
-                KeyCode.JoystickButton15,
-                KeyCode.JoystickButton14,
-            };
+            KeyCode.JoystickButton0,
+            KeyCode.JoystickButton1,
+            KeyCode.JoystickButton2,
+            KeyCode.JoystickButton3,
+            KeyCode.JoystickButton4,
+            KeyCode.JoystickButton5,
+            KeyCode.JoystickButton6,
+            KeyCode.JoystickButton7,
+            KeyCode.JoystickButton8,
+            KeyCode.JoystickButton9,
+            KeyCode.JoystickButton10,
+            KeyCode.JoystickButton11,
+            KeyCode.JoystickButton12,
+            KeyCode.JoystickButton13,
+            KeyCode.JoystickButton14,
+            KeyCode.JoystickButton15,
+            KeyCode.JoystickButton16,
+            KeyCode.JoystickButton17,
+            KeyCode.JoystickButton18,
+            KeyCode.JoystickButton19,
+        };
 
-            public static int Count = s_codes.Length;
+        private static string[] s_axisNames = new string[]
+        {
+            "HTC_VIU_UnityAxis1",
+            "HTC_VIU_UnityAxis2",
+            "HTC_VIU_UnityAxis3",
+            "HTC_VIU_UnityAxis4",
+            "HTC_VIU_UnityAxis5",
+            "HTC_VIU_UnityAxis6",
+            "HTC_VIU_UnityAxis7",
+            "HTC_VIU_UnityAxis8",
+            "HTC_VIU_UnityAxis9",
+            "HTC_VIU_UnityAxis10",
+            "HTC_VIU_UnityAxis11",
+            "HTC_VIU_UnityAxis12",
+            "HTC_VIU_UnityAxis13",
+            "HTC_VIU_UnityAxis14",
+            "HTC_VIU_UnityAxis15",
+            "HTC_VIU_UnityAxis16",
+            "HTC_VIU_UnityAxis17",
+            "HTC_VIU_UnityAxis18",
+            "HTC_VIU_UnityAxis19",
+            "HTC_VIU_UnityAxis20",
+            "HTC_VIU_UnityAxis21",
+            "HTC_VIU_UnityAxis22",
+            "HTC_VIU_UnityAxis23",
+            "HTC_VIU_UnityAxis24",
+            "HTC_VIU_UnityAxis25",
+            "HTC_VIU_UnityAxis26",
+            "HTC_VIU_UnityAxis27",
+        };
 
-            public static KeyCode RMenuPress = s_codes[0];
-            public static KeyCode LMenuPress = s_codes[1];
-            public static KeyCode RMenuTouch = s_codes[2];
-            public static KeyCode LMenuTouch = s_codes[3];
-            public static KeyCode RPadPress = s_codes[4];
-            public static KeyCode LPadPress = s_codes[5];
-            public static KeyCode RPadTouch = s_codes[6];
-            public static KeyCode LPadTouch = s_codes[7];
-            public static KeyCode RAKeyPress = s_codes[8];
-            public static KeyCode LAKeyPress = s_codes[9];
-            public static KeyCode RAKeyTouch = s_codes[10];
-            public static KeyCode LAKeyTouch = s_codes[11];
-            public static KeyCode RTriggerTouch = s_codes[12];
-            public static KeyCode LTriggerTouch = s_codes[13];
-
-            public static KeyCode Index(int i) { return s_codes[i]; }
+        public static bool GetUnityButton(int id)
+        {
+            return Input.GetKey(s_keyCodes[id]);
         }
 
-        public static class ButtonAxisName
+        public static float GetUnityAxis(int id)
         {
-            private static readonly string[] s_names = new string[]
-            {
-                "HTC_VIU_LeftTrackpadHorizontal",
-                "HTC_VIU_LeftTrackpadVertical",
-                "HTC_VIU_RightTrackpadHorizontal",
-                "HTC_VIU_RightTrackpadVertical",
-                "HTC_VIU_LeftTrigger",
-                "HTC_VIU_RightTrigger",
-                "HTC_VIU_LeftGrip",
-                "HTC_VIU_RightGrip",
-            };
-
-            public static int Count = s_names.Length;
-
-            public static string LPadX = s_names[0];
-            public static string LPadY = s_names[1];
-            public static string RPadX = s_names[2];
-            public static string RPadY = s_names[3];
-            public static string LTrigger = s_names[4];
-            public static string RTrigger = s_names[5];
-            public static string LGrip = s_names[6];
-            public static string RGrip = s_names[7];
-
-            public static string Index(int i) { return s_names[i]; }
+            return Input.GetAxisRaw(s_axisNames[id - 1]);
         }
-
 #if UNITY_EDITOR
-        public static class ButtonAxisID
-        {
-            private static readonly int[] s_ids = new int[]
-            {
-                0,
-                1,
-                3,
-                4,
-                8,
-                9,
-                10,
-                11,
-            };
+        public static int GetUnityAxisCount() { return s_axisNames.Length; }
 
-            public static int Count = s_ids.Length;
+        public static string GetUnityAxisNameByIndex(int index) { return s_axisNames[index]; }
 
-            public static int LPadX = s_ids[0];
-            public static int LPadY = s_ids[1];
-            public static int RPadX = s_ids[2];
-            public static int RPadY = s_ids[3];
-            public static int LTrigger = s_ids[4];
-            public static int RTrigger = s_ids[5];
-            public static int LGtip = s_ids[6];
-            public static int RGtip = s_ids[7];
-
-            public static int Index(int i) { return s_ids[i]; }
-        }
+        public static int GetUnityAxisIdByIndex(int index) { return index + 1; }
 #endif
         public override bool ShouldActiveModule() { return VIUSettings.activateUnityNativeVRModule && XRSettings.enabled; }
 
@@ -125,6 +99,286 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Time.fixedDeltaTime = 1f / 90f;
 #endif
             }
+        }
+
+        private static void UpdateLeftControllerInput(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            switch (currState.deviceModel)
+            {
+                case VRModuleDeviceModel.ViveController:
+                    Update_L_Vive(prevState, currState);
+                    break;
+                case VRModuleDeviceModel.OculusTouchLeft:
+                    Update_L_OculusTouch(prevState, currState);
+                    break;
+                case VRModuleDeviceModel.KnucklesLeft:
+                    Update_L_Knuckles(prevState, currState);
+                    break;
+                case VRModuleDeviceModel.WMRControllerLeft:
+                    Update_L_MicrosoftMR(prevState, currState);
+                    break;
+            }
+        }
+
+        private static void UpdateRightControllerInput(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            switch (currState.deviceModel)
+            {
+                case VRModuleDeviceModel.ViveController:
+                    Update_R_Vive(prevState, currState);
+                    break;
+                case VRModuleDeviceModel.OculusTouchRight:
+                    Update_R_OculusTouch(prevState, currState);
+                    break;
+                case VRModuleDeviceModel.KnucklesRight:
+                    Update_R_Knuckles(prevState, currState);
+                    break;
+                case VRModuleDeviceModel.WMRControllerRight:
+                    Update_R_MicrosoftMR(prevState, currState);
+                    break;
+            }
+        }
+
+        private static void Update_L_Vive(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            var menuPress = GetUnityButton(2);
+            var padPress = GetUnityButton(8);
+            var triggerTouch = GetUnityButton(14);
+            var padTouch = GetUnityButton(16);
+
+            var padX = GetUnityAxis(1);
+            var padY = GetUnityAxis(2);
+            var trigger = GetUnityAxis(9);
+            var grip = GetUnityAxis(11);
+
+            currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPress);
+            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
+            currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
+            currState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.55f, 0.45f));
+
+            currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
+
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padX);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -padY);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+        }
+
+        private static void Update_R_Vive(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            var menuPress = GetUnityButton(0);
+            var padPress = GetUnityButton(9);
+            var triggerTouch = GetUnityButton(15);
+            var padTouch = GetUnityButton(17);
+
+            var padX = GetUnityAxis(4);
+            var padY = GetUnityAxis(5);
+            var trigger = GetUnityAxis(10);
+            var grip = GetUnityAxis(12);
+
+            currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPress);
+            currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
+            currState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.55f, 0.45f));
+            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
+
+            currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
+
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padX);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -padY);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+        }
+
+        private static void Update_L_OculusTouch(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            var xPress = GetUnityButton(2);
+            var yPress = GetUnityButton(3);
+            var stickPress = GetUnityButton(8);
+            var xTouch = GetUnityButton(12);
+            var yTouch = GetUnityButton(13);
+            var triggerTouch = GetUnityButton(14);
+            var stickTouch = GetUnityButton(16);
+
+            var stickX = GetUnityAxis(1);
+            var stickY = GetUnityAxis(2);
+            var trigger = GetUnityAxis(9);
+            var grip = GetUnityAxis(11);
+
+            currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, yPress);
+            currState.SetButtonPress(VRModuleRawButton.A, xPress);
+            currState.SetButtonPress(VRModuleRawButton.Touchpad, stickPress);
+            currState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.55f, 0.45f));
+            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
+
+            currState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, yTouch);
+            currState.SetButtonTouch(VRModuleRawButton.A, xTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Touchpad, stickTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
+
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadX, stickX);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -stickY);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+        }
+
+        private static void Update_R_OculusTouch(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            var aPress = GetUnityButton(0);
+            var bPress = GetUnityButton(1);
+            var stickPress = GetUnityButton(9);
+            var aTouch = GetUnityButton(10);
+            var bTouch = GetUnityButton(11);
+            var triggerTouch = GetUnityButton(15);
+            var stickTouch = GetUnityButton(17);
+
+            var stickX = GetUnityAxis(4);
+            var stickY = GetUnityAxis(5);
+            var trigger = GetUnityAxis(10);
+            var grip = GetUnityAxis(12);
+
+            currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, bPress);
+            currState.SetButtonPress(VRModuleRawButton.A, aPress);
+            currState.SetButtonPress(VRModuleRawButton.Touchpad, stickPress);
+            currState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.55f, 0.45f));
+            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
+
+            currState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, bTouch);
+            currState.SetButtonTouch(VRModuleRawButton.A, aTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Touchpad, stickTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
+
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadX, stickX);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -stickY);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+        }
+
+        private static void Update_L_Knuckles(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            var innerPress = GetUnityButton(2);
+            var outerPress = GetUnityButton(3);
+            var padPress = GetUnityButton(8);
+            var triggerTouch = GetUnityButton(14);
+            var padTouch = GetUnityButton(16);
+
+            var padX = GetUnityAxis(1);
+            var padY = GetUnityAxis(2);
+            var trigger = GetUnityAxis(9);
+            var grip = GetUnityAxis(11);
+            var index = GetUnityAxis(20);
+            var middle = GetUnityAxis(22);
+            var ring = GetUnityAxis(24);
+            var pinky = GetUnityAxis(26);
+
+            currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, outerPress);
+            currState.SetButtonPress(VRModuleRawButton.A, innerPress);
+            currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
+            currState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.55f, 0.45f));
+            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
+
+            currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
+
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padX);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -padY);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
+            currState.SetAxisValue(VRModuleRawAxis.IndexCurl, index);
+            currState.SetAxisValue(VRModuleRawAxis.MiddleCurl, middle);
+            currState.SetAxisValue(VRModuleRawAxis.RingCurl, ring);
+            currState.SetAxisValue(VRModuleRawAxis.PinkyCurl, pinky);
+        }
+
+        private static void Update_R_Knuckles(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            var innerPress = GetUnityButton(0);
+            var outerPress = GetUnityButton(1);
+            var padPress = GetUnityButton(9);
+            var triggerTouch = GetUnityButton(15);
+            var padTouch = GetUnityButton(17);
+
+            var padX = GetUnityAxis(4);
+            var padY = GetUnityAxis(5);
+            var trigger = GetUnityAxis(10);
+            var grip = GetUnityAxis(12);
+            var index = GetUnityAxis(21);
+            var middle = GetUnityAxis(23);
+            var ring = GetUnityAxis(25);
+            var pinky = GetUnityAxis(27);
+
+            currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, outerPress);
+            currState.SetButtonPress(VRModuleRawButton.A, innerPress);
+            currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
+            currState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.55f, 0.45f));
+            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
+
+            currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
+
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padX);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -padY);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
+            currState.SetAxisValue(VRModuleRawAxis.IndexCurl, index);
+            currState.SetAxisValue(VRModuleRawAxis.MiddleCurl, middle);
+            currState.SetAxisValue(VRModuleRawAxis.RingCurl, ring);
+            currState.SetAxisValue(VRModuleRawAxis.PinkyCurl, pinky);
+        }
+
+        private static void Update_L_MicrosoftMR(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            var menuPress = GetUnityButton(2);
+            var padPress = GetUnityButton(8);
+            var triggerPress = GetUnityButton(14);
+            var padTouch = GetUnityButton(16);
+
+            var stickX = GetUnityAxis(1);
+            var stickY = GetUnityAxis(2);
+            var trigger = GetUnityAxis(9);
+            var grip = GetUnityAxis(11);
+            var padX = GetUnityAxis(17);
+            var padY = GetUnityAxis(18);
+
+            currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPress);
+            currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
+            currState.SetButtonPress(VRModuleRawButton.Trigger, triggerPress);
+            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1f);
+
+            currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.25f, 0.20f));
+
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padX);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -padY);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            currState.SetAxisValue(VRModuleRawAxis.JoystickX, stickX);
+            currState.SetAxisValue(VRModuleRawAxis.JoystickY, -stickY);
+        }
+
+        private static void Update_R_MicrosoftMR(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
+        {
+            var menuPress = GetUnityButton(0);
+            var padPress = GetUnityButton(9);
+            var triggerPress = GetUnityButton(15);
+            var padTouch = GetUnityButton(17);
+
+            var stickX = GetUnityAxis(4);
+            var stickY = GetUnityAxis(5);
+            var trigger = GetUnityAxis(10);
+            var grip = GetUnityAxis(12);
+            var padX = GetUnityAxis(19);
+            var padY = GetUnityAxis(20);
+
+            currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPress);
+            currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
+            currState.SetButtonPress(VRModuleRawButton.Trigger, triggerPress);
+            currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1f);
+
+            currState.SetButtonTouch(VRModuleRawButton.Touchpad, padTouch);
+            currState.SetButtonTouch(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.25f, 0.20f));
+
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadX, padX);
+            currState.SetAxisValue(VRModuleRawAxis.TouchpadY, -padY);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            currState.SetAxisValue(VRModuleRawAxis.JoystickX, stickX);
+            currState.SetAxisValue(VRModuleRawAxis.JoystickY, -stickY);
         }
     }
 }

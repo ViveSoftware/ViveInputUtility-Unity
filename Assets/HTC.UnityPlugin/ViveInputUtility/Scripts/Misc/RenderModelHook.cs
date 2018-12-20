@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.Vive.SteamVRExtension;
 using HTC.UnityPlugin.VRModuleManagement;
 using System.Collections.Generic;
 using UnityEngine;
@@ -107,10 +108,7 @@ namespace HTC.UnityPlugin.Vive
             VRModule.onActiveModuleChanged -= UpdateModel;
             m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
 
-            if (!m_isQuiting)
-            {
-                UpdateModel();
-            }
+            UpdateModel();
         }
 
         private void OnApplicationQuit()
@@ -148,6 +146,8 @@ namespace HTC.UnityPlugin.Vive
 
         private void UpdateModel()
         {
+            if (m_isQuiting) { return; }
+
             var overrideModelChanged = ChangeProp.Set(ref m_currentOverrideModel, m_overrideModel);
 
             if (m_currentOverrideModel == OverrideModelEnum.DontOverride)
@@ -189,8 +189,7 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-#if VIU_STEAMVR
-        private SteamVR_RenderModel m_renderModel;
+        private VIUSteamVRRenderModel m_renderModel;
 
         private void UpdateSteamVRModel()
         {
@@ -208,7 +207,7 @@ namespace HTC.UnityPlugin.Vive
                         // find SteamVR_RenderModel in child object
                         for (int i = 0, imax = transform.childCount; i < imax; ++i)
                         {
-                            if ((m_renderModel = GetComponentInChildren<SteamVR_RenderModel>()) != null)
+                            if ((m_renderModel = GetComponentInChildren<VIUSteamVRRenderModel>()) != null)
                             {
                                 m_modelObj = m_renderModel.gameObject;
                                 break;
@@ -219,17 +218,17 @@ namespace HTC.UnityPlugin.Vive
                         {
                             m_modelObj = new GameObject("Model");
                             m_modelObj.transform.SetParent(transform, false);
-                            m_renderModel = m_modelObj.AddComponent<SteamVR_RenderModel>();
+                            m_renderModel = m_modelObj.AddComponent<VIUSteamVRRenderModel>();
                         }
 
                         if (m_overrideShader != null)
                         {
-                            m_renderModel.shader = m_overrideShader;
+                            m_renderModel.shaderOverride = m_overrideShader;
                         }
                     }
 
                     m_modelObj.SetActive(true);
-                    m_renderModel.SetDeviceIndex((int)m_currentDeviceIndex);
+                    m_renderModel.SetDeviceIndex(m_currentDeviceIndex);
                 }
                 else
                 {
@@ -240,7 +239,6 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
         }
-#endif
 
 #if VIU_WAVEVR
         private bool m_waveVRModelLoaded;
@@ -382,18 +380,24 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))
                 {
-                    if (ChangeProp.Set(ref m_currentLoadedStaticModel, VRModule.GetCurrentDeviceState(m_currentDeviceIndex).deviceModel) || m_modelObj == null)
+                    if (ChangeProp.Set(ref m_currentLoadedStaticModel, VRModule.GetCurrentDeviceState(m_currentDeviceIndex).deviceModel))
                     {
                         ReloadedStaticModel(m_currentLoadedStaticModel);
                     }
                     else
                     {
-                        m_modelObj.SetActive(true);
+                        if (m_modelObj != null)
+                        {
+                            m_modelObj.SetActive(true);
+                        }
                     }
                 }
                 else
                 {
-                    m_modelObj.SetActive(false);
+                    if (m_modelObj != null)
+                    {
+                        m_modelObj.SetActive(false);
+                    }
                 }
             }
         }

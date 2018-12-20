@@ -99,10 +99,17 @@ namespace HTC.UnityPlugin.Vive
                 // get device state
                 var currState = VRModule.GetCurrentDeviceState(deviceIndex);
 
-                // copy to previous states
+                // copy to previous states and reset current state
                 prevDeviceIndex = deviceIndex;
+
                 prevButtonPressed = currButtonPressed;
-                for (int i = CONTROLLER_AXIS_COUNT - 1; i >= 0; --i) { prevAxisValue[i] = currAxisValue[i]; }
+                currButtonPressed = 0;
+
+                for (int i = CONTROLLER_AXIS_COUNT - 1; i >= 0; --i)
+                {
+                    prevAxisValue[i] = currAxisValue[i];
+                    currAxisValue[i] = 0f;
+                }
 
                 trackedDeviceModel = currState.deviceModel;
 
@@ -136,10 +143,84 @@ namespace HTC.UnityPlugin.Vive
                 currAxisValue[(int)ControllerAxis.RingCurl] = currState.GetAxisValue(VRModuleRawAxis.RingCurl);
                 currAxisValue[(int)ControllerAxis.PinkyCurl] = currState.GetAxisValue(VRModuleRawAxis.PinkyCurl);
 
+                switch (trackedDeviceModel)
+                {
+                    case VRModuleDeviceModel.WMRControllerLeft:
+                    case VRModuleDeviceModel.WMRControllerRight:
+                        currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                        currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                        currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.JoystickX);
+                        currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.JoystickY);
+                        break;
+                    default:
+                        if (VIUSettings.individualTouchpadJoystickValue)
+                        {
+                            switch (trackedDeviceModel)
+                            {
+                                case VRModuleDeviceModel.OculusTouchLeft:
+                                case VRModuleDeviceModel.OculusTouchRight:
+                                    currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                                    currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                                    break;
+                                default:
+                                    currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                                    currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                            currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                            currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                            currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                        }
+                        break;
+                }
+
+                // update d-pad
+                var axis = new Vector2(currAxisValue[(int)ControllerAxis.PadX], currAxisValue[(int)ControllerAxis.PadY]);
+                var deadZone = VIUSettings.virtualDPadDeadZone;
+
+                if (axis.sqrMagnitude >= deadZone * deadZone)
+                {
+                    var padPress = GetPress(ControllerButton.Pad);
+                    var padTouch = GetPress(ControllerButton.PadTouch);
+
+                    var right = Vector2.Angle(Vector2.right, axis) < 45f;
+                    var up = Vector2.Angle(Vector2.up, axis) < 45f;
+                    var left = Vector2.Angle(Vector2.left, axis) < 45f;
+                    var down = Vector2.Angle(Vector2.down, axis) < 45f;
+
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRight, padPress && right);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUp, padPress && up);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeft, padPress && left);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDown, padPress && down);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadRightTouch, padTouch && right);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpTouch, padTouch && up);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLeftTouch, padTouch && left);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadDownTouch, padTouch && down);
+
+                    var upperRight = axis.x > 0f && axis.y > 0f;
+                    var upperLeft = axis.x < 0f && axis.y > 0f;
+                    var lowerLeft = axis.x < 0f && axis.y < 0f;
+                    var lowerRight = axis.x > 0f && axis.y < 0f;
+
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpperRight, padPress && upperRight);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpperLeft, padPress && upperLeft);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLowerLeft, padPress && lowerLeft);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLowerRight, padPress && lowerRight);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpperRightTouch, padTouch && upperRight);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadUpperLeftTouch, padTouch && upperLeft);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLowerLeftTouch, padTouch && lowerLeft);
+                    EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.DPadLowerRightTouch, padTouch && lowerRight);
+                }
+
                 // update hair trigger
                 var currTriggerValue = currAxisValue[(int)ControllerAxis.Trigger];
 
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.FullTrigger, currTriggerValue == 1f);
+
                 if (EnumUtils.GetFlag(prevButtonPressed, (int)ControllerButton.HairTrigger))
                 {
                     EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.HairTrigger, currTriggerValue >= (hairTriggerLimit - hairDelta) && currTriggerValue > 0.0f);
@@ -353,17 +434,11 @@ namespace HTC.UnityPlugin.Vive
                 {
                     switch (trackedDeviceModel)
                     {
-                        case VRModuleDeviceModel.KnucklesLeft:
-                        case VRModuleDeviceModel.KnucklesRight:
-                        case VRModuleDeviceModel.ViveController:
-                        case VRModuleDeviceModel.DaydreamController:
-                        case VRModuleDeviceModel.ViveFocusFinch:
-                            mode = ScrollType.Trackpad; break;
                         case VRModuleDeviceModel.OculusTouchLeft:
                         case VRModuleDeviceModel.OculusTouchRight:
                             mode = ScrollType.Thumbstick; break;
                         default:
-                            mode = ScrollType.None; break;
+                            mode = ScrollType.Trackpad; break;
                     }
                 }
                 else
@@ -400,7 +475,7 @@ namespace HTC.UnityPlugin.Vive
                             var currX = GetAxis(xAxis, false);
                             var currY = GetAxis(yAxis, false);
 
-                            scrollDelta = new Vector2(currX, currY) * 5f;
+                            scrollDelta = new Vector2(-currX, -currY) * 5f;
 
                             break;
                         }

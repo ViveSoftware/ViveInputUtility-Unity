@@ -67,7 +67,7 @@ namespace HTC.UnityPlugin.Vive
             hmdPose.pos = Vector3.Scale(hmdPose.pos, new Vector3(1f, 0.5f, 1f));
             var halfHeight = hmdPose.pos.y;
             var centerPoseInverse = hmdPose.GetInverse();
-            for (uint i = 1; i < VRModule.MAX_DEVICE_COUNT; ++i)
+            for (uint i = 1, imax = VRModule.GetDeviceStateCount(); i < imax; ++i)
             {
                 if (!IsTrackingDevice(i)) { continue; }
 

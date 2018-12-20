@@ -1,0 +1,327 @@
+{
+  "actions": [
+    {
+      "name": "/actions/htc_viu/in/viu_press_00",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_01",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_02",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_03",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_04",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_05",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_06",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_07",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_31",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_32",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_33",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_34",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_00",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_01",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_02",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_03",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_04",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_05",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_06",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_07",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_31",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_32",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_33",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_34",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_0x",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_0y",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_1x",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_1y",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_2x",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_2y",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_3x",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_3y",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_4x",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_4y",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_0xy",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_1xy",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_2xy",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_3xy",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_axis_4xy",
+      "type": "vector2",
+      "requirement": "optional"
+    }
+  ],
+  "action_sets": [
+    {
+      "name": "/actions/htc_viu",
+      "usage": "leftright"
+    }
+  ],
+  "default_bindings": [
+    {
+      "controller_type": "holographic_hmd",
+      "binding_url": "bindings_holographic_hmd.json"
+    },
+    {
+      "controller_type": "holographic_controller",
+      "binding_url": "bindings_holographic_controller.json"
+    },
+    {
+      "controller_type": "rift",
+      "binding_url": "bindings_rift.json"
+    },
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "bindings_oculus_touch.json"
+    },
+    {
+      "controller_type": "knuckles_ev1",
+      "binding_url": "bindings_knuckles_ev1.json"
+    },
+    {
+      "controller_type": "vive",
+      "binding_url": "bindings_vive.json"
+    },
+    {
+      "controller_type": "vive_pro",
+      "binding_url": "bindings_vive_pro.json"
+    },
+    {
+      "controller_type": "vive_controller",
+      "binding_url": "bindings_vive_controller.json"
+    },
+    {
+      "controller_type": "vive_tracker",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_handed",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_left_foot",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_right_foot",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_left_shoulder",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_right_shoulder",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_waist",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_chest",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_gamepad",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_camera",
+      "binding_url": "bindings_vive_tracker.json"
+    },
+    {
+      "controller_type": "vive_tracker_keyboard",
+      "binding_url": "bindings_vive_tracker.json"
+    }
+  ],
+  "localization": [
+    {
+      "language_tag": "en_US",
+      "/actions/htc_viu/in/viu_press_00": "Press00 (System)",
+      "/actions/htc_viu/in/viu_press_01": "Press01 (ApplicationMenu)",
+      "/actions/htc_viu/in/viu_press_02": "Press02 (Grip)",
+      "/actions/htc_viu/in/viu_press_03": "Press03 (DPadLeft)",
+      "/actions/htc_viu/in/viu_press_04": "Press04 (DPadUp)",
+      "/actions/htc_viu/in/viu_press_05": "Press05 (DPadRight)",
+      "/actions/htc_viu/in/viu_press_06": "Press06 (DPadDown)",
+      "/actions/htc_viu/in/viu_press_07": "Press07 (A)",
+      "/actions/htc_viu/in/viu_press_31": "Press31 (ProximitySensor)",
+      "/actions/htc_viu/in/viu_press_32": "Press32 (Touchpad)",
+      "/actions/htc_viu/in/viu_press_33": "Press33 (Trigger)",
+      "/actions/htc_viu/in/viu_press_34": "Press34 (CapSenseGrip)",
+      "/actions/htc_viu/in/viu_touch_00": "Touch00 (System)",
+      "/actions/htc_viu/in/viu_touch_01": "Touch01 (ApplicationMenu)",
+      "/actions/htc_viu/in/viu_touch_02": "Touch02 (Grip)",
+      "/actions/htc_viu/in/viu_touch_03": "Touch03 (DPadLeft)",
+      "/actions/htc_viu/in/viu_touch_04": "Touch04 (DPadUp)",
+      "/actions/htc_viu/in/viu_touch_05": "Touch05 (DPadRight)",
+      "/actions/htc_viu/in/viu_touch_06": "Touch06 (DPadDown)",
+      "/actions/htc_viu/in/viu_touch_07": "Touch07 (A)",
+      "/actions/htc_viu/in/viu_touch_31": "Touch31 (ProximitySensor)",
+      "/actions/htc_viu/in/viu_touch_32": "Touch32 (Touchpad)",
+      "/actions/htc_viu/in/viu_touch_33": "Touch33 (Trigger)",
+      "/actions/htc_viu/in/viu_touch_34": "Touch34 (CapSenseGrip)",
+      "/actions/htc_viu/in/viu_axis_0x": "Axis0 X (TouchpadX)",
+      "/actions/htc_viu/in/viu_axis_0y": "Axis0 Y (TouchpadY)",
+      "/actions/htc_viu/in/viu_axis_1x": "Axis1 X (Trigger)",
+      "/actions/htc_viu/in/viu_axis_1y": "Axis1 Y",
+      "/actions/htc_viu/in/viu_axis_2x": "Axis2 X (CapSenseGrip)",
+      "/actions/htc_viu/in/viu_axis_2y": "Axis2 Y",
+      "/actions/htc_viu/in/viu_axis_3x": "Axis3 X (IndexCurl)",
+      "/actions/htc_viu/in/viu_axis_3y": "Axis3 Y (MiddleCurl)",
+      "/actions/htc_viu/in/viu_axis_4x": "Axis4 X (RingCurl)",
+      "/actions/htc_viu/in/viu_axis_4y": "Axis4 Y (PinkyCurl)",
+      "/actions/htc_viu/in/viu_axis_0xy": "Axis0 X&Y (Touchpad)",
+      "/actions/htc_viu/in/viu_axis_1xy": "Axis1 X&Y",
+      "/actions/htc_viu/in/viu_axis_2xy": "Axis2 X&Y (Thumbstick)",
+      "/actions/htc_viu/in/viu_axis_3xy": "Axis3 X&Y",
+      "/actions/htc_viu/in/viu_axis_4xy": "Axis4 X&Y"
+    }
+  ]
+}

@@ -78,7 +78,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
             m_inputDeviceSN.text = string.Empty;
             CheckInputDeviceSN(string.Empty);
 
-            for (uint deviceIndex = 0; deviceIndex < VRModule.MAX_DEVICE_COUNT; ++deviceIndex)
+            for (uint deviceIndex = 0, imax = VRModule.GetDeviceStateCount(); deviceIndex < imax; ++deviceIndex)
             {
                 if (VRModule.GetCurrentDeviceState(deviceIndex).isConnected)
                 {

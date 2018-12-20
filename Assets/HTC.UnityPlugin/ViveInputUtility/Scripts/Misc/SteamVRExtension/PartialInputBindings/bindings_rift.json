@@ -1,0 +1,18 @@
+{
+  "controller_type": "rift",
+  "bindings": {
+    "/actions/htc_viu": {
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_31"
+            }
+          },
+          "mode": "button",
+          "path": "/user/head/proximity"
+        }
+      ]
+    }
+  }
+}
