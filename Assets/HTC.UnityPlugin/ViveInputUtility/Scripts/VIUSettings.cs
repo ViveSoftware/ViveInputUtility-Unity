@@ -13,6 +13,7 @@ namespace HTC.UnityPlugin.Vive
         public const string SIMULATE_TRACKPAD_TOUCH_TOOLTIP = "Hold Shift key and move the mouse to simulate trackpad touching event";
         public const string SIMULATOR_KEY_MOVE_SPEED_TOOLTIP = "W/A/S/D";
         public const string SIMULATOR_KEY_ROTATE_SPEED_TOOLTIP = "Arrow Up/Down/Left/Right";
+        public const string INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_TOOLTIP = "Set touchpad and joystick value individually for different controller type. For example, Vive Controller will have touchpad value but no thumbstick value, Oculus Touch will have thumbstick value but no touchpad value.";
 
         public const bool AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE = true;
 
@@ -54,6 +55,7 @@ namespace HTC.UnityPlugin.Vive
         public const bool ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE = true;
 
         public const float VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE = 0.15f;
+        public const bool INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE = false;
 
         private static VIUSettings s_instance = null;
 
@@ -130,6 +132,8 @@ namespace HTC.UnityPlugin.Vive
 
         [SerializeField]
         private float m_virtualDPadDeadZone = VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE;
+        [SerializeField, Tooltip(INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_TOOLTIP)]
+        private bool m_individualTouchpadJoystickValue = INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE;
 
         public static bool autoCheckNewVIUVersion { get { return Instance == null ? AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE : s_instance.m_autoCheckNewVIUVersion; } set { if (Instance != null) { Instance.m_autoCheckNewVIUVersion = value; } } }
 
@@ -171,6 +175,7 @@ namespace HTC.UnityPlugin.Vive
         public static bool activateOculusVRModule { get { return Instance == null ? ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateOculusVRModule; } set { if (Instance != null) { Instance.m_activateOculusVRModule = value; } } }
 
         public static float virtualDPadDeadZone { get { return Instance == null ? VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE : s_instance.m_virtualDPadDeadZone; } set { if (Instance != null) { Instance.m_virtualDPadDeadZone = value; } } }
+        public static bool individualTouchpadJoystickValue { get { return Instance == null ? INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE : s_instance.m_individualTouchpadJoystickValue; } set { if (Instance != null) { Instance.m_individualTouchpadJoystickValue = value; } } }
 
         public static VIUSettings Instance
         {

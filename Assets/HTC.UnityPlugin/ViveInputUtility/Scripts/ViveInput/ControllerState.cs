@@ -99,7 +99,7 @@ namespace HTC.UnityPlugin.Vive
                 // get device state
                 var currState = VRModule.GetCurrentDeviceState(deviceIndex);
 
-                // copy to previous states
+                // copy to previous states and reset current state
                 prevDeviceIndex = deviceIndex;
 
                 prevButtonPressed = currButtonPressed;
@@ -143,11 +143,39 @@ namespace HTC.UnityPlugin.Vive
                 currAxisValue[(int)ControllerAxis.RingCurl] = currState.GetAxisValue(VRModuleRawAxis.RingCurl);
                 currAxisValue[(int)ControllerAxis.PinkyCurl] = currState.GetAxisValue(VRModuleRawAxis.PinkyCurl);
 
-                if (trackedDeviceModel != VRModuleDeviceModel.WMRControllerLeft && trackedDeviceModel != VRModuleDeviceModel.WMRControllerRight)
+                switch (trackedDeviceModel)
                 {
-                    // copy trackpad value if joystick not found
-                    currAxisValue[(int)ControllerAxis.JoystickX] = currAxisValue[(int)ControllerAxis.PadX];
-                    currAxisValue[(int)ControllerAxis.JoystickY] = currAxisValue[(int)ControllerAxis.PadY];
+                    case VRModuleDeviceModel.WMRControllerLeft:
+                    case VRModuleDeviceModel.WMRControllerRight:
+                        currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                        currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                        currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.JoystickX);
+                        currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.JoystickY);
+                        break;
+                    default:
+                        if (VIUSettings.individualTouchpadJoystickValue)
+                        {
+                            switch (trackedDeviceModel)
+                            {
+                                case VRModuleDeviceModel.OculusTouchLeft:
+                                case VRModuleDeviceModel.OculusTouchRight:
+                                    currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                                    currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                                    break;
+                                default:
+                                    currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                                    currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                            currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                            currAxisValue[(int)ControllerAxis.JoystickX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
+                            currAxisValue[(int)ControllerAxis.JoystickY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
+                        }
+                        break;
                 }
 
                 // update d-pad
@@ -406,19 +434,11 @@ namespace HTC.UnityPlugin.Vive
                 {
                     switch (trackedDeviceModel)
                     {
-                        case VRModuleDeviceModel.KnucklesLeft:
-                        case VRModuleDeviceModel.KnucklesRight:
-                        case VRModuleDeviceModel.ViveController:
-                        case VRModuleDeviceModel.DaydreamController:
-                        case VRModuleDeviceModel.ViveFocusFinch:
-                        case VRModuleDeviceModel.WMRControllerLeft:
-                        case VRModuleDeviceModel.WMRControllerRight:
-                            mode = ScrollType.Trackpad; break;
                         case VRModuleDeviceModel.OculusTouchLeft:
                         case VRModuleDeviceModel.OculusTouchRight:
                             mode = ScrollType.Thumbstick; break;
                         default:
-                            mode = ScrollType.None; break;
+                            mode = ScrollType.Trackpad; break;
                     }
                 }
                 else
