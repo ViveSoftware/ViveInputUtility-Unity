@@ -47,19 +47,20 @@ namespace HTC.UnityPlugin.Vive
         GripTouch = 9,
         CapSenseGrip = 10, // on:1.00 off:0.90 // Knuckles, Oculus Touch only
         CapSenseGripTouch = 11, // on:0.25 off:0.20 // Knuckles, Oculus Touch only
-        AKey = 12, // Oculus Touch only, RightHandA or LeftHandX pressed
-        AKeyTouch = 13, // Oculus Touch only, RightHandA or LeftHandX touched
-
-        BKey = Menu,
-        BkeyTouch = MenuTouch,
-        Bumper = Axis3,
-        BumperTouch = Axis3Touch,
+        ProximitySensor = 15,
+        Bumper = 16,
+        BumperTouch = 17,
+        AKey = 12, // Knuckles(InnerFaceButton), Oculus Touch(RightHandA or LeftHandX pressed)
+        AKeyTouch = 13, // Knuckles(InnerFaceButton), Oculus Touch(RightHandA or LeftHandX touched)
 
         // button alias
+        BKey = Menu,
+        BkeyTouch = MenuTouch,
         OuterFaceButton = Menu, // 7
         OuterFaceButtonTouch = MenuTouch, // 9
-        InnerFaceButton = Grip, // 2
-        InnerFaceButtonTouch = GripTouch, // 11
+        InnerFaceButton = AKey, // 12
+        InnerFaceButtonTouch = AKeyTouch, // 13
+
         [HideInInspector]
         Axis0 = Pad,
         [HideInInspector]
@@ -67,9 +68,9 @@ namespace HTC.UnityPlugin.Vive
         [HideInInspector]
         Axis2 = CapSenseGrip,
         [HideInInspector]
-        Axis3 = 14,
+        Axis3 = Bumper,
         [HideInInspector]
-        Axis4 = 15,
+        Axis4 = 18,
         [HideInInspector]
         Axis0Touch = PadTouch,
         [HideInInspector]
@@ -77,33 +78,33 @@ namespace HTC.UnityPlugin.Vive
         [HideInInspector]
         Axis2Touch = CapSenseGripTouch,
         [HideInInspector]
-        Axis3Touch = 16,
+        Axis3Touch = BumperTouch,
         [HideInInspector]
-        Axis4Touch = 17,
+        Axis4Touch = 19,
         
         // virtual buttons
         HairTrigger = 5, // Pressed if trigger button is pressing, unpressed if trigger button is releasing
         FullTrigger = 6, // on:1.00 off:1.00
 
-        DPadLeft = 15,
-        DPadUp = 17,
-        DPadRight = 18,
-        DPadDown = 19,
+        DPadLeft = 20,
+        DPadUp = 21,
+        DPadRight = 22,
+        DPadDown = 23,
 
-        DPadLeftTouch = 20,
-        DPadUpTouch = 21,
-        DPadRightTouch = 22,
-        DPadDownTouch = 23,
+        DPadLeftTouch = 24,
+        DPadUpTouch = 25,
+        DPadRightTouch = 26,
+        DPadDownTouch = 27,
 
-        DPadUpperLeft = 24,
-        DPadUpperRight = 25,
-        DPadLowerRight = 26,
-        DPadLowerLeft = 27,
+        DPadUpperLeft = 28,
+        DPadUpperRight = 29,
+        DPadLowerRight = 30,
+        DPadLowerLeft = 31,
 
-        DPadUpperLeftTouch = 28,
-        DPadUpperRightTouch = 29,
-        DPadLowerRightTouch = 30,
-        DPadLowerLeftTouch = 31,
+        DPadUpperLeftTouch = 32,
+        DPadUpperRightTouch = 33,
+        DPadLowerRightTouch = 34,
+        DPadLowerLeftTouch = 35,
     }
 
     public enum ControllerAxis

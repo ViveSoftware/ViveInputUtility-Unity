@@ -27,7 +27,7 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         [FormerlySerializedAs("m_buttonEvents")]
         [FlagsFromEnum(typeof(ControllerButton))]
-        private uint m_additionalButtons = 0;
+        private ulong m_additionalButtons = 0ul;
         [SerializeField]
         private ScrollType m_scrollType = ScrollType.Auto;
         [SerializeField]
@@ -44,10 +44,10 @@ namespace HTC.UnityPlugin.Vive
 #endif
         protected void FilterOutAssignedButton()
         {
-            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_buttonTrigger);
-            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_buttonPadOrStick);
-            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_buttonFunctionKey);
-            m_additionalButtons = EnumUtils.UnsetFlag(m_additionalButtons, (int)m_buttonGripOrHandTrigger);
+            if (EnumUtils.GetFlag(m_additionalButtons, (int)m_buttonTrigger)) { EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonTrigger, false); }
+            if (EnumUtils.GetFlag(m_additionalButtons, (int)m_buttonPadOrStick)) { EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonPadOrStick, false); }
+            if (EnumUtils.GetFlag(m_additionalButtons, (int)m_buttonFunctionKey)) { EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonFunctionKey, false); }
+            if (EnumUtils.GetFlag(m_additionalButtons, (int)m_buttonGripOrHandTrigger)) { EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonGripOrHandTrigger, false); }
         }
 
         protected virtual void Start()
