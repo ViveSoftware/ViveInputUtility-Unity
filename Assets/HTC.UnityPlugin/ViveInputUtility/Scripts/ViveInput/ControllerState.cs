@@ -61,8 +61,8 @@ namespace HTC.UnityPlugin.Vive
             private uint prevDeviceIndex;
             private VRModuleDeviceModel trackedDeviceModel = VRModuleDeviceModel.Unknown;
 
-            private uint prevButtonPressed;
-            private uint currButtonPressed;
+            private ulong prevButtonPressed;
+            private ulong currButtonPressed;
 
             private readonly float[] prevAxisValue = new float[CONTROLLER_AXIS_COUNT];
             private readonly float[] currAxisValue = new float[CONTROLLER_AXIS_COUNT];
@@ -125,6 +125,7 @@ namespace HTC.UnityPlugin.Vive
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.GripTouch, currState.GetButtonTouch(VRModuleRawButton.Grip));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.CapSenseGrip, currState.GetButtonPress(VRModuleRawButton.CapSenseGrip));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.CapSenseGripTouch, currState.GetButtonTouch(VRModuleRawButton.CapSenseGrip));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.ProximitySensor, currState.GetButtonPress(VRModuleRawButton.ProximitySensor));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.AKey, currState.GetButtonPress(VRModuleRawButton.A));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.AKeyTouch, currState.GetButtonTouch(VRModuleRawButton.A));
 

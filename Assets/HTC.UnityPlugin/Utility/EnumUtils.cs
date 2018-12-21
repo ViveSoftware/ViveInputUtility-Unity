@@ -27,6 +27,7 @@ namespace HTC.UnityPlugin.Utility
         //     Default = 0,
         //     EEE,
         //     FFF,
+        //     GGG = 65,
         // }
         // 
         // EnumDisplayInfo for typeof(SomeEnum) will be:
@@ -39,6 +40,7 @@ namespace HTC.UnityPlugin.Utility
         // BBB      | 1
         // FFF      | 2
         // CCC      | 35
+        // GGG      | 65
         // zzz      | -2
         // Invalid  | -1
         // 
@@ -52,14 +54,16 @@ namespace HTC.UnityPlugin.Utility
         // Default (AAA)  | Default           | 0
         // EEE (BBB)      | EEE               | 1
         // FFF            | FFF               | 2
+        // GGG            | GGG               | 65
         // 
         // displayedMaskNames | displayedMaskRawNames | displayedMaskValues | realMaskField
         // ---------------------------------------------------------------------------------
-        // AAA                | AAA                   | 0                   | 1u << 0
-        // BBB                | BBB                   | 1                   | 1u << 1
-        // Default (AAA)      | Default               | 0                   | 1u << 0
-        // EEE (BBB)          | EEE                   | 1                   | 1u << 1
-        // FFF                | FFF                   | 2                   | 1u << 2
+        // AAA                | AAA                   | 0                   | 1ul << 0
+        // BBB                | BBB                   | 1                   | 1ul << 1
+        // CCC                | CCC                   | 35                  | 1ul << 35
+        // Default (AAA)      | Default               | 0                   | 1ul << 0
+        // EEE (BBB)          | EEE                   | 1                   | 1ul << 1
+        // FFF                | FFF                   | 2                   | 1ul << 2
 
         public class EnumDisplayInfo
         {
@@ -73,20 +77,20 @@ namespace HTC.UnityPlugin.Utility
             public Dictionary<int, int> rawValue2index { get; private set; }
             public Dictionary<string, int> rawName2index { get; private set; }
 
+            public int displayedLength { get { return displayedRawNames.Length; } }
             public string[] displayedRawNames { get; private set; } // without parenthesis
             public string[] displayedNames { get; private set; }
             public int[] displayedValues { get; private set; }
             public Dictionary<int, int> value2displayedIndex { get; private set; }
             public Dictionary<string, int> name2displayedIndex { get; private set; }
 
+            public int displayedMaskLength { get { return displayedMaskRawNames.Length; } }
             public string[] displayedMaskRawNames { get; private set; } // without parenthesis
             public string[] displayedMaskNames { get; private set; }
             public int[] displayedMaskValues { get; private set; }
+            public ulong[] displayedMaskRealMaskField { get; private set; }
             public Dictionary<int, int> value2displayedMaskIndex { get; private set; }
             public Dictionary<string, int> name2displayedMaskIndex { get; private set; }
-
-            public Dictionary<int, uint> value2displayedMaskField { get; private set; }
-            public List<uint> displayedMaskIndex2realMaskField { get; private set; }
 
             public EnumDisplayInfo(Type type)
             {
@@ -125,11 +129,10 @@ namespace HTC.UnityPlugin.Utility
                 var displayedMaskRawNamesList = new List<string>();
                 var displayedMaskNamesList = new List<string>();
                 var displayedMaskValuesList = new List<int>();
+                var displayedMaskRealMaskFieldList = new List<ulong>();
                 value2displayedMaskIndex = new Dictionary<int, int>();
                 name2displayedMaskIndex = new Dictionary<string, int>();
 
-                value2displayedMaskField = new Dictionary<int, uint>();
-                displayedMaskIndex2realMaskField = new List<uint>();
 
                 foreach (FieldInfo fi in type.GetFields()
                                              .Where(fi => fi.IsStatic && fi.GetCustomAttributes(typeof(HideInInspector), true).Length == 0)
@@ -157,11 +160,12 @@ namespace HTC.UnityPlugin.Utility
                         name2displayedIndex[displayedNamesList[index]] = index;
                     }
 
-                    if (value < 0 || value >= UINT_MASK_FIELD_LENGTH) { continue; }
+                    if (value < 0 || value >= ULONG_MASK_FIELD_LENGTH) { continue; }
 
                     displayedMaskRawNamesList.Add(name);
                     displayedMaskNamesList.Add(name);
                     displayedMaskValuesList.Add(value);
+                    displayedMaskRealMaskFieldList.Add(1ul << value);
                     index = displayedMaskNamesList.Count - 1;
 
                     name2displayedMaskIndex[name] = index;
@@ -169,65 +173,58 @@ namespace HTC.UnityPlugin.Utility
                     if (!value2displayedMaskIndex.TryGetValue(value, out priorIndex))
                     {
                         value2displayedMaskIndex.Add(value, index);
-                        value2displayedMaskField.Add(value, 1u << index);
                     }
                     else
                     {
                         displayedMaskNamesList[index] += " (" + displayedMaskNamesList[priorIndex] + ")";
                         name2displayedMaskIndex[displayedMaskNamesList[index]] = index;
-                        value2displayedMaskField[value] |= 1u << index;
                     }
 
-                    displayedMaskIndex2realMaskField.Add(1u << value);
                 }
 
                 displayedRawNames = displayedRawNamesList.ToArray();
                 displayedNames = displayedNamesList.ToArray();
                 displayedValues = displayedValuesList.ToArray();
 
-                displayedMaskRawNames = displayedRawNamesList.ToArray();
+                displayedMaskRawNames = displayedMaskRawNamesList.ToArray();
                 displayedMaskNames = displayedMaskNamesList.ToArray();
                 displayedMaskValues = displayedMaskValuesList.ToArray();
+                displayedMaskRealMaskField = displayedMaskRealMaskFieldList.ToArray();
             }
 
+            [Obsolete]
             public int RealToDisplayedMaskField(int realMask)
             {
                 var displayedMask = 0u;
-                var mask = 1u;
 
-                for (int value = 0; value < UINT_MASK_FIELD_LENGTH && realMask != 0; ++value, mask <<= 1)
+                for (int i = 0; i < UINT_MASK_FIELD_LENGTH && realMask != 0; ++i)
                 {
-                    uint mk;
-                    if ((realMask & mask) > 0 && value2displayedMaskField.TryGetValue(value, out mk))
+                    if (GetFlag((uint)realMask, i))
                     {
-                        displayedMask |= mk;
+                        UnsetFlag((uint)realMask, i);
+                        if (value2displayedMaskIndex[i] < UINT_MASK_FIELD_LENGTH)
+                        {
+                            displayedMask |= 1u << value2displayedMaskIndex[i];
+                        }
                     }
                 }
 
                 return (int)displayedMask;
             }
 
+            [Obsolete]
             public int DisplayedToRealMaskField(int displayedMask, bool fillUp = true)
             {
-                var uDisMask = (uint)displayedMask;
                 var realMask = 0u;
 
-                for (int index = 0; index < displayedMaskValues.Length && uDisMask != 0; ++index)
+                for (int i = 0; i < UINT_MASK_FIELD_LENGTH && displayedMask != 0; ++i)
                 {
-                    var mask = value2displayedMaskField[displayedMaskValues[index]];
-
-                    if (fillUp)
+                    if (GetFlag((uint)displayedMask, i))
                     {
-                        if ((uDisMask & mask) > 0)
+                        UnsetFlag((uint)displayedMask, i);
+                        if (i < UINT_MASK_FIELD_LENGTH)
                         {
-                            realMask |= displayedMaskIndex2realMaskField[index];
-                        }
-                    }
-                    else
-                    {
-                        if ((uDisMask & mask) == mask)
-                        {
-                            realMask |= displayedMaskIndex2realMaskField[index];
+                            realMask |= (uint)displayedMaskRealMaskField[i];
                         }
                     }
                 }
@@ -299,14 +296,14 @@ namespace HTC.UnityPlugin.Utility
 
         public static void SetFlag(ref ulong maskField, int enumValue, bool value)
         {
-            if (enumValue < 0 || enumValue >= UINT_MASK_FIELD_LENGTH) { return; }
+            if (enumValue < 0 || enumValue >= ULONG_MASK_FIELD_LENGTH) { return; }
             if (value)
             {
-                maskField |= (1u << enumValue);
+                maskField |= (1ul << enumValue);
             }
             else
             {
-                maskField &= ~(1u << enumValue);
+                maskField &= ~(1ul << enumValue);
             }
         }
 
