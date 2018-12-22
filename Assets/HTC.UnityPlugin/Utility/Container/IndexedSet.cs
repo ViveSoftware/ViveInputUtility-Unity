@@ -70,7 +70,7 @@ namespace HTC.UnityPlugin.Utility
                 T item = m_List[index];
                 m_Dictionary.Remove(item);
                 m_List[index] = value;
-                m_Dictionary.Add(item, index);
+                m_Dictionary.Add(value, index);
             }
         }
 
