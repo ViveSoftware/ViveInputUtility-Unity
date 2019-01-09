@@ -262,8 +262,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            ApplyVirtualArmAndSimulateInput(m_rightState, m_headState, RIGHT_ARM_MULTIPLIER);
-            ApplyVirtualArmAndSimulateInput(m_leftState, m_headState, LEFT_ARM_MULTIPLIER);
+            if (m_rightState != null)
+            {
+                ApplyVirtualArmAndSimulateInput(m_rightState, m_headState, RIGHT_ARM_MULTIPLIER);
+            }
+            
+            if (m_leftState != null)
+            {
+                ApplyVirtualArmAndSimulateInput(m_leftState, m_headState, LEFT_ARM_MULTIPLIER);
+            }
 
             ResetAndDisconnectUntouchedDevices();
 
