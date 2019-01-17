@@ -187,6 +187,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        public static void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
+        {
+            if (Instance != null && Instance.m_activatedModuleBase != null && IsValidDeviceIndex(deviceIndex))
+            {
+                Instance.m_activatedModuleBase.TriggerHapticVibration(deviceIndex, durationSeconds, frequency, amplitude, startSecondsFromNow);
+            }
+        }
+
         public static readonly bool isSteamVRPluginDetected =
 #if VIU_STEAMVR
             true;
