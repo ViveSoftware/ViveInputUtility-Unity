@@ -543,6 +543,48 @@
           "mode": "button",
           "path": "/user/keyboard/input/thumb"
         }
+      ],
+      "haptics": [
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/left/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/right/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/foot/left/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/foot/right/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/shoulder/left/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/shoulder/right/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/waist/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/chest/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/camera/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/keyboard/output/haptic"
+        }
       ]
     }
   }

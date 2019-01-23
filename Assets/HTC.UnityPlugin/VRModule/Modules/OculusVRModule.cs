@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 #if VIU_OCULUSVR
 using UnityEngine;
@@ -141,7 +141,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 // update device connected state
                 if (!prevState.isConnected)
                 {
-                    var ovrProductName = OVRPlugin.productName;
+                    var platform = OVRPlugin.GetSystemHeadsetType();
+                    var ovrProductName = platform.ToString();
                     var deviceClass = s_node2class[(int)node];
 
                     currState.isConnected = true;
@@ -160,15 +161,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             currState.deviceModel = VRModuleDeviceModel.OculusSensor;
                             break;
                         case VRModuleDeviceClass.Controller:
-                            switch (ovrProductName)
+                            switch (platform)
                             {
-                                case "Oculus Go":
+                                case OVRPlugin.SystemHeadset.Oculus_Go:
                                     currState.deviceModel = VRModuleDeviceModel.OculusGoController;
                                     break;
-                                case "Gear VR":
+                                
+                                case OVRPlugin.SystemHeadset.GearVR_R320:
+                                case OVRPlugin.SystemHeadset.GearVR_R321:
+                                case OVRPlugin.SystemHeadset.GearVR_R322:
+                                case OVRPlugin.SystemHeadset.GearVR_R323:
+                                case OVRPlugin.SystemHeadset.GearVR_R324:
+                                case OVRPlugin.SystemHeadset.GearVR_R325:
                                     currState.deviceModel = VRModuleDeviceModel.OculusGearVrController;
                                     break;
-                                case "Oculus Rift":
+                                
+                                case OVRPlugin.SystemHeadset.Rift_DK1:
+                                case OVRPlugin.SystemHeadset.Rift_DK2:
+                                case OVRPlugin.SystemHeadset.Rift_CV1:
                                 default:
                                     switch (node)
                                     {

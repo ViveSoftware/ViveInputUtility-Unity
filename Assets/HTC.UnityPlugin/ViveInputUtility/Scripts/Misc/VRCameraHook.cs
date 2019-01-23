@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEngine;
@@ -30,7 +30,7 @@ namespace HTC.UnityPlugin.Vive
         {
             switch (activatedModule)
             {
-#if VIU_STEAMVR && !VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR
                 case VRModuleActiveEnum.SteamVR:
                     if (GetComponent<SteamVR_Camera>() == null)
                     {

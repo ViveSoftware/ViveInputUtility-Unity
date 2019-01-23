@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 
@@ -184,6 +184,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (Instance != null && Instance.m_activatedModuleBase != null && IsValidDeviceIndex(deviceIndex))
             {
                 Instance.m_activatedModuleBase.TriggerViveControllerHaptic(deviceIndex, durationMicroSec);
+            }
+        }
+
+        public static void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
+        {
+            if (Instance != null && Instance.m_activatedModuleBase != null && IsValidDeviceIndex(deviceIndex))
+            {
+                Instance.m_activatedModuleBase.TriggerHapticVibration(deviceIndex, durationSeconds, frequency, amplitude, startSecondsFromNow);
             }
         }
 

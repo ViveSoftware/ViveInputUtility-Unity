@@ -157,6 +157,16 @@
           "mode": "button",
           "path": "/user/hand/right/input/b"
         }
+      ],
+      "haptics": [
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/left/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/right/output/haptic"
+        }
       ]
     }
   }

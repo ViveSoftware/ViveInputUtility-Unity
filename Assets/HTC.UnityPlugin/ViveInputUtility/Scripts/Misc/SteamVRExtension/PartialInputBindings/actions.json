@@ -194,6 +194,11 @@
       "name": "/actions/htc_viu/in/viu_axis_4xy",
       "type": "vector2",
       "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/out/viu_vib_01",
+      "type": "vibration",
+      "requirement": "optional"
     }
   ],
   "action_sets": [
@@ -204,20 +209,28 @@
   ],
   "default_bindings": [
     {
-      "controller_type": "holographic_hmd",
-      "binding_url": "bindings_holographic_hmd.json"
+      "controller_type": "vive_controller",
+      "binding_url": "bindings_vive_controller.json"
+    },
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "bindings_oculus_touch.json"
+    },
+    {
+      "controller_type": "knuckles",
+      "binding_url": "bindings_knuckles.json"
     },
     {
       "controller_type": "holographic_controller",
       "binding_url": "bindings_holographic_controller.json"
     },
     {
-      "controller_type": "rift",
-      "binding_url": "bindings_rift.json"
+      "controller_type": "holographic_hmd",
+      "binding_url": "bindings_holographic_hmd.json"
     },
     {
-      "controller_type": "oculus_touch",
-      "binding_url": "bindings_oculus_touch.json"
+      "controller_type": "rift",
+      "binding_url": "bindings_rift.json"
     },
     {
       "controller_type": "knuckles_ev1",
@@ -230,10 +243,6 @@
     {
       "controller_type": "vive_pro",
       "binding_url": "bindings_vive_pro.json"
-    },
-    {
-      "controller_type": "vive_controller",
-      "binding_url": "bindings_vive_controller.json"
     },
     {
       "controller_type": "vive_tracker",
@@ -321,7 +330,8 @@
       "/actions/htc_viu/in/viu_axis_1xy": "Axis1 X&Y",
       "/actions/htc_viu/in/viu_axis_2xy": "Axis2 X&Y (Thumbstick)",
       "/actions/htc_viu/in/viu_axis_3xy": "Axis3 X&Y",
-      "/actions/htc_viu/in/viu_axis_4xy": "Axis4 X&Y"
+      "/actions/htc_viu/in/viu_axis_4xy": "Axis4 X&Y",
+      "/actions/htc_viu/out/viu_vib_01": "Vibration"
     }
   ]
 }

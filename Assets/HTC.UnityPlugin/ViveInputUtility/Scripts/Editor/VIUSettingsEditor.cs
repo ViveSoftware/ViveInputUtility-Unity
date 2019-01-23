@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -1273,6 +1273,17 @@ namespace HTC.UnityPlugin.Vive
             //            requirement = "optional",
             //        });
             //        actionFile.localization[0].Add(SteamVRModule.v2Actions.CurrentPath, SteamVRModule.v2Actions.CurrentAlias);
+            //    }
+            //    for (SteamVRModule.vibrationActions.Reset(); SteamVRModule.vibrationActions.IsCurrentValid(); SteamVRModule.vibrationActions.MoveNext())
+            //    {
+            //        if (string.IsNullOrEmpty(SteamVRModule.vibrationActions.CurrentPath)) { continue; }
+            //        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
+            //        {
+            //            name = SteamVRModule.vibrationActions.CurrentPath,
+            //            type = SteamVRModule.vibrationActions.DataType,
+            //            requirement = "optional",
+            //        });
+            //        actionFile.localization[0].Add(SteamVRModule.vibrationActions.CurrentPath, SteamVRModule.vibrationActions.CurrentAlias);
             //    }
 
             //    actionFile.Save();

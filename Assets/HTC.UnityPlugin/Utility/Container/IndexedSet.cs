@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using System;
 using System.Collections;
@@ -70,7 +70,7 @@ namespace HTC.UnityPlugin.Utility
                 T item = m_List[index];
                 m_Dictionary.Remove(item);
                 m_List[index] = value;
-                m_Dictionary.Add(item, index);
+                m_Dictionary.Add(value, index);
             }
         }
 

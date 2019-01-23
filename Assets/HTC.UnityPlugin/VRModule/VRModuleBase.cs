@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -42,6 +42,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState) { }
 
             public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { }
+
+            public virtual void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f) { }
 
             protected void InvokeInputFocusEvent(bool value)
             {

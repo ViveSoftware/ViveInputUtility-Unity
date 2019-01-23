@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -137,13 +137,16 @@ namespace HTC.UnityPlugin.Vive
         [RuntimeInitializeOnLoadMethod]
         private static void OnLoad()
         {
-            if (VRModule.Active && VRModule.activeModule != VRModuleActiveEnum.Uninitialized)
+            if (VIUSettings.autoLoadExternalCameraConfigOnStart)
             {
-                AutoLoadConfig();
-            }
-            else
-            {
-                VRModule.onActiveModuleChanged += OnActiveModuleChanged;
+                if (VRModule.Active && VRModule.activeModule != VRModuleActiveEnum.Uninitialized)
+                {
+                    AutoLoadConfig();
+                }
+                else
+                {
+                    VRModule.onActiveModuleChanged += OnActiveModuleChanged;
+                }
             }
         }
 
@@ -158,11 +161,14 @@ namespace HTC.UnityPlugin.Vive
 
         private static void AutoLoadConfig()
         {
-            if (!Active && VIUSettings.autoLoadExternalCameraConfigOnStart)
+            Initialize();
+
+            if (string.IsNullOrEmpty(Instance.m_configPath))
             {
-                // if ExternalCameraHook is already exist in current scene, use its property
-                LoadConfigFromFile(VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE);
+                Instance.m_configPath = VIUSettings.externalCameraConfigFilePath;
             }
+
+            LoadConfigFromFile(Instance.m_configPath);
         }
 
         /// <summary>
@@ -195,20 +201,26 @@ namespace HTC.UnityPlugin.Vive
 
             SteamVR_Render.instance.externalCameraConfigPath = string.Empty;
 
-#if !VIU_STEAMVR_2_0_0_OR_NEWER
             var oldExternalCam = SteamVR_Render.instance.externalCamera;
             if (oldExternalCam != null)
             {
-                // FIXME: SteamVR_ControllerManager is removed in SteamVR 2.0, what to replace?
-                if (oldExternalCam.transform.parent != null && oldExternalCam.transform.parent.GetComponent<SteamVR_ControllerManager>() != null)
+                SteamVR_Render.instance.externalCamera = null;
+                // To prevent SteamVR_ExternalCamera from setting invalid(0f) sceneResolutionScale value in OnDisable()
+                oldExternalCam.config.sceneResolutionScale = 0f;
 
+#if !VIU_STEAMVR_2_0_0_OR_NEWER
+                if (oldExternalCam.transform.parent != null && oldExternalCam.transform.parent.GetComponent<SteamVR_ControllerManager>() != null)
+#else
+                if (oldExternalCam.transform.parent != null && oldExternalCam.transform.parent.GetComponentInChildren<SteamVR_TrackedObject>() != null)
+#endif
                 {
                     Destroy(oldExternalCam.transform.parent.gameObject);
-                    SteamVR_Render.instance.externalCamera = null;
                 }
-
+                else
+                {
+                    Destroy(oldExternalCam.gameObject);
+                }
             }
-#endif
         }
 
         private void OnEnable()
@@ -321,8 +333,24 @@ namespace HTC.UnityPlugin.Vive
 
                     m_externalCamera = extCam.GetComponent<SteamVR_ExternalCamera>();
                     SteamVR_Render.instance.externalCamera = m_externalCamera;
+
+                    // resolve config file
+                    m_externalCamera.enabled = false;
                     m_externalCamera.configPath = m_configPath;
                     m_externalCamera.ReadConfig();
+                    m_externalCamera.enabled = true; // to preserve sceneResolutionScale on enabled
+
+                    // resolve RenderTexture
+                    m_externalCamera.AttachToCamera(SteamVR_Render.Top());
+                    var w = Screen.width / 2;
+                    var h = Screen.height / 2;
+                    var cam = m_externalCamera.GetComponentInChildren<Camera>();
+                    if (cam.targetTexture == null || cam.targetTexture.width != w || cam.targetTexture.height != h)
+                    {
+                        var tex = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, QualitySettings.activeColorSpace == ColorSpace.Linear ? RenderTextureReadWrite.Linear : RenderTextureReadWrite.Default);
+                        tex.antiAliasing = QualitySettings.antiAliasing == 0 ? 1 : QualitySettings.antiAliasing;
+                        cam.targetTexture = tex;
+                    }
                 }
             }
 

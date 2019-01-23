@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -191,6 +191,14 @@ namespace HTC.UnityPlugin.Vive
         {
             TriggerHapticPulseEx(role, durationMicroSec);
         }
+
+        /// <summary>
+        /// Trigger vibration of the controller identified by role
+        /// </summary>
+        public static void TriggerHapticVibration(HandRole role, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
+        {
+            TriggerHapticVibrationEx(role, durationSeconds, frequency, amplitude, startSecondsFromNow);
+        }
         #endregion origin
 
         #region general role property
@@ -325,6 +333,14 @@ namespace HTC.UnityPlugin.Vive
         public static void TriggerHapticPulse(ViveRoleProperty role, ushort durationMicroSec = 500)
         {
             TriggerHapticPulseEx(role.roleType, role.roleValue, durationMicroSec);
+        }
+
+        /// <summary>
+        /// Trigger vibration of the controller identified by role
+        /// </summary>
+        public static void TriggerHapticVibration(ViveRoleProperty role, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
+        {
+            TriggerHapticVibrationEx(role.roleType, role.roleValue, durationSeconds, frequency, amplitude, startSecondsFromNow);
         }
         #endregion
 
@@ -618,6 +634,19 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.TriggerViveControllerHaptic(ViveRole.GetDeviceIndexEx(role), durationMicroSec);
         }
+
+        /// <typeparam name="TRole">
+        /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
+        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
+        /// </typeparam>
+        /// <param name="role">
+        /// TRole can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
+        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
+        /// </param>
+        public static void TriggerHapticVibrationEx<TRole>(TRole role, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
+        {
+            VRModule.TriggerHapticVibration(ViveRole.GetDeviceIndexEx(role), durationSeconds, frequency, amplitude, startSecondsFromNow);
+        }
         #endregion extend generic
 
         #region extend property role type & value
@@ -803,6 +832,15 @@ namespace HTC.UnityPlugin.Vive
         public static void TriggerHapticPulseEx(Type roleType, int roleValue, ushort durationMicroSec = 500)
         {
             VRModule.TriggerViveControllerHaptic(ViveRole.GetDeviceIndexEx(roleType, roleValue), durationMicroSec);
+        }
+
+        /// <param name="roleType">
+        /// Can be DeviceRole, TrackerRole or any other enum type that have ViveRoleEnumAttribute.
+        /// Use ViveRole.ValidateViveRoleEnum() to validate role type
+        /// </param>
+        public static void TriggerHapticVibrationEx(Type roleType, int roleValue, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
+        {
+            VRModule.TriggerHapticVibration(ViveRole.GetDeviceIndexEx(roleType, roleValue), durationSeconds, frequency, amplitude, startSecondsFromNow);
         }
         #endregion extend general
     }

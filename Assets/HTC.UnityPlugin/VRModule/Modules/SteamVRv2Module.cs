@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 #if VIU_STEAMVR
 using HTC.UnityPlugin.Utility;
@@ -156,6 +156,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        public enum HapticStruct { Haptic }
+
         public const string ACTION_SET_NAME = "/actions/htc_viu";
 
         private static SteamVRModule s_moduleInstance;
@@ -167,6 +169,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public static ActionArray<VRModuleRawButton> touchActions { get; private set; }
         public static ActionArray<VRModuleRawAxis> v1Actions { get; private set; }
         public static ActionArray<VRModuleRawAxis> v2Actions { get; private set; }
+        public static ActionArray<HapticStruct> vibrateActions { get; private set; }
 
         private static ulong[] s_devicePathHandles;
         private static ulong s_actionSetHandle;
@@ -269,6 +272,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             v2Actions.Set(VRModuleRawAxis.Axis2X, "2xy", "Axis2 X&Y (Thumbstick)");
             v2Actions.Set(VRModuleRawAxis.Axis3X, "3xy", "Axis3 X&Y");
             v2Actions.Set(VRModuleRawAxis.Axis4X, "4xy", "Axis4 X&Y");
+
+            vibrateActions = new ActionArray<HapticStruct>("/out/viu_vib_", "vibration");
+            vibrateActions.Set(HapticStruct.Haptic, "01", "Vibration");
         }
 
         public static void InitializeHandles()
@@ -296,6 +302,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             touchActions.InitiateHandles(vrInput);
             v1Actions.InitiateHandles(vrInput);
             v2Actions.InitiateHandles(vrInput);
+            vibrateActions.InitiateHandles(vrInput);
 
             s_actionSetHandle = SafeGetActionSetHandle(vrInput, ACTION_SET_NAME);
         }
@@ -655,10 +662,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500)
         {
-            var system = OpenVR.System;
-            if (system != null)
+            TriggerHapticVibration(deviceIndex, 0.01f, 85f, Mathf.InverseLerp(0, 4000, durationMicroSec), 0f);
+        }
+
+        public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
+        {
+            var handle = GetInputSrouceHandleForDevice(deviceIndex);
+            if (handle == OpenVR.k_ulInvalidDriverHandle) { return; }
+
+            var vrInput = OpenVR.Input;
+            if (vrInput != null)
             {
-                system.TriggerHapticPulse(deviceIndex, (uint)EVRButtonId.k_EButton_SteamVR_Touchpad - (uint)EVRButtonId.k_EButton_Axis0, (char)durationMicroSec);
+                vibrateActions.Reset();
+
+                var error = vrInput.TriggerHapticVibrationAction(vibrateActions.CurrentHandle, startSecondsFromNow, durationSeconds, frequency, amplitude, handle);
+                if (error != EVRInputError.None)
+                {
+                    Debug.LogError("TriggerViveControllerHaptic failed! error=" + error);
+                }
             }
         }
 #endif

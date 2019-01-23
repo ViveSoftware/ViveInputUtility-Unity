@@ -139,6 +139,16 @@
           },
           "path": "/user/hand/right/input/grip"
         }
+      ],
+      "haptics": [
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/left/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/right/output/haptic"
+        }
       ]
     }
   }
