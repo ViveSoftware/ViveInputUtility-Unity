@@ -1,7 +1,10 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 #if VIU_STEAMVR_2_0_0_OR_NEWER
 using Valve.VR;
@@ -75,14 +78,35 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_activatedModule = VRModuleActiveEnum.Uninitialized;
             m_activatedModuleBase = null;
 
-            m_modules = new ModuleBase[EnumUtils.GetMaxValue(typeof(VRModuleActiveEnum)) + 1];
-            m_modules[(int)VRModuleActiveEnum.None] = new DefaultModule();
-            m_modules[(int)VRModuleActiveEnum.Simulator] = s_simulator;
-            m_modules[(int)VRModuleActiveEnum.UnityNativeVR] = new UnityEngineVRModule();
-            m_modules[(int)VRModuleActiveEnum.SteamVR] = new SteamVRModule();
-            m_modules[(int)VRModuleActiveEnum.OculusVR] = new OculusVRModule();
-            m_modules[(int)VRModuleActiveEnum.DayDream] = new GoogleVRModule();
-            m_modules[(int)VRModuleActiveEnum.WaveVR] = new WaveVRModule();
+            try
+            {
+                var modules = new List<ModuleBase>();
+                foreach (var type in Assembly.GetAssembly(typeof(ModuleBase)).GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(ModuleBase))))
+                {
+                    var inst = type == typeof(SimulatorVRModule) ? s_simulator : (ModuleBase)Activator.CreateInstance(type);
+                    var index = inst.moduleIndex;
+
+                    if (index < 0)
+                    {
+                        Debug.LogWarning("Invalid module index, module will not be activated! module name=" + type.Name + " index=" + index);
+                    }
+                    else if (index < modules.Count && modules[index] != null)
+                    {
+                        Debug.LogWarning("Duplicated module index, module will not be activated! module name=" + type.Name + " index=" + index);
+                    }
+                    else
+                    {
+                        while (index >= modules.Count) { modules.Add(null); }
+                        modules[index] = inst;
+                    }
+                }
+                m_modules = modules.ToArray();
+            }
+            catch (Exception e)
+            {
+                m_modules = new ModuleBase[] { new DefaultModule() };
+                Debug.LogError(e);
+            }
         }
 
         private uint GetDeviceStateLength() { return m_currStates == null ? 0u : (uint)m_currStates.Length; }
@@ -247,7 +271,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_activatedModule = module;
 
             m_activatedModuleBase = m_modules[(int)module];
-            m_activatedModuleBase.OnActivated();
+            m_activatedModuleBase.Activated();
 
 #if UNITY_2017_1_OR_NEWER
             Application.onBeforeRender += BeforeRenderUpdateModule;
@@ -324,7 +348,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var deactivatedModuleBase = m_activatedModuleBase;
             m_activatedModule = VRModuleActiveEnum.Uninitialized;
             m_activatedModuleBase = null;
-            deactivatedModuleBase.OnDeactivated();
+            deactivatedModuleBase.Deactivated();
 
             InvokeActiveModuleChangedEvent(VRModuleActiveEnum.Uninitialized);
         }

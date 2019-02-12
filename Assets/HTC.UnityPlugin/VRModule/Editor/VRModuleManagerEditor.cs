@@ -1,8 +1,10 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -16,7 +18,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         , UnityEditor.Build.IActiveBuildTargetChanged
 #endif
     {
-        private class SymbolRequirement
+        public class SymbolRequirement
         {
             public class ReqFieldInfo
             {
@@ -183,167 +185,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        public abstract class SymbolRequirementCollection : List<SymbolRequirement> { }
+
         private static List<SymbolRequirement> s_symbolReqList;
 
         static VRModuleManagerEditor()
         {
             s_symbolReqList = new List<SymbolRequirement>();
 
+            foreach (var type in Assembly.GetAssembly(typeof(SymbolRequirementCollection)).GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(SymbolRequirementCollection))))
+            {
+                s_symbolReqList.AddRange((SymbolRequirementCollection)Activator.CreateInstance(type));
+            }
+
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_PLUGIN",
                 reqTypeNames = new string[] { "HTC.UnityPlugin.Vive.ViveInput" },
                 reqFileNames = new string[] { "ViveInput.cs", "VRModuleManagerEditor.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_STEAMVR",
-                reqTypeNames = new string[] { "Valve.VR.OpenVR" },
-                reqFileNames = new string[] { "openvr_api.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_STEAMVR_1_1_1",
-                reqTypeNames = new string[] { "SteamVR_Utils+Event" },
-                reqFileNames = new string[] { "SteamVR_Utils.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_STEAMVR_1_2_0_OR_NEWER",
-                reqTypeNames = new string[] { "SteamVR_Events" },
-                reqFileNames = new string[] { "SteamVR_Events.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_STEAMVR_1_2_1_OR_NEWER",
-                reqMethods = new SymbolRequirement.ReqMethodInfo[]
-                {
-                    new SymbolRequirement.ReqMethodInfo()
-                    {
-                         typeName = "SteamVR_Events",
-                         name = "System",
-                         argTypeNames = new string[] { "Valve.VR.EVREventType" },
-                         bindingAttr = BindingFlags.Public | BindingFlags.Static,
-                    }
-                },
-                reqFileNames = new string[] { "SteamVR_Events.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_STEAMVR_1_2_2_OR_NEWER",
-                reqFields = new SymbolRequirement.ReqFieldInfo[]
-                {
-                    new SymbolRequirement.ReqFieldInfo()
-                    {
-                        typeName = "SteamVR_ExternalCamera+Config",
-                        name = "r",
-                        bindingAttr = BindingFlags.Public | BindingFlags.Instance,
-                    }
-                },
-                reqFileNames = new string[] { "SteamVR_ExternalCamera.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_STEAMVR_1_2_3_OR_NEWER",
-                reqMethods = new SymbolRequirement.ReqMethodInfo[]
-                {
-                    new SymbolRequirement.ReqMethodInfo()
-                    {
-                         typeName = "Valve.VR.CVRSystem",
-                         name = "IsInputAvailable",
-                         bindingAttr = BindingFlags.Public | BindingFlags.Instance,
-                    }
-                },
-                reqFileNames = new string[] { "openvr_api.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_STEAMVR_2_0_0_OR_NEWER",
-                reqTypeNames = new string[] { "Valve.VR.SteamVR" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_STEAMVR_2_1_0_OR_NEWER",
-                reqTypeNames = new string[] { "Valve.VR.SteamVR_ActionSet_Manager" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_OCULUSVR",
-                reqTypeNames = new string[] { "OVRInput" },
-                reqFileNames = new string[] { "OVRInput.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_GOOGLEVR",
-                reqTypeNames = new string[] { "GvrUnitySdkVersion" },
-                reqFileNames = new string[] { "GvrUnitySdkVersion.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_GOOGLEVR_1_150_0_NEWER",
-                reqTypeNames = new string[] { "GvrControllerInputDevice" },
-                reqFileNames = new string[] { "GvrControllerInputDevice.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_WAVEVR",
-                reqTypeNames = new string[] { "WaveVR" },
-                reqFileNames = new string[] { "WaveVR.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_WAVEVR_2_0_32_OR_NEWER",
-                reqMethods = new SymbolRequirement.ReqMethodInfo[]
-                {
-                    new SymbolRequirement.ReqMethodInfo()
-                    {
-                        typeName = "wvr.Interop",
-                        name = "WVR_GetInputDeviceState",
-                        argTypeNames = new string[]
-                        {
-                            "wvr.WVR_DeviceType",
-                            "System.UInt32",
-                            "System.UInt32&",
-                            "System.UInt32&",
-                            "wvr.WVR_AnalogState_t[]",
-                            "System.UInt32",
-                        },
-                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
-                    }
-                },
-                reqFileNames = new string[] { "wvr.cs" },
-            });
-
-            s_symbolReqList.Add(new SymbolRequirement()
-            {
-                symbol = "VIU_WAVEVR_2_1_0_OR_NEWER",
-                reqTypeNames = new string[] { "wvr.WVR_InputId" },
-                validateFunc = (req) =>
-                {
-                    Type wvrInputIdType;
-                    if (SymbolRequirement.s_foundTypes.TryGetValue("wvr.WVR_InputId", out wvrInputIdType) && wvrInputIdType.IsEnum)
-                    {
-                        if (Enum.IsDefined(wvrInputIdType, "WVR_InputId_Alias1_Digital_Trigger"))
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-                reqFileNames = new string[] { "wvr.cs" },
             });
 
             // Obsolete symbol, will be removed in all condition

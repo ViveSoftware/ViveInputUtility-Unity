@@ -194,33 +194,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Instance.m_activatedModuleBase.TriggerHapticVibration(deviceIndex, durationSeconds, frequency, amplitude, startSecondsFromNow);
             }
         }
-
-        public static readonly bool isSteamVRPluginDetected =
-#if VIU_STEAMVR
-            true;
-#else
-            false;
-#endif
-
-        public static readonly bool isOculusVRPluginDetected =
-#if VIU_OCULUSVR
-            true;
-#else
-            false;
-#endif
-
-        public static readonly bool isGoogleVRPluginDetected =
-#if VIU_GOOGLEVR
-            true;
-#else
-            false;
-#endif
-
-        public static readonly bool isWaveVRPluginDetected =
-#if VIU_WAVEVR
-            true;
-#else
-            false;
-#endif
     }
 }

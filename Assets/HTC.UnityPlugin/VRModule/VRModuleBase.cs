@@ -23,7 +23,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_leftRgx = new Regex("^.*(left|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_rightRgx = new Regex("^.*(right|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
 
+            public bool isActivated { get; private set; }
+
+            public abstract int moduleIndex { get; }
+
             public virtual bool ShouldActiveModule() { return false; }
+
+            public void Activated()
+            {
+                isActivated = true;
+                OnActivated();
+            }
+
+            public void Deactivated()
+            {
+                isActivated = false;
+                OnDeactivated();
+            }
 
             public virtual void OnActivated() { }
 
@@ -196,6 +212,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private sealed class DefaultModule : ModuleBase { }
+        private sealed class DefaultModule : ModuleBase
+        {
+            public override int moduleIndex { get { return (int)VRModuleActiveEnum.None; } }
+        }
     }
 }

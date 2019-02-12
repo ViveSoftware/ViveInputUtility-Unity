@@ -1,5 +1,6 @@
 //========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
 #if VIU_OCULUSVR
 using UnityEngine;
 using HTC.UnityPlugin.Utility;
@@ -14,8 +15,20 @@ using XRSettings = UnityEngine.VR.VRSettings;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
+    public partial class VRModule : SingletonBehaviour<VRModule>
+    {
+        public static readonly bool isOculusVRPluginDetected =
+#if VIU_OCULUSVR
+            true;
+#else
+            false;
+#endif
+    }
+
     public sealed class OculusVRModule : VRModule.ModuleBase
     {
+        public override int moduleIndex { get { return (int)VRModuleActiveEnum.OculusVR; } }
+
 #if VIU_OCULUSVR
         public const int VALID_NODE_COUNT = 7;
         private static readonly OVRPlugin.Node[] s_index2node;

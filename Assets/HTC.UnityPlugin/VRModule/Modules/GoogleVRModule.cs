@@ -1,9 +1,8 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
-#if VIU_GOOGLEVR && UNITY_5_6_OR_NEWER
-
-using UnityEngine;
 using HTC.UnityPlugin.Utility;
+#if VIU_GOOGLEVR && UNITY_5_6_OR_NEWER
+using UnityEngine;
 using HTC.UnityPlugin.Vive;
 
 #if UNITY_2017_2_OR_NEWER
@@ -19,8 +18,20 @@ using InputTracking = UnityEngine.VR.InputTracking;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
+    public partial class VRModule : SingletonBehaviour<VRModule>
+    {
+        public static readonly bool isGoogleVRPluginDetected =
+#if VIU_GOOGLEVR
+            true;
+#else
+            false;
+#endif
+    }
+
     public sealed class GoogleVRModule : VRModule.ModuleBase
     {
+        public override int moduleIndex { get { return (int)VRModuleActiveEnum.DayDream; } }
+
 #if VIU_GOOGLEVR && UNITY_5_6_OR_NEWER
         private const uint HEAD_INDEX = 0u;
 
