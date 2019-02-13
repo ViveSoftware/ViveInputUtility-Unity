@@ -1,9 +1,11 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
-using HTC.UnityPlugin.Vive.SteamVRExtension;
 using HTC.UnityPlugin.VRModuleManagement;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
@@ -13,6 +15,93 @@ namespace HTC.UnityPlugin.Vive
     [AddComponentMenu("HTC/VIU/Hooks/Render Model Hook", 10)]
     public class RenderModelHook : MonoBehaviour, IViveRoleComponent
     {
+        [AttributeUsage(AttributeTargets.Class)]
+        public class CreatorPriorityAttirbute : Attribute
+        {
+            public int priority { get; set; }
+            public CreatorPriorityAttirbute(int priority = 0) { this.priority = priority; }
+        }
+
+        public abstract class RenderModelCreator
+        {
+            public abstract bool shouldActive { get; }
+            protected RenderModelHook hook { get; private set; }
+
+            public void Initialize(RenderModelHook hook) { this.hook = hook; }
+            public abstract void UpdateRenderModel();
+            public abstract void CleanUpRenderModel();
+        }
+
+        [CreatorPriorityAttirbute(1)]
+        private class DefaultRenderModelCreator : RenderModelCreator
+        {
+            private VRModuleDeviceModel m_loadedModelEnum = (VRModuleDeviceModel)(-1);
+            private GameObject m_model;
+
+            public override bool shouldActive { get { return true; } }
+
+            public override void UpdateRenderModel()
+            {
+                var index = hook.GetModelDeviceIndex();
+
+                if (!VRModule.IsValidDeviceIndex(index))
+                {
+                    if (m_model != null)
+                    {
+                        m_model.SetActive(false);
+                    }
+                }
+                else
+                {
+                    var loadModelEnum = VRModuleDeviceModel.Unknown;
+                    if (hook.m_overrideModel != OverrideModelEnum.DontOverride)
+                    {
+                        loadModelEnum = (VRModuleDeviceModel)hook.m_overrideModel;
+                    }
+                    else
+                    {
+                        loadModelEnum = VRModule.GetCurrentDeviceState(index).deviceModel;
+                    }
+
+                    if (ChangeProp.Set(ref m_loadedModelEnum, loadModelEnum))
+                    {
+                        CleanUpRenderModel();
+
+                        var prefab = Resources.Load<GameObject>("Models/VIUModel" + m_loadedModelEnum.ToString());
+                        if (prefab != null)
+                        {
+                            m_model = Instantiate(prefab);
+                            m_model.transform.SetParent(hook.transform, false);
+                            m_model.gameObject.name = "VIUModel" + m_loadedModelEnum.ToString();
+
+                            if (hook.m_overrideShader != null)
+                            {
+                                var renderer = m_model.GetComponentInChildren<Renderer>();
+                                if (renderer != null)
+                                {
+                                    renderer.material.shader = hook.m_overrideShader;
+                                }
+                            }
+                        }
+                    }
+
+                    if (m_model != null)
+                    {
+                        m_model.SetActive(true);
+                    }
+                }
+            }
+
+            public override void CleanUpRenderModel()
+            {
+                if (m_model != null)
+                {
+                    Destroy(m_model);
+                    m_model = null;
+                }
+            }
+        }
+
         public enum Mode
         {
             Disable,
@@ -54,6 +143,8 @@ namespace HTC.UnityPlugin.Vive
             KnucklesRight = VRModuleDeviceModel.KnucklesRight,
             OculusGoController = VRModuleDeviceModel.OculusGoController,
             OculusGearVrController = VRModuleDeviceModel.OculusGearVrController,
+            WMRControllerLeft = VRModuleDeviceModel.WMRControllerLeft,
+            WMRControllerRight = VRModuleDeviceModel.WMRControllerRight,
         }
 
         [SerializeField]
@@ -69,10 +160,10 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private Shader m_overrideShader = null;
 
-        private uint m_currentDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
-        private VRModuleDeviceModel m_currentLoadedStaticModel;
-        private OverrideModelEnum m_currentOverrideModel;
-        private GameObject m_modelObj;
+        private static readonly Type[] s_creatorTypes;
+        private RenderModelCreator[] m_creators;
+        private int m_activeCreatorIndex = -1;
+        private int m_defaultCreatorIndex = -1;
         private bool m_isQuiting;
 
         public ViveRoleProperty viveRole { get { return m_viveRole; } }
@@ -85,6 +176,31 @@ namespace HTC.UnityPlugin.Vive
 
         public Shader overrideShader { get { return m_overrideShader; } set { m_overrideShader = value; } }
 
+        static RenderModelHook()
+        {
+            try
+            {
+                var creatorTypes = new List<Type>();
+                foreach (var type in Assembly.GetAssembly(typeof(RenderModelCreator)).GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(RenderModelCreator))))
+                {
+                    creatorTypes.Add(type);
+                }
+                s_creatorTypes = creatorTypes.OrderBy(t =>
+                {
+                    foreach (var at in t.GetCustomAttributes(typeof(CreatorPriorityAttirbute), true))
+                    {
+                        return ((CreatorPriorityAttirbute)at).priority;
+                    }
+                    return 0;
+                }).ToArray();
+            }
+            catch (Exception e)
+            {
+                s_creatorTypes = new Type[0];
+                Debug.LogError(e);
+            }
+        }
+
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -94,10 +210,24 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 #endif
+        private void Awake()
+        {
+            m_creators = new RenderModelCreator[s_creatorTypes.Length];
+            for (int i = s_creatorTypes.Length - 1; i >= 0; --i)
+            {
+                m_creators[i] = (RenderModelCreator)Activator.CreateInstance(s_creatorTypes[i]);
+                m_creators[i].Initialize(this);
+
+                if (s_creatorTypes[i] == typeof(DefaultRenderModelCreator))
+                {
+                    m_defaultCreatorIndex = i;
+                }
+            }
+        }
 
         protected virtual void OnEnable()
         {
-            VRModule.onActiveModuleChanged += UpdateModel;
+            VRModule.onActiveModuleChanged += OnActiveModuleChanged;
             m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
 
             UpdateModel();
@@ -105,18 +235,19 @@ namespace HTC.UnityPlugin.Vive
 
         protected virtual void OnDisable()
         {
-            VRModule.onActiveModuleChanged -= UpdateModel;
+            VRModule.onActiveModuleChanged -= OnActiveModuleChanged;
             m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
 
             UpdateModel();
         }
 
-        private void OnApplicationQuit()
-        {
-            m_isQuiting = true;
-        }
+        private void OnDeviceIndexChanged(uint deviceIndex) { UpdateModel(); }
 
-        private uint GetCurrentDeviceIndex()
+        private void OnActiveModuleChanged(VRModuleActiveEnum module) { UpdateModel(); }
+
+        private void OnApplicationQuit() { m_isQuiting = true; }
+
+        public uint GetModelDeviceIndex()
         {
             if (!enabled) { return VRModule.INVALID_DEVICE_INDEX; }
 
@@ -137,305 +268,43 @@ namespace HTC.UnityPlugin.Vive
             return result;
         }
 
-        private void OnDeviceIndexChanged(uint deviceIndex)
-        {
-            UpdateModel();
-        }
-
-        private void UpdateModel(VRModuleActiveEnum module) { UpdateModel(); }
-
         private void UpdateModel()
         {
             if (m_isQuiting) { return; }
 
-            var overrideModelChanged = ChangeProp.Set(ref m_currentOverrideModel, m_overrideModel);
-
-            if (m_currentOverrideModel == OverrideModelEnum.DontOverride)
+            var activeCreatorIndex = -1;
+            if (enabled)
             {
-                switch (VRModule.activeModule)
+                if (m_overrideModel == OverrideModelEnum.DontOverride)
                 {
-#if VIU_STEAMVR
-                    case VRModuleActiveEnum.SteamVR:
-                        UpdateSteamVRModel();
-                        break;
-#endif
-#if VIU_WAVEVR
-                    case VRModuleActiveEnum.WaveVR:
-                        UpdateWaveVRModel();
-                        break;
-#endif
-                    case VRModuleActiveEnum.Uninitialized:
-                        if (m_modelObj != null)
+                    for (int i = 0, imax = m_creators.Length; i < imax; ++i)
+                    {
+                        if (m_creators[i].shouldActive)
                         {
-                            m_modelObj.SetActive(false);
-                        }
-                        break;
-                    default:
-                        UpdateDefaultModel();
-                        break;
-                }
-            }
-            else
-            {
-                if (overrideModelChanged)
-                {
-                    ReloadedStaticModel((VRModuleDeviceModel)m_currentOverrideModel);
-                }
-
-                if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()) && m_modelObj != null)
-                {
-                    m_modelObj.SetActive(VRModule.IsValidDeviceIndex(m_currentDeviceIndex));
-                }
-            }
-        }
-
-        private VIUSteamVRRenderModel m_renderModel;
-
-        private void UpdateSteamVRModel()
-        {
-            if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
-            {
-                if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))
-                {
-                    if (m_modelObj != null && m_renderModel == null)
-                    {
-                        CleanUpModelObj();
-                    }
-
-                    if (m_modelObj == null)
-                    {
-                        // find SteamVR_RenderModel in child object
-                        for (int i = 0, imax = transform.childCount; i < imax; ++i)
-                        {
-                            if ((m_renderModel = GetComponentInChildren<VIUSteamVRRenderModel>()) != null)
-                            {
-                                m_modelObj = m_renderModel.gameObject;
-                                break;
-                            }
-                        }
-                        // create SteamVR_RenderModel in child object if not found
-                        if (m_renderModel == null)
-                        {
-                            m_modelObj = new GameObject("Model");
-                            m_modelObj.transform.SetParent(transform, false);
-                            m_renderModel = m_modelObj.AddComponent<VIUSteamVRRenderModel>();
-                        }
-
-                        if (m_overrideShader != null)
-                        {
-                            m_renderModel.shaderOverride = m_overrideShader;
-                        }
-                    }
-
-                    m_modelObj.SetActive(true);
-                    m_renderModel.SetDeviceIndex(m_currentDeviceIndex);
-                }
-                else
-                {
-                    if (m_modelObj != null)
-                    {
-                        m_modelObj.SetActive(false);
-                    }
-                }
-            }
-        }
-
-#if VIU_WAVEVR
-        private bool m_waveVRModelLoaded;
-        private wvr.WVR_DeviceType m_currentWaveVRHandType;
-
-        private void UpdateWaveVRModel()
-        {
-            if (!ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex())) { return; }
-
-            var hasValidModel = false;
-            var handType = default(wvr.WVR_DeviceType);
-            if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))
-            {
-                if (m_currentDeviceIndex == VRModule.GetRightControllerDeviceIndex())
-                {
-                    hasValidModel = true;
-                    handType = wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right;
-                }
-                else if (m_currentDeviceIndex == VRModule.GetLeftControllerDeviceIndex())
-                {
-                    hasValidModel = true;
-                    handType = wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left;
-                }
-            }
-
-            // NOTE: load renderModel only if it hasen't been loaded or user changes handType
-            if (hasValidModel)
-            {
-                if (m_modelObj != null)
-                {
-                    if (!m_waveVRModelLoaded)
-                    {
-                        // Clean up model that created by other module
-                        CleanUpModelObj();
-                    }
-                    else if (m_currentWaveVRHandType != handType)
-                    {
-                        // Clean up model if changed to different hand
-                        CleanUpModelObj();
-                    }
-                }
-
-                m_currentWaveVRHandType = handType;
-
-                if (!m_waveVRModelLoaded)
-                {
-                    // Create WaveVR_ControllerLoader silently (to avoid Start and OnEnable)
-                    var loaderGO = new GameObject("Loader");
-                    loaderGO.transform.SetParent(transform, false);
-                    loaderGO.SetActive(false);
-                    var loader = loaderGO.AddComponent<WaveVR_ControllerLoader>();
-                    loader.enabled = false;
-                    loader.TrackPosition = false;
-                    loader.TrackRotation = false;
-                    loader.showIndicator = false;
-                    loaderGO.SetActive(true);
-                    // Call onLoadController to create model (chould be Finch/Link/Pico/QIYIVR)
-                    switch (handType)
-                    {
-                        case wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right:
-                            loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Right;
-                            loaderGO.SendMessage("onLoadController", wvr.WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                            activeCreatorIndex = i;
                             break;
-                        case wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left:
-                            loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Left;
-                            loaderGO.SendMessage("onLoadController", wvr.WVR_DeviceType.WVR_DeviceType_Controller_Left);
-                            break;
-                    }
-
-                    // Find transform that only contains controller model (include animator, exclude PoseTracker/Beam/UIPointer)
-                    // and remove other unnecessary objects
-                    var ctrllerActions = FindWaveVRControllerActionsObjInChildren();
-                    if (ctrllerActions != null)
-                    {
-                        ctrllerActions.transform.SetParent(transform, false);
-                        ctrllerActions.transform.SetAsFirstSibling();
-                        for (int i = transform.childCount - 1; i >= 1; --i)
-                        {
-                            Destroy(transform.GetChild(i).gameObject);
-                        }
-                        ctrllerActions.gameObject.SetActive(true);
-                        m_modelObj = ctrllerActions.gameObject;
-                    }
-                    else
-                    {
-                        Debug.LogWarning("FindWaveVRControllerActionsObjInChildren failed");
-                        for (int i = transform.childCount - 1; i >= 0; --i)
-                        {
-                            Destroy(transform.GetChild(i).gameObject);
-                        }
-                    }
-
-                    m_waveVRModelLoaded = true;
-                }
-                else
-                {
-                    if (m_modelObj != null)
-                    {
-                        m_modelObj.SetActive(true);
-                    }
-                }
-            }
-            else
-            {
-                if (m_modelObj != null)
-                {
-                    m_modelObj.SetActive(false);
-                }
-            }
-        }
-
-        // FIXME: This is for finding Controller model with animator, is reliable?
-        private Transform FindWaveVRControllerActionsObjInChildren()
-        {
-            var nodes = new List<Transform>();
-            nodes.Add(transform);
-            for (int i = 0; i < nodes.Count; ++i)
-            {
-                var parent = nodes[i];
-                for (int j = 0, jmax = parent.childCount; j < jmax; ++j)
-                {
-                    var child = parent.GetChild(j);
-                    nodes.Add(child);
-                    if (child.GetComponent<WaveVR_PoseTrackerManager>() != null) { continue; }
-                    if (child.GetComponent<WaveVR_Beam>() != null) { continue; }
-                    if (child.GetComponent<WaveVR_ControllerPointer>() != null) { continue; }
-                    if (child.GetComponent<WaveVR_ControllerLoader>() != null) { continue; }
-                    return child;
-                }
-            }
-
-            return null;
-        }
-#endif
-
-        private void UpdateDefaultModel()
-        {
-            if (ChangeProp.Set(ref m_currentDeviceIndex, GetCurrentDeviceIndex()))
-            {
-                if (VRModule.IsValidDeviceIndex(m_currentDeviceIndex))
-                {
-                    if (ChangeProp.Set(ref m_currentLoadedStaticModel, VRModule.GetCurrentDeviceState(m_currentDeviceIndex).deviceModel))
-                    {
-                        ReloadedStaticModel(m_currentLoadedStaticModel);
-                    }
-                    else
-                    {
-                        if (m_modelObj != null)
-                        {
-                            m_modelObj.SetActive(true);
                         }
                     }
                 }
                 else
                 {
-                    if (m_modelObj != null)
-                    {
-                        m_modelObj.SetActive(false);
-                    }
+                    activeCreatorIndex = m_defaultCreatorIndex;
                 }
             }
-        }
 
-        private void ReloadedStaticModel(VRModuleDeviceModel model)
-        {
-            CleanUpModelObj();
-
-            var prefab = Resources.Load<GameObject>("Models/VIUModel" + model.ToString());
-            if (prefab != null)
+            if (m_activeCreatorIndex != activeCreatorIndex)
             {
-                m_modelObj = Instantiate(prefab);
-                m_modelObj.transform.SetParent(transform, false);
-                m_modelObj.gameObject.name = "VIUModel" + model.ToString();
-
-                if (m_overrideShader != null)
+                // clean up model created from previous active creator
+                if (m_activeCreatorIndex >= 0)
                 {
-                    var renderer = m_modelObj.GetComponentInChildren<Renderer>();
-                    if (renderer != null)
-                    {
-                        renderer.material.shader = m_overrideShader;
-                    }
+                    m_creators[activeCreatorIndex].CleanUpRenderModel();
                 }
+                m_activeCreatorIndex = activeCreatorIndex;
             }
-        }
 
-        public void CleanUpModelObj()
-        {
-            if (m_modelObj != null)
+            if (m_activeCreatorIndex >= 0)
             {
-#if VIU_STEAMVR
-                m_renderModel = null;
-#endif
-#if VIU_WAVEVR
-                m_waveVRModelLoaded = false;
-#endif
-                Destroy(m_modelObj);
-                m_modelObj = null;
+                m_creators[activeCreatorIndex].UpdateRenderModel();
             }
         }
     }

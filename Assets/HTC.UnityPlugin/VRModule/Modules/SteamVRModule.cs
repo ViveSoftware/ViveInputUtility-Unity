@@ -1,8 +1,9 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
-#if VIU_STEAMVR
 using HTC.UnityPlugin.Utility;
+#if VIU_STEAMVR
 using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.Vive.SteamVRExtension;
 using System.Text;
 using UnityEngine;
 using Valve.VR;
@@ -15,8 +16,83 @@ using XRSettings = UnityEngine.VR.VRSettings;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
+    public partial class VRModule : SingletonBehaviour<VRModule>
+    {
+        public static readonly bool isSteamVRPluginDetected =
+#if VIU_STEAMVR
+            true;
+#else
+            false;
+#endif
+    }
+
     public sealed partial class SteamVRModule : VRModule.ModuleBase
     {
+        public override int moduleIndex { get { return (int)VRModuleActiveEnum.SteamVR; } }
+
+#if VIU_STEAMVR
+        private class CameraCreator : VRCameraHook.CameraCreator
+        {
+            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+
+            public override void CreateCamera(VRCameraHook hook)
+            {
+                if (hook.GetComponent<SteamVR_Camera>() == null)
+                {
+                    hook.gameObject.AddComponent<SteamVR_Camera>();
+                }
+            }
+        }
+
+        private class RenderModelCreator : RenderModelHook.RenderModelCreator
+        {
+            private uint m_index = INVALID_DEVICE_INDEX;
+            private VIUSteamVRRenderModel m_model;
+
+            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+
+            public override void UpdateRenderModel()
+            {
+                if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
+
+                if (VRModule.IsValidDeviceIndex(m_index))
+                {
+                    // create object for render model
+                    if (m_model == null)
+                    {
+                        var go = new GameObject("Model");
+                        go.transform.SetParent(hook.transform, false);
+                        m_model = go.AddComponent<VIUSteamVRRenderModel>();
+                    }
+
+                    // set render model index
+                    m_model.gameObject.SetActive(true);
+                    m_model.shaderOverride = hook.overrideShader;
+                    m_model.SetDeviceIndex(m_index);
+                }
+                else
+                {
+                    // deacitvate object for render model
+                    if (m_model != null)
+                    {
+                        m_model.gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            public override void CleanUpRenderModel()
+            {
+                if (m_model != null)
+                {
+                    Object.Destroy(m_model.gameObject);
+                    m_model = null;
+                }
+            }
+        }
+
+        private static SteamVRModule s_moduleInstance;
+#endif
+
 #if VIU_STEAMVR && !VIU_STEAMVR_2_0_0_OR_NEWER
         private static readonly uint s_sizeOfControllerStats = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t));
 
@@ -58,6 +134,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SteamVR_Utils.Event.Listen("input_focus", OnInputFocusArgs);
             SteamVR_Utils.Event.Listen("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
+            s_moduleInstance = this;
         }
 
         public override void OnDeactivated()
@@ -77,6 +154,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SteamVR_Utils.Event.Remove("input_focus", OnInputFocusArgs);
             SteamVR_Utils.Event.Remove("TrackedDeviceRoleChanged", OnTrackedDeviceRoleChangedArgs);
 #endif
+            s_moduleInstance = null;
         }
 
         public override void Update()

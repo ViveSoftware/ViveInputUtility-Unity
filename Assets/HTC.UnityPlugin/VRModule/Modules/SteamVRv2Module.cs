@@ -160,8 +160,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public const string ACTION_SET_NAME = "/actions/htc_viu";
 
-        private static SteamVRModule s_moduleInstance;
-
         private static bool s_pathInitialized;
         private static bool s_actionInitialized;
 
@@ -285,7 +283,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             InitializePaths();
 
             SteamVR.Initialize();
-#if VIU_STEAMVR_2_1_0_OR_NEWER
+#if VIU_STEAMVR_2_2_0_OR_NEWER
+            SteamVR_ActionSet_Manager.UpdateActionStates();
+#elif VIU_STEAMVR_2_1_0_OR_NEWER
             SteamVR_ActionSet_Manager.UpdateActionSetsState();
 #else
             SteamVR_ActionSet.UpdateActionSetsState();
@@ -378,8 +378,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             m_activeActionSets = new VRActiveActionSet_t[1] { new VRActiveActionSet_t() { ulActionSet = s_actionSetHandle, } };
 
+#if VIU_STEAMVR_2_2_0_OR_NEWER
+            SteamVR_Input.onNonVisualActionsUpdated += UpdateDeviceInput;
+            SteamVR_Input.onPosesUpdated += UpdateDevicePose;
+#else
             SteamVR_Input.OnNonVisualActionsUpdated += UpdateDeviceInput;
             SteamVR_Input.OnPosesUpdated += UpdateDevicePose;
+#endif
 
             s_devicePathHandles = new ulong[OpenVR.k_unMaxTrackedDeviceCount];
             EnsureDeviceStateLength(OpenVR.k_unMaxTrackedDeviceCount);
@@ -400,8 +405,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
 
+#if VIU_STEAMVR_2_2_0_OR_NEWER
+            SteamVR_Input.onNonVisualActionsUpdated -= UpdateDeviceInput;
+            SteamVR_Input.onPosesUpdated -= UpdateDevicePose;
+#else
             SteamVR_Input.OnNonVisualActionsUpdated -= UpdateDeviceInput;
             SteamVR_Input.OnPosesUpdated -= UpdateDevicePose;
+#endif
 
             trackingSpace = m_prevTrackingSpace;
 

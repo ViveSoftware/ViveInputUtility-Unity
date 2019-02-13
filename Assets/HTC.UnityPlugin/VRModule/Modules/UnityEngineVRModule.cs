@@ -85,6 +85,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static int GetUnityAxisIdByIndex(int index) { return index + 1; }
 #endif
+
+        public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityNativeVR; } }
+
         public override bool ShouldActiveModule() { return VIUSettings.activateUnityNativeVRModule && XRSettings.enabled; }
 
         public override void Update()
