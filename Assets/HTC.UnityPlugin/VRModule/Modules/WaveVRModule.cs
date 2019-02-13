@@ -194,8 +194,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static readonly VRModuleDeviceModel[] s_type2model;
 
         //private bool m_hasInputFocus;
-        private WVR_DevicePosePair_t[] m_poses;
-        private WaveVR_Utils.RigidTransform[] m_posesRT;
         private readonly bool[] m_index2deviceTouched = new bool[DEVICE_COUNT];
         private IVRModuleDeviceStateRW m_headState;
         private IVRModuleDeviceStateRW m_rightState;
@@ -318,21 +316,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 var deviceType = s_index2type[deviceIndex];
                 var deviceInput = WaveVR_Controller.Input(deviceType);
-                if (deviceInput == null)
+                if (deviceInput != null)
                 {
                     var systemPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_System);
                     var menuPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Menu);
                     var triggerPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Trigger);
                     var digitalTriggerPressed = deviceInput.GetPress(digitalTrggerBumpID);
                     var gripPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Grip);
+                    var touchpadPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Touchpad);
                     var dpadLeftPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Left);
                     var dpadUpPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Up);
                     var dpadRightPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Right);
                     var dpadDownPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Down);
                     currState.SetButtonPress(VRModuleRawButton.System, systemPressed);
                     currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPressed);
-                    currState.SetButtonPress(VRModuleRawButton.Touchpad, dpadLeftPressed || dpadUpPressed || dpadRightPressed || dpadDownPressed);
-                    currState.SetButtonPress(VRModuleRawButton.Trigger, triggerPressed | digitalTriggerPressed);
+                    currState.SetButtonPress(VRModuleRawButton.Touchpad, touchpadPressed || dpadLeftPressed || dpadUpPressed || dpadRightPressed || dpadDownPressed);
+                    currState.SetButtonPress(VRModuleRawButton.Trigger, triggerPressed || digitalTriggerPressed);
                     currState.SetButtonPress(VRModuleRawButton.Grip, gripPressed);
                     currState.SetButtonPress(VRModuleRawButton.DPadLeft, dpadLeftPressed);
                     currState.SetButtonPress(VRModuleRawButton.DPadUp, dpadUpPressed);
@@ -344,14 +343,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     var triggerTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Trigger);
                     var digitalTriggerTouched = deviceInput.GetTouch(digitalTrggerBumpID);
                     var gripTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Grip);
+                    var touchpadTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Touchpad);
                     var dpadLeftTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Left);
                     var dpadUpTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Up);
                     var dpadRightTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Right);
                     var dpadDownTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Down);
                     currState.SetButtonTouch(VRModuleRawButton.System, systemTouched);
                     currState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, menuTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.Touchpad, dpadLeftTouched || dpadUpTouched || dpadRightTouched || dpadDownTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouched | digitalTriggerTouched);
+                    currState.SetButtonTouch(VRModuleRawButton.Touchpad, touchpadTouched || dpadLeftTouched || dpadUpTouched || dpadRightTouched || dpadDownTouched);
+                    currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouched || digitalTriggerTouched);
                     currState.SetButtonTouch(VRModuleRawButton.Grip, gripTouched);
                     currState.SetButtonTouch(VRModuleRawButton.DPadLeft, dpadLeftTouched);
                     currState.SetButtonTouch(VRModuleRawButton.DPadUp, dpadUpTouched);
@@ -379,15 +379,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (WaveVR.Instance == null) { return; }
 
-            m_poses = (WVR_DevicePosePair_t[])args[0];
-            m_posesRT = (WaveVR_Utils.RigidTransform[])args[1];
+            var poses = (WVR_DevicePosePair_t[])args[0];
+            var posesRT = (WaveVR_Utils.RigidTransform[])args[1];
 
             FlushDeviceState();
 
-            for (int i = 0, imax = m_poses.Length; i < imax; ++i)
+            for (int i = 0, imax = poses.Length; i < imax; ++i)
             {
                 uint deviceIndex;
-                var deviceType = m_poses[i].type;
+                var deviceType = poses[i].type;
                 if (!TryGetAndTouchDeviceIndexByType(deviceType, out deviceIndex)) { continue; }
 
                 IVRModuleDeviceState prevState;
@@ -434,11 +434,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
 
                     // update pose
-                    var devicePose = m_poses[i].pose;
+                    var devicePose = poses[i].pose;
                     currState.velocity = new Vector3(devicePose.Velocity.v0, devicePose.Velocity.v1, -devicePose.Velocity.v2);
                     currState.angularVelocity = new Vector3(-devicePose.AngularVelocity.v0, -devicePose.AngularVelocity.v1, devicePose.AngularVelocity.v2);
 
-                    var rigidTransform = m_posesRT[i];
+                    var rigidTransform = posesRT[i];
                     currState.position = rigidTransform.pos;
                     currState.rotation = rigidTransform.rot;
 
@@ -531,9 +531,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (!ctrlState.isConnected) { return; }
             if (!VIUSettings.waveVRAddVirtualArmTo3DoFController && !VIUSettings.simulateWaveVR6DofController) { return; }
-            if (ctrlState.position != Vector3.zero) { return; }
 
             var deviceType = (int)s_index2type[ctrlState.deviceIndex];
+#if VIU_WAVEVR_2_1_0_OR_NEWER && UNITY_EDITOR
+            if (!WaveVR.Instance.isSimulatorOn || WaveVR_Utils.WVR_GetDegreeOfFreedom_S() == (int)WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
+#else
+            if (Interop.WVR_GetDegreeOfFreedom((WVR_DeviceType)deviceType) == WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
+#endif
+
             if (VIUSettings.simulateWaveVR6DofController)
             {
                 if (Input.GetKeyDown(KeyCode.Alpha1)) { s_simulationMode = Simulate6DoFControllerMode.KeyboardWASD; }

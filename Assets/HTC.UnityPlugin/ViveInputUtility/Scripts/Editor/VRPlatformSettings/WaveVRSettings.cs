@@ -160,7 +160,21 @@ namespace HTC.UnityPlugin.Vive
                 {
                     EditorGUI.indentLevel += 2;
 
+#if VIU_WAVEVR_2_1_0_OR_NEWER
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.HelpBox("WaveVR Simulator will be activated in Editor Mode.", MessageType.Info);
+
+                    s_warningHeight = Mathf.Max(s_warningHeight, GUILayoutUtility.GetLastRect().height);
+                    GUILayout.BeginVertical(GUILayout.Height(s_warningHeight));
+                    GUILayout.FlexibleSpace();
+                    ShowUrlLinkButton("https://hub.vive.com/storage/app/doc/en-us/Simulator.html", "Usage");
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndVertical();
+
+                    EditorGUILayout.EndHorizontal();
+#else
                     EditorGUILayout.HelpBox("WaveVR device not supported in Editor Mode. Please run on target device.", MessageType.Info);
+#endif
 
                     EditorGUI.indentLevel -= 2;
                 }
