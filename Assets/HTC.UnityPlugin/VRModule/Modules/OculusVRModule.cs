@@ -3,7 +3,6 @@
 using HTC.UnityPlugin.Utility;
 #if VIU_OCULUSVR
 using UnityEngine;
-using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
@@ -163,7 +162,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     // FIXME: how to get device id from OVRPlugin?
                     currState.modelNumber = ovrProductName + " " + deviceClass;
                     currState.renderModelName = ovrProductName + " " + deviceClass;
-                    currState.serialNumber = ovrProductName + " " + deviceClass;
+                    currState.serialNumber = ovrProductName + " " + node;
 
                     switch (deviceClass)
                     {
