@@ -10,6 +10,9 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 #if UNITY_5_4_OR_NEWER
 using UnityEditor.Rendering;
+using UnityEngine.Networking;
+#else
+using UnityWebRequest = UnityEngine.WWW;
 #endif
 using UnityEditorInternal;
 using UnityEngine;
@@ -233,9 +236,9 @@ namespace HTC.UnityPlugin.Vive
         private static SerializedObject qualitySettingsAsset;
 
         private static bool completeCheckVersionFlow = false;
-        private static WWW www;
+        private static UnityWebRequest webReq;
         private static RepoInfo latestRepoInfo;
-        private static Version latestVersion;
+        private static System.Version latestVersion;
         private static Vector2 releaseNoteScrollPosition;
         private static Vector2 settingScrollPosition;
         private static bool showNewVersion;
@@ -904,7 +907,7 @@ namespace HTC.UnityPlugin.Vive
 #endif
         }
 
-        private static void WrightVersionCheckLog(string msg)
+        private static void VersionCheckLog(string msg)
         {
 #if VIU_PRINT_FETCH_VERSION_LOG
             using (var outputFile = new StreamWriter("VIUVersionCheck.log", true))
@@ -928,19 +931,19 @@ namespace HTC.UnityPlugin.Vive
             // fetch new version info from github release site
             if (!completeCheckVersionFlow && VIUSettings.autoCheckNewVIUVersion)
             {
-                if (www == null) // web request not running
+                if (webReq == null) // web request not running
                 {
                     if (EditorPrefs.HasKey(nextVersionCheckTimeKey) && DateTime.UtcNow < UtcDateTimeFromStr(EditorPrefs.GetString(nextVersionCheckTimeKey)))
                     {
-                        WrightVersionCheckLog("Skipped");
+                        VersionCheckLog("Skipped");
                         completeCheckVersionFlow = true;
                         return;
                     }
 
-                    www = new WWW(lastestVersionUrl);
+                    webReq = new UnityWebRequest(lastestVersionUrl);
                 }
 
-                if (!www.isDone)
+                if (!webReq.isDone)
                 {
                     return;
                 }
@@ -948,10 +951,10 @@ namespace HTC.UnityPlugin.Vive
                 // On Windows, PlaterSetting is stored at \HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x
                 EditorPrefs.SetString(nextVersionCheckTimeKey, UtcDateTimeToStr(DateTime.UtcNow.AddMinutes(versionCheckIntervalMinutes)));
 
-                if (UrlSuccess(www))
+                if (UrlSuccess(webReq))
                 {
-                    latestRepoInfo = JsonUtility.FromJson<RepoInfo>(www.text);
-                    WrightVersionCheckLog("Fetched");
+                    latestRepoInfo = JsonUtility.FromJson<RepoInfo>(GetWebText(webReq));
+                    VersionCheckLog("Fetched");
                 }
 
                 // parse latestVersion and ignoreThisVersionKey
@@ -959,18 +962,18 @@ namespace HTC.UnityPlugin.Vive
                 {
                     try
                     {
-                        latestVersion = new Version(Regex.Replace(latestRepoInfo.tag_name, "[^0-9\\.]", string.Empty));
+                        latestVersion = new System.Version(Regex.Replace(latestRepoInfo.tag_name, "[^0-9\\.]", string.Empty));
                         ignoreThisVersionKey = string.Format(fmtIgnoreUpdateKey, latestVersion.ToString());
                     }
                     catch
                     {
-                        latestVersion = default(Version);
+                        latestVersion = default(System.Version);
                         ignoreThisVersionKey = string.Empty;
                     }
                 }
 
-                www.Dispose();
-                www = null;
+                webReq.Dispose();
+                webReq = null;
 
                 completeCheckVersionFlow = true;
             }
@@ -1051,50 +1054,67 @@ namespace HTC.UnityPlugin.Vive
             return utcDateTime.Ticks.ToString();
         }
 
-        private static bool UrlSuccess(WWW www)
+        private static string GetWebText(UnityWebRequest wr)
+        {
+#if UNITY_5_4_OR_NEWER
+            return wr.downloadHandler.text;
+#else
+            return wr.text;
+#endif
+        }
+
+        private static bool TryGetWebHeaderValue(UnityWebRequest wr, string headerKey, out string headerValue)
+        {
+#if UNITY_5_4_OR_NEWER
+            headerValue = wr.GetResponseHeader(headerKey);
+            return string.IsNullOrEmpty(headerValue);
+#else
+            if (wr.responseHeaders == null) { headerValue = string.Empty; return false; }
+            return wr.responseHeaders.TryGetValue(headerKey, out headerValue);
+#endif
+        }
+
+        private static bool UrlSuccess(UnityWebRequest wr)
         {
             try
             {
-                if (!string.IsNullOrEmpty(www.error))
+                if (!string.IsNullOrEmpty(wr.error))
                 {
                     // API rate limit exceeded, see https://developer.github.com/v3/#rate-limiting
-                    Debug.Log("url:" + www.url);
-                    Debug.Log("error:" + www.error);
-                    Debug.Log(www.text);
+                    Debug.Log("url:" + wr.url);
+                    Debug.Log("error:" + wr.error);
+                    Debug.Log(GetWebText(wr));
 
-                    if (www.responseHeaders != null)
+                    string responseHeader;
+                    if (TryGetWebHeaderValue(wr, "X-RateLimit-Limit", out responseHeader))
                     {
-                        string responseHeader;
-                        if (www.responseHeaders.TryGetValue("X-RateLimit-Limit", out responseHeader))
-                        {
-                            Debug.Log("X-RateLimit-Limit:" + responseHeader);
-                        }
-                        if (www.responseHeaders.TryGetValue("X-RateLimit-Remaining", out responseHeader))
-                        {
-                            Debug.Log("X-RateLimit-Remaining:" + responseHeader);
-                        }
-                        if (www.responseHeaders.TryGetValue("X-RateLimit-Reset", out responseHeader))
-                        {
-                            Debug.Log("X-RateLimit-Reset:" + TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(double.Parse(responseHeader))).ToString());
-                        }
+                        Debug.Log("X-RateLimit-Limit:" + responseHeader);
                     }
-                    WrightVersionCheckLog("Failed. Rate limit exceeded");
+                    if (TryGetWebHeaderValue(wr, "X-RateLimit-Remaining", out responseHeader))
+                    {
+                        Debug.Log("X-RateLimit-Remaining:" + responseHeader);
+                    }
+                    if (TryGetWebHeaderValue(wr, "X-RateLimit-Reset", out responseHeader))
+                    {
+                        Debug.Log("X-RateLimit-Reset:" + TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(double.Parse(responseHeader))).ToString());
+                    }
+                    VersionCheckLog("Failed. Rate limit exceeded");
                     return false;
                 }
 
-                if (Regex.IsMatch(www.text, "404 not found", RegexOptions.IgnoreCase))
+                if (Regex.IsMatch(GetWebText(wr), "404 not found", RegexOptions.IgnoreCase))
                 {
-                    Debug.Log("url:" + www.url);
-                    Debug.Log("error:" + www.error);
-                    Debug.Log(www.text);
-                    WrightVersionCheckLog("Failed. 404 not found");
+                    Debug.Log("url:" + wr.url);
+                    Debug.Log("error:" + wr.error);
+                    Debug.Log(GetWebText(wr));
+                    VersionCheckLog("Failed. 404 not found");
                     return false;
                 }
             }
             catch (Exception e)
             {
                 Debug.LogWarning(e);
-                WrightVersionCheckLog("Failed. " + e.ToString());
+                VersionCheckLog("Failed. " + e.ToString());
                 return false;
             }
 
