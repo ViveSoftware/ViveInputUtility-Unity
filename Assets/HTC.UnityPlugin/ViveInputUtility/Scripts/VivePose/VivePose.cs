@@ -21,7 +21,7 @@ namespace HTC.UnityPlugin.Vive
         private static IndexedSet<INewPoseListener> s_listeners = new IndexedSet<INewPoseListener>();
 
         [SerializeField]
-        private bool m_dontDestroyOnLoad = true;
+        private bool m_dontDestroyOnLoad = false;
 
         static VivePose()
         {

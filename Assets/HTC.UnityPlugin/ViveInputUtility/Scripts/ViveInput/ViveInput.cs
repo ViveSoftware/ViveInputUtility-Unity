@@ -153,7 +153,7 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private float m_clickInterval = 0.3f;
         [SerializeField]
-        private bool m_dontDestroyOnLoad = true;
+        private bool m_dontDestroyOnLoad = false;
         [SerializeField]
         private UnityEvent m_onUpdate = new UnityEvent();
 

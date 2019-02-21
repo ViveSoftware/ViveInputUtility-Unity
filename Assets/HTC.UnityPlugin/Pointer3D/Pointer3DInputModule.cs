@@ -113,11 +113,6 @@ namespace HTC.UnityPlugin.Pointer3D
 
                 instance = eventSystem.gameObject.AddComponent<Pointer3DInputModule>();
             }
-
-            if (Active)
-            {
-                DontDestroyOnLoad(instance.gameObject);
-            }
         }
 
         public static void AssignPointerId(Pointer3DEventData eventData)
