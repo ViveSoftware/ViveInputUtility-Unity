@@ -178,6 +178,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             {
                                 case OVRPlugin.SystemHeadset.Oculus_Go:
                                     currState.deviceModel = VRModuleDeviceModel.OculusGoController;
+                                    currState.input2DType = VRModuleInput2DType.TouchpadOnly;
                                     break;
                                 
                                 case OVRPlugin.SystemHeadset.GearVR_R320:
@@ -187,6 +188,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 case OVRPlugin.SystemHeadset.GearVR_R324:
                                 case OVRPlugin.SystemHeadset.GearVR_R325:
                                     currState.deviceModel = VRModuleDeviceModel.OculusGearVrController;
+                                    currState.input2DType = VRModuleInput2DType.TouchpadOnly;
                                     break;
                                 
                                 case OVRPlugin.SystemHeadset.Rift_DK1:
@@ -203,6 +205,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                             currState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
                                             break;
                                     }
+                                    currState.input2DType = VRModuleInput2DType.JoystickOnly;
                                     break;
                             }
                             break;

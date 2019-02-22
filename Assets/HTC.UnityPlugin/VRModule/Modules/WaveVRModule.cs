@@ -427,9 +427,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                         switch (deviceType)
                         {
-                            case WVR_DeviceType.WVR_DeviceType_HMD: m_headState = currState; break;
-                            case WVR_DeviceType.WVR_DeviceType_Controller_Right: m_rightState = currState; break;
-                            case WVR_DeviceType.WVR_DeviceType_Controller_Left: m_leftState = currState; break;
+                            case WVR_DeviceType.WVR_DeviceType_HMD:
+                                m_headState = currState;
+                                break;
+                            case WVR_DeviceType.WVR_DeviceType_Controller_Right:
+                                currState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                                m_rightState = currState;
+                                break;
+                            case WVR_DeviceType.WVR_DeviceType_Controller_Left:
+                                currState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                                m_leftState = currState;
+                                break;
                         }
                     }
 

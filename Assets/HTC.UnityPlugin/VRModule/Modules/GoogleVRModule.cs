@@ -157,6 +157,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     currState.modelNumber = XRDevice.model + " Controller Right";
                     currState.deviceModel = VRModuleDeviceModel.DaydreamController;
                     currState.renderModelName = string.Empty;
+                    currState.input2DType = VRModuleInput2DType.TouchpadOnly;
                     m_rightIndex = RIGHT_HAND_INDEX;
                 }
             }
@@ -180,6 +181,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     currState.modelNumber = XRDevice.model + " Controller Left";
                     currState.deviceModel = VRModuleDeviceModel.DaydreamController;
                     currState.renderModelName = string.Empty;
+                    currState.input2DType = VRModuleInput2DType.TouchpadOnly;
                     m_leftIndex = RIGHT_HAND_INDEX;
                 }
             }

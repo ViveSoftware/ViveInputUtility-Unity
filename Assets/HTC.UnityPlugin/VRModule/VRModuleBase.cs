@@ -122,6 +122,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             return;
                         case VRModuleDeviceClass.Controller:
                             deviceState.deviceModel = VRModuleDeviceModel.ViveController;
+                            deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
                             return;
                         case VRModuleDeviceClass.GenericTracker:
                             deviceState.deviceModel = VRModuleDeviceModel.ViveTracker;
@@ -142,11 +143,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             if (s_leftRgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
+                                deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
                                 return;
                             }
                             else if (s_rightRgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
+                                deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
                                 return;
                             }
                             break;
@@ -166,11 +169,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             if (s_leftRgx.IsMatch(deviceState.modelNumber) && VRModule.GetLeftControllerDeviceIndex() == deviceState.deviceIndex)
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.WMRControllerLeft;
+                                deviceState.input2DType = VRModuleInput2DType.Both;
                                 return;
                             }
                             else if (s_rightRgx.IsMatch(deviceState.modelNumber) && VRModule.GetRightControllerDeviceIndex() == deviceState.deviceIndex)
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.WMRControllerRight;
+                                deviceState.input2DType = VRModuleInput2DType.Both;
                                 return;
                             }
                             break;
@@ -181,11 +186,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (s_leftRgx.IsMatch(deviceState.renderModelName))
                     {
                         deviceState.deviceModel = VRModuleDeviceModel.KnucklesLeft;
+                        deviceState.input2DType = VRModuleInput2DType.TrackpadOnly;
                         return;
                     }
                     else if (s_rightRgx.IsMatch(deviceState.renderModelName))
                     {
                         deviceState.deviceModel = VRModuleDeviceModel.KnucklesRight;
+                        deviceState.input2DType = VRModuleInput2DType.TrackpadOnly;
                         return;
                     }
                 }
@@ -198,6 +205,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             return;
                         case VRModuleDeviceClass.Controller:
                             deviceState.deviceModel = VRModuleDeviceModel.DaydreamController;
+                            deviceState.input2DType = VRModuleInput2DType.TrackpadOnly;
                             return;
                     }
                 }
