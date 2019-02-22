@@ -213,7 +213,7 @@ namespace HTC.UnityPlugin.Vive
                 // update hair trigger
                 var currTriggerValue = currAxisValue[(int)ControllerAxis.Trigger];
 
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.FullTrigger, currTriggerValue == 1f);
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.FullTrigger, currTriggerValue >= 0.99f);
 
                 if (EnumUtils.GetFlag(prevButtonPressed, (int)ControllerButton.HairTrigger))
                 {

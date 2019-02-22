@@ -42,7 +42,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public string altPositiveButton = string.Empty;
             public float gravity = 0.0f;
             public float dead = 0.001f;
-            public float sensitivity = 1.0f;
+            public float sensitivity = 5.0f;
             public bool snap = false;
             public bool invert = false;
             public int type = 2;

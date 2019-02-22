@@ -156,6 +156,60 @@
           },
           "mode": "button",
           "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/htc_viu/in/viu_axis_2x"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/htc_viu/in/viu_axis_2x"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_34"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_touch_34"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_34"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_touch_34"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
         }
       ],
       "haptics": [
