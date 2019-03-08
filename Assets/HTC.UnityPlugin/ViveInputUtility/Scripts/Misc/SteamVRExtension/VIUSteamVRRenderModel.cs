@@ -343,7 +343,7 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
         {
             componentState = default(RenderModel_ComponentState_t);
             var modeState = default(RenderModel_ControllerMode_State_t);
-            return vrRenderModels.GetComponentStateForDevicePath(loadedModelName, componentName, SteamVRModule.GetInputSrouceHandleForDevice(m_deviceIndex), ref modeState, ref componentState);
+            return vrRenderModels.GetComponentStateForDevicePath(loadedModelName, componentName, SteamVRModule.GetInputSourceHandleForDevice(m_deviceIndex), ref modeState, ref componentState);
         }
 #elif VIU_STEAMVR
         private static readonly uint s_sizeOfControllerStats = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t));

@@ -341,7 +341,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        public static ulong GetInputSrouceHandleForDevice(uint deviceIndex)
+        public static ulong GetInputSourceHandleForDevice(uint deviceIndex)
         {
             if (s_devicePathHandles == null || deviceIndex >= s_devicePathHandles.Length)
             {
@@ -445,6 +445,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     Debug.LogError("UpdateActionState failed! " + ACTION_SET_NAME + " error=" + error);
                 }
+
+                m_originDataCache.Clear();
 
                 for (pressActions.Reset(); pressActions.IsCurrentValid(); pressActions.MoveNext())
                 {
@@ -636,7 +638,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private void OnTrackedDeviceRoleChanged(VREvent_t arg)
         {
             InvokeControllerRoleChangedEvent();
-            m_originDataCache.Clear();
         }
 
         public override uint GetLeftControllerDeviceIndex()
@@ -677,7 +678,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
         {
-            var handle = GetInputSrouceHandleForDevice(deviceIndex);
+            var handle = GetInputSourceHandleForDevice(deviceIndex);
             if (handle == OpenVR.k_ulInvalidDriverHandle) { return; }
 
             var vrInput = OpenVR.Input;
