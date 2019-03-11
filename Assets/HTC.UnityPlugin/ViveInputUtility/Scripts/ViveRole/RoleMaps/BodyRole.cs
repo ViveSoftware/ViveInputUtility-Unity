@@ -57,7 +57,9 @@ namespace HTC.UnityPlugin.Vive
 
             UnmappingAll();
 
-            MappingRoleIfUnbound(BodyRole.Head, 0u);
+            if (!VRModule.IsValidDeviceIndex(VRModule.HMD_DEVICE_INDEX)) { return; }
+
+            MappingRoleIfUnbound(BodyRole.Head, VRModule.HMD_DEVICE_INDEX);
 
             // get related poses and record controller/tracker devices
             var hmdPose = VivePose.GetPose(0u);
