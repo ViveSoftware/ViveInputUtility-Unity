@@ -22,6 +22,9 @@ public class ReticlePoser : MonoBehaviour
     public Material defaultReticleMaterial;
     public MeshRenderer[] reticleRenderer;
 
+    public bool autoScaleReticle = false;
+    public int sizeInPixels = 50;
+
     private Material m_matFromChanger;
 #if UNITY_EDITOR
     protected virtual void Reset()
@@ -59,6 +62,16 @@ public class ReticlePoser : MonoBehaviour
             {
                 targetReticle.position = result.worldPosition;
                 targetReticle.rotation = Quaternion.LookRotation(result.worldNormal, raycaster.transform.forward);
+                if (autoScaleReticle)
+                {
+                    // Set the reticle size based on sizeInPixels, references:
+                    // https://answers.unity.com/questions/268611/with-a-perspective-camera-distance-independent-siz.html
+                    Vector3 a = Camera.main.WorldToScreenPoint(targetReticle.position);
+                    Vector3 b = new Vector3(a.x, a.y + sizeInPixels, a.z);
+                    Vector3 aa = Camera.main.ScreenToWorldPoint(a);
+                    Vector3 bb = Camera.main.ScreenToWorldPoint(b);
+                    targetReticle.localScale = Vector3.one * (aa - bb).magnitude;
+                }
             }
 
             hitTarget = result.gameObject;
