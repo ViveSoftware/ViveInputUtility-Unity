@@ -16,6 +16,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             protected const uint INVALID_DEVICE_INDEX = VRModule.INVALID_DEVICE_INDEX;
 
             private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knuckles).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
@@ -121,8 +122,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.ViveHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            deviceState.deviceModel = VRModuleDeviceModel.ViveController;
-                            deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                            if (s_viveCosmosRgx.IsMatch(deviceState.modelNumber))
+                            {
+                                if (s_leftRgx.IsMatch(deviceState.renderModelName))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.ViveCosmosControllerLeft;
+                                }
+                                else if (s_rightRgx.IsMatch(deviceState.renderModelName))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.ViveCosmosControllerRight;
+                                }
+                                deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                            }
+                            else
+                            {
+                                deviceState.deviceModel = VRModuleDeviceModel.ViveController;
+                                deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                            }
                             return;
                         case VRModuleDeviceClass.GenericTracker:
                             deviceState.deviceModel = VRModuleDeviceModel.ViveTracker;

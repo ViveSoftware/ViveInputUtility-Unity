@@ -37,6 +37,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         WMRHMD,
         WMRControllerLeft,
         WMRControllerRight,
+        ViveCosmosControllerLeft,
+        ViveCosmosControllerRight,
     }
 
     public enum VRModuleRawButton
