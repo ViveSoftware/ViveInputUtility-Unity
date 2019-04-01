@@ -375,7 +375,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessDeviceInputChanged();
         }
 
-        public void OnNewPoses(params object[] args)
+        private void OnNewPoses(params object[] args)
         {
             if (WaveVR.Instance == null) { return; }
 

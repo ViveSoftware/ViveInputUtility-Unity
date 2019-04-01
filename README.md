@@ -1,5 +1,5 @@
 # VIVE Input Utility for Unity
-Copyright 2016-2018, HTC Corporation. All rights reserved.
+Copyright 2016-2019, HTC Corporation. All rights reserved.
 
 ## About
 
