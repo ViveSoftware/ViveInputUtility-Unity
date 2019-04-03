@@ -79,7 +79,7 @@ namespace HTC.UnityPlugin.Vive
 
                 if (SteamVR_Input.actionFile != null)
                 {
-                    GetWindow<SteamVR_Input_EditorWindow>(false, "SteamVR Input", true).Close();
+                    EditorWindow.GetWindow<SteamVR_Input_EditorWindow>(false, "SteamVR Input", true).Close();
                 }
 
                 if (!VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return; }
@@ -111,7 +111,7 @@ namespace HTC.UnityPlugin.Vive
 
                 EditorApplication.delayCall += () =>
                 {
-                    GetWindow<SteamVR_Input_EditorWindow>(false, "SteamVR Input", true);
+                    EditorWindow.GetWindow<SteamVR_Input_EditorWindow>(false, "SteamVR Input", true);
                     SteamVR_Input_Generator.BeginGeneration();
                 };
             }
