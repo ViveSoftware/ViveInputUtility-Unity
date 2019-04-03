@@ -7,6 +7,21 @@ using UnityEngine.Rendering;
 
 namespace HTC.UnityPlugin.Vive
 {
+    public class DaydreamRecommendedSettings : VIUVersionCheck.RecommendedSettingCollection
+    {
+        public DaydreamRecommendedSettings()
+        {
+            Add(new VIUVersionCheck.RecommendedSetting<bool>()
+            {
+                settingTitle = "Virtual Reality Supported with Daydream",
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportDaydream,
+                currentValueFunc = () => VIUSettingsEditor.supportDaydream,
+                setValueFunc = v => VIUSettingsEditor.supportDaydream = v,
+                recommendedValue = true,
+            });
+        }
+    }
+
     public static partial class VIUSettingsEditor
     {
         public static bool canSupportDaydream

@@ -7,6 +7,46 @@ using UnityEngine.Rendering;
 
 namespace HTC.UnityPlugin.Vive
 {
+    public class WaveVRRecommendedSettings : VIUVersionCheck.RecommendedSettingCollection
+    {
+        public WaveVRRecommendedSettings()
+        {
+            Add(new VIUVersionCheck.RecommendedSetting<UIOrientation>()
+            {
+                settingTitle = "Default Interface Orientation",
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR,
+                currentValueFunc = () => PlayerSettings.defaultInterfaceOrientation,
+                setValueFunc = v => PlayerSettings.defaultInterfaceOrientation = v,
+                recommendedValue = UIOrientation.LandscapeLeft,
+            });
+
+            Add(new VIUVersionCheck.RecommendedSetting<bool>()
+            {
+                settingTitle = "Multithreaded Rendering",
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR,
+#if UNITY_2017_2_OR_NEWER
+                currentValueFunc = () => PlayerSettings.GetMobileMTRendering(BuildTargetGroup.Android),
+                setValueFunc = v => PlayerSettings.SetMobileMTRendering(BuildTargetGroup.Android, v),
+#else
+                currentValueFunc = () => PlayerSettings.mobileMTRendering,
+                setValueFunc = v => PlayerSettings.mobileMTRendering = v,
+#endif
+                recommendedValue = true,
+            });
+
+#if UNITY_5_4_OR_NEWER
+            Add(new VIUVersionCheck.RecommendedSetting<bool>()
+            {
+                settingTitle = "Graphic Jobs",
+                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR,
+                currentValueFunc = () => PlayerSettings.graphicsJobs,
+                setValueFunc = v => PlayerSettings.graphicsJobs = v,
+                recommendedValue = true,
+            });
+#endif
+        }
+    }
+
     public static partial class VIUSettingsEditor
     {
         public static bool canSupportWaveVR

@@ -6,8 +6,39 @@ using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
+    public class OculusRecommendedSettings : VIUVersionCheck.RecommendedSettingCollection
+    {
+        public OculusRecommendedSettings()
+        {
+            Add(new VIUVersionCheck.RecommendedSetting<bool>()
+            {
+                settingTitle = "Virtual Reality Supported with Oculus",
+                skipCheckFunc = () => !VIUSettingsEditor.canSupportOculus,
+                currentValueFunc = () => VIUSettingsEditor.supportOculus,
+                setValueFunc = v => VIUSettingsEditor.supportOculus = v,
+                recommendedValue = true,
+            });
+
+            Add(new VIUVersionCheck.RecommendedSetting<bool>()
+            {
+                settingTitle = "Multithreaded Rendering",
+                skipCheckFunc = () => !VIUSettingsEditor.supportOculusGo,
+#if UNITY_2017_2_OR_NEWER
+                currentValueFunc = () => PlayerSettings.GetMobileMTRendering(BuildTargetGroup.Android),
+                setValueFunc = v => PlayerSettings.SetMobileMTRendering(BuildTargetGroup.Android, v),
+#else
+                currentValueFunc = () => PlayerSettings.mobileMTRendering,
+                setValueFunc = v => PlayerSettings.mobileMTRendering = v,
+#endif
+                recommendedValue = true,
+            });
+        }
+    }
+
     public static partial class VIUSettingsEditor
     {
+        private const string OCULUS_DESKTOP_PACKAGE_NAME = "com.unity.xr.oculus.standalone";
+
         public static bool canSupportOculus
         {
             get { return OculusSettings.instance.canSupport; }
@@ -33,7 +64,9 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
-#if UNITY_5_5_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
+#if UNITY_2018_1_OR_NEWER
+                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && PackageManagerHelper.IsPackageInList(OCULUS_DESKTOP_PACKAGE_NAME);
+#elif UNITY_5_5_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
                     return activeBuildTargetGroup == BuildTargetGroup.Standalone;
 #else
                     return activeBuildTargetGroup == BuildTargetGroup.Standalone && VRModule.isOculusVRPluginDetected;
@@ -90,6 +123,14 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                    }
+                    else if (!PackageManagerHelper.IsPackageInList(OCULUS_DESKTOP_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "Oculus(Desktop) package required."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowAddPackageButton("Oculus(Desktop)", OCULUS_DESKTOP_PACKAGE_NAME);
                     }
                     else if (!VRModule.isOculusVRPluginDetected)
                     {
