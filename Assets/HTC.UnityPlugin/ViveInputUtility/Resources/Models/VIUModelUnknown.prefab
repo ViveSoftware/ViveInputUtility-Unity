@@ -83,7 +83,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 4647123020713812}
   m_Layer: 0
-  m_Name: VIUModelViveController
+  m_Name: VIUModelUnknown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
