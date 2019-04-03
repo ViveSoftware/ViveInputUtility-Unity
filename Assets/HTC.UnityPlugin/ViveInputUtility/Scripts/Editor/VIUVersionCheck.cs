@@ -247,6 +247,9 @@ namespace HTC.UnityPlugin.Vive
                 completeCheckVersionFlow = true;
             }
 
+            VIUSettingsEditor.PackageManagerHelper.PreparePackageList();
+            if (VIUSettingsEditor.PackageManagerHelper.isPreparingList) { return; }
+
             showNewVersion = !string.IsNullOrEmpty(ignoreThisVersionKey) && !VIUProjectSettings.HasIgnoreKey(ignoreThisVersionKey) && latestVersion > VIUVersion.current;
 
             UpdateIgnoredNotifiedSettingsCount(false);

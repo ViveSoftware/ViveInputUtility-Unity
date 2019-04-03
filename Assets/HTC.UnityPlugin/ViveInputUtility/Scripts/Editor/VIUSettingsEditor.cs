@@ -313,7 +313,7 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private static class PackageManagerHelper
+        public static class PackageManagerHelper
         {
 #if UNITY_2018_1_OR_NEWER
             private static bool s_wasPreparing;
@@ -394,7 +394,7 @@ namespace HTC.UnityPlugin.Vive
 
             public static void AddToPackageList(string name)
             {
-                Debug.Assert(m_addRequest == null);
+                Debug.Assert(m_addRequest != null);
                 m_addRequest = Client.Add(name);
             }
 #else
