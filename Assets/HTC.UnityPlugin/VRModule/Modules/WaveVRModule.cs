@@ -203,9 +203,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private const uint DEVICE_COUNT = 3;
 
+#if VIU_WAVEVR_3_0_0_OR_NEWER
         private WVR_InputAttribute_t[] s_inputAttribtues_hmd = new WVR_InputAttribute_t[1];
         private WVR_InputAttribute_t[] s_inputAttribtues_dominant = new WVR_InputAttribute_t[7];
         private WVR_InputAttribute_t[] s_inputAttribtues_nondominant = new WVR_InputAttribute_t[7];
+#endif
 
         public static readonly Vector3 RIGHT_ARM_MULTIPLIER = new Vector3(1f, 1f, 1f);
         public static readonly Vector3 LEFT_ARM_MULTIPLIER = new Vector3(-1f, 1f, 1f);
@@ -282,7 +284,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 VRModule.Instance.gameObject.AddComponent<WaveVR_Init>();
             }
 
+#if VIU_WAVEVR_3_0_0_OR_NEWER
             SetInputRequest();
+#endif
 
             EnsureDeviceStateLength(DEVICE_COUNT);
 
