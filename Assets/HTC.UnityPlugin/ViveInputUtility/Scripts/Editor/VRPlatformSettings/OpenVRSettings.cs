@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 #if VIU_STEAMVR_2_0_0_OR_NEWER
