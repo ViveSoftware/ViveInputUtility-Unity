@@ -2,9 +2,11 @@
 
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
+#if UNITY_5_6_OR_NEWER
+using UnityEditor.Rendering;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {
