@@ -73,7 +73,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (!IsTrackingDevice(i)) { continue; }
 
-                var relatedCenterPos = centerPoseInverse.InverseTransformPoint(VRModule.GetCurrentDeviceState(i).pose.pos);
+                var relatedCenterPos = centerPoseInverse.TransformPoint(VRModule.GetCurrentDeviceState(i).pose.pos);
                 m_directionPoint[i] = HandRoleHandler.GetDirectionPoint(new Vector2(relatedCenterPos.x, -relatedCenterPos.y));
                 m_distanceSqr[i] = relatedCenterPos.sqrMagnitude / (halfHeight * halfHeight);
 
