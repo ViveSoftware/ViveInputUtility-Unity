@@ -209,6 +209,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private IVRModuleDeviceStateRW m_headState;
         private IVRModuleDeviceStateRW m_rightState;
         private IVRModuleDeviceStateRW m_leftState;
+        private WaveVR_ControllerLoader.ControllerHand[] m_deviceHands = new WaveVR_ControllerLoader.ControllerHand[DEVICE_COUNT];
 
         #region 6Dof Controller Simulation
 
@@ -355,7 +356,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     return WaveVR_Controller.Input(WaveVR_Controller.IsLeftHanded ? WVR_DeviceType.WVR_DeviceType_Controller_Left : WVR_DeviceType.WVR_DeviceType_Controller_Right);
                 case WVR_DeviceType.WVR_DeviceType_Controller_Left:
                     return WaveVR_Controller.Input(WaveVR_Controller.IsLeftHanded ? WVR_DeviceType.WVR_DeviceType_Controller_Right : WVR_DeviceType.WVR_DeviceType_Controller_Left);
-                case WVR_DeviceType.WVR_DeviceType_Invalid:
                 default:
                     return null;
             }
@@ -371,7 +371,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     return WaveVR.Instance.getDeviceByType(WaveVR_Controller.IsLeftHanded ? WVR_DeviceType.WVR_DeviceType_Controller_Left : WVR_DeviceType.WVR_DeviceType_Controller_Right);
                 case WVR_DeviceType.WVR_DeviceType_Controller_Left:
                     return WaveVR.Instance.getDeviceByType(WaveVR_Controller.IsLeftHanded ? WVR_DeviceType.WVR_DeviceType_Controller_Right : WVR_DeviceType.WVR_DeviceType_Controller_Left);
-                case WVR_DeviceType.WVR_DeviceType_Invalid:
                 default:
                     return null;
             }
@@ -495,8 +494,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return currState;
         }
 
-        private WaveVR_ControllerLoader.ControllerHand[] m_deviceHands = new WaveVR_ControllerLoader.ControllerHand[DEVICE_COUNT];
-
         private void OnNewPoses(params object[] args)
         {
             if (WaveVR.Instance == null) { return; }
@@ -510,6 +507,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var leftDevice = GetWVRDevice(WVR_DeviceType.WVR_DeviceType_Controller_Left);
             m_leftState = UpdateDevicePose(2, leftDevice);
 
+#if VIU_WAVEVR_3_0_0_OR_NEWER
             if (WaveVR_Controller.IsLeftHanded)
             {
                 m_deviceHands[RIGHT_INDEX] = WaveVR_ControllerLoader.ControllerHand.Non_Dominant;
@@ -520,6 +518,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_deviceHands[RIGHT_INDEX] = WaveVR_ControllerLoader.ControllerHand.Dominant;
                 m_deviceHands[LEFT_INDEX] = WaveVR_ControllerLoader.ControllerHand.Non_Dominant;
             }
+#endif
 
             if (m_rightState != null)
             {
