@@ -191,11 +191,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private const uint HEAD_INDEX = 0;
         private const uint RIGHT_INDEX = 1;
         private const uint LEFT_INDEX = 2;
-#if VIU_WAVEVR_3_0_0_OR_NEWER
-        private WVR_InputAttribute_t[] s_inputAttribtues_hmd = new WVR_InputAttribute_t[1];
-        private WVR_InputAttribute_t[] s_inputAttribtues_dominant = new WVR_InputAttribute_t[7];
-        private WVR_InputAttribute_t[] s_inputAttribtues_nondominant = new WVR_InputAttribute_t[7];
-#endif
 
         public static readonly Vector3 RIGHT_ARM_MULTIPLIER = new Vector3(1f, 1f, 1f);
         public static readonly Vector3 LEFT_ARM_MULTIPLIER = new Vector3(-1f, 1f, 1f);
@@ -273,7 +268,29 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
 #if VIU_WAVEVR_3_0_0_OR_NEWER
-            SetInputRequest();
+            var digitalCapability = (uint)WVR_InputType.WVR_InputType_Button;
+            var analogCapability = (uint)(WVR_InputType.WVR_InputType_Button | WVR_InputType.WVR_InputType_Touch | WVR_InputType.WVR_InputType_Analog);
+            var inputRequests = new WVR_InputAttribute_t[]
+            {
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Menu, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Grip, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Left, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Up, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Right, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Down, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Volume_Up, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Volume_Down, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Enter, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Touchpad, axis_type = WVR_AnalogType.WVR_AnalogType_2D, capability = analogCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Thumbstick, axis_type = WVR_AnalogType.WVR_AnalogType_2D, capability = analogCapability },
+
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Digital_Trigger, axis_type = WVR_AnalogType.WVR_AnalogType_1D, capability = analogCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Trigger, axis_type = WVR_AnalogType.WVR_AnalogType_1D, capability = analogCapability },
+            };
+
+            Interop.WVR_SetInputRequest(WVR_DeviceType.WVR_DeviceType_Controller_Right, inputRequests, (uint)inputRequests.Length);
+            Interop.WVR_SetInputRequest(WVR_DeviceType.WVR_DeviceType_Controller_Left, inputRequests, (uint)inputRequests.Length);
 #endif
 
             EnsureDeviceStateLength(DEVICE_COUNT);
@@ -652,116 +669,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 ctrlState.position += s_simulatedCtrlPosArray[deviceType];
             }
         }
-
-#if VIU_WAVEVR_3_0_0_OR_NEWER
-        public List<EButtons> DominantButtons = new List<EButtons>();
-        public List<EButtons> NonDominantButtons = new List<EButtons>();
-
-        public enum EButtons
-        {
-            Menu = WVR_InputId.WVR_InputId_Alias1_Menu,
-            Grip = WVR_InputId.WVR_InputId_Alias1_Grip,
-            DPadUp = WVR_InputId.WVR_InputId_Alias1_DPad_Up,
-            DPadRight = WVR_InputId.WVR_InputId_Alias1_DPad_Right,
-            DPadDown = WVR_InputId.WVR_InputId_Alias1_DPad_Down,
-            DPadLeft = WVR_InputId.WVR_InputId_Alias1_DPad_Left,
-            VolumeUp = WVR_InputId.WVR_InputId_Alias1_Volume_Up,
-            VolumeDown = WVR_InputId.WVR_InputId_Alias1_Volume_Down,
-            DigitalTrigger = WVR_InputId.WVR_InputId_Alias1_Digital_Trigger,
-            HMDEnter = WVR_InputId.WVR_InputId_Alias1_Enter,
-            Touchpad = WVR_InputId.WVR_InputId_Alias1_Touchpad,
-            Trigger = WVR_InputId.WVR_InputId_Alias1_Trigger,
-            Thumbstick = WVR_InputId.WVR_InputId_Alias1_Thumbstick
-        }
-
-        private void SetInputRequest()
-        {
-            DominantButtons.Add(EButtons.Menu);
-            DominantButtons.Add(EButtons.Grip);
-            DominantButtons.Add(EButtons.VolumeUp);
-            DominantButtons.Add(EButtons.VolumeDown);
-            DominantButtons.Add(EButtons.DigitalTrigger);
-            DominantButtons.Add(EButtons.Touchpad);
-            DominantButtons.Add(EButtons.Thumbstick);
-            createDominantRequestAttributes();
-            SetDominantInputRequest();
-
-            NonDominantButtons.Add(EButtons.Menu);
-            NonDominantButtons.Add(EButtons.Grip);
-            NonDominantButtons.Add(EButtons.VolumeUp);
-            NonDominantButtons.Add(EButtons.VolumeDown);
-            NonDominantButtons.Add(EButtons.DigitalTrigger);
-            NonDominantButtons.Add(EButtons.Touchpad);
-            NonDominantButtons.Add(EButtons.Thumbstick);
-            createNonDominantRequestAttributes();
-            SetDominantInputRequest();
-        }
-
-        private void setupButtonAttributes(WaveVR_Controller.EDeviceType device, List<EButtons> buttons, WVR_InputAttribute_t[] inputAttributes, int count)
-        {
-            WVR_DeviceType _type = WaveVR_Controller.Input(device).DeviceType;
-
-            for (int _i = 0; _i < count; _i++)
-            {
-                switch (buttons[_i])
-                {
-                    case EButtons.Menu:
-                    case EButtons.Grip:
-                    case EButtons.DPadLeft:
-                    case EButtons.DPadUp:
-                    case EButtons.DPadRight:
-                    case EButtons.DPadDown:
-                    case EButtons.VolumeUp:
-                    case EButtons.VolumeDown:
-                    case EButtons.HMDEnter:
-                        inputAttributes[_i].id = (WVR_InputId)buttons[_i];
-                        inputAttributes[_i].capability = (uint)WVR_InputType.WVR_InputType_Button;
-                        inputAttributes[_i].axis_type = WVR_AnalogType.WVR_AnalogType_None;
-                        break;
-                    case EButtons.Touchpad:
-                    case EButtons.Thumbstick:
-                        inputAttributes[_i].id = (WVR_InputId)buttons[_i];
-                        inputAttributes[_i].capability = (uint)(WVR_InputType.WVR_InputType_Button | WVR_InputType.WVR_InputType_Touch | WVR_InputType.WVR_InputType_Analog);
-                        inputAttributes[_i].axis_type = WVR_AnalogType.WVR_AnalogType_2D;
-                        break;
-                    case EButtons.DigitalTrigger:
-                    case EButtons.Trigger:
-                        inputAttributes[_i].id = (WVR_InputId)buttons[_i];
-                        inputAttributes[_i].capability = (uint)(WVR_InputType.WVR_InputType_Button | WVR_InputType.WVR_InputType_Touch | WVR_InputType.WVR_InputType_Analog);
-                        inputAttributes[_i].axis_type = WVR_AnalogType.WVR_AnalogType_1D;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        private void createDominantRequestAttributes()
-        {
-            int _count = DominantButtons.Count;
-            s_inputAttribtues_dominant = new WVR_InputAttribute_t[_count];
-            setupButtonAttributes(WaveVR_Controller.EDeviceType.Dominant, DominantButtons, s_inputAttribtues_dominant, _count);
-        }
-
-        private void SetDominantInputRequest()
-        {
-            WVR_DeviceType _type = WaveVR_Controller.Input(WaveVR_Controller.EDeviceType.Dominant).DeviceType;
-            Interop.WVR_SetInputRequest(_type, s_inputAttribtues_dominant, (uint)s_inputAttribtues_dominant.Length);
-        }
-
-        private void createNonDominantRequestAttributes()
-        {
-            int _count = NonDominantButtons.Count;
-            s_inputAttribtues_nondominant = new WVR_InputAttribute_t[_count];
-            setupButtonAttributes(WaveVR_Controller.EDeviceType.NonDominant, NonDominantButtons, s_inputAttribtues_nondominant, _count);
-        }
-
-        private void SetNonDominantInputRequest()
-        {
-            WVR_DeviceType _type = WaveVR_Controller.Input(WaveVR_Controller.EDeviceType.NonDominant).DeviceType;
-            Interop.WVR_SetInputRequest(_type, s_inputAttribtues_nondominant, (uint)s_inputAttribtues_nondominant.Length);
-        }
-#endif
 
         private static RigidPose GetNeckPose(RigidPose headPose)
         {
