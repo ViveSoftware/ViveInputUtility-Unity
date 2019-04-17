@@ -1,4 +1,6 @@
-﻿using HTC.UnityPlugin.ColliderEvent;
+﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+
+using HTC.UnityPlugin.ColliderEvent;
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
 using UnityEngine;
@@ -40,6 +42,13 @@ public class ResetButton : MonoBehaviour
 
     private void Start()
     {
+        CachePositions();
+    }
+
+    // Cache the positions of the effectTargets and of the buttonObject so they can be restored
+    // in OnColliderEventPressUp and OnColliderEventPressExit
+    private void CachePositions()
+    {
         resetPoses = new RigidPose[effectTargets.Length];
         for (int i = 0; i < effectTargets.Length; ++i)
         {
@@ -48,6 +57,7 @@ public class ResetButton : MonoBehaviour
 
         buttonOriginPosition = buttonObject.position;
     }
+
 #if UNITY_EDITOR
     protected virtual void OnValidate()
     {
@@ -81,6 +91,7 @@ public class ResetButton : MonoBehaviour
     {
         if (eventData.button == m_activeButton && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
         {
+            CachePositions();
             buttonObject.position = buttonOriginPosition + buttonDownDisplacement;
         }
     }
