@@ -268,6 +268,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 VRModule.Instance.gameObject.AddComponent<WaveVR_Init>();
             }
 
+#if !UNITY_EDITOR
+            if (Object.FindObjectOfType<WaveVR_ButtonList>() == null)
+            {
+                VRModule.Instance.gameObject.AddComponent<WaveVR_ButtonList>();
+            }
+#endif
+
 #if VIU_WAVEVR_3_0_0_OR_NEWER
             var digitalCapability = (uint)WVR_InputType.WVR_InputType_Button;
             var analogCapability = (uint)(WVR_InputType.WVR_InputType_Button | WVR_InputType.WVR_InputType_Touch | WVR_InputType.WVR_InputType_Analog);
@@ -290,8 +297,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Trigger, axis_type = WVR_AnalogType.WVR_AnalogType_1D, capability = analogCapability },
             };
 
+#if !UNITY_EDITOR
             Interop.WVR_SetInputRequest(WVR_DeviceType.WVR_DeviceType_Controller_Right, inputRequests, (uint)inputRequests.Length);
             Interop.WVR_SetInputRequest(WVR_DeviceType.WVR_DeviceType_Controller_Left, inputRequests, (uint)inputRequests.Length);
+#endif
 #endif
 
             EnsureDeviceStateLength(DEVICE_COUNT);
@@ -520,12 +529,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 #endif
 
-            if (m_rightState != null)
+            if (m_rightState != null && !rightDevice.pose.pose.Is6DoFPose)
             {
                 ApplyVirtualArmAndSimulateInput(m_rightState, m_headState, RIGHT_ARM_MULTIPLIER);
             }
 
-            if (m_leftState != null)
+            if (m_leftState != null && !leftDevice.pose.pose.Is6DoFPose)
             {
                 ApplyVirtualArmAndSimulateInput(m_leftState, m_headState, LEFT_ARM_MULTIPLIER);
             }
