@@ -17,8 +17,6 @@ public class ResetButton : MonoBehaviour
 
     private RigidPose[] resetPoses;
 
-    private Vector3 buttonOriginPosition;
-
     private HashSet<ColliderButtonEventData> pressingEvents = new HashSet<ColliderButtonEventData>();
 
     public ColliderButtonEventData.InputButton activeButton
@@ -45,8 +43,6 @@ public class ResetButton : MonoBehaviour
         {
             resetPoses[i] = new RigidPose(effectTargets[i]);
         }
-
-        buttonOriginPosition = buttonObject.position;
     }
 #if UNITY_EDITOR
     protected virtual void OnValidate()
@@ -81,7 +77,7 @@ public class ResetButton : MonoBehaviour
     {
         if (eventData.button == m_activeButton && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
         {
-            buttonObject.position = buttonOriginPosition + buttonDownDisplacement;
+            buttonObject.localPosition += buttonDownDisplacement;
         }
     }
 
@@ -89,7 +85,7 @@ public class ResetButton : MonoBehaviour
     {
         if (pressingEvents.Remove(eventData) && pressingEvents.Count == 0)
         {
-            buttonObject.position = buttonOriginPosition;
+            buttonObject.localPosition -= buttonDownDisplacement;
         }
     }
 }
