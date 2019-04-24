@@ -91,11 +91,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         loaderGO.transform.SetParent(hook.transform, false);
                         loaderGO.SetActive(false);
                         var loader = loaderGO.AddComponent<WaveVR_ControllerLoader>();
-                        loader.enabled = false;
                         loader.TrackPosition = false;
                         loader.TrackRotation = false;
                         loader.showIndicator = false;
-                        loaderGO.SetActive(true);
                         // Call onLoadController to create model (chould be Finch/Link/Pico/QIYIVR)
                         switch (handType)
                         {
@@ -105,15 +103,40 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
                                 loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Right;
 #endif
-                                loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                                loaderGO.SetActive(true);
+
+                                if (WaveVR.Instance.getDeviceByType(handType).pose.pose.Is6DoFPose && WaveVR_Controller.IsLeftHanded)
+                                {
+                                    loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                                }
+                                else
+                                {
+                                    loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                                }
                                 break;
                             case WVR_DeviceType.WVR_DeviceType_Controller_Left:
 #if VIU_WAVEVR_3_0_0_OR_NEWER
                                 loader.WhichHand = s_moduleInstance.m_deviceHands[LEFT_INDEX];
 #else
-                                loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Left;
+                                if (Interop.WVR_GetWaveRuntimeVersion() >= 3 && WaveVR_Controller.IsLeftHanded)
+                                {
+                                    loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Right;
+                                }
+                                else
+                                {
+                                    loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Left;
+                                }
 #endif
-                                loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                                loaderGO.SetActive(true);
+
+                                if (WaveVR.Instance.getDeviceByType(handType).pose.pose.Is6DoFPose && WaveVR_Controller.IsLeftHanded)
+                                {
+                                    loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                                }
+                                else
+                                {
+                                    loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                                }
                                 break;
                         }
 
@@ -268,7 +291,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 VRModule.Instance.gameObject.AddComponent<WaveVR_Init>();
             }
 
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && VIU_WAVEVR_3_0_0_OR_NEWER
             if (Object.FindObjectOfType<WaveVR_ButtonList>() == null)
             {
                 VRModule.Instance.gameObject.AddComponent<WaveVR_ButtonList>();
@@ -528,6 +551,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_deviceHands[LEFT_INDEX] = WaveVR_ControllerLoader.ControllerHand.Non_Dominant;
             }
 #endif
+
 
             if (m_rightState != null && !rightDevice.pose.pose.Is6DoFPose)
             {
