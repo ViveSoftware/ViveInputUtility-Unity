@@ -28,7 +28,7 @@ namespace HTC.UnityPlugin.Vive.BindingInterface
                 EventSystem.current.gameObject.AddComponent<StandaloneInputModule>();
             }
 
-            m_pathInfo.text = "The changes will be stored in \"" + VIUSettings.externalCameraConfigFilePath + "\".";
+            m_pathInfo.text = "The changes will be stored in \"" + VIUSettings.bindingConfigFilePath + "\".";
         }
 
         private void OnDisable()
