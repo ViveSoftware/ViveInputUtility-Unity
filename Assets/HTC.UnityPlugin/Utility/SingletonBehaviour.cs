@@ -19,6 +19,8 @@ namespace HTC.UnityPlugin.Utility
 
         public bool IsInstance { get { return this == Instance; } }
 
+        protected bool IsApplicationQuitting { get { return s_isApplicationQuitting; } }
+
         public static T Instance
         {
             get

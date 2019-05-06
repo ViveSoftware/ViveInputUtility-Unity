@@ -166,14 +166,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (m_viveRgx.IsMatch(VRDevice.model))
                     {
                         rightCurrState.deviceModel = VRModuleDeviceModel.ViveController;
+                        rightCurrState.input2DType = VRModuleInput2DType.TouchpadOnly;
                     }
                     else if (m_oculusRgx.IsMatch(VRDevice.model))
                     {
                         rightCurrState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
+                        rightCurrState.input2DType = VRModuleInput2DType.JoystickOnly;
                     }
                     else
                     {
                         rightCurrState.deviceModel = VRModuleDeviceModel.Unknown;
+                        rightCurrState.input2DType = VRModuleInput2DType.Unknown;
                     }
 
                     rightCurrState.renderModelName = VRDevice.model + " " + rightCurrState.deviceModel.ToString();
@@ -242,14 +245,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (m_viveRgx.IsMatch(VRDevice.model))
                     {
                         leftCurrState.deviceModel = VRModuleDeviceModel.ViveController;
+                        leftCurrState.input2DType = VRModuleInput2DType.TouchpadOnly;
                     }
                     else if (m_oculusRgx.IsMatch(VRDevice.model))
                     {
                         leftCurrState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
+                        leftCurrState.input2DType = VRModuleInput2DType.JoystickOnly;
                     }
                     else
                     {
                         leftCurrState.deviceModel = VRModuleDeviceModel.Unknown;
+                        leftCurrState.input2DType = VRModuleInput2DType.Unknown;
                     }
 
                     leftCurrState.renderModelName = VRDevice.model + " " + leftCurrState.deviceModel.ToString();

@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.Utility;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,25 +9,37 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public static class UnityVRModuleEditor
     {
 #if UNITY_5_5_OR_NEWER
+        [InitializeOnLoadMethod]
+        private static void StartCheckEnforceInputManagerBindings()
+        {
+            EditorApplication.update += EnforceInputManagerBindings;
+        }
+
         // Add joystick axis input bindings to InputManager
         // See OpenVR/Oculus left/right controllers mapping at
         // https://docs.unity3d.com/Manual/OpenVRControllers.html
-        [InitializeOnLoadMethod]
         private static void EnforceInputManagerBindings()
         {
             try
             {
+                var inputSettings = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset");
+                if (inputSettings == null || inputSettings.Length <= 0) { return; }
+
+                var serializedInputSettings = new SerializedObject(inputSettings);
+
                 var axisObj = new Axis();
                 for (int i = 0, imax = UnityEngineVRModule.GetUnityAxisCount(); i < imax; ++i)
                 {
                     axisObj.name = UnityEngineVRModule.GetUnityAxisNameByIndex(i);
                     axisObj.axis = UnityEngineVRModule.GetUnityAxisIdByIndex(i) - 1;
-                    BindAxis(axisObj);
+                    BindAxis(serializedInputSettings, axisObj);
                 }
+
+                EditorApplication.update -= EnforceInputManagerBindings;
             }
-            catch
+            catch (Exception e)
             {
-                Debug.LogError("Failed to apply Vive Input Utility input manager bindings.");
+                Debug.LogError(e + " Failed to apply Vive Input Utility input manager bindings.");
             }
         }
 
@@ -42,7 +54,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public string altPositiveButton = string.Empty;
             public float gravity = 0.0f;
             public float dead = 0.001f;
-            public float sensitivity = 1.0f;
+            public float sensitivity = 5.0f;
             public bool snap = false;
             public bool invert = false;
             public int type = 2;
@@ -50,10 +62,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public int joyNum = 0;
         }
 
-        private static void BindAxis(Axis axis)
+        private static void BindAxis(SerializedObject serializedInputSettings, Axis axis)
         {
-            var serializedObject = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset")[0]);
-            var axesProperty = serializedObject.FindProperty("m_Axes");
+            var axesProperty = serializedInputSettings.FindProperty("m_Axes");
 
             var axisIter = axesProperty.Copy();
             axisIter.Next(true);
@@ -68,7 +79,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             axesProperty.arraySize++;
-            serializedObject.ApplyModifiedProperties();
+            serializedInputSettings.ApplyModifiedProperties();
 
             SerializedProperty axisProperty = axesProperty.GetArrayElementAtIndex(axesProperty.arraySize - 1);
             axisProperty.FindPropertyRelative("m_Name").stringValue = axis.name;
@@ -86,7 +97,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             axisProperty.FindPropertyRelative("type").intValue = axis.type;
             axisProperty.FindPropertyRelative("axis").intValue = axis.axis;
             axisProperty.FindPropertyRelative("joyNum").intValue = axis.joyNum;
-            serializedObject.ApplyModifiedProperties();
+            serializedInputSettings.ApplyModifiedProperties();
         }
 #endif
     }

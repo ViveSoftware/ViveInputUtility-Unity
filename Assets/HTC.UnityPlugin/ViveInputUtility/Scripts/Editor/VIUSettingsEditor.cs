@@ -10,6 +10,10 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+#if UNITY_2018_1_OR_NEWER
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.Requests;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -309,6 +313,99 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
+        public static class PackageManagerHelper
+        {
+#if UNITY_2018_1_OR_NEWER
+            private static bool s_wasPreparing;
+            private static bool m_wasAdded;
+            private static ListRequest m_listRequest;
+            private static AddRequest m_addRequest;
+
+            public static bool isPreparingList
+            {
+                get
+                {
+                    if (m_listRequest == null) { return s_wasPreparing = true; }
+
+                    switch (m_listRequest.Status)
+                    {
+                        case StatusCode.InProgress:
+                            return s_wasPreparing = true;
+                        case StatusCode.Failure:
+                            if (!s_wasPreparing)
+                            {
+                                Debug.LogError("Somthing wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
+                            }
+                            break;
+                        case StatusCode.Success:
+                            break;
+                    }
+
+                    return s_wasPreparing = false;
+                }
+            }
+
+            public static bool isAddingToList
+            {
+                get
+                {
+                    if (m_addRequest == null) { return m_wasAdded = false; }
+
+                    switch (m_addRequest.Status)
+                    {
+                        case StatusCode.InProgress:
+                            return m_wasAdded = true;
+                        case StatusCode.Failure:
+                            if (!m_wasAdded)
+                            {
+                                Debug.LogError("Somthing wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
+                            }
+                            break;
+                        case StatusCode.Success:
+                            if (!m_wasAdded)
+                            {
+                                m_addRequest = null;
+                                ResetPackageList();
+                            }
+                            break;
+                    }
+
+                    return m_wasAdded = false;
+                }
+            }
+
+            public static void PreparePackageList()
+            {
+                if (m_listRequest != null) { return; }
+                m_listRequest = Client.List(true);
+            }
+
+            public static void ResetPackageList()
+            {
+                s_wasPreparing = false;
+                m_listRequest = null;
+            }
+
+            public static bool IsPackageInList(string name)
+            {
+                Debug.Assert(m_listRequest != null);
+                return m_listRequest.Result.Any(pkg => pkg.name == name);
+            }
+
+            public static void AddToPackageList(string name)
+            {
+                Debug.Assert(m_addRequest != null);
+                m_addRequest = Client.Add(name);
+            }
+#else
+            public static bool isPreparingList { get { return false; } }
+            public static bool isAddingToList { get { return false; } }
+            public static void PreparePackageList() { }
+            public static void ResetPackageList() { }
+            public static bool IsPackageInList(string name) { return true; }
+            public static void AddToPackageList(string name) { }
+#endif
+        }
         private abstract class VRPlatformSetting
         {
             public bool isStandaloneVR { get { return requirdPlatform == BuildTargetGroup.Standalone; } }
@@ -451,6 +548,19 @@ namespace HTC.UnityPlugin.Vive
             if (EditorApplication.isCompiling)
             {
                 EditorGUILayout.LabelField("Compiling...");
+                return;
+            }
+#endif
+#if UNITY_2018_1_OR_NEWER
+            if (PackageManagerHelper.isAddingToList)
+            {
+                EditorGUILayout.LabelField("Installing Packages...");
+                return;
+            }
+            PackageManagerHelper.PreparePackageList();
+            if (PackageManagerHelper.isPreparingList)
+            {
+                EditorGUILayout.LabelField("Checking Packages...");
                 return;
             }
 #endif
@@ -727,6 +837,14 @@ namespace HTC.UnityPlugin.Vive
 #else
                 EditorUserBuildSettings.SwitchActiveBuildTarget(target);
 #endif
+            }
+        }
+
+        private static void ShowAddPackageButton(string displayName, string pkgName)
+        {
+            if (GUILayout.Button(new GUIContent("Add " + displayName + " Package", "Add " + pkgName + " to Package Manager"), GUILayout.ExpandWidth(false)))
+            {
+                PackageManagerHelper.AddToPackageList(pkgName);
             }
         }
 

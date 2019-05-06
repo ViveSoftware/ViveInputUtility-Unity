@@ -91,21 +91,52 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         loaderGO.transform.SetParent(hook.transform, false);
                         loaderGO.SetActive(false);
                         var loader = loaderGO.AddComponent<WaveVR_ControllerLoader>();
-                        loader.enabled = false;
                         loader.TrackPosition = false;
                         loader.TrackRotation = false;
                         loader.showIndicator = false;
-                        loaderGO.SetActive(true);
                         // Call onLoadController to create model (chould be Finch/Link/Pico/QIYIVR)
                         switch (handType)
                         {
                             case WVR_DeviceType.WVR_DeviceType_Controller_Right:
+#if VIU_WAVEVR_3_0_0_OR_NEWER
+                                loader.WhichHand = s_moduleInstance.m_deviceHands[RIGHT_INDEX];
+#else
                                 loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Right;
-                                loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Right);
+#endif
+                                loaderGO.SetActive(true);
+
+                                if (WaveVR.Instance.getDeviceByType(handType).pose.pose.Is6DoFPose && WaveVR_Controller.IsLeftHanded)
+                                {
+                                    loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                                }
+                                else
+                                {
+                                    loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                                }
                                 break;
                             case WVR_DeviceType.WVR_DeviceType_Controller_Left:
-                                loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Left;
-                                loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Left);
+#if VIU_WAVEVR_3_0_0_OR_NEWER
+                                loader.WhichHand = s_moduleInstance.m_deviceHands[LEFT_INDEX];
+#else
+                                if (Interop.WVR_GetWaveRuntimeVersion() >= 3 && WaveVR_Controller.IsLeftHanded)
+                                {
+                                    loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Right;
+                                }
+                                else
+                                {
+                                    loader.WhichHand = WaveVR_ControllerLoader.ControllerHand.Controller_Left;
+                                }
+#endif
+                                loaderGO.SetActive(true);
+
+                                if (WaveVR.Instance.getDeviceByType(handType).pose.pose.Is6DoFPose && WaveVR_Controller.IsLeftHanded)
+                                {
+                                    loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                                }
+                                else
+                                {
+                                    loaderGO.SendMessage("onLoadController", WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                                }
                                 break;
                         }
 
@@ -180,6 +211,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 
         private const uint DEVICE_COUNT = 3;
+        private const uint HEAD_INDEX = 0;
+        private const uint RIGHT_INDEX = 1;
+        private const uint LEFT_INDEX = 2;
 
         public static readonly Vector3 RIGHT_ARM_MULTIPLIER = new Vector3(1f, 1f, 1f);
         public static readonly Vector3 LEFT_ARM_MULTIPLIER = new Vector3(-1f, 1f, 1f);
@@ -198,6 +232,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private IVRModuleDeviceStateRW m_headState;
         private IVRModuleDeviceStateRW m_rightState;
         private IVRModuleDeviceStateRW m_leftState;
+        private WaveVR_ControllerLoader.ControllerHand[] m_deviceHands = new WaveVR_ControllerLoader.ControllerHand[DEVICE_COUNT];
 
         #region 6Dof Controller Simulation
 
@@ -256,6 +291,41 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 VRModule.Instance.gameObject.AddComponent<WaveVR_Init>();
             }
 
+#if !UNITY_EDITOR && VIU_WAVEVR_3_0_0_OR_NEWER
+            if (Object.FindObjectOfType<WaveVR_ButtonList>() == null)
+            {
+                VRModule.Instance.gameObject.AddComponent<WaveVR_ButtonList>();
+            }
+#endif
+
+#if VIU_WAVEVR_3_0_0_OR_NEWER
+            var digitalCapability = (uint)WVR_InputType.WVR_InputType_Button;
+            var analogCapability = (uint)(WVR_InputType.WVR_InputType_Button | WVR_InputType.WVR_InputType_Touch | WVR_InputType.WVR_InputType_Analog);
+            var inputRequests = new WVR_InputAttribute_t[]
+            {
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Menu, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Grip, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Left, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Up, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Right, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Down, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Volume_Up, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Volume_Down, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Enter, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
+
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Touchpad, axis_type = WVR_AnalogType.WVR_AnalogType_2D, capability = analogCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Thumbstick, axis_type = WVR_AnalogType.WVR_AnalogType_2D, capability = analogCapability },
+
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Digital_Trigger, axis_type = WVR_AnalogType.WVR_AnalogType_1D, capability = analogCapability },
+                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Trigger, axis_type = WVR_AnalogType.WVR_AnalogType_1D, capability = analogCapability },
+            };
+
+#if !UNITY_EDITOR
+            Interop.WVR_SetInputRequest(WVR_DeviceType.WVR_DeviceType_Controller_Right, inputRequests, (uint)inputRequests.Length);
+            Interop.WVR_SetInputRequest(WVR_DeviceType.WVR_DeviceType_Controller_Left, inputRequests, (uint)inputRequests.Length);
+#endif
+#endif
+
             EnsureDeviceStateLength(DEVICE_COUNT);
 
             UpdateTrackingSpaceType();
@@ -302,161 +372,196 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void Update()
         {
+            var rightDevice = GetWVRControllerDevice(WVR_DeviceType.WVR_DeviceType_Controller_Right);
+            UpdateDeviceInput(1, rightDevice);
+            var leftDevice = GetWVRControllerDevice(WVR_DeviceType.WVR_DeviceType_Controller_Left);
+            UpdateDeviceInput(2, leftDevice);
+
+            ProcessDeviceInputChanged();
+        }
+
+        private WaveVR_Controller.Device GetWVRControllerDevice(WVR_DeviceType deviceType)
+        {
+            switch (deviceType)
+            {
+                case WVR_DeviceType.WVR_DeviceType_Controller_Right:
+                    return WaveVR_Controller.Input(WaveVR_Controller.IsLeftHanded ? WVR_DeviceType.WVR_DeviceType_Controller_Left : WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                case WVR_DeviceType.WVR_DeviceType_Controller_Left:
+                    return WaveVR_Controller.Input(WaveVR_Controller.IsLeftHanded ? WVR_DeviceType.WVR_DeviceType_Controller_Right : WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                default:
+                    return null;
+            }
+        }
+
+        private WaveVR.Device GetWVRDevice(WVR_DeviceType deviceType)
+        {
+            switch (deviceType)
+            {
+                case WVR_DeviceType.WVR_DeviceType_HMD:
+                    return WaveVR.Instance.getDeviceByType(deviceType);
+                case WVR_DeviceType.WVR_DeviceType_Controller_Right:
+                    return WaveVR.Instance.getDeviceByType(WaveVR_Controller.IsLeftHanded ? WVR_DeviceType.WVR_DeviceType_Controller_Left : WVR_DeviceType.WVR_DeviceType_Controller_Right);
+                case WVR_DeviceType.WVR_DeviceType_Controller_Left:
+                    return WaveVR.Instance.getDeviceByType(WaveVR_Controller.IsLeftHanded ? WVR_DeviceType.WVR_DeviceType_Controller_Right : WVR_DeviceType.WVR_DeviceType_Controller_Left);
+                default:
+                    return null;
+            }
+        }
+
+        private void UpdateDeviceInput(uint deviceIndex, WaveVR_Controller.Device deviceInput)
+        {
 #if VIU_WAVEVR_2_1_0_OR_NEWER
             const WVR_InputId digitalTrggerBumpID = WVR_InputId.WVR_InputId_Alias1_Digital_Trigger;
 #else
             const WVR_InputId digitalTrggerBumpID = WVR_InputId.WVR_InputId_Alias1_Bumper;
 #endif
 
-            for (uint deviceIndex = 0u; deviceIndex < DEVICE_COUNT; ++deviceIndex)
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            if (!TryGetValidDeviceState(deviceIndex, out prevState, out currState) || !deviceInput.connected) { return; }
+
+            if (deviceInput != null)
             {
-                IVRModuleDeviceState prevState;
-                IVRModuleDeviceStateRW currState;
-                if (!TryGetValidDeviceState(deviceIndex, out prevState, out currState) || !currState.isConnected) { continue; }
+                var systemPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_System);
+                var menuPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Menu);
+                var triggerPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Trigger);
+                var digitalTriggerPressed = deviceInput.GetPress(digitalTrggerBumpID);
+                var gripPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Grip);
+                var touchpadPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Touchpad);
+                var dpadLeftPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Left);
+                var dpadUpPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Up);
+                var dpadRightPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Right);
+                var dpadDownPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Down);
+                currState.SetButtonPress(VRModuleRawButton.System, systemPressed);
+                currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPressed);
+                currState.SetButtonPress(VRModuleRawButton.Touchpad, touchpadPressed || dpadLeftPressed || dpadUpPressed || dpadRightPressed || dpadDownPressed);
+                currState.SetButtonPress(VRModuleRawButton.Trigger, triggerPressed || digitalTriggerPressed);
+                currState.SetButtonPress(VRModuleRawButton.Grip, gripPressed);
+                currState.SetButtonPress(VRModuleRawButton.DPadLeft, dpadLeftPressed);
+                currState.SetButtonPress(VRModuleRawButton.DPadUp, dpadUpPressed);
+                currState.SetButtonPress(VRModuleRawButton.DPadRight, dpadRightPressed);
+                currState.SetButtonPress(VRModuleRawButton.DPadDown, dpadDownPressed);
 
-                var deviceType = s_index2type[deviceIndex];
-                var deviceInput = WaveVR_Controller.Input(deviceType);
-                if (deviceInput != null)
-                {
-                    var systemPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_System);
-                    var menuPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Menu);
-                    var triggerPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Trigger);
-                    var digitalTriggerPressed = deviceInput.GetPress(digitalTrggerBumpID);
-                    var gripPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Grip);
-                    var touchpadPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_Touchpad);
-                    var dpadLeftPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Left);
-                    var dpadUpPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Up);
-                    var dpadRightPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Right);
-                    var dpadDownPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Down);
-                    currState.SetButtonPress(VRModuleRawButton.System, systemPressed);
-                    currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPressed);
-                    currState.SetButtonPress(VRModuleRawButton.Touchpad, touchpadPressed || dpadLeftPressed || dpadUpPressed || dpadRightPressed || dpadDownPressed);
-                    currState.SetButtonPress(VRModuleRawButton.Trigger, triggerPressed || digitalTriggerPressed);
-                    currState.SetButtonPress(VRModuleRawButton.Grip, gripPressed);
-                    currState.SetButtonPress(VRModuleRawButton.DPadLeft, dpadLeftPressed);
-                    currState.SetButtonPress(VRModuleRawButton.DPadUp, dpadUpPressed);
-                    currState.SetButtonPress(VRModuleRawButton.DPadRight, dpadRightPressed);
-                    currState.SetButtonPress(VRModuleRawButton.DPadDown, dpadDownPressed);
+                var systemTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_System);
+                var menuTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Menu);
+                var triggerTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Trigger);
+                var digitalTriggerTouched = deviceInput.GetTouch(digitalTrggerBumpID);
+                var gripTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Grip);
+                var touchpadTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Touchpad);
+                var dpadLeftTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Left);
+                var dpadUpTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Up);
+                var dpadRightTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Right);
+                var dpadDownTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Down);
+                currState.SetButtonTouch(VRModuleRawButton.System, systemTouched);
+                currState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, menuTouched);
+                currState.SetButtonTouch(VRModuleRawButton.Touchpad, touchpadTouched || dpadLeftTouched || dpadUpTouched || dpadRightTouched || dpadDownTouched);
+                currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouched || digitalTriggerTouched);
+                currState.SetButtonTouch(VRModuleRawButton.Grip, gripTouched);
+                currState.SetButtonTouch(VRModuleRawButton.DPadLeft, dpadLeftTouched);
+                currState.SetButtonTouch(VRModuleRawButton.DPadUp, dpadUpTouched);
+                currState.SetButtonTouch(VRModuleRawButton.DPadRight, dpadRightTouched);
+                currState.SetButtonTouch(VRModuleRawButton.DPadDown, dpadDownTouched);
 
-                    var systemTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_System);
-                    var menuTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Menu);
-                    var triggerTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Trigger);
-                    var digitalTriggerTouched = deviceInput.GetTouch(digitalTrggerBumpID);
-                    var gripTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Grip);
-                    var touchpadTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Touchpad);
-                    var dpadLeftTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Left);
-                    var dpadUpTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Up);
-                    var dpadRightTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Right);
-                    var dpadDownTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_DPad_Down);
-                    currState.SetButtonTouch(VRModuleRawButton.System, systemTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.ApplicationMenu, menuTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.Touchpad, touchpadTouched || dpadLeftTouched || dpadUpTouched || dpadRightTouched || dpadDownTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouched || digitalTriggerTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.Grip, gripTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.DPadLeft, dpadLeftTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.DPadUp, dpadUpTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.DPadRight, dpadRightTouched);
-                    currState.SetButtonTouch(VRModuleRawButton.DPadDown, dpadDownTouched);
-
-                    var triggerAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Trigger);
-                    var touchAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Touchpad);
-                    currState.SetAxisValue(VRModuleRawAxis.Trigger, triggerAxis.x);
-                    currState.SetAxisValue(VRModuleRawAxis.TouchpadX, touchAxis.x);
-                    currState.SetAxisValue(VRModuleRawAxis.TouchpadY, touchAxis.y);
-                }
-                else
-                {
-                    currState.buttonPressed = 0u;
-                    currState.buttonTouched = 0u;
-                    currState.ResetAxisValues();
-                }
+                var triggerAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Trigger);
+                var touchAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Touchpad);
+                currState.SetAxisValue(VRModuleRawAxis.Trigger, triggerAxis.x);
+                currState.SetAxisValue(VRModuleRawAxis.TouchpadX, touchAxis.x);
+                currState.SetAxisValue(VRModuleRawAxis.TouchpadY, touchAxis.y);
             }
-
-            ProcessDeviceInputChanged();
+            else
+            {
+                currState.buttonPressed = 0u;
+                currState.buttonTouched = 0u;
+                currState.ResetAxisValues();
+            }
         }
 
-        public void OnNewPoses(params object[] args)
+        private IVRModuleDeviceStateRW UpdateDevicePose(uint deviceIndex, WaveVR.Device content)
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+            EnsureValidDeviceState(deviceIndex, out prevState, out currState);
+
+            var deviceConnected = content.type == WVR_DeviceType.WVR_DeviceType_HMD ? true : content.connected;
+
+            if (!deviceConnected)
+            {
+                if (prevState.isConnected)
+                {
+                    currState.Reset();
+
+                    switch (content.type)
+                    {
+                        case WVR_DeviceType.WVR_DeviceType_HMD: m_headState = null; break;
+                        case WVR_DeviceType.WVR_DeviceType_Controller_Right: m_rightState = null; break;
+                        case WVR_DeviceType.WVR_DeviceType_Controller_Left: m_leftState = null; break;
+                    }
+                }
+            }
+            else
+            {
+                if (!prevState.isConnected)
+                {
+                    currState.isConnected = true;
+                    currState.deviceClass = s_type2class[(int)content.type];
+                    currState.deviceModel = s_type2model[(int)content.type];
+                    currState.serialNumber = content.type.ToString();
+                    currState.modelNumber = content.type.ToString();
+                    currState.renderModelName = content.type.ToString();
+                }
+
+                // update pose
+                var devicePose = content.pose.pose;
+                currState.velocity = new Vector3(devicePose.Velocity.v0, devicePose.Velocity.v1, -devicePose.Velocity.v2);
+                currState.angularVelocity = new Vector3(-devicePose.AngularVelocity.v0, -devicePose.AngularVelocity.v1, devicePose.AngularVelocity.v2);
+
+                var rigidTransform = content.rigidTransform;
+                currState.position = rigidTransform.pos;
+                currState.rotation = rigidTransform.rot;
+
+                currState.isPoseValid = devicePose.IsValidPose;
+            }
+
+            return currState;
+        }
+
+        private void OnNewPoses(params object[] args)
         {
             if (WaveVR.Instance == null) { return; }
 
-            var poses = (WVR_DevicePosePair_t[])args[0];
-            var posesRT = (WaveVR_Utils.RigidTransform[])args[1];
-
             FlushDeviceState();
 
-            for (int i = 0, imax = poses.Length; i < imax; ++i)
+            var headDevice = GetWVRDevice(WVR_DeviceType.WVR_DeviceType_HMD);
+            m_headState = UpdateDevicePose(0, headDevice);
+            var rightDevice = GetWVRDevice(WVR_DeviceType.WVR_DeviceType_Controller_Right);
+            m_rightState = UpdateDevicePose(1, rightDevice);
+            var leftDevice = GetWVRDevice(WVR_DeviceType.WVR_DeviceType_Controller_Left);
+            m_leftState = UpdateDevicePose(2, leftDevice);
+
+#if VIU_WAVEVR_3_0_0_OR_NEWER
+            if (WaveVR_Controller.IsLeftHanded)
             {
-                uint deviceIndex;
-                var deviceType = poses[i].type;
-                if (!TryGetAndTouchDeviceIndexByType(deviceType, out deviceIndex)) { continue; }
-
-                IVRModuleDeviceState prevState;
-                IVRModuleDeviceStateRW currState;
-                EnsureValidDeviceState(deviceIndex, out prevState, out currState);
-
-#if VIU_WAVEVR_2_1_0_OR_NEWER && UNITY_EDITOR
-                var deviceConnected = WaveVR.Instance.isSimulatorOn && WaveVR_Utils.WVR_IsDeviceConnected_S((int)deviceType);
-#else
-                var deviceConnected = Interop.WVR_IsDeviceConnected(deviceType);
+                m_deviceHands[RIGHT_INDEX] = WaveVR_ControllerLoader.ControllerHand.Non_Dominant;
+                m_deviceHands[LEFT_INDEX] = WaveVR_ControllerLoader.ControllerHand.Dominant;
+            }
+            else
+            {
+                m_deviceHands[RIGHT_INDEX] = WaveVR_ControllerLoader.ControllerHand.Dominant;
+                m_deviceHands[LEFT_INDEX] = WaveVR_ControllerLoader.ControllerHand.Non_Dominant;
+            }
 #endif
 
-                if (!deviceConnected)
-                {
-                    if (prevState.isConnected)
-                    {
-                        currState.Reset();
 
-                        switch (deviceType)
-                        {
-                            case WVR_DeviceType.WVR_DeviceType_HMD: m_headState = null; break;
-                            case WVR_DeviceType.WVR_DeviceType_Controller_Right: m_rightState = null; break;
-                            case WVR_DeviceType.WVR_DeviceType_Controller_Left: m_leftState = null; break;
-                        }
-                    }
-                }
-                else
-                {
-                    if (!prevState.isConnected)
-                    {
-                        currState.isConnected = true;
-                        currState.deviceClass = s_type2class[(int)deviceType];
-                        currState.deviceModel = s_type2model[(int)deviceType];
-                        currState.serialNumber = deviceType.ToString();
-                        currState.modelNumber = deviceType.ToString();
-                        currState.renderModelName = deviceType.ToString();
-
-                        switch (deviceType)
-                        {
-                            case WVR_DeviceType.WVR_DeviceType_HMD: m_headState = currState; break;
-                            case WVR_DeviceType.WVR_DeviceType_Controller_Right: m_rightState = currState; break;
-                            case WVR_DeviceType.WVR_DeviceType_Controller_Left: m_leftState = currState; break;
-                        }
-                    }
-
-                    // update pose
-                    var devicePose = poses[i].pose;
-                    currState.velocity = new Vector3(devicePose.Velocity.v0, devicePose.Velocity.v1, -devicePose.Velocity.v2);
-                    currState.angularVelocity = new Vector3(-devicePose.AngularVelocity.v0, -devicePose.AngularVelocity.v1, devicePose.AngularVelocity.v2);
-
-                    var rigidTransform = posesRT[i];
-                    currState.position = rigidTransform.pos;
-                    currState.rotation = rigidTransform.rot;
-
-                    currState.isPoseValid = devicePose.IsValidPose;
-                }
-            }
-
-            if (m_rightState != null)
+            if (m_rightState != null && !rightDevice.pose.pose.Is6DoFPose)
             {
                 ApplyVirtualArmAndSimulateInput(m_rightState, m_headState, RIGHT_ARM_MULTIPLIER);
             }
 
-            if (m_leftState != null)
+            if (m_leftState != null && !leftDevice.pose.pose.Is6DoFPose)
             {
                 ApplyVirtualArmAndSimulateInput(m_leftState, m_headState, LEFT_ARM_MULTIPLIER);
             }
-
-            ResetAndDisconnectUntouchedDevices();
 
             ProcessConnectedDeviceChanged();
             ProcessDevicePoseChanged();
@@ -468,9 +573,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         //    return m_hasInputFocus;
         //}
 
-        public override uint GetRightControllerDeviceIndex() { return s_type2index[(int)WVR_DeviceType.WVR_DeviceType_Controller_Right]; }
+        public override uint GetRightControllerDeviceIndex() { return RIGHT_INDEX; }
 
-        public override uint GetLeftControllerDeviceIndex() { return s_type2index[(int)WVR_DeviceType.WVR_DeviceType_Controller_Left]; }
+        public override uint GetLeftControllerDeviceIndex() { return LEFT_INDEX; }
 
         private bool TryGetAndTouchDeviceIndexByType(WVR_DeviceType type, out uint deviceIndex)
         {
@@ -531,7 +636,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (!ctrlState.isConnected) { return; }
             if (!VIUSettings.waveVRAddVirtualArmTo3DoFController && !VIUSettings.simulateWaveVR6DofController) { return; }
-
             var deviceType = (int)s_index2type[ctrlState.deviceIndex];
 #if VIU_WAVEVR_2_1_0_OR_NEWER && UNITY_EDITOR
             if (!WaveVR.Instance.isSimulatorOn || WaveVR_Utils.WVR_GetDegreeOfFreedom_S() == (int)WVR_NumDoF.WVR_NumDoF_6DoF) { return; }

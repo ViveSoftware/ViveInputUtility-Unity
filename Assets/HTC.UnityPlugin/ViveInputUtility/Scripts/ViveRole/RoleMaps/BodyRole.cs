@@ -57,7 +57,9 @@ namespace HTC.UnityPlugin.Vive
 
             UnmappingAll();
 
-            MappingRoleIfUnbound(BodyRole.Head, 0u);
+            if (!VRModule.IsValidDeviceIndex(VRModule.HMD_DEVICE_INDEX)) { return; }
+
+            MappingRoleIfUnbound(BodyRole.Head, VRModule.HMD_DEVICE_INDEX);
 
             // get related poses and record controller/tracker devices
             var hmdPose = VivePose.GetPose(0u);
@@ -71,7 +73,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (!IsTrackingDevice(i)) { continue; }
 
-                var relatedCenterPos = centerPoseInverse.InverseTransformPoint(VRModule.GetCurrentDeviceState(i).pose.pos);
+                var relatedCenterPos = centerPoseInverse.TransformPoint(VRModule.GetCurrentDeviceState(i).pose.pos);
                 m_directionPoint[i] = HandRoleHandler.GetDirectionPoint(new Vector2(relatedCenterPos.x, -relatedCenterPos.y));
                 m_distanceSqr[i] = relatedCenterPos.sqrMagnitude / (halfHeight * halfHeight);
 

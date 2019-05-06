@@ -412,6 +412,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.modelNumber = deviceState.serialNumber;
                         deviceState.renderModelName = deviceState.serialNumber;
                         deviceState.deviceModel = VRModuleDeviceModel.ViveController;
+                        deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
 
                         var pose = new RigidPose(new Vector3(0.3f, -0.25f, 0.7f), Quaternion.identity);
                         deviceState.isPoseValid = true;
@@ -430,6 +431,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.modelNumber = deviceState.serialNumber;
                         deviceState.renderModelName = deviceState.serialNumber;
                         deviceState.deviceModel = VRModuleDeviceModel.ViveController;
+                        deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
 
                         var pose = new RigidPose(new Vector3(-0.3f, -0.25f, 0.7f), Quaternion.identity);
                         deviceState.isPoseValid = true;
