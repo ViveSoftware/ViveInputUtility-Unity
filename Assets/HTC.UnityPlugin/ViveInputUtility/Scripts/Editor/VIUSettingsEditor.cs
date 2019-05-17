@@ -394,7 +394,7 @@ namespace HTC.UnityPlugin.Vive
 
             public static void AddToPackageList(string name)
             {
-                Debug.Assert(m_addRequest != null);
+                Debug.Assert(m_addRequest == null);
                 m_addRequest = Client.Add(name);
             }
 #else
