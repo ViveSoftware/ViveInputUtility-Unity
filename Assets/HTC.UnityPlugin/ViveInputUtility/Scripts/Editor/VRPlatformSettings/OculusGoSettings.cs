@@ -480,7 +480,7 @@ namespace HTC.UnityPlugin.Vive
 
             public override void OnPreferenceGUI()
             {
-                const string title = "Oculus Go";
+                const string title = "Oculus (Android)";
                 if (canSupport)
                 {
                     support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title), support);
@@ -501,10 +501,10 @@ namespace HTC.UnityPlugin.Vive
                     else if (!PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "Oculus(Android) package required."), false, GUILayout.Width(230f));
+                        ShowToggle(new GUIContent(title, "Oculus (Android) package required."), false, GUILayout.Width(230f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
-                        ShowAddPackageButton("Oculus(Android)", OCULUS_ANDROID_PACKAGE_NAME);
+                        ShowAddPackageButton("Oculus (Android)", OCULUS_ANDROID_PACKAGE_NAME);
                     }
                     else if (!VRModule.isOculusVRPluginDetected)
                     {
