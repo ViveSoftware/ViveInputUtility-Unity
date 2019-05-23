@@ -334,7 +334,7 @@ namespace HTC.UnityPlugin.Vive
                         case StatusCode.Failure:
                             if (!s_wasPreparing)
                             {
-                                Debug.LogError("Somthing wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
+                                Debug.LogError("Something wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
                             }
                             break;
                         case StatusCode.Success:
@@ -358,7 +358,7 @@ namespace HTC.UnityPlugin.Vive
                         case StatusCode.Failure:
                             if (!m_wasAdded)
                             {
-                                Debug.LogError("Somthing wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
+                                Debug.LogError("Something wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
                             }
                             break;
                         case StatusCode.Success:

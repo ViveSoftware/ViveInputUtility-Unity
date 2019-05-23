@@ -425,7 +425,7 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
 #if UNITY_2018_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isOculusVRPluginDetected && PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME);
+                    return activeBuildTargetGroup == BuildTargetGroup.Android && PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME);
 #elif UNITY_5_6_OR_NEWER
                     return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isOculusVRPluginDetected;
 #else
@@ -469,8 +469,9 @@ namespace HTC.UnityPlugin.Vive
                         }
                     }
 
-                    OculusSDK.enabled = value;
                     VIUSettings.activateOculusVRModule = value;
+                    OculusSDK.enabled = value;
+                    VIUSettings.activateUnityNativeVRModule = value;
                 }
 #else
                 get { return false; }

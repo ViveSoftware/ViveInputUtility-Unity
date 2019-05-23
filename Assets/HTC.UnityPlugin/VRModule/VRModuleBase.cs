@@ -156,7 +156,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.OculusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                            if (deviceState.modelNumber.Contains("Go"))
+                            {
+                                deviceState.deviceModel = VRModuleDeviceModel.OculusGoController;
+                                deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                                return;
+                            }
+                            else if (s_leftRgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
                                 deviceState.input2DType = VRModuleInput2DType.JoystickOnly;

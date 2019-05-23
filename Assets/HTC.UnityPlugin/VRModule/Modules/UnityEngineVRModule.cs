@@ -111,6 +111,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveController:
                     Update_L_Vive(prevState, currState);
                     break;
+                case VRModuleDeviceModel.OculusGoController:
                 case VRModuleDeviceModel.OculusTouchLeft:
                     Update_L_OculusTouch(prevState, currState);
                     break;
@@ -130,6 +131,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveController:
                     Update_R_Vive(prevState, currState);
                     break;
+                case VRModuleDeviceModel.OculusGoController:
                 case VRModuleDeviceModel.OculusTouchRight:
                     Update_R_OculusTouch(prevState, currState);
                     break;
