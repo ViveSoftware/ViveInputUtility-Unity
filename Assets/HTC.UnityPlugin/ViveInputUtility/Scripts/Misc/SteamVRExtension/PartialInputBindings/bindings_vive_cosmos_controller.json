@@ -1,0 +1,151 @@
+{
+  "controller_type": "vive_cosmos_controller",
+  "bindings": {
+    "/actions/htc_viu": {
+      "sources": [
+        {
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_33"
+			  },
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_1x"
+			  },
+			  "touch" : {
+				 "output" : "/actions/htc_viu/in/viu_touch_33"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/left/input/trigger"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_32"
+			  },
+			  "position" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_0xy"
+			  },
+			  "touch" : {
+				 "output" : "/actions/htc_viu/in/viu_touch_32"
+			  }
+		   },
+		   "mode" : "joystick",
+		   "path" : "/user/hand/left/input/joystick"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_02"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/left/input/paddle_heavy"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_07"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/left/input/a"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_07"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/left/input/b"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_08"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/left/input/bumper"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_33"
+			  },
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_1x"
+			  },
+			  "touch" : {
+				 "output" : "/actions/htc_viu/in/viu_touch_33"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/right/input/trigger"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_32"
+			  },
+			  "position" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_0xy"
+			  },
+			  "touch" : {
+				 "output" : "/actions/htc_viu/in/viu_touch_32"
+			  }
+		   },
+		   "mode" : "joystick",
+		   "path" : "/user/hand/right/input/joystick"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_02"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/right/input/paddle_heavy"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_07"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/right/input/a"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_07"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/right/input/b"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_08"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/right/input/bumper"
+		}
+      ],
+      "haptics": [
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/left/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/right/output/haptic"
+        }
+      ]
+    }
+  }
+}

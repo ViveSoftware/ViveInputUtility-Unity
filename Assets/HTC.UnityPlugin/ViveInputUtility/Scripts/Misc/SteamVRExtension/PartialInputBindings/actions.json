@@ -41,6 +41,11 @@
       "requirement": "optional"
     },
     {
+      "name": "/actions/htc_viu/in/viu_press_08",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
       "name": "/actions/htc_viu/in/viu_press_31",
       "type": "boolean",
       "requirement": "optional"
@@ -209,6 +214,10 @@
   ],
   "default_bindings": [
     {
+      "controller_type": "vive_cosmos_controller",
+      "binding_url": "bindings_vive_cosmos_controller.json"
+    },
+    {
       "controller_type": "vive_controller",
       "binding_url": "bindings_vive_controller.json"
     },
@@ -300,6 +309,7 @@
       "/actions/htc_viu/in/viu_press_05": "Press05 (DPadRight)",
       "/actions/htc_viu/in/viu_press_06": "Press06 (DPadDown)",
       "/actions/htc_viu/in/viu_press_07": "Press07 (A)",
+      "/actions/htc_viu/in/viu_press_08": "Press08 (Bumper)",
       "/actions/htc_viu/in/viu_press_31": "Press31 (ProximitySensor)",
       "/actions/htc_viu/in/viu_press_32": "Press32 (Touchpad)",
       "/actions/htc_viu/in/viu_press_33": "Press33 (Trigger)",
