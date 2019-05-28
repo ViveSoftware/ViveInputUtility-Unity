@@ -156,23 +156,41 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.OculusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            if (deviceState.modelNumber.Contains("Go"))
+                            if (Application.platform == RuntimePlatform.Android)
                             {
-                                deviceState.deviceModel = VRModuleDeviceModel.OculusGoController;
-                                deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
-                                return;
+                                if (deviceState.modelNumber.Contains("Go"))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.OculusGoController;
+                                    deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                                    return;
+                                }
+                                else if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.OculusQuestControllerLeft;
+                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    return;
+                                }
+                                else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.OculusQuestControllerRight;
+                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    return;
+                                }
                             }
-                            else if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                            else
                             {
-                                deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
-                                deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                return;
-                            }
-                            else if (s_rightRgx.IsMatch(deviceState.modelNumber))
-                            {
-                                deviceState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
-                                deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                return;
+                                if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
+                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    return;
+                                }
+                                else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
+                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    return;
+                                }
                             }
                             break;
                         case VRModuleDeviceClass.TrackingReference:
