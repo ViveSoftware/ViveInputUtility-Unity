@@ -108,6 +108,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             switch (currState.deviceModel)
             {
+                case VRModuleDeviceModel.ViveCosmosControllerLeft:
                 case VRModuleDeviceModel.ViveController:
                     Update_L_Vive(prevState, currState);
                     break;
@@ -129,6 +130,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             switch (currState.deviceModel)
             {
+                case VRModuleDeviceModel.ViveCosmosControllerRight:
                 case VRModuleDeviceModel.ViveController:
                     Update_R_Vive(prevState, currState);
                     break;
