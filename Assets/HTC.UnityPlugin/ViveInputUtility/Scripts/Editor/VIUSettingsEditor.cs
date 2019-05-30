@@ -388,8 +388,7 @@ namespace HTC.UnityPlugin.Vive
 
             public static bool IsPackageInList(string name)
             {
-                Debug.Assert(m_listRequest != null);
-                if (m_listRequest.Result == null) return false;
+                if (m_listRequest == null || m_listRequest.Result == null) return false;
 
                 return m_listRequest.Result.Any(pkg => pkg.name == name);
             }
