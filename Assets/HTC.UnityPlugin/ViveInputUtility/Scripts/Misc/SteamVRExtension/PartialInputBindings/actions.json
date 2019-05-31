@@ -41,11 +41,6 @@
       "requirement": "optional"
     },
     {
-      "name": "/actions/htc_viu/in/viu_press_08",
-      "type": "boolean",
-      "requirement": "optional"
-    },
-    {
       "name": "/actions/htc_viu/in/viu_press_31",
       "type": "boolean",
       "requirement": "optional"
@@ -62,6 +57,11 @@
     },
     {
       "name": "/actions/htc_viu/in/viu_press_34",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_press_35",
       "type": "boolean",
       "requirement": "optional"
     },
@@ -122,6 +122,11 @@
     },
     {
       "name": "/actions/htc_viu/in/viu_touch_34",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_35",
       "type": "boolean",
       "requirement": "optional"
     },
@@ -213,6 +218,10 @@
     }
   ],
   "default_bindings": [
+    {
+      "controller_type": "vive_cosmos",
+      "binding_url": "bindings_vive_cosmos.json"
+    },
     {
       "controller_type": "vive_cosmos_controller",
       "binding_url": "bindings_vive_cosmos_controller.json"
@@ -309,11 +318,11 @@
       "/actions/htc_viu/in/viu_press_05": "Press05 (DPadRight)",
       "/actions/htc_viu/in/viu_press_06": "Press06 (DPadDown)",
       "/actions/htc_viu/in/viu_press_07": "Press07 (A)",
-      "/actions/htc_viu/in/viu_press_08": "Press08 (Bumper)",
       "/actions/htc_viu/in/viu_press_31": "Press31 (ProximitySensor)",
       "/actions/htc_viu/in/viu_press_32": "Press32 (Touchpad)",
       "/actions/htc_viu/in/viu_press_33": "Press33 (Trigger)",
       "/actions/htc_viu/in/viu_press_34": "Press34 (CapSenseGrip)",
+      "/actions/htc_viu/in/viu_press_35": "Press35 (Bumper)",
       "/actions/htc_viu/in/viu_touch_00": "Touch00 (System)",
       "/actions/htc_viu/in/viu_touch_01": "Touch01 (ApplicationMenu)",
       "/actions/htc_viu/in/viu_touch_02": "Touch02 (Grip)",
@@ -326,6 +335,7 @@
       "/actions/htc_viu/in/viu_touch_32": "Touch32 (Touchpad)",
       "/actions/htc_viu/in/viu_touch_33": "Touch33 (Trigger)",
       "/actions/htc_viu/in/viu_touch_34": "Touch34 (CapSenseGrip)",
+      "/actions/htc_viu/in/viu_touch_35": "Touch35 (Bumper)",
       "/actions/htc_viu/in/viu_axis_0x": "Axis0 X (TouchpadX)",
       "/actions/htc_viu/in/viu_axis_0y": "Axis0 Y (TouchpadY)",
       "/actions/htc_viu/in/viu_axis_1x": "Axis1 X (Trigger)",

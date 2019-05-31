@@ -802,16 +802,16 @@ namespace HTC.UnityPlugin.Vive
             //        });
             //        actionFile.localization[0].Add(SteamVRModule.v2Actions.CurrentPath, SteamVRModule.v2Actions.CurrentAlias);
             //    }
-            //    for (SteamVRModule.vibrationActions.Reset(); SteamVRModule.vibrationActions.IsCurrentValid(); SteamVRModule.vibrationActions.MoveNext())
+            //    for (SteamVRModule.vibrateActions.Reset(); SteamVRModule.vibrateActions.IsCurrentValid(); SteamVRModule.vibrateActions.MoveNext())
             //    {
-            //        if (string.IsNullOrEmpty(SteamVRModule.vibrationActions.CurrentPath)) { continue; }
+            //        if (string.IsNullOrEmpty(SteamVRModule.vibrateActions.CurrentPath)) { continue; }
             //        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
             //        {
-            //            name = SteamVRModule.vibrationActions.CurrentPath,
-            //            type = SteamVRModule.vibrationActions.DataType,
+            //            name = SteamVRModule.vibrateActions.CurrentPath,
+            //            type = SteamVRModule.vibrateActions.DataType,
             //            requirement = "optional",
             //        });
-            //        actionFile.localization[0].Add(SteamVRModule.vibrationActions.CurrentPath, SteamVRModule.vibrationActions.CurrentAlias);
+            //        actionFile.localization[0].Add(SteamVRModule.vibrateActions.CurrentPath, SteamVRModule.vibrateActions.CurrentAlias);
             //    }
 
             //    actionFile.Save();

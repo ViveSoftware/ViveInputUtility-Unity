@@ -81,7 +81,7 @@ namespace HTC.UnityPlugin.Vive
         Axis3Touch = BumperTouch,
         [HideInInspector]
         Axis4Touch = 19,
-        
+
         // virtual buttons
         HairTrigger = 5, // Pressed if trigger button is pressing, unpressed if trigger button is releasing
         FullTrigger = 6, // on:1.00 off:1.00
@@ -118,6 +118,8 @@ namespace HTC.UnityPlugin.Vive
         MiddleCurl, // Knuckles only
         RingCurl, // Knuckles only
         PinkyCurl, // Knuckles only
+        JoystickCap = RingCurl, // Cosmos only
+        TriggerCap = PinkyCurl, // Cosmos only
 
         JoystickX,
         JoystickY,

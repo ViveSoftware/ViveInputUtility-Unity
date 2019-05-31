@@ -54,7 +54,7 @@
 		{
 		   "inputs" : {
 			  "click" : {
-				 "output" : "/actions/htc_viu/in/viu_press_07"
+				 "output" : "/actions/htc_viu/in/viu_press_01"
 			  }
 		   },
 		   "mode" : "button",
@@ -63,11 +63,29 @@
 		{
 		   "inputs" : {
 			  "click" : {
-				 "output" : "/actions/htc_viu/in/viu_press_08"
+				 "output" : "/actions/htc_viu/in/viu_press_35"
 			  }
 		   },
 		   "mode" : "button",
 		   "path" : "/user/hand/left/input/bumper"
+		},
+		{
+		   "inputs" : {
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_4x"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/left/input/joystick_cap/raw_value"
+		},
+		{
+		   "inputs" : {
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_4y"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/left/input/trigger_cap/raw_value"
 		},
 		{
 		   "inputs" : {
@@ -120,7 +138,7 @@
 		{
 		   "inputs" : {
 			  "click" : {
-				 "output" : "/actions/htc_viu/in/viu_press_07"
+				 "output" : "/actions/htc_viu/in/viu_press_01"
 			  }
 		   },
 		   "mode" : "button",
@@ -129,11 +147,29 @@
 		{
 		   "inputs" : {
 			  "click" : {
-				 "output" : "/actions/htc_viu/in/viu_press_08"
+				 "output" : "/actions/htc_viu/in/viu_press_35"
 			  }
 		   },
 		   "mode" : "button",
 		   "path" : "/user/hand/right/input/bumper"
+		},
+		{
+		   "inputs" : {
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_4x"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/right/input/joystick_cap/raw_value"
+		},
+		{
+		   "inputs" : {
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_4y"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/right/input/trigger_cap/raw_value"
 		}
       ],
       "haptics": [
