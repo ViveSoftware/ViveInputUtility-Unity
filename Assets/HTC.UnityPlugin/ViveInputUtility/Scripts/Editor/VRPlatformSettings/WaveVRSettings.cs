@@ -88,7 +88,9 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateWaveVRModule) { return false; }
+#if !VIU_WAVEVR_3_0_0_OR_NEWER
                     if (virtualRealitySupported) { return false; }
+#endif
                     if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23) { return false; }
                     if (PlayerSettings.colorSpace == ColorSpace.Linear && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
                     return true;
@@ -99,7 +101,9 @@ namespace HTC.UnityPlugin.Vive
 
                     if (value)
                     {
+#if !VIU_WAVEVR_3_0_0_OR_NEWER
                         virtualRealitySupported = false;
+#endif
 
                         if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23)
                         {
