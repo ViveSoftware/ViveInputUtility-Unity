@@ -1,0 +1,60 @@
+{
+  "controller_type": "vive_tracker_keyboard",
+  "bindings": {
+    "/actions/htc_viu": {
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_00"
+            }
+          },
+          "mode": "button",
+          "path": "/user/keyboard/input/power"
+        },
+		{
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_33"
+            }
+          },
+          "mode": "button",
+          "path": "/user/keyboard/input/trigger"
+        },
+		{
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_02"
+            }
+          },
+          "mode": "button",
+          "path": "/user/keyboard/input/grip"
+        },
+		{
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_01"
+            }
+          },
+          "mode": "button",
+          "path": "/user/keyboard/input/application_menu"
+        },
+		{
+          "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_32"
+            }
+          },
+          "mode": "button",
+          "path": "/user/keyboard/input/thumb"
+        }
+      ],
+      "haptics": [
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/keyboard/output/haptic"
+        }
+      ]
+    }
+  }
+}

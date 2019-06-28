@@ -1,5 +1,5 @@
 {
-  "controller_type": "vive_tracker",
+  "controller_type": "vive_tracker_handed",
   "bindings": {
     "/actions/htc_viu": {
       "sources": [
