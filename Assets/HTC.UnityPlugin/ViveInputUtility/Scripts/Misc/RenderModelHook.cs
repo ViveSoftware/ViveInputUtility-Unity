@@ -303,14 +303,14 @@ namespace HTC.UnityPlugin.Vive
                 // clean up model created from previous active creator
                 if (m_activeCreatorIndex >= 0)
                 {
-                    m_creators[activeCreatorIndex].CleanUpRenderModel();
+                    m_creators[m_activeCreatorIndex].CleanUpRenderModel();
                 }
                 m_activeCreatorIndex = activeCreatorIndex;
             }
 
             if (m_activeCreatorIndex >= 0)
             {
-                m_creators[activeCreatorIndex].UpdateRenderModel();
+                m_creators[m_activeCreatorIndex].UpdateRenderModel();
             }
         }
     }

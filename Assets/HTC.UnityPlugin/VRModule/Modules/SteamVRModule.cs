@@ -86,6 +86,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     Object.Destroy(m_model.gameObject);
                     m_model = null;
+                    m_index = INVALID_DEVICE_INDEX;
                 }
             }
         }
