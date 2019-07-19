@@ -637,8 +637,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (!ctrlState.isConnected) { return; }
             if (!VIUSettings.waveVRAddVirtualArmTo3DoFController && !VIUSettings.simulateWaveVR6DofController) { return; }
             var deviceType = (int)s_index2type[ctrlState.deviceIndex];
-#if VIU_WAVEVR_2_1_0_OR_NEWER && UNITY_EDITOR
+
+#if VIU_WAVEVR_2_1_0_OR_NEWER && !VIU_WAVEVR_3_1_0_OR_NEWER && UNITY_EDITOR
             if (!WaveVR.Instance.isSimulatorOn || WaveVR_Utils.WVR_GetDegreeOfFreedom_S() == (int)WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
+#elif VIU_WAVEVR_3_1_0_OR_NEWER && UNITY_EDITOR
+            if (!WaveVR.EnableSimulator || WVR_Simulator.WVR_GetDegreeOfFreedom_S(0) == (int)WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
 #else
             if (Interop.WVR_GetDegreeOfFreedom((WVR_DeviceType)deviceType) == WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
 #endif

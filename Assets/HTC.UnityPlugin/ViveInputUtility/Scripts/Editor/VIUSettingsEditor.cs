@@ -103,6 +103,7 @@ namespace HTC.UnityPlugin.Vive
             public static readonly VRSDK Oculus = new VRSDK("Oculus");
             public static readonly VRSDK OpenVR = new VRSDK("OpenVR", true);
             public static readonly VRSDK Daydream = new VRSDK("daydream");
+            public static readonly VRSDK MockHMD = new VRSDK("MockHMD");
 
             public static bool vrEnabled
             {
@@ -133,6 +134,7 @@ namespace HTC.UnityPlugin.Vive
                     Oculus,
                     OpenVR,
                     Daydream,
+                    MockHMD,
                 };
 
                 s_projectSettingAsset = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
@@ -452,6 +454,7 @@ namespace HTC.UnityPlugin.Vive
         public static ISupportedSDK OpenVRSDK { get { return VRSDKSettings.OpenVR; } }
         public static ISupportedSDK OculusSDK { get { return VRSDKSettings.Oculus; } }
         public static ISupportedSDK DaydreamSDK { get { return VRSDKSettings.Daydream; } }
+        public static ISupportedSDK MockHMDSDK { get { return VRSDKSettings.MockHMD; } }
         public static void ApplySDKChanges() { VRSDKSettings.ApplyChanges(); }
 
         public static BuildTargetGroup activeBuildTargetGroup { get { return BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget); } }
@@ -508,7 +511,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 foreach (var ps in s_platformSettings)
                 {
-                    if (ps.support && (ps.isAndroidVR || ps.isAndroidVR))
+                    if (ps.support)
                     {
                         return true;
                     }
@@ -723,6 +726,7 @@ namespace HTC.UnityPlugin.Vive
                     supportOpenVR = canSupportOpenVR;
                     supportOculus = canSupportOculus;
                     supportDaydream = canSupportDaydream;
+                    supportWaveVR = canSupportWaveVR;
 
                     VRSDKSettings.ApplyChanges();
                 }

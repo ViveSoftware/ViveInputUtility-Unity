@@ -88,6 +88,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateWaveVRModule) { return false; }
+                    if (!MockHMDSDK.enabled) { return false; }
 #if !VIU_WAVEVR_3_0_0_OR_NEWER
                     if (virtualRealitySupported) { return false; }
 #endif
@@ -119,6 +120,7 @@ namespace HTC.UnityPlugin.Vive
                         supportOculusGo = false;
                     }
 
+                    MockHMDSDK.enabled = value;
                     VIUSettings.activateWaveVRModule = value;
                 }
 #else

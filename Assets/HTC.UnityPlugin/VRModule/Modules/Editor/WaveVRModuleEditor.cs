@@ -79,6 +79,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 },
                 reqFileNames = new string[] { "wvr.cs" },
             });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_3_1_0_OR_NEWER",
+                reqTypeNames = new string[] { "wvr.WVR_Intensity" },
+                validateFunc = (req) =>
+                {
+                    Type wvrIntensityType;
+                    if (SymbolRequirement.s_foundTypes.TryGetValue("wvr.WVR_Intensity", out wvrIntensityType) && wvrIntensityType.IsEnum)
+                    {
+                        if (Enum.IsDefined(wvrIntensityType, "WVR_Intensity_Normal"))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
         }
     }
 }
