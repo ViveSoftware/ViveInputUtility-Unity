@@ -58,7 +58,9 @@ namespace HTC.UnityPlugin.Vive
                 VIUSteamVRActionFile partialFile;
 
                 if (!VIUSteamVRActionFile.TryLoad(m_mainDirPath, mainFileName, out mainFile)) { return false; }
+#if VIU_STEAMVR_2_1_0_OR_NEWER
                 if (SteamVR_Input.actions == null || SteamVR_Input.actions.Length == 0) { return false; }
+#endif
                 if (!VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return true; }
 
                 if (m_mainFileVersion != mainFile.lastWriteTime || m_partialFileVersion != partialFile.lastWriteTime)
