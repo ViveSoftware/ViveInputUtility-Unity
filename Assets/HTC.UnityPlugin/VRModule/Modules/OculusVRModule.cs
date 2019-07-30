@@ -193,7 +193,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 case OVRPlugin.SystemHeadset.Rift_DK1:
                                 case OVRPlugin.SystemHeadset.Rift_DK2:
                                 case OVRPlugin.SystemHeadset.Rift_CV1:
-                                default:
                                     switch (node)
                                     {
                                         case OVRPlugin.Node.HandLeft:
@@ -202,6 +201,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                         case OVRPlugin.Node.HandRight:
                                         default:
                                             currState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
+                                            break;
+                                    }
+                                    currState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    break;
+                                case OVRPlugin.SystemHeadset.Oculus_Quest:
+                                    switch (node)
+                                    {
+                                        case OVRPlugin.Node.HandLeft:
+                                            currState.deviceModel = VRModuleDeviceModel.OculusQuestControllerLeft;
+                                            break;
+                                        case OVRPlugin.Node.HandRight:
+                                        default:
+                                            currState.deviceModel = VRModuleDeviceModel.OculusQuestControllerRight;
                                             break;
                                     }
                                     currState.input2DType = VRModuleInput2DType.JoystickOnly;
@@ -222,6 +234,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 switch (currState.deviceModel)
                 {
                     case VRModuleDeviceModel.OculusTouchLeft:
+                    case VRModuleDeviceModel.OculusQuestControllerLeft:
                         {
                             var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.LTouch);
 
@@ -246,6 +259,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             break;
                         }
                     case VRModuleDeviceModel.OculusTouchRight:
+                    case VRModuleDeviceModel.OculusQuestControllerRight:
                         {
                             var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.RTouch);
 
