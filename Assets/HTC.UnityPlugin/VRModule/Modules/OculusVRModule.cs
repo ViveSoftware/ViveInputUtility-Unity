@@ -205,7 +205,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     }
                                     currState.input2DType = VRModuleInput2DType.JoystickOnly;
                                     break;
+#if VIU_OCULUSVR_1_37_0_OR_NEWER
                                 case OVRPlugin.SystemHeadset.Oculus_Quest:
+                                case OVRPlugin.SystemHeadset.Rift_S:
                                     switch (node)
                                     {
                                         case OVRPlugin.Node.HandLeft:
@@ -218,6 +220,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     }
                                     currState.input2DType = VRModuleInput2DType.JoystickOnly;
                                     break;
+#endif
                             }
                             break;
                     }
