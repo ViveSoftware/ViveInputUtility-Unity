@@ -4,6 +4,13 @@ using HTC.UnityPlugin.VRModuleManagement;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Linq;
+using System.IO;
+using System;
+using UnityEditor.Build;
+#if UNITY_2018_1_OR_NEWER
+using UnityEditor.Build.Reporting;
+#endif
 #if UNITY_5_6_OR_NEWER
 using UnityEditor.Rendering;
 #endif
@@ -410,8 +417,15 @@ namespace HTC.UnityPlugin.Vive
             set { OculusGoSettings.instance.support = value; }
         }
 
-        private class OculusGoSettings : VRPlatformSetting
+        private class OculusGoSettings : VRPlatformSetting,
+#if UNITY_2018_1_OR_NEWER
+        IPreprocessBuildWithReport
+#else
+		IPreprocessBuild
+#endif
         {
+            private Foldouter m_foldouter = new Foldouter();
+
             public static OculusGoSettings instance { get; private set; }
 
             public OculusGoSettings() { instance = this; }
@@ -419,6 +433,23 @@ namespace HTC.UnityPlugin.Vive
             public override int order { get { return 103; } }
 
             protected override BuildTargetGroup requirdPlatform { get { return BuildTargetGroup.Android; } }
+
+            private string defaultAndroidManifestPath
+            {
+                get
+                {
+#if VIU_OCULUSVR
+                    var monoScripts = MonoImporter.GetAllRuntimeMonoScripts();
+                    var monoScript = monoScripts.FirstOrDefault(script => script.GetClass() == typeof(OVRPlugin));
+                    var path = Path.GetDirectoryName(AssetDatabase.GetAssetPath(monoScript));
+                    var fullPath = Path.GetFullPath((path.Substring(0, path.Length - "Scripts".Length) + "Editor/AndroidManifest.OVRSubmission.xml").Replace("\\", "/"));
+
+                    return fullPath.Substring(fullPath.IndexOf("Assets"), fullPath.Length - fullPath.IndexOf("Assets"));
+#else
+                    return string.Empty;
+#endif
+                }
+            }
 
             public override bool canSupport
             {
@@ -479,12 +510,14 @@ namespace HTC.UnityPlugin.Vive
 #endif
             }
 
+            public int callbackOrder { get { return 0; } }
+
             public override void OnPreferenceGUI()
             {
                 const string title = "Oculus (Android)";
                 if (canSupport)
                 {
-                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title), support);
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title), support);
                 }
                 else
                 {
@@ -518,7 +551,74 @@ namespace HTC.UnityPlugin.Vive
 
                     GUILayout.EndHorizontal();
                 }
+
+                if (support && m_foldouter.isExpended)
+                {
+                    if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel += 2;
+                        EditorGUILayout.BeginHorizontal();
+
+                        EditorGUIUtility.labelWidth = 230;
+                        var style = new GUIStyle(GUI.skin.textField) { alignment = TextAnchor.MiddleLeft };
+                        VIUSettings.oculusVRAndroidManifestPath = EditorGUILayout.DelayedTextField(new GUIContent("Customized AndroidManifest Path:", "Default path: " + defaultAndroidManifestPath),
+                                                VIUSettings.oculusVRAndroidManifestPath, style);
+                        if (GUILayout.Button("Open", new GUILayoutOption[] { GUILayout.Width(44), GUILayout.Height(18) }))
+                        {
+                            VIUSettings.oculusVRAndroidManifestPath = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal();
+
+                        if (!File.Exists(VIUSettings.oculusVRAndroidManifestPath) && (string.IsNullOrEmpty(defaultAndroidManifestPath) || !File.Exists(defaultAndroidManifestPath)))
+                        {
+                            EditorGUILayout.HelpBox("Default AndroidManifest.xml does not existed!", MessageType.Warning);
+                        }
+                        else if (!string.IsNullOrEmpty(VIUSettings.oculusVRAndroidManifestPath) && !File.Exists(VIUSettings.oculusVRAndroidManifestPath))
+                        {
+                            EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUI.indentLevel -= 2;
+                    }
+                    if (support) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
+                }
             }
+
+            public void OnPreprocessBuild(BuildTarget target, string path)
+            {
+                if (!support) { return; }
+
+                if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
+                {
+                    File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+                else if (File.Exists(defaultAndroidManifestPath))
+                {
+                    File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+            }
+
+#if UNITY_2018_1_OR_NEWER
+            public void OnPreprocessBuild(BuildReport report)
+            {
+                if (!support) { return; }
+
+                if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
+                {
+                    File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+                else if (File.Exists(defaultAndroidManifestPath))
+                {
+                    File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+            }
+#endif
         }
     }
 }
