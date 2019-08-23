@@ -26,7 +26,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     Type oculusQuest;
                     if (SymbolRequirement.s_foundTypes.TryGetValue("OVRPlugin+SystemHeadset", out oculusQuest) && oculusQuest.IsEnum)
                     {
-                        if (Enum.IsDefined(oculusQuest, "Oculus_Quest"))
+                        if (Enum.IsDefined(oculusQuest, "Oculus_Quest") && Enum.IsDefined(oculusQuest, "Rift_S"))
                         {
                             return true;
                         }
