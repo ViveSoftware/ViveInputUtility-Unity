@@ -2,6 +2,7 @@
 
 using UnityEditor;
 using UnityEngine;
+using HTC.UnityPlugin.VRModuleManagement;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -58,6 +59,8 @@ namespace HTC.UnityPlugin.Vive
                     if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
                     {
                         EditorGUI.indentLevel += 2;
+                        var origLabelWidth = EditorGUIUtility.labelWidth;
+                        EditorGUIUtility.labelWidth = 195;
                         VIUSettings.simulatorAutoTrackMainCamera = EditorGUILayout.ToggleLeft(new GUIContent("Enable Auto Camera Tracking", "Main camera only"), VIUSettings.simulatorAutoTrackMainCamera);
                         VIUSettings.enableSimulatorKeyboardMouseControl = EditorGUILayout.ToggleLeft(new GUIContent("Enable Keyboard-Mouse Control", "You can also control Simulator devices by handling VRModule.Simulator.onUpdateDeviceState event."), VIUSettings.enableSimulatorKeyboardMouseControl);
 
@@ -72,6 +75,11 @@ namespace HTC.UnityPlugin.Vive
                         }
                         if (!VIUSettings.enableSimulatorKeyboardMouseControl && support) { GUI.enabled = true; }
 
+                        VIUSettings.simulatorRightControllerModel = (VRModuleDeviceModel)EditorGUILayout.EnumPopup("Device Index 1 (Right)", VIUSettings.simulatorRightControllerModel);
+                        VIUSettings.simulatorLeftControllerModel = (VRModuleDeviceModel)EditorGUILayout.EnumPopup("Device Index 2 (Left)", VIUSettings.simulatorLeftControllerModel);
+                        VIUSettings.simulatorOtherModel = (VRModuleDeviceModel)EditorGUILayout.EnumPopup("Other Device Index", VIUSettings.simulatorOtherModel);
+
+                        EditorGUIUtility.labelWidth = origLabelWidth;
                         EditorGUI.indentLevel -= 2;
                     }
                     if (support) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
