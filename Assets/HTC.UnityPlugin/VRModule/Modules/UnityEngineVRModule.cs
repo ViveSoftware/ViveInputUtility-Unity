@@ -200,6 +200,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static void Update_L_OculusTouch(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
         {
+            var startPress = GetUnityButton(6);
             var xPress = GetUnityButton(2);
             var yPress = GetUnityButton(3);
             var stickPress = GetUnityButton(8);
@@ -214,6 +215,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var trigger = GetUnityAxis(9);
             var grip = GetUnityAxis(11);
 
+            currState.SetButtonPress(VRModuleRawButton.System, startPress);
             currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, yPress);
             currState.SetButtonPress(VRModuleRawButton.A, xPress);
             currState.SetButtonPress(VRModuleRawButton.Touchpad, stickPress);
