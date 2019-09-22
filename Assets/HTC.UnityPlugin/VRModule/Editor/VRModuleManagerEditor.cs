@@ -205,18 +205,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqFileNames = new string[] { "ViveInput.cs", "VRModuleManagerEditor.cs" },
             });
 
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
+                symbol = "VIU_SIUMULATOR_SUPPORT",
+                validateFunc = (req) => Vive.VIUSettingsEditor.supportSimulator,
+            });
+
             // Obsolete symbol, will be removed in all condition
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_EXTERNAL_CAMERA_SWITCH",
-                reqFileNames = new string[] { "" },
+                validateFunc = (req) => false,
             });
 
             // Obsolete symbol, will be removed in all condition
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_BINDING_INTERFACE_SWITCH",
-                reqFileNames = new string[] { "" },
+                validateFunc = (req) => false,
             });
 
 #if !UNITY_2017_1_OR_NEWER
@@ -236,6 +242,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [DidReloadScripts]
         public static void UpdateScriptingDefineSymbols()
         {
+            if (!s_isUpdatingScriptingDefineSymbols)
+            {
+                s_isUpdatingScriptingDefineSymbols = true;
+                EditorApplication.update += DoUpdateScriptingDefineSymbols;
+            }
+        }
+
+        private static bool s_isUpdatingScriptingDefineSymbols = false;
+        private static void DoUpdateScriptingDefineSymbols()
+        {
+            // some symbolRequirement depends on installed packages (only works when UNITY_2018_1_OR_NEWER)
+            Vive.VIUSettingsEditor.PackageManagerHelper.PreparePackageList();
+
+            if (Vive.VIUSettingsEditor.PackageManagerHelper.isPreparingList) { return; }
+
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
@@ -284,6 +305,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             SymbolRequirement.ResetFoundTypes();
+
+            s_isUpdatingScriptingDefineSymbols = false;
+            EditorApplication.update -= DoUpdateScriptingDefineSymbols;
         }
 
         private static bool s_delayCallRemoveRegistered;

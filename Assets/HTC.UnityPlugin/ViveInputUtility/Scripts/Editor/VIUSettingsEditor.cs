@@ -712,6 +712,8 @@ namespace HTC.UnityPlugin.Vive
                 EditorUtility.SetDirty(VIUSettings.Instance);
 
                 VIUVersionCheck.UpdateIgnoredNotifiedSettingsCount(false);
+
+                VRModuleManagerEditor.UpdateScriptingDefineSymbols();
             }
 
             if (!string.IsNullOrEmpty(assetPath))

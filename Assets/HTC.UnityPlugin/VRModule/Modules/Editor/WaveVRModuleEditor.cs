@@ -13,6 +13,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             Add(new SymbolRequirement()
             {
+                symbol = "VIU_WAVEVR_SUPPORT",
+                validateFunc = (req) => Vive.VIUSettingsEditor.supportWaveVR,
+            });
+
+            Add(new SymbolRequirement()
+            {
                 symbol = "VIU_WAVEVR",
                 reqTypeNames = new string[] { "WaveVR" },
                 reqFileNames = new string[] { "WaveVR.cs" },

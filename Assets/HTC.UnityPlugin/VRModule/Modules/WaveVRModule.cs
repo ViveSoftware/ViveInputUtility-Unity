@@ -20,6 +20,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+        public static readonly bool isWaveVRSupported =
+#if VIU_WAVEVR_SUPPORT
+            true;
+#else
+            false;
+#endif
     }
 
     public sealed class WaveVRModule : VRModule.ModuleBase

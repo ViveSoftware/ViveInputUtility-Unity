@@ -13,6 +13,16 @@ using XRDevice = UnityEngine.VR.VRDevice;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
+    public partial class VRModule : SingletonBehaviour<VRModule>
+    {
+        public static readonly bool isSimulatorSupported =
+#if VIU_SIUMULATOR_SUPPORT
+            true;
+#else
+            false;
+#endif
+    }
+
     public interface ISimulatorVRModule
     {
         event Action onActivated;

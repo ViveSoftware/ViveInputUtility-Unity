@@ -11,6 +11,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             Add(new SymbolRequirement()
             {
+                symbol = "VIU_GOOGLEVR_SUPPORT",
+                validateFunc = (req) => Vive.VIUSettingsEditor.supportDaydream,
+            });
+
+            Add(new SymbolRequirement()
+            {
                 symbol = "VIU_GOOGLEVR",
                 reqTypeNames = new string[] { "GvrUnitySdkVersion" },
                 reqFileNames = new string[] { "GvrUnitySdkVersion.cs" },

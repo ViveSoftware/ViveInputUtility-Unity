@@ -12,6 +12,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             Add(new SymbolRequirement()
             {
+                symbol = "VIU_OPENVR_SUPPORT",
+                validateFunc = (req) => Vive.VIUSettingsEditor.supportOpenVR,
+            });
+
+            Add(new SymbolRequirement()
+            {
                 symbol = "VIU_OPENVR_API",
                 reqTypeNames = new string[] { "Valve.VR.OpenVR" },
                 reqFileNames = new string[] { "openvr_api.cs" },

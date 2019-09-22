@@ -12,6 +12,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             Add(new SymbolRequirement()
             {
+                symbol = "VIU_OCULUSVR_DESKTOP_SUPPORT",
+                validateFunc = (req) => Vive.VIUSettingsEditor.supportOculus,
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_OCULUSVR_ANDROID_SUPPORT",
+                validateFunc = (req) => Vive.VIUSettingsEditor.supportOculusGo,
+            });
+
+            Add(new SymbolRequirement()
+            {
                 symbol = "VIU_OCULUSVR",
                 reqTypeNames = new string[] { "OVRInput" },
                 reqFileNames = new string[] { "OVRInput.cs" },

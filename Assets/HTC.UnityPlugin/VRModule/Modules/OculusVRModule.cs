@@ -22,6 +22,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+        public static readonly bool isOculusVRDesktopSupported =
+#if VIU_OCULUSVR_DESKTOP_SUPPORT
+            true;
+#else
+            false;
+#endif
+        public static readonly bool isOculusVRAndroidSupported =
+#if VIU_OCULUSVR_ANDROID_SUPPORT
+            true;
+#else
+            false;
+#endif
     }
 
     public sealed class OculusVRModule : VRModule.ModuleBase

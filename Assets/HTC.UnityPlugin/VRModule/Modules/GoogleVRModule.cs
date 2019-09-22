@@ -26,6 +26,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+        public static readonly bool isGoogleVRSupported =
+#if VIU_GOOGLEVR_SUPPORT
+            true;
+#else
+            false;
+#endif
     }
 
     public sealed class GoogleVRModule : VRModule.ModuleBase
