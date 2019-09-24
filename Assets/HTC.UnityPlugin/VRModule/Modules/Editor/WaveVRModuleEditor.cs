@@ -82,7 +82,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             Add(new SymbolRequirement()
             {
-                symbol = "VIU_WAVEVR_3_1_0_OR_NEWER",
+                symbol = "VIU_WAVEVR_3_1_3_OR_NEWER",
                 reqTypeNames = new string[] { "wvr.WVR_Intensity" },
                 validateFunc = (req) =>
                 {
