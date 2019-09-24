@@ -40,8 +40,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public string[] reqTypeNames = null;
             public string[] reqAnyTypeNames = null;
             public string[] reqFileNames = null;
+            public string[] reqAnyFileNames = null;
             public ReqFieldInfo[] reqFields = null;
+            public ReqFieldInfo[] reqAnyFields = null;
             public ReqMethodInfo[] reqMethods = null;
+            public ReqMethodInfo[] reqAnyMethods = null;
             public Func<SymbolRequirement, bool> validateFunc = null;
 
             public static Dictionary<string, Type> s_foundTypes;
@@ -80,9 +83,33 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
 
+                if (reqAnyFields != null)
+                {
+                    foreach (var field in reqAnyFields)
+                    {
+                        TryAddTypeFromAssembly(field.typeName, assembly);
+                    }
+                }
+
                 if (reqMethods != null)
                 {
                     foreach (var method in reqMethods)
+                    {
+                        TryAddTypeFromAssembly(method.typeName, assembly);
+
+                        if (method.argTypeNames != null)
+                        {
+                            foreach (var typeName in method.argTypeNames)
+                            {
+                                TryAddTypeFromAssembly(typeName, assembly);
+                            }
+                        }
+                    }
+                }
+
+                if (reqAnyMethods != null)
+                {
+                    foreach (var method in reqAnyMethods)
                     {
                         TryAddTypeFromAssembly(method.typeName, assembly);
 
@@ -140,6 +167,32 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (!found) { return false; }
                 }
 
+                if (reqFileNames != null)
+                {
+                    foreach (var requiredFile in reqFileNames)
+                    {
+                        var files = Directory.GetFiles(Application.dataPath, requiredFile, SearchOption.AllDirectories);
+                        if (files == null || files.Length == 0) { return false; }
+                    }
+                }
+
+                if (reqAnyFileNames != null)
+                {
+                    var found = false;
+
+                    foreach (var requiredFile in reqAnyFileNames)
+                    {
+                        var files = Directory.GetFiles(Application.dataPath, requiredFile, SearchOption.AllDirectories);
+                        if (files != null && files.Length > 0)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) { return false; }
+                }
+
                 if (reqFields != null)
                 {
                     foreach (var field in reqFields)
@@ -148,6 +201,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         if (!s_foundTypes.TryGetValue(field.typeName, out type)) { return false; }
                         if (type.GetField(field.name, field.bindingAttr) == null) { return false; }
                     }
+                }
+
+                if (reqAnyFields != null)
+                {
+                    var found = false;
+
+                    foreach (var field in reqAnyFields)
+                    {
+                        Type type;
+                        if (!s_foundTypes.TryGetValue(field.typeName, out type)) { continue; }
+                        if (type.GetField(field.name, field.bindingAttr) == null) { continue; }
+
+                        found = true;
+                        break;
+                    }
+
+                    if (!found) { return false; }
                 }
 
                 if (reqMethods != null)
@@ -167,13 +237,28 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
 
-                if (reqFileNames != null)
+                if (reqAnyMethods != null)
                 {
-                    foreach (var requiredFile in reqFileNames)
+                    var found = false;
+
+                    foreach (var method in reqAnyMethods)
                     {
-                        var files = Directory.GetFiles(Application.dataPath, requiredFile, SearchOption.AllDirectories);
-                        if (files == null || files.Length == 0) { return false; }
+                        Type type;
+                        if (!s_foundTypes.TryGetValue(method.typeName, out type)) { continue; }
+
+                        var argTypes = new Type[method.argTypeNames == null ? 0 : method.argTypeNames.Length];
+                        for (int i = argTypes.Length - 1; i >= 0; --i)
+                        {
+                            if (!s_foundTypes.TryGetValue(method.argTypeNames[i], out argTypes[i])) { continue; }
+                        }
+
+                        if (type.GetMethod(method.name, method.bindingAttr, null, CallingConventions.Any, argTypes, method.argModifiers ?? new ParameterModifier[0]) == null) { continue; }
+
+                        found = true;
+                        break;
                     }
+
+                    if (!found) { return false; }
                 }
 
                 if (validateFunc != null)
