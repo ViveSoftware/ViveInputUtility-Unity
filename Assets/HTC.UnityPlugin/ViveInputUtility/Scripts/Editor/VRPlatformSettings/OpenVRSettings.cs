@@ -400,10 +400,10 @@ namespace HTC.UnityPlugin.Vive
 
             public override void OnPreferenceGUI()
             {
-                const string title = "VIVE <size=9>(OpenVR compatible device)</size>";
+                const string title = "OpenVR";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title), support);
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE, VIVE Pro, VIVE Pro Eye, VIVE Cosmos\nOculus Rift, Oculus Rift S, Windows MR"), support);
                 }
                 else
                 {

@@ -106,10 +106,10 @@ namespace HTC.UnityPlugin.Vive
 
             public override void OnPreferenceGUI()
             {
-                const string title = "Oculus Rift & Touch";
+                const string title = "Oculus Desktop";
                 if (canSupport)
                 {
-                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title), support);
+                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title, "Oculus Rift, Oculus Rift S"), support);
                 }
                 else
                 {

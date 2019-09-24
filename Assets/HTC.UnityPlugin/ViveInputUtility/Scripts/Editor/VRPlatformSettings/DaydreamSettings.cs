@@ -102,7 +102,7 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "Daydream";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title), support);
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "Google Pixel series, others"), support);
                 }
                 else
                 {
