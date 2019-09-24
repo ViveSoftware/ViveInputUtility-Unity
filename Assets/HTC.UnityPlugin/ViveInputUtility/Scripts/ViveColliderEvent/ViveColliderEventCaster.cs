@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 
 namespace HTC.UnityPlugin.Vive
 {
-    [AddComponentMenu("HTC/VIU/Object Grabber/Vive Collider Event Caster (Grabber)", 2)]
+    [AddComponentMenu("VIU/Object Grabber/Vive Collider Event Caster (Grabber)", 2)]
     public class ViveColliderEventCaster : ColliderEventCaster, IViveRoleComponent
     {
         [SerializeField]

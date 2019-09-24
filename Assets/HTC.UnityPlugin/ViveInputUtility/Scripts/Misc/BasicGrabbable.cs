@@ -10,7 +10,7 @@ using GrabberPool = HTC.UnityPlugin.Utility.ObjectPool<HTC.UnityPlugin.Vive.Basi
 
 namespace HTC.UnityPlugin.Vive
 {
-    [AddComponentMenu("HTC/VIU/Object Grabber/Basic Grabbable", 0)]
+    [AddComponentMenu("VIU/Object Grabber/Basic Grabbable", 0)]
     public class BasicGrabbable : GrabbableBase<BasicGrabbable.Grabber>
         , IColliderEventDragStartHandler
         , IColliderEventDragFixedUpdateHandler

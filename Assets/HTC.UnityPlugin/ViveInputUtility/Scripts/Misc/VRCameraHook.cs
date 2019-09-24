@@ -12,7 +12,7 @@ namespace HTC.UnityPlugin.Vive
     /// <summary>
     /// This componenet hooks up custom VR camera required component
     /// </summary>
-    [AddComponentMenu("HTC/VIU/Hooks/VR Camera Hook", 10)]
+    [AddComponentMenu("VIU/Hooks/VR Camera Hook", 10)]
     public class VRCameraHook : MonoBehaviour
     {
         [AttributeUsage(AttributeTargets.Class)]

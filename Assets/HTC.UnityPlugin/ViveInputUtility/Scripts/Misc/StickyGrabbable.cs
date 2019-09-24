@@ -10,7 +10,7 @@ using GrabberPool = HTC.UnityPlugin.Utility.ObjectPool<HTC.UnityPlugin.Vive.Stic
 
 namespace HTC.UnityPlugin.Vive
 {
-    [AddComponentMenu("HTC/VIU/Object Grabber/Sticky Grabbable", 1)]
+    [AddComponentMenu("VIU/Object Grabber/Sticky Grabbable", 1)]
     public class StickyGrabbable : GrabbableBase<StickyGrabbable.Grabber>
         , IColliderEventPressDownHandler
     {
