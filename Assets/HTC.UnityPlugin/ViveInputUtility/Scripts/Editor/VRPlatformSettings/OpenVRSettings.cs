@@ -395,6 +395,14 @@ namespace HTC.UnityPlugin.Vive
                         virtualRealitySupported = false;
                     }
 #endif
+
+#if VIU_STEAMVR_2_2_0_OR_NEWER
+                    SteamVR_Settings.instance.autoEnableVR = false;
+                    EditorUtility.SetDirty(SteamVR_Settings.instance);
+                    AssetDatabase.SaveAssets();
+#elif VIU_STEAMVR_1_2_1_OR_NEWER && !(UNITY_5_3 || UNITY_5_2 || UNITY_5_1 || UNITY_5_0)
+                    SteamVR_Preferences.AutoEnableVR = false;
+#endif
                 }
             }
 
