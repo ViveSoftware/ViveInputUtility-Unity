@@ -7,7 +7,9 @@ using UnityEngine.Rendering;
 using System.Linq;
 using System.IO;
 using System;
+#if UNITY_5_6_OR_NEWER
 using UnityEditor.Build;
+#endif
 #if UNITY_2018_1_OR_NEWER
 using UnityEditor.Build.Reporting;
 #endif
@@ -417,11 +419,11 @@ namespace HTC.UnityPlugin.Vive
             set { OculusGoSettings.instance.support = value; }
         }
 
-        private class OculusGoSettings : VRPlatformSetting,
+        private class OculusGoSettings : VRPlatformSetting
 #if UNITY_2018_1_OR_NEWER
-        IPreprocessBuildWithReport
-#else
-		IPreprocessBuild
+        , IPreprocessBuildWithReport
+#elif UNITY_5_6_OR_NEWER
+		, IPreprocessBuild
 #endif
         {
             private Foldouter m_foldouter = new Foldouter();
