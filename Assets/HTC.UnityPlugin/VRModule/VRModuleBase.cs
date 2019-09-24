@@ -226,13 +226,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (s_leftRgx.IsMatch(deviceState.renderModelName))
                     {
                         deviceState.deviceModel = VRModuleDeviceModel.KnucklesLeft;
-                        deviceState.input2DType = VRModuleInput2DType.TrackpadOnly;
+                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
                         return;
                     }
                     else if (s_rightRgx.IsMatch(deviceState.renderModelName))
                     {
                         deviceState.deviceModel = VRModuleDeviceModel.KnucklesRight;
-                        deviceState.input2DType = VRModuleInput2DType.TrackpadOnly;
+                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
                         return;
                     }
                 }
