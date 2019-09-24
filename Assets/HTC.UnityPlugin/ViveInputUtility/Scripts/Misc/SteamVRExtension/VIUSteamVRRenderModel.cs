@@ -235,10 +235,10 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
                     Material material;
                     if (!m_materials.TryGetValue(model.textureID, out material))
                     {
-                        material = new Material(loadedShader)
+                        if (!renderModel.TryCreateMaterialForTexture(model.textureID, loadedShader, out material))
                         {
-                            mainTexture = renderModel.textures[model.textureID]
-                        };
+                            material = new Material(loadedShader);
+                        }
 
                         m_materials.Add(model.textureID, material);
                     }
@@ -270,10 +270,10 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
                             Material material;
                             if (!m_materials.TryGetValue(model.textureID, out material))
                             {
-                                material = new Material(loadedShader)
+                                if (!renderModel.TryCreateMaterialForTexture(model.textureID, loadedShader, out material))
                                 {
-                                    mainTexture = renderModel.textures[model.textureID]
-                                };
+                                    material = new Material(loadedShader);
+                                }
 
                                 m_materials.Add(model.textureID, material);
                             }
