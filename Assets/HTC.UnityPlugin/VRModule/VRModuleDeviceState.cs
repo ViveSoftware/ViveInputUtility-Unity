@@ -43,6 +43,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusQuestControllerRight,
         OculusQuestOrRiftSControllerLeft = OculusQuestControllerLeft,
         OculusQuestOrRiftSControllerRight = OculusQuestControllerRight,
+        IndexHMD,
     }
 
     public enum VRModuleRawButton
