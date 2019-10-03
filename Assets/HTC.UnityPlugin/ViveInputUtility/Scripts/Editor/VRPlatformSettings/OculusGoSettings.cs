@@ -442,7 +442,7 @@ namespace HTC.UnityPlugin.Vive
                 {
 #if VIU_OCULUSVR
                     var monoScripts = MonoImporter.GetAllRuntimeMonoScripts();
-                    var monoScript = monoScripts.FirstOrDefault(script => script.GetClass() == typeof(OVRPlugin));
+                    var monoScript = monoScripts.FirstOrDefault(script => script.GetClass() == typeof(OVRInput));
                     var path = Path.GetDirectoryName(AssetDatabase.GetAssetPath(monoScript));
                     var fullPath = Path.GetFullPath((path.Substring(0, path.Length - "Scripts".Length) + "Editor/AndroidManifest.OVRSubmission.xml").Replace("\\", "/"));
 
