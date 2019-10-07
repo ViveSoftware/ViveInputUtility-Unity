@@ -280,7 +280,11 @@ namespace HTC.UnityPlugin.Vive
                     if (lv2qualitySetting.FindPropertyRelative("anisotropicTextures").intValue != (int)AnisotropicFiltering.Disable) { return false; }
                     var antiAliasingLevel = lv2qualitySetting.FindPropertyRelative("antiAliasing").intValue; if (antiAliasingLevel > 4 || antiAliasingLevel < 2) { return false; }
                     if (lv2qualitySetting.FindPropertyRelative("shadows").intValue >= (int)ShadowQuality.All) { return false; }
+#if UNITY_2019_1_OR_NEWER
+                    if (lv2qualitySetting.FindPropertyRelative("skinWeights").intValue > 2) { return false; }
+#else
                     if (lv2qualitySetting.FindPropertyRelative("blendWeights").intValue > 2) { return false; }
+#endif
                     if (lv2qualitySetting.FindPropertyRelative("vSyncCount").intValue != 0) { return false; }
 
                     return true;
@@ -339,8 +343,13 @@ namespace HTC.UnityPlugin.Vive
                     var shadowsProp = lv2qualitySetting.FindPropertyRelative("shadows");
                     if (shadowsProp.intValue >= (int)ShadowQuality.All) { shadowsProp.intValue = (int)ShadowQuality.HardOnly; }
 
+#if UNITY_2019_1_OR_NEWER
+                    var blendWeightsProp = lv2qualitySetting.FindPropertyRelative("skinWeights");
+                    if (blendWeightsProp.intValue > 2) { blendWeightsProp.intValue = 2; }
+#else
                     var blendWeightsProp = lv2qualitySetting.FindPropertyRelative("blendWeights");
                     if (blendWeightsProp.intValue > 2) { blendWeightsProp.intValue = 2; }
+#endif
 
                     lv2qualitySetting.FindPropertyRelative("vSyncCount").intValue = 0;
 
