@@ -151,6 +151,9 @@ namespace HTC.UnityPlugin.Vive
             ViveCosmosControllerRight = VRModuleDeviceModel.ViveCosmosControllerRight,
             OculusQuestControllerLeft = VRModuleDeviceModel.OculusQuestControllerLeft,
             OculusQuestControllerRight = VRModuleDeviceModel.OculusQuestControllerRight,
+            IndexHMD = VRModuleDeviceModel.IndexHMD,
+            IndexControllerLeft = VRModuleDeviceModel.IndexControllerLeft,
+            IndexControllerRight = VRModuleDeviceModel.IndexControllerRight,
         }
 
         [SerializeField]

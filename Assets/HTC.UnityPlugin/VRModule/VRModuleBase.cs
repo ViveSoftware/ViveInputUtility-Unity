@@ -18,8 +18,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_indexRgx = new Regex("^.*(index).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_knucklesRgx = new Regex("^.*(knuckles).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_wmrRgx = new Regex("^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$)", RegexOptions.IgnoreCase);
             private static readonly Regex s_leftRgx = new Regex("^.*(left|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
@@ -230,19 +230,36 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.IndexHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
+                            deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
                             if (s_leftRgx.IsMatch(deviceState.renderModelName))
                             {
-                                deviceState.deviceModel = VRModuleDeviceModel.KnucklesLeft;
-                                deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                return;
+                                if (s_knucklesRgx.IsMatch(deviceState.renderModelName))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.KnucklesLeft;
+                                }
+                                else
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.IndexControllerLeft;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+                                    deviceState.input2DType = VRModuleInput2DType.Both;
+#endif
+                                }
                             }
                             else if (s_rightRgx.IsMatch(deviceState.renderModelName))
                             {
-                                deviceState.deviceModel = VRModuleDeviceModel.KnucklesRight;
-                                deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                return;
+                                if (s_knucklesRgx.IsMatch(deviceState.renderModelName))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.KnucklesRight;
+                                }
+                                else
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.IndexControllerRight;
+#if VIU_STEAMVR_2_0_0_OR_NEWER
+                                    deviceState.input2DType = VRModuleInput2DType.Both;
+#endif
+                                }
                             }
-                            break;
+                            return;
                         case VRModuleDeviceClass.TrackingReference:
                             deviceState.deviceModel = VRModuleDeviceModel.ViveBaseStation;
                             return;
