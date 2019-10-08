@@ -40,7 +40,7 @@
 			  }
 		   },
 		   "mode" : "button",
-		   "path" : "/user/hand/left/input/paddle_heavy"
+		   "path" : "/user/hand/left/input/grip"
 		},
 		{
 		   "inputs" : {
@@ -124,7 +124,7 @@
 			  }
 		   },
 		   "mode" : "button",
-		   "path" : "/user/hand/right/input/paddle_heavy"
+		   "path" : "/user/hand/right/input/grip"
 		},
 		{
 		   "inputs" : {
