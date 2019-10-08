@@ -428,13 +428,28 @@ namespace HTC.UnityPlugin.Vive
                 {
                     switch (currentInput2DType)
                     {
-                        case VRModuleInput2DType.Unknown:
                         case VRModuleInput2DType.TouchpadOnly:
-                        case VRModuleInput2DType.Both:
                             mode = ScrollType.Trackpad;
                             break;
                         case VRModuleInput2DType.ThumbstickOnly:
                             mode = ScrollType.Thumbstick;
+                            break;
+                        case VRModuleInput2DType.Unknown:
+                        case VRModuleInput2DType.Both:
+                            var padValue = Vector2.SqrMagnitude(new Vector2(GetAxis(ControllerAxis.PadX), GetAxis(ControllerAxis.PadY)));
+                            var stickValue = Vector2.SqrMagnitude(new Vector2(GetAxis(ControllerAxis.JoystickX), GetAxis(ControllerAxis.JoystickY)));
+                            if(padValue > stickValue)
+                            {
+                                xAxis = ControllerAxis.PadX;
+                                yAxis = ControllerAxis.PadY;
+                                mode = ScrollType.Trackpad;
+                            }
+                            else
+                            {
+                                xAxis = ControllerAxis.JoystickX;
+                                yAxis = ControllerAxis.JoystickY;
+                                mode = ScrollType.Thumbstick;
+                            }
                             break;
                         default:
                             return Vector2.zero;
