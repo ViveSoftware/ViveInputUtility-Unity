@@ -12,7 +12,7 @@ namespace HTC.UnityPlugin.Vive
 {
     // This script creates and handles SteamVR_RenderModel using viveRole property or device index
     [DisallowMultipleComponent]
-    [AddComponentMenu("HTC/VIU/Hooks/Render Model Hook", 10)]
+    [AddComponentMenu("VIU/Hooks/Render Model Hook", 10)]
     public class RenderModelHook : MonoBehaviour, IViveRoleComponent
     {
         [AttributeUsage(AttributeTargets.Class)]
@@ -141,10 +141,19 @@ namespace HTC.UnityPlugin.Vive
             OculusSensor = VRModuleDeviceModel.OculusSensor,
             KnucklesLeft = VRModuleDeviceModel.KnucklesLeft,
             KnucklesRight = VRModuleDeviceModel.KnucklesRight,
+            DaydreamController = VRModuleDeviceModel.DaydreamController,
+            ViveFocusFinch = VRModuleDeviceModel.ViveFocusFinch,
             OculusGoController = VRModuleDeviceModel.OculusGoController,
             OculusGearVrController = VRModuleDeviceModel.OculusGearVrController,
             WMRControllerLeft = VRModuleDeviceModel.WMRControllerLeft,
             WMRControllerRight = VRModuleDeviceModel.WMRControllerRight,
+            ViveCosmosControllerLeft = VRModuleDeviceModel.ViveCosmosControllerLeft,
+            ViveCosmosControllerRight = VRModuleDeviceModel.ViveCosmosControllerRight,
+            OculusQuestControllerLeft = VRModuleDeviceModel.OculusQuestControllerLeft,
+            OculusQuestControllerRight = VRModuleDeviceModel.OculusQuestControllerRight,
+            IndexHMD = VRModuleDeviceModel.IndexHMD,
+            IndexControllerLeft = VRModuleDeviceModel.IndexControllerLeft,
+            IndexControllerRight = VRModuleDeviceModel.IndexControllerRight,
         }
 
         [SerializeField]
@@ -297,14 +306,14 @@ namespace HTC.UnityPlugin.Vive
                 // clean up model created from previous active creator
                 if (m_activeCreatorIndex >= 0)
                 {
-                    m_creators[activeCreatorIndex].CleanUpRenderModel();
+                    m_creators[m_activeCreatorIndex].CleanUpRenderModel();
                 }
                 m_activeCreatorIndex = activeCreatorIndex;
             }
 
             if (m_activeCreatorIndex >= 0)
             {
-                m_creators[activeCreatorIndex].UpdateRenderModel();
+                m_creators[m_activeCreatorIndex].UpdateRenderModel();
             }
         }
     }

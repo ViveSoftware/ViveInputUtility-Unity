@@ -37,8 +37,8 @@ namespace HTC.UnityPlugin.Vive
 
         // classic buttons
         System = 14,
-        Menu = 4,
-        MenuTouch = 7,
+        Menu = 4, // Cosmos(RightHandB, LeftHandY), Index(B)
+        MenuTouch = 7, // Cosmos(RightHandB, LeftHandY), Index(B)
         Trigger = 0, // on:0.55 off:0.45
         TriggerTouch = 8, // on:0.25 off:0.20
         Pad = 1,
@@ -50,8 +50,8 @@ namespace HTC.UnityPlugin.Vive
         ProximitySensor = 15,
         Bumper = 16,
         BumperTouch = 17,
-        AKey = 12, // Knuckles(InnerFaceButton), Oculus Touch(RightHandA or LeftHandX pressed)
-        AKeyTouch = 13, // Knuckles(InnerFaceButton), Oculus Touch(RightHandA or LeftHandX touched)
+        AKey = 12, // Knuckles(InnerFaceButton), Oculus Touch(RightHandA or LeftHandX pressed), Cosmos(RightHandA, LeftHandX), Index(A)
+        AKeyTouch = 13, // Knuckles(InnerFaceButton), Oculus Touch(RightHandA or LeftHandX touched), Cosmos(RightHandA, LeftHandX), Index(A)
 
         // button alias
         BKey = Menu,
@@ -81,7 +81,7 @@ namespace HTC.UnityPlugin.Vive
         Axis3Touch = BumperTouch,
         [HideInInspector]
         Axis4Touch = 19,
-        
+
         // virtual buttons
         HairTrigger = 5, // Pressed if trigger button is pressing, unpressed if trigger button is releasing
         FullTrigger = 6, // on:1.00 off:1.00
@@ -118,6 +118,8 @@ namespace HTC.UnityPlugin.Vive
         MiddleCurl, // Knuckles only
         RingCurl, // Knuckles only
         PinkyCurl, // Knuckles only
+        JoystickCap = RingCurl, // Cosmos only
+        TriggerCap = PinkyCurl, // Cosmos only
 
         JoystickX,
         JoystickY,

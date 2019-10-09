@@ -1,0 +1,187 @@
+{
+  "controller_type": "vive_cosmos_controller",
+  "bindings": {
+    "/actions/htc_viu": {
+      "sources": [
+        {
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_33"
+			  },
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_1x"
+			  },
+			  "touch" : {
+				 "output" : "/actions/htc_viu/in/viu_touch_33"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/left/input/trigger"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_32"
+			  },
+			  "position" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_0xy"
+			  },
+			  "touch" : {
+				 "output" : "/actions/htc_viu/in/viu_touch_32"
+			  }
+		   },
+		   "mode" : "joystick",
+		   "path" : "/user/hand/left/input/joystick"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_02"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/left/input/grip"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_07"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/left/input/a"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_01"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/left/input/b"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_35"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/left/input/bumper"
+		},
+		{
+		   "inputs" : {
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_4x"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/left/input/joystick_cap/raw_value"
+		},
+		{
+		   "inputs" : {
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_4y"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/left/input/trigger_cap/raw_value"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_33"
+			  },
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_1x"
+			  },
+			  "touch" : {
+				 "output" : "/actions/htc_viu/in/viu_touch_33"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/right/input/trigger"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_32"
+			  },
+			  "position" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_0xy"
+			  },
+			  "touch" : {
+				 "output" : "/actions/htc_viu/in/viu_touch_32"
+			  }
+		   },
+		   "mode" : "joystick",
+		   "path" : "/user/hand/right/input/joystick"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_02"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/right/input/grip"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_07"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/right/input/a"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_01"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/right/input/b"
+		},
+		{
+		   "inputs" : {
+			  "click" : {
+				 "output" : "/actions/htc_viu/in/viu_press_35"
+			  }
+		   },
+		   "mode" : "button",
+		   "path" : "/user/hand/right/input/bumper"
+		},
+		{
+		   "inputs" : {
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_4x"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/right/input/joystick_cap/raw_value"
+		},
+		{
+		   "inputs" : {
+			  "pull" : {
+				 "output" : "/actions/htc_viu/in/viu_axis_4y"
+			  }
+		   },
+		   "mode" : "trigger",
+		   "path" : "/user/hand/right/input/trigger_cap/raw_value"
+		}
+      ],
+      "haptics": [
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/left/output/haptic"
+        },
+        {
+          "output": "/actions/htc_viu/out/viu_vib_01",
+          "path": "/user/hand/right/output/haptic"
+        }
+      ]
+    }
+  }
+}

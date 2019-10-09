@@ -12,7 +12,7 @@ namespace HTC.UnityPlugin.Pointer3D
         bool ignoreReversedGraphics { get; }
     }
 
-    [AddComponentMenu("HTC/VIU/UI Pointer/Canvas Raycast Target", 6)]
+    [AddComponentMenu("VIU/UI Pointer/Canvas Raycast Target", 6)]
     [RequireComponent(typeof(Canvas))]
     [DisallowMultipleComponent]
     public class CanvasRaycastTarget : UIBehaviour, ICanvasRaycastTarget

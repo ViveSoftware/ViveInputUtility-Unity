@@ -13,6 +13,16 @@ using XRDevice = UnityEngine.VR.VRDevice;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
+    public partial class VRModule : SingletonBehaviour<VRModule>
+    {
+        public static readonly bool isSimulatorSupported =
+#if VIU_SIUMULATOR_SUPPORT
+            true;
+#else
+            false;
+#endif
+    }
+
     public interface ISimulatorVRModule
     {
         event Action onActivated;
@@ -411,7 +421,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.serialNumber = "VIU Simulator Controller Device " + RIGHT_INDEX;
                         deviceState.modelNumber = deviceState.serialNumber;
                         deviceState.renderModelName = deviceState.serialNumber;
-                        deviceState.deviceModel = VRModuleDeviceModel.ViveController;
+                        deviceState.deviceModel = VIUSettings.simulatorRightControllerModel;
                         deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
 
                         var pose = new RigidPose(new Vector3(0.3f, -0.25f, 0.7f), Quaternion.identity);
@@ -430,7 +440,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.serialNumber = "VIU Simulator Controller Device " + LEFT_INDEX;
                         deviceState.modelNumber = deviceState.serialNumber;
                         deviceState.renderModelName = deviceState.serialNumber;
-                        deviceState.deviceModel = VRModuleDeviceModel.ViveController;
+                        deviceState.deviceModel = VIUSettings.simulatorLeftControllerModel;
                         deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
 
                         var pose = new RigidPose(new Vector3(-0.3f, -0.25f, 0.7f), Quaternion.identity);
@@ -449,7 +459,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceState.serialNumber = "VIU Simulator Generic Tracker Device " + deviceState.deviceIndex;
                         deviceState.modelNumber = deviceState.serialNumber;
                         deviceState.renderModelName = deviceState.serialNumber;
-                        deviceState.deviceModel = VRModuleDeviceModel.ViveTracker;
+                        deviceState.deviceModel = VIUSettings.simulatorOtherModel;
 
                         var pose = new RigidPose(new Vector3(0f, -0.25f, 0.7f), Quaternion.identity);
                         deviceState.isPoseValid = true;

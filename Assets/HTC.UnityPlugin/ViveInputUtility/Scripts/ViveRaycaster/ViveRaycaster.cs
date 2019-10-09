@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 
 namespace HTC.UnityPlugin.Vive
 {
-    [AddComponentMenu("HTC/VIU/UI Pointer/Vive Raycaster (VR Controller Input)", 4)]
+    [AddComponentMenu("VIU/UI Pointer/Vive Raycaster (VR Controller Input)", 4)]
     // Customized Pointer3DRaycaster for Vive controllers.
     public class ViveRaycaster : Pointer3DRaycaster, IViveRoleComponent
     {

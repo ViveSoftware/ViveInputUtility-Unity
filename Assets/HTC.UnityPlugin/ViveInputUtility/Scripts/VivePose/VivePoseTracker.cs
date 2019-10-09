@@ -8,7 +8,7 @@ using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
-    [AddComponentMenu("HTC/VIU/Device Tracker/Vive Pose Tracker (Transform)", 7)]
+    [AddComponentMenu("VIU/Device Tracker/Vive Pose Tracker (Transform)", 7)]
     // Simple component to track Vive devices.
     public class VivePoseTracker : BasePoseTracker, INewPoseListener, IViveRoleComponent
     {

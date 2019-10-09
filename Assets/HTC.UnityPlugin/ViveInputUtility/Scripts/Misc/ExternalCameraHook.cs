@@ -12,7 +12,7 @@ using Valve.VR;
 namespace HTC.UnityPlugin.Vive
 {
     // This script creates and handles SteamVR_ExternalCamera using viveRole property
-    [AddComponentMenu("HTC/VIU/Hooks/External Camera Hook", 9)]
+    [AddComponentMenu("VIU/Hooks/External Camera Hook", 9)]
     [DisallowMultipleComponent]
     public class ExternalCameraHook : SingletonBehaviour<ExternalCameraHook>, INewPoseListener, IViveRoleComponent
     {

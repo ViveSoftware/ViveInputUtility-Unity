@@ -39,6 +39,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
         WMRControllerRight,
         ViveCosmosControllerLeft,
         ViveCosmosControllerRight,
+        OculusQuestControllerLeft,
+        OculusQuestControllerRight,
+        OculusQuestOrRiftSControllerLeft = OculusQuestControllerLeft,
+        OculusQuestOrRiftSControllerRight = OculusQuestControllerRight,
+        IndexHMD,
+        IndexControllerLeft,
+        IndexControllerRight,
     }
 
     public enum VRModuleRawButton
@@ -56,6 +63,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Touchpad = 32, // Axis0
         Trigger = 33, // Axis1
         CapSenseGrip = 34, // Axis2
+        Bumper = 35, // Axis3
 
         // alias
         Axis0 = 32,

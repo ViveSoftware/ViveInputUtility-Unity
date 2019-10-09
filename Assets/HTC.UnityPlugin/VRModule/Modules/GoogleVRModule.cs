@@ -26,6 +26,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+        public static readonly bool isGoogleVRSupported =
+#if VIU_GOOGLEVR_SUPPORT
+            true;
+#else
+            false;
+#endif
     }
 
     public sealed class GoogleVRModule : VRModule.ModuleBase
@@ -85,8 +91,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 VRModule.Instance.gameObject.AddComponent<GvrControllerInput>();
             }
 
-            m_rightDevice = GvrControllerInput.GetDevice(GvrControllerHand.Right);
-            m_leftDevice = GvrControllerInput.GetDevice(GvrControllerHand.Left);
+            m_rightDevice = GvrControllerInput.GetDevice(GvrControllerHand.Dominant);
+            m_leftDevice = GvrControllerInput.GetDevice(GvrControllerHand.Dominant);
 
             var armModels = VRModule.Instance.GetComponents<GvrArmModel>();
 
@@ -97,6 +103,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             else
             {
                 m_rightArm = VRModule.Instance.GetComponent<GvrArmModel>();
+
+                if (m_rightArm == null)
+                {
+                    m_rightArm = VRModule.Instance.gameObject.AddComponent<GvrArmModel>();
+                }
             }
             m_rightArm.ControllerInputDevice = m_rightDevice;
 
@@ -107,6 +118,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             else
             {
                 m_leftArm = VRModule.Instance.GetComponent<GvrArmModel>();
+
+                if (m_leftArm == null)
+                {
+                    m_leftArm = VRModule.Instance.gameObject.AddComponent<GvrArmModel>();
+                }
             }
             m_leftArm.ControllerInputDevice = m_leftDevice;
         }

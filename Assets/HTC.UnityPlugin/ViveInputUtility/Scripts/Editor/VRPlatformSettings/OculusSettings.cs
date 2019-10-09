@@ -106,10 +106,10 @@ namespace HTC.UnityPlugin.Vive
 
             public override void OnPreferenceGUI()
             {
-                const string title = "Oculus Rift & Touch";
+                const string title = "Oculus Desktop";
                 if (canSupport)
                 {
-                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title), support);
+                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title, "Oculus Rift, Oculus Rift S"), support);
                 }
                 else
                 {
@@ -127,10 +127,10 @@ namespace HTC.UnityPlugin.Vive
                     else if (!PackageManagerHelper.IsPackageInList(OCULUS_DESKTOP_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "Oculus(Desktop) package required."), false, GUILayout.Width(230f));
+                        ShowToggle(new GUIContent(title, "Oculus (Desktop) package required."), false, GUILayout.Width(230f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
-                        ShowAddPackageButton("Oculus(Desktop)", OCULUS_DESKTOP_PACKAGE_NAME);
+                        ShowAddPackageButton("Oculus (Desktop)", OCULUS_DESKTOP_PACKAGE_NAME);
                     }
                     else if (!VRModule.isOculusVRPluginDetected)
                     {

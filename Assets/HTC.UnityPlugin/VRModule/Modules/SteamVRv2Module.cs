@@ -237,6 +237,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             pressActions.Set(VRModuleRawButton.Touchpad, "32", "Press32 (Touchpad)");
             pressActions.Set(VRModuleRawButton.Trigger, "33", "Press33 (Trigger)");
             pressActions.Set(VRModuleRawButton.CapSenseGrip, "34", "Press34 (CapSenseGrip)");
+            pressActions.Set(VRModuleRawButton.Bumper, "35", "Press35 (Bumper)");
 
             touchActions = new ActionArray<VRModuleRawButton>("/in/viu_touch_", "boolean");
             touchActions.Set(VRModuleRawButton.System, "00", "Touch00 (System)");
@@ -251,6 +252,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             touchActions.Set(VRModuleRawButton.Touchpad, "32", "Touch32 (Touchpad)");
             touchActions.Set(VRModuleRawButton.Trigger, "33", "Touch33 (Trigger)");
             touchActions.Set(VRModuleRawButton.CapSenseGrip, "34", "Touch34 (CapSenseGrip)");
+            touchActions.Set(VRModuleRawButton.Bumper, "35", "Touch35 (Bumper)");
 
             v1Actions = new ActionArray<VRModuleRawAxis>("/in/viu_axis_", "vector1");
             v1Actions.Set(VRModuleRawAxis.Axis0X, "0x", "Axis0 X (TouchpadX)");

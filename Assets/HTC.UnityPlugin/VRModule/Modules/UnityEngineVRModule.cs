@@ -108,9 +108,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             switch (currState.deviceModel)
             {
+                case VRModuleDeviceModel.ViveCosmosControllerLeft:
                 case VRModuleDeviceModel.ViveController:
                     Update_L_Vive(prevState, currState);
                     break;
+                case VRModuleDeviceModel.OculusQuestControllerLeft:
+                case VRModuleDeviceModel.OculusGoController:
                 case VRModuleDeviceModel.OculusTouchLeft:
                     Update_L_OculusTouch(prevState, currState);
                     break;
@@ -127,9 +130,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             switch (currState.deviceModel)
             {
+                case VRModuleDeviceModel.ViveCosmosControllerRight:
                 case VRModuleDeviceModel.ViveController:
                     Update_R_Vive(prevState, currState);
                     break;
+                case VRModuleDeviceModel.OculusQuestControllerRight:
+                case VRModuleDeviceModel.OculusGoController:
                 case VRModuleDeviceModel.OculusTouchRight:
                     Update_R_OculusTouch(prevState, currState);
                     break;
@@ -194,6 +200,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static void Update_L_OculusTouch(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
         {
+            var startPress = GetUnityButton(6);
             var xPress = GetUnityButton(2);
             var yPress = GetUnityButton(3);
             var stickPress = GetUnityButton(8);
@@ -208,6 +215,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var trigger = GetUnityAxis(9);
             var grip = GetUnityAxis(11);
 
+            currState.SetButtonPress(VRModuleRawButton.System, startPress);
             currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, yPress);
             currState.SetButtonPress(VRModuleRawButton.A, xPress);
             currState.SetButtonPress(VRModuleRawButton.Touchpad, stickPress);

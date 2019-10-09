@@ -127,9 +127,9 @@ namespace HTC.UnityPlugin.Vive
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.ProximitySensor, currState.GetButtonPress(VRModuleRawButton.ProximitySensor));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.AKey, currState.GetButtonPress(VRModuleRawButton.A));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.AKeyTouch, currState.GetButtonTouch(VRModuleRawButton.A));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Bumper, currState.GetButtonTouch(VRModuleRawButton.Bumper));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.BumperTouch, currState.GetButtonTouch(VRModuleRawButton.Bumper));
 
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis3, currState.GetButtonPress(VRModuleRawButton.Axis3));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis3Touch, currState.GetButtonTouch(VRModuleRawButton.Axis3));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4, currState.GetButtonPress(VRModuleRawButton.Axis4));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4Touch, currState.GetButtonTouch(VRModuleRawButton.Axis4));
 
@@ -428,13 +428,28 @@ namespace HTC.UnityPlugin.Vive
                 {
                     switch (currentInput2DType)
                     {
-                        case VRModuleInput2DType.Unknown:
                         case VRModuleInput2DType.TouchpadOnly:
-                        case VRModuleInput2DType.Both:
                             mode = ScrollType.Trackpad;
                             break;
                         case VRModuleInput2DType.ThumbstickOnly:
                             mode = ScrollType.Thumbstick;
+                            break;
+                        case VRModuleInput2DType.Unknown:
+                        case VRModuleInput2DType.Both:
+                            var padValue = Vector2.SqrMagnitude(new Vector2(GetAxis(ControllerAxis.PadX), GetAxis(ControllerAxis.PadY)));
+                            var stickValue = Vector2.SqrMagnitude(new Vector2(GetAxis(ControllerAxis.JoystickX), GetAxis(ControllerAxis.JoystickY)));
+                            if(padValue > stickValue)
+                            {
+                                xAxis = ControllerAxis.PadX;
+                                yAxis = ControllerAxis.PadY;
+                                mode = ScrollType.Trackpad;
+                            }
+                            else
+                            {
+                                xAxis = ControllerAxis.JoystickX;
+                                yAxis = ControllerAxis.JoystickY;
+                                mode = ScrollType.Thumbstick;
+                            }
                             break;
                         default:
                             return Vector2.zero;

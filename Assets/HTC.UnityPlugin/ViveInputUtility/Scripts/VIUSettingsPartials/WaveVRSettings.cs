@@ -31,6 +31,8 @@ namespace HTC.UnityPlugin.Vive
         private Vector3 m_waveVRVirtualWristRestPosition = WAVE_VR_VIRTUAL_WRIST_REST_POSITION_DEFAULT_VALUE;
         [SerializeField]
         private Vector3 m_waveVRVirtualHandRestPosition = WAVE_VR_VIRTUAL_HAND_REST_POSITION_DEFAULT_VALUE;
+        [SerializeField]
+        private string m_waveVRAndroidManifestPath = string.Empty;
 
         public static bool activateWaveVRModule { get { return Instance == null ? ACTIVATE_WAVE_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateWaveVRModule; } set { if (Instance != null) { Instance.m_activateWaveVRModule = value; } } }
         public static bool simulateWaveVR6DofController { get { return Instance == null ? SIMULATE_WAVE_VR_6DOF_CONTROLLER_DEFAULT_VALUE : s_instance.m_simulateWaveVR6DoFController; } set { if (Instance != null) { Instance.m_simulateWaveVR6DoFController = value; } } }
@@ -40,5 +42,6 @@ namespace HTC.UnityPlugin.Vive
         public static Vector3 waveVRVirtualArmExtensionOffset { get { return Instance == null ? WAVE_VR_VIRTUAL_ARM_EXTENSION_OFFSET_DEFAULT_VALUE : s_instance.m_waveVRVirtualArmExtensionOffset; } set { if (Instance != null) { Instance.m_waveVRVirtualArmExtensionOffset = value; } } }
         public static Vector3 waveVRVirtualWristRestPosition { get { return Instance == null ? WAVE_VR_VIRTUAL_WRIST_REST_POSITION_DEFAULT_VALUE : s_instance.m_waveVRVirtualWristRestPosition; } set { if (Instance != null) { Instance.m_waveVRVirtualWristRestPosition = value; } } }
         public static Vector3 waveVRVirtualHandRestPosition { get { return Instance == null ? WAVE_VR_VIRTUAL_HAND_REST_POSITION_DEFAULT_VALUE : s_instance.m_waveVRVirtualHandRestPosition; } set { if (Instance != null) { Instance.m_waveVRVirtualHandRestPosition = value; } } }
+        public static string waveVRAndroidManifestPath { get { return Instance == null ? string.Empty : s_instance.m_waveVRAndroidManifestPath; } set { if (Instance != null) { Instance.m_waveVRAndroidManifestPath = value; } } }
     }
 }

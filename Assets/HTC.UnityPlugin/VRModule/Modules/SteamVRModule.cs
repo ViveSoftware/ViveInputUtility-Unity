@@ -24,6 +24,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+        public static readonly bool isOpenVRSupported =
+#if VIU_OPENVR_SUPPORT
+            true;
+#else
+            false;
+#endif
     }
 
     public sealed partial class SteamVRModule : VRModule.ModuleBase
@@ -86,6 +92,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     Object.Destroy(m_model.gameObject);
                     m_model = null;
+                    m_index = INVALID_DEVICE_INDEX;
                 }
             }
         }

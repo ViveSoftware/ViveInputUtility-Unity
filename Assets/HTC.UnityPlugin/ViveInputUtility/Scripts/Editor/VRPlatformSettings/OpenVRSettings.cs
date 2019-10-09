@@ -58,6 +58,9 @@ namespace HTC.UnityPlugin.Vive
                 VIUSteamVRActionFile partialFile;
 
                 if (!VIUSteamVRActionFile.TryLoad(m_mainDirPath, mainFileName, out mainFile)) { return false; }
+#if VIU_STEAMVR_2_1_0_OR_NEWER
+                if (SteamVR_Input.actions == null || SteamVR_Input.actions.Length == 0) { return false; }
+#endif
                 if (!VIUSteamVRActionFile.TryLoad(m_partialDirPath, m_partialFileName, out partialFile)) { return true; }
 
                 if (m_mainFileVersion != mainFile.lastWriteTime || m_partialFileVersion != partialFile.lastWriteTime)
@@ -392,15 +395,23 @@ namespace HTC.UnityPlugin.Vive
                         virtualRealitySupported = false;
                     }
 #endif
+
+#if VIU_STEAMVR_2_2_0_OR_NEWER
+                    SteamVR_Settings.instance.autoEnableVR = false;
+                    EditorUtility.SetDirty(SteamVR_Settings.instance);
+                    AssetDatabase.SaveAssets();
+#elif VIU_STEAMVR_1_2_1_OR_NEWER && !(UNITY_5_3 || UNITY_5_2 || UNITY_5_1 || UNITY_5_0)
+                    SteamVR_Preferences.AutoEnableVR = false;
+#endif
                 }
             }
 
             public override void OnPreferenceGUI()
             {
-                const string title = "VIVE <size=9>(OpenVR compatible device)</size>";
+                const string title = "OpenVR";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title), support);
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE, VIVE Pro, VIVE Pro Eye, VIVE Cosmos\nOculus Rift, Oculus Rift S, Windows MR"), support);
                 }
                 else
                 {
@@ -418,10 +429,10 @@ namespace HTC.UnityPlugin.Vive
                     else if (!PackageManagerHelper.IsPackageInList(OPENVR_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "OpenVR package required."), false, GUILayout.Width(230f));
+                        ShowToggle(new GUIContent(title, "OpenVR (Desktop) package required."), false, GUILayout.Width(230f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
-                        ShowAddPackageButton("OpenVR", OPENVR_PACKAGE_NAME);
+                        ShowAddPackageButton("OpenVR (Desktop)", OPENVR_PACKAGE_NAME);
                     }
                     else if (!VRModule.isSteamVRPluginDetected)
                     {

@@ -4,6 +4,15 @@ using HTC.UnityPlugin.VRModuleManagement;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Linq;
+using System.IO;
+using System;
+#if UNITY_5_6_OR_NEWER
+using UnityEditor.Build;
+#endif
+#if UNITY_2018_1_OR_NEWER
+using UnityEditor.Build.Reporting;
+#endif
 #if UNITY_5_6_OR_NEWER
 using UnityEditor.Rendering;
 #endif
@@ -411,7 +420,14 @@ namespace HTC.UnityPlugin.Vive
         }
 
         private class OculusGoSettings : VRPlatformSetting
+#if UNITY_2018_1_OR_NEWER
+        , IPreprocessBuildWithReport
+#elif UNITY_5_6_OR_NEWER
+		, IPreprocessBuild
+#endif
         {
+            private Foldouter m_foldouter = new Foldouter();
+
             public static OculusGoSettings instance { get; private set; }
 
             public OculusGoSettings() { instance = this; }
@@ -420,12 +436,29 @@ namespace HTC.UnityPlugin.Vive
 
             protected override BuildTargetGroup requirdPlatform { get { return BuildTargetGroup.Android; } }
 
+            private string defaultAndroidManifestPath
+            {
+                get
+                {
+#if VIU_OCULUSVR
+                    var monoScripts = MonoImporter.GetAllRuntimeMonoScripts();
+                    var monoScript = monoScripts.FirstOrDefault(script => script.GetClass() == typeof(OVRInput));
+                    var path = Path.GetDirectoryName(AssetDatabase.GetAssetPath(monoScript));
+                    var fullPath = Path.GetFullPath((path.Substring(0, path.Length - "Scripts".Length) + "Editor/AndroidManifest.OVRSubmission.xml").Replace("\\", "/"));
+
+                    return fullPath.Substring(fullPath.IndexOf("Assets"), fullPath.Length - fullPath.IndexOf("Assets"));
+#else
+                    return string.Empty;
+#endif
+                }
+            }
+
             public override bool canSupport
             {
                 get
                 {
 #if UNITY_2018_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && VRModule.isOculusVRPluginDetected && PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME);
+                    return activeBuildTargetGroup == BuildTargetGroup.Android && PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME);
 #elif UNITY_5_6_OR_NEWER
                     return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isOculusVRPluginDetected;
 #else
@@ -469,8 +502,9 @@ namespace HTC.UnityPlugin.Vive
                         }
                     }
 
-                    OculusSDK.enabled = value;
                     VIUSettings.activateOculusVRModule = value;
+                    OculusSDK.enabled = value;
+                    VIUSettings.activateUnityNativeVRModule = value;
                 }
 #else
                 get { return false; }
@@ -478,12 +512,14 @@ namespace HTC.UnityPlugin.Vive
 #endif
             }
 
+            public int callbackOrder { get { return 0; } }
+
             public override void OnPreferenceGUI()
             {
-                const string title = "Oculus Go";
+                const string title = "Oculus Android";
                 if (canSupport)
                 {
-                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title), support);
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "Oculus Go, Oculus Quest"), support);
                 }
                 else
                 {
@@ -501,10 +537,10 @@ namespace HTC.UnityPlugin.Vive
                     else if (!PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "Oculus(Android) package required."), false, GUILayout.Width(230f));
+                        ShowToggle(new GUIContent(title, "Oculus Android package required."), false, GUILayout.Width(230f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
-                        ShowAddPackageButton("Oculus(Android)", OCULUS_ANDROID_PACKAGE_NAME);
+                        ShowAddPackageButton("Oculus Android", OCULUS_ANDROID_PACKAGE_NAME);
                     }
                     else if (!VRModule.isOculusVRPluginDetected)
                     {
@@ -517,7 +553,74 @@ namespace HTC.UnityPlugin.Vive
 
                     GUILayout.EndHorizontal();
                 }
+
+                if (support && m_foldouter.isExpended)
+                {
+                    if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel += 2;
+                        EditorGUILayout.BeginHorizontal();
+
+                        EditorGUIUtility.labelWidth = 230;
+                        var style = new GUIStyle(GUI.skin.textField) { alignment = TextAnchor.MiddleLeft };
+                        VIUSettings.oculusVRAndroidManifestPath = EditorGUILayout.DelayedTextField(new GUIContent("Customized AndroidManifest Path:", "Default path: " + defaultAndroidManifestPath),
+                                                VIUSettings.oculusVRAndroidManifestPath, style);
+                        if (GUILayout.Button("Open", new GUILayoutOption[] { GUILayout.Width(44), GUILayout.Height(18) }))
+                        {
+                            VIUSettings.oculusVRAndroidManifestPath = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal();
+
+                        if (!File.Exists(VIUSettings.oculusVRAndroidManifestPath) && (string.IsNullOrEmpty(defaultAndroidManifestPath) || !File.Exists(defaultAndroidManifestPath)))
+                        {
+                            EditorGUILayout.HelpBox("Default AndroidManifest.xml does not existed!", MessageType.Warning);
+                        }
+                        else if (!string.IsNullOrEmpty(VIUSettings.oculusVRAndroidManifestPath) && !File.Exists(VIUSettings.oculusVRAndroidManifestPath))
+                        {
+                            EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUI.indentLevel -= 2;
+                    }
+                    if (support) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
+                }
             }
+
+            public void OnPreprocessBuild(BuildTarget target, string path)
+            {
+                if (!support) { return; }
+
+                if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
+                {
+                    File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+                else if (File.Exists(defaultAndroidManifestPath))
+                {
+                    File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+            }
+
+#if UNITY_2018_1_OR_NEWER
+            public void OnPreprocessBuild(BuildReport report)
+            {
+                if (!support) { return; }
+
+                if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
+                {
+                    File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+                else if (File.Exists(defaultAndroidManifestPath))
+                {
+                    File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+            }
+#endif
         }
     }
 }

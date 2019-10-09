@@ -2287,15 +2287,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c1e088ce10ab7d4c87f03fd1f2dfcae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
   alignPosition: 0
   alignRotation: 0
   alignPositionOffset: {x: 0, y: 0, z: 0}
   alignRotationOffset: {x: 0, y: 0, z: 0}
-  followingDuration: 0.04
-  overrideMaxAngularVelocity: 1
-  unblockableGrab: 1
+  m_followingDuration: 0.04
+  m_overrideMaxAngularVelocity: 1
+  m_unblockableGrab: 1
   m_grabButton: 0
-  afterGrabbed:
+  m_allowMultipleGrabbers: 1
+  m_afterGrabbed:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 168363246}
@@ -2311,7 +2314,7 @@ MonoBehaviour:
         m_CallState: 2
     m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforeRelease:
+  m_beforeRelease:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 168363246}
@@ -2327,7 +2330,7 @@ MonoBehaviour:
         m_CallState: 2
     m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  onDrop:
+  m_onDrop:
     m_PersistentCalls:
       m_Calls: []
     m_TypeName: HTC.UnityPlugin.Vive.BasicGrabbable+UnityEventGrabbable, Assembly-CSharp,
@@ -3087,7 +3090,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 676368209}
-  pivot: {fileID: 0}
+  pivot: {fileID: 1804374876}
   fadeDuration: 0.3
   m_reticleMaterial: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
   teleportButton: 1
@@ -3133,6 +3136,10 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cbfd31aaac017204885fcc03f0579a1a, type: 2}
   m_IsPrefabParent: 0
+--- !u!4 &1804374876 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 431768, guid: cbfd31aaac017204885fcc03f0579a1a, type: 2}
+  m_PrefabInternal: {fileID: 1804374875}
 --- !u!1 &1814568726
 GameObject:
   m_ObjectHideFlags: 0

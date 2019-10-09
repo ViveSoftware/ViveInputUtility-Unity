@@ -1,7 +1,17 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
+using System;
+using System.IO;
+using System.Linq;
 using UnityEditor;
+#if UNITY_5_6_OR_NEWER
+using UnityEditor.Build;
+#endif
+#if UNITY_2018_1_OR_NEWER
+using UnityEditor.Build.Reporting;
+#endif
+using UnityEditor.Callbacks;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -61,6 +71,11 @@ namespace HTC.UnityPlugin.Vive
         }
 
         private class WaveVRSettings : VRPlatformSetting
+#if UNITY_2018_1_OR_NEWER
+        , IPreprocessBuildWithReport
+#elif UNITY_5_6_OR_NEWER
+		, IPreprocessBuild
+#endif
         {
             private Foldouter m_foldouter = new Foldouter();
 
@@ -71,6 +86,23 @@ namespace HTC.UnityPlugin.Vive
             public override int order { get { return 102; } }
 
             protected override BuildTargetGroup requirdPlatform { get { return BuildTargetGroup.Android; } }
+
+            private string defaultAndroidManifestPath
+            {
+                get
+                {
+#if VIU_WAVEVR
+                    var monoScripts = MonoImporter.GetAllRuntimeMonoScripts();
+                    var monoScript = monoScripts.FirstOrDefault(script => script.GetClass() == typeof(WaveVR));
+                    var path = Path.GetDirectoryName(AssetDatabase.GetAssetPath(monoScript));
+                    var fullPath = Path.GetFullPath((path.Substring(0, path.Length - "Scripts".Length) + "Platform/Android/AndroidManifest.xml").Replace("\\", "/"));
+
+                    return fullPath.Substring(fullPath.IndexOf("Assets"), fullPath.Length - fullPath.IndexOf("Assets"));
+#else
+                    return string.Empty;
+#endif
+                }
+            }
 
             public override bool canSupport
             {
@@ -88,7 +120,10 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateWaveVRModule) { return false; }
+                    if (!MockHMDSDK.enabled) { return false; }
+#if !VIU_WAVEVR_3_0_0_OR_NEWER
                     if (virtualRealitySupported) { return false; }
+#endif
                     if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23) { return false; }
                     if (PlayerSettings.colorSpace == ColorSpace.Linear && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
                     return true;
@@ -99,7 +134,9 @@ namespace HTC.UnityPlugin.Vive
 
                     if (value)
                     {
+#if !VIU_WAVEVR_3_0_0_OR_NEWER
                         virtualRealitySupported = false;
+#endif
 
                         if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23)
                         {
@@ -115,6 +152,7 @@ namespace HTC.UnityPlugin.Vive
                         supportOculusGo = false;
                     }
 
+                    MockHMDSDK.enabled = value;
                     VIUSettings.activateWaveVRModule = value;
                 }
 #else
@@ -123,13 +161,14 @@ namespace HTC.UnityPlugin.Vive
 #endif
             }
 
+            public int callbackOrder { get { return 0; } }
+
             public override void OnPreferenceGUI()
             {
-
-                const string title = "VIVE Focus <size=9>(WaveVR compatible device)</size>";
+                const string title = "WaveVR";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title), support);
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE Focus, VIVE Focus Plus"), support);
                 }
                 else
                 {
@@ -166,6 +205,33 @@ namespace HTC.UnityPlugin.Vive
                     if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
                     {
                         EditorGUI.indentLevel += 2;
+                        EditorGUILayout.BeginHorizontal();
+
+                        EditorGUIUtility.labelWidth = 230;
+                        var style = new GUIStyle(GUI.skin.textField) { alignment = TextAnchor.MiddleLeft };
+                        VIUSettings.waveVRAndroidManifestPath = EditorGUILayout.DelayedTextField(new GUIContent("Customized AndroidManifest Path:", "Default path: " + defaultAndroidManifestPath),
+                                                VIUSettings.waveVRAndroidManifestPath, style);
+                        if (GUILayout.Button("Open", new GUILayoutOption[] { GUILayout.Width(44), GUILayout.Height(18) }))
+                        {
+                            VIUSettings.waveVRAndroidManifestPath = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal();
+
+                        if (!File.Exists(VIUSettings.waveVRAndroidManifestPath) && (string.IsNullOrEmpty(defaultAndroidManifestPath) || !File.Exists(defaultAndroidManifestPath)))
+                        {
+                            EditorGUILayout.HelpBox("Default AndroidManifest.xml does not existed!", MessageType.Warning);
+                        }
+                        else if (!string.IsNullOrEmpty(VIUSettings.waveVRAndroidManifestPath) && !File.Exists(VIUSettings.waveVRAndroidManifestPath))
+                        {
+                            EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.EndHorizontal();
 
                         VIUSettings.waveVRAddVirtualArmTo3DoFController = EditorGUILayout.ToggleLeft(new GUIContent("Add Virtual Arm for 3 Dof Controller"), VIUSettings.waveVRAddVirtualArmTo3DoFController);
                         if (!VIUSettings.waveVRAddVirtualArmTo3DoFController) { GUI.enabled = false; }
@@ -219,6 +285,36 @@ namespace HTC.UnityPlugin.Vive
                     EditorGUI.indentLevel -= 2;
                 }
             }
+
+            public void OnPreprocessBuild(BuildTarget target, string path)
+            {
+                if (!support) { return; }
+
+                if (File.Exists(VIUSettings.waveVRAndroidManifestPath))
+                {
+                    File.Copy(VIUSettings.waveVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+                else if (File.Exists(defaultAndroidManifestPath))
+                {
+                    File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+            }
+
+#if UNITY_2018_1_OR_NEWER
+            public void OnPreprocessBuild(BuildReport report)
+            {
+                if (!support) { return; }
+
+                if (File.Exists(VIUSettings.waveVRAndroidManifestPath))
+                {
+                    File.Copy(VIUSettings.waveVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+                else if (File.Exists(defaultAndroidManifestPath))
+                {
+                    File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                }
+            }
+#endif
         }
     }
 }

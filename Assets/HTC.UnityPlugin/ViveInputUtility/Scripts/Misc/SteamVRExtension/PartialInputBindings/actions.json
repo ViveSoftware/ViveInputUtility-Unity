@@ -61,6 +61,11 @@
       "requirement": "optional"
     },
     {
+      "name": "/actions/htc_viu/in/viu_press_35",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
       "name": "/actions/htc_viu/in/viu_touch_00",
       "type": "boolean",
       "requirement": "optional"
@@ -117,6 +122,11 @@
     },
     {
       "name": "/actions/htc_viu/in/viu_touch_34",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_35",
       "type": "boolean",
       "requirement": "optional"
     },
@@ -209,6 +219,14 @@
   ],
   "default_bindings": [
     {
+      "controller_type": "vive_cosmos",
+      "binding_url": "bindings_vive_cosmos.json"
+    },
+    {
+      "controller_type": "vive_cosmos_controller",
+      "binding_url": "bindings_vive_cosmos_controller.json"
+    },
+    {
       "controller_type": "vive_controller",
       "binding_url": "bindings_vive_controller.json"
     },
@@ -250,43 +268,39 @@
     },
     {
       "controller_type": "vive_tracker_handed",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_handed.json"
     },
     {
       "controller_type": "vive_tracker_left_foot",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_left_foot.json"
     },
     {
       "controller_type": "vive_tracker_right_foot",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_right_foot.json"
     },
     {
       "controller_type": "vive_tracker_left_shoulder",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_left_shoulder.json"
     },
     {
       "controller_type": "vive_tracker_right_shoulder",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_right_shoulder.json"
     },
     {
       "controller_type": "vive_tracker_waist",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_waist.json"
     },
     {
       "controller_type": "vive_tracker_chest",
-      "binding_url": "bindings_vive_tracker.json"
-    },
-    {
-      "controller_type": "vive_tracker_gamepad",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_chest.json"
     },
     {
       "controller_type": "vive_tracker_camera",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_camera.json"
     },
     {
       "controller_type": "vive_tracker_keyboard",
-      "binding_url": "bindings_vive_tracker.json"
+      "binding_url": "bindings_vive_tracker_keyboard.json"
     }
   ],
   "localization": [
@@ -304,6 +318,7 @@
       "/actions/htc_viu/in/viu_press_32": "Press32 (Touchpad)",
       "/actions/htc_viu/in/viu_press_33": "Press33 (Trigger)",
       "/actions/htc_viu/in/viu_press_34": "Press34 (CapSenseGrip)",
+      "/actions/htc_viu/in/viu_press_35": "Press35 (Bumper)",
       "/actions/htc_viu/in/viu_touch_00": "Touch00 (System)",
       "/actions/htc_viu/in/viu_touch_01": "Touch01 (ApplicationMenu)",
       "/actions/htc_viu/in/viu_touch_02": "Touch02 (Grip)",
@@ -316,6 +331,7 @@
       "/actions/htc_viu/in/viu_touch_32": "Touch32 (Touchpad)",
       "/actions/htc_viu/in/viu_touch_33": "Touch33 (Trigger)",
       "/actions/htc_viu/in/viu_touch_34": "Touch34 (CapSenseGrip)",
+      "/actions/htc_viu/in/viu_touch_35": "Touch35 (Bumper)",
       "/actions/htc_viu/in/viu_axis_0x": "Axis0 X (TouchpadX)",
       "/actions/htc_viu/in/viu_axis_0y": "Axis0 Y (TouchpadY)",
       "/actions/htc_viu/in/viu_axis_1x": "Axis1 X (Trigger)",

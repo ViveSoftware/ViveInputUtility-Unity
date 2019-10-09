@@ -20,6 +20,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+        public static readonly bool isWaveVRSupported =
+#if VIU_WAVEVR_SUPPORT
+            true;
+#else
+            false;
+#endif
     }
 
     public sealed class WaveVRModule : VRModule.ModuleBase
@@ -36,6 +42,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (hook.GetComponent<WaveVR_Render>() == null)
                 {
                     hook.gameObject.AddComponent<WaveVR_Render>();
+#if VIU_WAVEVR_3_1_3_OR_NEWER && UNITY_EDITOR
+                    wvr.Interop.WVR_PostInit();
+#endif
                 }
                 if (hook.GetComponent<VivePoseTracker>() == null)
                 {
@@ -279,6 +288,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
 #if UNITY_EDITOR && !VIU_WAVEVR_2_1_0_OR_NEWER
             return false;
+#elif VIU_WAVEVR_3_1_3_OR_NEWER && UNITY_EDITOR
+            return UnityEditor.EditorPrefs.GetBool("WaveVR/DirectPreview/Enable Direct Preview", false);
 #else
             return VIUSettings.activateWaveVRModule;
 #endif
@@ -637,10 +648,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (!ctrlState.isConnected) { return; }
             if (!VIUSettings.waveVRAddVirtualArmTo3DoFController && !VIUSettings.simulateWaveVR6DofController) { return; }
             var deviceType = (int)s_index2type[ctrlState.deviceIndex];
-#if VIU_WAVEVR_2_1_0_OR_NEWER && UNITY_EDITOR
-            if (!WaveVR.Instance.isSimulatorOn || WaveVR_Utils.WVR_GetDegreeOfFreedom_S() == (int)WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
-#else
+
+#if !UNITY_EDITOR
             if (Interop.WVR_GetDegreeOfFreedom((WVR_DeviceType)deviceType) == WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
+#elif VIU_WAVEVR_3_1_3_OR_NEWER && UNITY_EDITOR
+            if (!WaveVR.EnableSimulator || WVR_DirectPreview.WVR_GetDegreeOfFreedom_S(0) == (int)WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
+#elif VIU_WAVEVR_3_1_0_OR_NEWER && UNITY_EDITOR
+            if (!WaveVR.EnableSimulator || WVR_Simulator.WVR_GetDegreeOfFreedom_S(0) == (int)WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
+#elif VIU_WAVEVR_2_1_0_OR_NEWER && UNITY_EDITOR
+            if (!WaveVR.Instance.isSimulatorOn || WaveVR_Utils.WVR_GetDegreeOfFreedom_S() == (int)WVR_NumDoF.WVR_NumDoF_6DoF) { return; }
 #endif
 
             if (VIUSettings.simulateWaveVR6DofController)
@@ -754,5 +770,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 #endif
+        }
     }
-}
