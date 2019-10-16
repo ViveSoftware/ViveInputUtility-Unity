@@ -133,6 +133,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 },
             });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_STEAMVR_2_4_0_OR_NEWER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Valve.VR.SteamVR_Input",
+                        name = "GetActionsFilePath",
+                        argTypeNames = new string[]
+                        {
+                            "System.Boolean",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+            });
         }
     }
 }

@@ -85,7 +85,6 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
 
                 var json = JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
                 File.WriteAllText(Path.Combine(dirPath, fileName), json);
-
             }
             catch (Exception e)
             {
