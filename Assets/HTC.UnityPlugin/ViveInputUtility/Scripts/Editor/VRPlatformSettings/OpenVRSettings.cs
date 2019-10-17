@@ -41,7 +41,11 @@ namespace HTC.UnityPlugin.Vive
 
             public RecommendedSteamVRInputFileSettings()
             {
+#if VIU_STEAMVR_2_4_0_OR_NEWER
+                m_mainDirPath = Path.GetDirectoryName(SteamVR_Input.GetActionsFilePath());
+#else
                 m_mainDirPath = Path.GetFullPath(Application.dataPath + "/../");
+#endif
                 m_partialDirPath = VIUProjectSettings.partialActionDirPath;
                 m_partialFileName = VIUProjectSettings.partialActionFileName;
 
@@ -76,6 +80,11 @@ namespace HTC.UnityPlugin.Vive
             private void Merge(bool value)
             {
                 if (!value) { return; }
+
+                if (!Directory.Exists(m_mainDirPath))
+                {
+                    Directory.CreateDirectory(m_mainDirPath);
+                }
 
                 VIUSteamVRActionFile mainFile;
                 VIUSteamVRActionFile exampleFile;
