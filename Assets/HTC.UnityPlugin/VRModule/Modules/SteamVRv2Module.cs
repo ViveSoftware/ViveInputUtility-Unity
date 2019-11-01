@@ -377,11 +377,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_gamePoses = new TrackedDevicePose_t[0];
             m_originDataCache = new Dictionary<ulong, OriginData>((int)OpenVR.k_unMaxActionOriginCount);
 
+            InitializeHandles();
+
 #if VIU_STEAMVR_2_1_0_OR_NEWER
             SteamVR_Input.GetActionSet(ACTION_SET_NAME).Activate(SteamVR_Input_Sources.Any, 0, false);
+#else
+            var actionSet = SteamVR_Input.GetActionSetFromPath(ACTION_SET_PATH);
+            if (actionSet != null)
+            {
+                actionSet.ActivatePrimary();
+            }
 #endif
-
-            InitializeHandles();
 
 #if !VIU_STEAMVR_2_1_0_OR_NEWER
             m_activeActionSets = new VRActiveActionSet_t[1] { new VRActiveActionSet_t() { ulActionSet = s_actionSetHandle, } };
@@ -429,7 +435,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateDeviceInput()
         {
-            EVRInputError error;
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
 
@@ -448,15 +453,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
             else
             {
-#if !VIU_STEAMVR_2_1_0_OR_NEWER
-                // FIXME: Should update by SteamVR_Input? SteamVR_Input.GetActionSetFromPath(ACTIONSET_PATH).ActivatePrimary();
-                error = vrInput.UpdateActionState(m_activeActionSets, m_activeActionSetSize);
-                if (error != EVRInputError.None)
-                {
-                    Debug.LogError("UpdateActionState failed! " + ACTION_SET_NAME + " error=" + error);
-                }
-#endif
-
                 m_originDataCache.Clear();
 
                 for (pressActions.Reset(); pressActions.IsCurrentValid(); pressActions.MoveNext())
