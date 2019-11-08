@@ -1,17 +1,17 @@
 fileFormatVersion: 2
-guid: 5a3cc26de2d25904f8680aa31a8033dc
-timeCreated: 1558950298
+guid: dafde740d11228749a63b949c94b5cda
+timeCreated: 1572857817
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
-    100000: vive_cosmos_controller_left
-    100002: //RootNode
-    400000: vive_cosmos_controller_left
-    400002: //RootNode
-    2300000: vive_cosmos_controller_left
-    3300000: vive_cosmos_controller_left
-    4300000: vive_cosmos_controller_left
+    100000: //RootNode
+    100002: r_0all
+    400000: //RootNode
+    400002: r_0all
+    2300000: r_0all
+    3300000: r_0all
+    4300000: r_0all
   materials:
     importMaterials: 0
     materialName: 0
