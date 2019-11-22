@@ -127,7 +127,7 @@ namespace HTC.UnityPlugin.Vive
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.ProximitySensor, currState.GetButtonPress(VRModuleRawButton.ProximitySensor));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.AKey, currState.GetButtonPress(VRModuleRawButton.A));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.AKeyTouch, currState.GetButtonTouch(VRModuleRawButton.A));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Bumper, currState.GetButtonTouch(VRModuleRawButton.Bumper));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Bumper, currState.GetButtonPress(VRModuleRawButton.Bumper));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.BumperTouch, currState.GetButtonTouch(VRModuleRawButton.Bumper));
 
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4, currState.GetButtonPress(VRModuleRawButton.Axis4));
