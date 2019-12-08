@@ -256,7 +256,7 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
-#if !UNITY_2019_3_OR_NEWER
+#if !UNITY_2019_2_OR_NEWER
             Add(new VIUVersionCheck.RecommendedSetting<ResolutionDialogSetting>()
             {
                 settingTitle = "Display Resolution Dialog",
