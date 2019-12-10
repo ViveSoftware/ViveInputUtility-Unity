@@ -520,6 +520,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     currState.serialNumber = content.type.ToString();
                     currState.modelNumber = content.type.ToString();
                     currState.renderModelName = content.type.ToString();
+                    currState.input2DType = VRModuleInput2DType.TouchpadOnly;
                 }
 
                 // update pose
@@ -801,4 +802,4 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #endif
 #endif
     }
-    }
+}
