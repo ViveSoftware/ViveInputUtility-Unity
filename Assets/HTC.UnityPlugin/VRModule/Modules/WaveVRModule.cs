@@ -520,6 +520,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     currState.serialNumber = content.type.ToString();
                     currState.modelNumber = content.type.ToString();
                     currState.renderModelName = content.type.ToString();
+                    currState.input2DType = VRModuleInput2DType.TouchpadOnly;
                 }
 
                 // update pose
@@ -769,6 +770,36 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 deviceInput.TriggerHapticPulse(durationMicroSec);
             }
         }
-#endif
+
+#if VIU_WAVEVR_3_1_0_OR_NEWER
+        public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85, float amplitude = 0.125f, float startSecondsFromNow = 0)
+        {
+            var deviceInput = WaveVR_Controller.Input(s_index2type[deviceIndex]);
+            if (deviceInput != null)
+            {
+                if (0 <= amplitude || amplitude <= 0.2)
+                {
+                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Weak);
+                }
+                else if (0.2 < amplitude || amplitude <= 0.4)
+                {
+                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Light);
+                }
+                else if (0.4 < amplitude || amplitude <= 0.6)
+                {
+                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Normal);
+                }
+                else if (0.6 < amplitude || amplitude <= 0.8)
+                {
+                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Strong);
+                }
+                else if (0.8 < amplitude || amplitude <= 1)
+                {
+                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Severe);
+                }
+            }
         }
+#endif
+#endif
     }
+}

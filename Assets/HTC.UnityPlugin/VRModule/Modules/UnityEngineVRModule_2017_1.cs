@@ -266,6 +266,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 var rotation = default(Quaternion);
                 if (m_nodeStateList[i].TryGetRotation(out rotation)) { currState.rotation = rotation; }
+
+#if UNITY_2017_2_OR_NEWER
+                var angularVelocity = default(Vector3);
+                if (m_nodeStateList[i].TryGetAngularVelocity(out angularVelocity)) { currState.angularVelocity = angularVelocity; }
+#endif
             }
 
             m_nodeStateList.Clear();

@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
+#pragma warning disable 0649
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
