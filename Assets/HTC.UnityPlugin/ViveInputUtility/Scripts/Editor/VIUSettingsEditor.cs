@@ -608,12 +608,19 @@ namespace HTC.UnityPlugin.Vive
                 EditorGUI.indentLevel += 2;
 
                 // on Windows, following preferences is stored at HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x\
+#if UNITY_2019_1_OR_NEWER
+                if (!EditorPrefs.GetBool("SdkUseEmbedded") && string.IsNullOrEmpty(EditorPrefs.GetString("AndroidSdkRoot")))
+#else
                 if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidSdkRoot")))
+#endif
                 {
                     EditorGUILayout.HelpBox("AndroidSdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
                 }
-
+#if UNITY_2018_3_OR_NEWER
+                if (!EditorPrefs.GetBool("JdkUseEmbedded") && string.IsNullOrEmpty(EditorPrefs.GetString("JdkPath")))
+#else
                 if (string.IsNullOrEmpty(EditorPrefs.GetString("JdkPath")))
+#endif
                 {
                     EditorGUILayout.HelpBox("JdkPath is empty. Setup at Edit -> Preferences... -> External Tools -> Android JDK", MessageType.Warning);
                 }
