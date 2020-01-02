@@ -38,12 +38,19 @@ public class ResetButton : MonoBehaviour
 
     private void Start()
     {
+        CacheResetPoses();
+    }
+
+    // Updates the resetPoses with the current effectTarget poses
+    private void CacheResetPoses()
+    {
         resetPoses = new RigidPose[effectTargets.Length];
         for (int i = 0; i < effectTargets.Length; ++i)
         {
             resetPoses[i] = new RigidPose(effectTargets[i]);
         }
     }
+
 #if UNITY_EDITOR
     protected virtual void OnValidate()
     {
@@ -77,6 +84,7 @@ public class ResetButton : MonoBehaviour
     {
         if (eventData.button == m_activeButton && pressingEvents.Add(eventData) && pressingEvents.Count == 1)
         {
+            CacheResetPoses();
             buttonObject.localPosition += buttonDownDisplacement;
         }
     }
