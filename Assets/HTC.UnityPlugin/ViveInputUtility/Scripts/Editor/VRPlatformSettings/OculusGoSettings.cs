@@ -579,7 +579,6 @@ namespace HTC.UnityPlugin.Vive
                             VIUSettings.oculusVRAndroidManifestPath = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
                         }
 
-                        EditorGUI.BeginChangeCheck();
                         EditorGUILayout.EndHorizontal();
 
                         EditorGUILayout.BeginHorizontal();
@@ -593,7 +592,6 @@ namespace HTC.UnityPlugin.Vive
                             EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
                         }
 
-                        EditorGUI.BeginChangeCheck();
                         EditorGUILayout.EndHorizontal();
                         EditorGUI.indentLevel -= 2;
                     }
