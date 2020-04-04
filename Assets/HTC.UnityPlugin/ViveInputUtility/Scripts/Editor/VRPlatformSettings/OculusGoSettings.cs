@@ -576,7 +576,16 @@ namespace HTC.UnityPlugin.Vive
                                                 VIUSettings.oculusVRAndroidManifestPath, style);
                         if (GUILayout.Button("Open", new GUILayoutOption[] { GUILayout.Width(44), GUILayout.Height(18) }))
                         {
-                            VIUSettings.oculusVRAndroidManifestPath = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
+                            var path = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
+                            if (path.Length != 0)
+                            {
+                                // make relative path if it is under Assets folder.
+                                if (path.StartsWith(Application.dataPath))
+                                {
+                                    path = "Assets" + path.Substring(Application.dataPath.Length);
+                                }
+                                VIUSettings.oculusVRAndroidManifestPath = path;
+                            }
                         }
 
                         EditorGUILayout.EndHorizontal();
