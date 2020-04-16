@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
 
 using System;
+using HTC.UnityPlugin.Vive;
 using UnityEditor;
 using UnityEngine;
 
@@ -100,5 +101,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
             serializedInputSettings.ApplyModifiedProperties();
         }
 #endif
+    }
+
+    public class UnityEngineVRSymbolRequirementCollection : VRModuleManagerEditor.SymbolRequirementCollection
+    {
+        private const string XR_PLUGIN_MANAGEMENT_PACKAGE_NAME = "com.unity.xr.management";
+
+        public UnityEngineVRSymbolRequirementCollection()
+        {
+#if UNITY_2018_1_OR_NEWER
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "VIU_XR_PLUGIN_MANAGEMENT",
+                validateFunc = (req) => VIUSettingsEditor.PackageManagerHelper.IsPackageInList(XR_PLUGIN_MANAGEMENT_PACKAGE_NAME),
+            });
+#endif
+        }
     }
 }
