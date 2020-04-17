@@ -14,6 +14,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
+        public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityNativeVR; } }
+
+#if !UNITY_2020_1_OR_NEWER && !VIU_XR_PLUGIN_MANAGEMENT
         private static KeyCode[] s_keyCodes = new KeyCode[]
         {
             KeyCode.JoystickButton0,
@@ -85,8 +88,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static int GetUnityAxisIdByIndex(int index) { return index + 1; }
 #endif
-
-        public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityNativeVR; } }
 
         public override bool ShouldActiveModule() { return VIUSettings.activateUnityNativeVRModule && XRSettings.enabled; }
 
@@ -401,5 +402,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             currState.SetAxisValue(VRModuleRawAxis.JoystickX, stickX);
             currState.SetAxisValue(VRModuleRawAxis.JoystickY, -stickY);
         }
+#endif
     }
 }

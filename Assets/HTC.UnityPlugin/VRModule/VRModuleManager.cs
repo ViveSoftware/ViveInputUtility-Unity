@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+
 #if VIU_STEAMVR_2_0_0_OR_NEWER
 using Valve.VR;
 #endif
@@ -85,7 +86,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     var inst = type == typeof(SimulatorVRModule) ? s_simulator : (ModuleBase)Activator.CreateInstance(type);
                     var index = inst.moduleIndex;
-
+                    
                     if (index < 0)
                     {
                         Debug.LogWarning("Invalid module index, module will not be activated! module name=" + type.Name + " index=" + index);

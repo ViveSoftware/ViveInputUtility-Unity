@@ -9,7 +9,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public static class UnityVRModuleEditor
     {
-#if UNITY_5_5_OR_NEWER
+#if UNITY_5_5_OR_NEWER && !UNITY_2020_1_OR_NEWER && !VIU_XR_PLUGIN_MANAGEMENT
         [InitializeOnLoadMethod]
         private static void StartCheckEnforceInputManagerBindings()
         {
