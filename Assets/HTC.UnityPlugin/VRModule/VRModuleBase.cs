@@ -207,13 +207,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.WMRHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            if (s_leftRgx.IsMatch(deviceState.modelNumber) && VRModule.GetLeftControllerDeviceIndex() == deviceState.deviceIndex)
+                            if (s_leftRgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.WMRControllerLeft;
                                 deviceState.input2DType = VRModuleInput2DType.Both;
                                 return;
                             }
-                            else if (s_rightRgx.IsMatch(deviceState.modelNumber) && VRModule.GetRightControllerDeviceIndex() == deviceState.deviceIndex)
+                            else if (s_rightRgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.WMRControllerRight;
                                 deviceState.input2DType = VRModuleInput2DType.Both;
