@@ -629,11 +629,27 @@ namespace HTC.UnityPlugin.Vive
 
                 if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
                 {
-                    File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    if (Directory.Exists("Assets/Plugins/Android/AndroidManifest.xml"))
+                    {
+                        File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory("Assets/Plugins/Android/");
+                        File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    }
                 }
                 else if (File.Exists(defaultAndroidManifestPath))
                 {
-                    File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    if (Directory.Exists("Assets/Plugins/Android/AndroidManifest.xml"))
+                    {
+                        File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory("Assets/Plugins/Android/");
+                        File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    }
                 }
             }
 #endif

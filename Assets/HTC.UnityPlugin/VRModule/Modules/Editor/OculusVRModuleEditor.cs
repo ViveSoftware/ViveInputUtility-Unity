@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
 
 using System;
+using System.Reflection;
 using SymbolRequirement = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirement;
 using SymbolRequirementCollection = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirementCollection;
 
@@ -46,6 +47,55 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     return false;
                 },
                 reqFileNames = new string[] { "OVRPlugin.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_OCULUSVR_1_32_0_OR_NEWER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                         typeName = "OvrAvatarSDKManager",
+                         name = "RequestAvatarSpecification",
+                         argTypeNames = new string[]
+                         {
+                             "System.UInt64",
+                             "specificationCallback",
+                             "System.Boolean",
+                             "ovrAvatarAssetLevelOfDetail",
+                             "System.Boolean",
+                         },
+                         bindingAttr = BindingFlags.Public | BindingFlags.Instance,
+                    }
+                },
+                reqFileNames = new string[] { "OvrAvatarSDKManager.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_OCULUSVR_1_36_0_OR_NEWER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                         typeName = "OvrAvatarSDKManager",
+                         name = "RequestAvatarSpecification",
+                         argTypeNames = new string[]
+                         {
+                             "System.UInt64",
+                             "specificationCallback",
+                             "System.Boolean",
+                             "ovrAvatarAssetLevelOfDetail",
+                             "System.Boolean",
+                             "ovrAvatarLookAndFeelVersion",
+                             "ovrAvatarLookAndFeelVersion",
+                             "System.Boolean",
+                         },
+                         bindingAttr = BindingFlags.Public | BindingFlags.Instance,
+                    }
+                },
+                reqFileNames = new string[] { "OvrAvatarSDKManager.cs" },
             });
         }
     }

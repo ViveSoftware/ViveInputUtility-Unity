@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEngine;
+using UnityEngine.XR;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -34,6 +35,11 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.onActiveModuleChanged += OnActiveModuleChanged;
             VRModule.Initialize();
+
+            if (XRDevice.model.Equals("Oculus Go"))
+            {
+                UpdateHeight();
+            }
         }
 
         private void OnDisable()
@@ -54,6 +60,20 @@ namespace HTC.UnityPlugin.Vive
             {
                 case VRModuleActiveEnum.DayDream:
                     transform.localPosition = new Vector3(pos.x, m_height, pos.y);
+                    break;
+                case VRModuleActiveEnum.OculusVR:
+#if VIU_OCULUSVR
+                    if (OVRPlugin.GetSystemHeadsetType().Equals(OVRPlugin.SystemHeadset.Oculus_Go))
+                    {
+                        transform.localPosition = new Vector3(pos.x, m_height, pos.y);
+                    }
+#endif
+                    break;
+                case VRModuleActiveEnum.UnityNativeVR:
+                    if (XRDevice.model.Equals("Oculus Go"))
+                    {
+                        transform.localPosition = new Vector3(pos.x, m_height, pos.y);
+                    }
                     break;
             }
         }
