@@ -1,15 +1,15 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
-using System;
 using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.XR;
+
+#if VIU_XR_PLUGIN_MANAGEMENT
 using UnityEngine.XR.Management;
+#endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -18,6 +18,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Unknown,
         OpenVR,
         Oculus,
+        WMR,
     }
 
     public sealed class UnityXRPluginManagementVRModule : VRModule.ModuleBase
@@ -66,7 +67,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_currentInputSubsystemType = DetectCurrentInputSubsystemType();
             EnsureDeviceStateLength(DEVICE_STATE_LENGTH);
 
-            Debug.Log("Activated XRInputSubsystem: " + m_currentInputSubsystemType);
+            Debug.Log("Detected XRInputSubsystemType: " + m_currentInputSubsystemType);
         }
 
         public override void OnDeactivated()
@@ -196,6 +197,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateTrackingState(IVRModuleDeviceStateRW state, InputDevice device)
         {
+
             if (device.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 position))
             {
                 state.position = position;
@@ -372,6 +374,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             string id = systems[0].SubsystemDescriptor.id;
+            Debug.Log("Activated XRInputSubsystem: " + id);
+
             if (Regex.IsMatch(id, @"openvr", RegexOptions.IgnoreCase))
             {
                 return XRInputSubsystemType.OpenVR;
@@ -380,6 +384,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 return XRInputSubsystemType.Oculus;
             }
+            else if (Regex.IsMatch(id, @"windows mixed reality", RegexOptions.IgnoreCase))
+            {
+                return XRInputSubsystemType.WMR;
+            }
+            
 
             return XRInputSubsystemType.Unknown;
         }
@@ -459,8 +468,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
                     state.SetButtonPress(VRModuleRawButton.System, menuButton);
                 }
-
-                
             }
         }
 
@@ -476,7 +483,40 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateWMRControllerState(IVRModuleDeviceStateRW state, InputDevice device)
         {
+            bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
+            bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
+            bool primary2DAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisClick); // Touchpad
+            bool secondary2DAxisClick = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisClick"));
+            bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch); // Touchpad
+            float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
+            Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis); // Touchpad
+            Vector2 secondary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxis);
 
+            state.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuButton);
+            state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
+            state.SetButtonPress(VRModuleRawButton.Grip, gripButton);
+            state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
+            state.SetButtonPress(VRModuleRawButton.Axis0, secondary2DAxisClick);
+            
+            state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
+
+            state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, -primary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.JoystickX, secondary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.JoystickY, -secondary2DAxis.y);
+
+            if (m_currentInputSubsystemType == XRInputSubsystemType.WMR)
+            {
+                float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip);
+                float sourceLossRisk = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("SourceLossRisk")); // Not in use
+                Vector3 pointerPosition = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<Vector3>("PointerPosition")); // Not in use
+                Vector3 sourceMitigationDirection = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<Vector3>("SourceMitigationDirection")); // Not in use
+                Quaternion pointerRotation = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<Quaternion>("PointerRotation")); // Not in use
+
+                state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
+            }
         }
 
         private void UpdateIndexControllerState(IVRModuleDeviceStateRW state, InputDevice device)
@@ -493,10 +533,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             bool triggerTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerTouch"));
             bool gripGrab = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("GripGrab"));
             bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch);
-            bool secondary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisTouch"));
+            bool secondary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisTouch")); // Joystick
             float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
             float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip);
-            float gripCapacitive = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("GripCapacitive"));
+            float gripCapacitive = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("GripCapacitive")); // Not in use
             Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
 
             state.SetButtonPress(VRModuleRawButton.A, primaryButton);
