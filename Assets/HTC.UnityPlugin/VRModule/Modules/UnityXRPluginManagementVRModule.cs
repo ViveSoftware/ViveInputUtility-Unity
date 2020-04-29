@@ -408,7 +408,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.TouchpadY, -primary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
         }
 
         private void UpdateOculusControllerState(IVRModuleDeviceStateRW state, InputDevice device)
@@ -441,7 +441,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
             state.SetAxisValue(VRModuleRawAxis.JoystickX, primary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.JoystickY, -primary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.JoystickY, primary2DAxis.y);
 
             if (m_currentInputSubsystemType == XRInputSubsystemType.OpenVR)
             {
@@ -487,9 +487,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.TouchpadY, -primary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
             state.SetAxisValue(VRModuleRawAxis.JoystickX, secondary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.JoystickY, -secondary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.JoystickY, secondary2DAxis.y);
 
             if (m_currentInputSubsystemType == XRInputSubsystemType.WMR)
             {
@@ -538,7 +538,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetButtonTouch(VRModuleRawButton.Axis0, secondary2DAxisTouch);
 
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.TouchpadY, -primary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
         }
