@@ -235,12 +235,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.OculusQuestControllerRight:
                     UpdateOculusControllerState(state, device);
                     break;
-                case VRModuleDeviceModel.OculusGearVrController:
-                    UpdateGearVRControllerState(state, device);
-                    break;
-                case VRModuleDeviceModel.DaydreamController:
-                    UpdateDaydreamControllerState(state, device);
-                    break;
                 case VRModuleDeviceModel.WMRControllerLeft:
                 case VRModuleDeviceModel.WMRControllerRight:
                     UpdateWMRControllerState(state, device);
@@ -469,16 +463,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     state.SetButtonPress(VRModuleRawButton.System, menuButton);
                 }
             }
-        }
-
-        private void UpdateGearVRControllerState(IVRModuleDeviceStateRW state, InputDevice device)
-        {
-
-        }
-
-        private void UpdateDaydreamControllerState(IVRModuleDeviceStateRW state, InputDevice device)
-        {
-
         }
 
         private void UpdateWMRControllerState(IVRModuleDeviceStateRW state, InputDevice device)
