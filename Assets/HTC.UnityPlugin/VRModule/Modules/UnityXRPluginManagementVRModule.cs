@@ -19,6 +19,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OpenVR,
         Oculus,
         WMR,
+        MagicLeap,
     }
 
     public sealed class UnityXRPluginManagementVRModule : VRModule.ModuleBase
@@ -245,6 +246,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.IndexControllerRight:
                     UpdateIndexControllerState(state, device);
                     break;
+                case VRModuleDeviceModel.MagicLeapController:
+                    UpdateMagicLeapControllerState(state, device);
+                    break;
             }
         }
 
@@ -364,6 +368,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SubsystemManager.GetInstances(systems);
             if (systems.Count == 0)
             {
+                Debug.Log("No XRInputSubsystem detected.");
                 return XRInputSubsystemType.Unknown;
             }
 
@@ -382,8 +387,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 return XRInputSubsystemType.WMR;
             }
+            else if (Regex.IsMatch(id, @"magicleap", RegexOptions.IgnoreCase))
+            {
+                return XRInputSubsystemType.MagicLeap;
+            }
             
-
             return XRInputSubsystemType.Unknown;
         }
 
@@ -541,6 +549,32 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
+        }
+
+        private void UpdateMagicLeapControllerState(IVRModuleDeviceStateRW state, InputDevice device)
+        {
+            bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+            bool secondaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryButton); // Bumper
+            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
+            bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch);
+            uint MLControllerType = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<uint>("MLControllerType")); // Not in use
+            uint MLControllerDOF = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<uint>("MLControllerDOF")); // Not in use
+            uint MLControllerCalibrationAccuracy = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<uint>("MLControllerCalibrationAccuracy")); // Not in use
+            float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
+            float MLControllerTouch1Force = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("MLControllerTouch1Force")); // Not in use
+            float MLControllerTouch2Force = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("MLControllerTouch2Force")); // Not in use
+            Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
+            Vector2 secondary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxis); // Not in use
+
+            state.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuButton);
+            state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
+            state.SetButtonPress(VRModuleRawButton.Bumper, secondaryButton);
+
+            state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
+
+            state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
         }
 
         private bool GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<bool> feature)

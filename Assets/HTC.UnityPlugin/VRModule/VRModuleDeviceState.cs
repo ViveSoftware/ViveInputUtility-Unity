@@ -46,6 +46,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         IndexHMD,
         IndexControllerLeft,
         IndexControllerRight,
+        MagicLeapHMD,
+        MagicLeapController,
     }
 
     public enum VRModuleRawButton
