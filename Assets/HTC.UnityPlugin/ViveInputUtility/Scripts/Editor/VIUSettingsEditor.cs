@@ -119,7 +119,7 @@ namespace HTC.UnityPlugin.Vive
                     if (vrEnabled != value)
                     {
                         s_isDirty = true;
-                        s_vrEnabled = value;
+                        s_vrEnabled = value && (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME));
                     }
                 }
             }
@@ -380,7 +380,11 @@ namespace HTC.UnityPlugin.Vive
             public static void PreparePackageList()
             {
                 if (m_listRequest != null) { return; }
+#if UNITY_2019_3_OR_NEWER
+                m_listRequest = Client.List(true, true);
+#else
                 m_listRequest = Client.List(true);
+#endif
             }
 
             public static void ResetPackageList()

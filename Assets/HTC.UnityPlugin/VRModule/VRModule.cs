@@ -20,7 +20,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusVR = 4,
         DayDream = 5,
         WaveVR = 6,
-        UnityXRPluginManagement = 7,
+        UnityXR = 7,
     }
 
     public enum VRModuleActiveEnum
@@ -33,7 +33,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusVR = VRModuleSelectEnum.OculusVR,
         DayDream = VRModuleSelectEnum.DayDream,
         WaveVR = VRModuleSelectEnum.WaveVR,
-        UnityXRPluginManagement = VRModuleSelectEnum.UnityXRPluginManagement,
+        UnityXR = VRModuleSelectEnum.UnityXR,
     }
 
     public partial class VRModule : SingletonBehaviour<VRModule>
