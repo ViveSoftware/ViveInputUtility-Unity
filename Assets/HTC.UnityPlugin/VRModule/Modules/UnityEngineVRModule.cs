@@ -16,7 +16,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     {
         public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityNativeVR; } }
 
-#if !UNITY_2020_1_OR_NEWER && !VIU_XR_PLUGIN_MANAGEMENT
+#if !UNITY_2020_1_OR_NEWER
         private static KeyCode[] s_keyCodes = new KeyCode[]
         {
             KeyCode.JoystickButton0,
@@ -93,6 +93,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void Update()
         {
+            Debug.Log("UnityEngineVRModule Update");
             // set physics update rate to vr render rate
             if (VRModule.lockPhysicsUpdateRateToRenderFrequency && Time.timeScale > 0.0f)
             {

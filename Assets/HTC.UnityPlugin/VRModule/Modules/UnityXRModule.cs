@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.XR;
 
-#if VIU_XR_PLUGIN_MANAGEMENT
+#if VIU_OPENVR_SUPPORT || VIU_OCULUSVR_DESKTOP_SUPPORT
 using UnityEngine.XR.Management;
 #endif
 
@@ -24,9 +24,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class UnityXRPluginManagementVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityXRPluginManagement; } }
+        public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityXR; } }
 
-#if VIU_XR_PLUGIN_MANAGEMENT
+#if (VIU_OPENVR_SUPPORT || VIU_OCULUSVR_DESKTOP_SUPPORT) && UNITY_2019_3_OR_NEWER
         private class CameraCreator : VRCameraHook.CameraCreator
         {
             public override bool shouldActive { get { return s_moduleInstance != null && s_moduleInstance.isActivated; } }
@@ -59,7 +59,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool ShouldActiveModule()
         {
-            return VIUSettings.activateUnityNativeVRModule && XRGeneralSettings.Instance.InitManagerOnStart;
+            return VIUSettings.activateUnityXRModule && XRGeneralSettings.Instance.InitManagerOnStart;
         }
 
         public override void OnActivated()

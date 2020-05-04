@@ -9,7 +9,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public static class UnityVRModuleEditor
     {
-#if UNITY_5_5_OR_NEWER && !UNITY_2020_1_OR_NEWER && !VIU_XR_PLUGIN_MANAGEMENT
+#if UNITY_5_5_OR_NEWER && !UNITY_2020_1_OR_NEWER
         [InitializeOnLoadMethod]
         private static void StartCheckEnforceInputManagerBindings()
         {
@@ -101,21 +101,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             serializedInputSettings.ApplyModifiedProperties();
         }
 #endif
-    }
-
-    public class UnityEngineVRSymbolRequirementCollection : VRModuleManagerEditor.SymbolRequirementCollection
-    {
-        private const string XR_PLUGIN_MANAGEMENT_PACKAGE_NAME = "com.unity.xr.management";
-
-        public UnityEngineVRSymbolRequirementCollection()
-        {
-#if UNITY_2018_1_OR_NEWER
-            Add(new VRModuleManagerEditor.SymbolRequirement()
-            {
-                symbol = "VIU_XR_PLUGIN_MANAGEMENT",
-                validateFunc = (req) => VIUSettingsEditor.PackageManagerHelper.IsPackageInList(XR_PLUGIN_MANAGEMENT_PACKAGE_NAME),
-            });
-#endif
-        }
     }
 }

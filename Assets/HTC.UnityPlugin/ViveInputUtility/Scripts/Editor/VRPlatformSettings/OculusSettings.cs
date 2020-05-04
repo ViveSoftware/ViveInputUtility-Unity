@@ -38,6 +38,7 @@ namespace HTC.UnityPlugin.Vive
     public static partial class VIUSettingsEditor
     {
         private const string OCULUS_DESKTOP_PACKAGE_NAME = "com.unity.xr.oculus.standalone";
+        private const string OCULUS_XR_PACKAGE_NAME = "com.unity.xr.oculus";
 
         public static bool canSupportOculus
         {
@@ -65,7 +66,12 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
 #if UNITY_2018_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && PackageManagerHelper.IsPackageInList(OCULUS_DESKTOP_PACKAGE_NAME);
+                    return activeBuildTargetGroup == BuildTargetGroup.Standalone
+#if UNITY_2019_3_OR_NEWER
+                        && (PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OCULUS_DESKTOP_PACKAGE_NAME))
+#elif UNITY_2020_1_OR_NEWER
+                        && PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME)
+#endif
 #elif UNITY_5_5_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
                     return activeBuildTargetGroup == BuildTargetGroup.Standalone;
 #else
@@ -79,7 +85,11 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
-#if UNITY_5_5_OR_NEWER
+#if UNITY_2019_3_OR_NEWER && !UNITY_2020_1_OR_NEWER
+                    return canSupport && (((VIUSettings.activateOculusVRModule || VIUSettings.activateUnityNativeVRModule) && OculusSDK.enabled) || VIUSettings.activateUnityXRModule);
+#elif UNITY_2020_1_OR_NEWER
+                    return canSupport && ((VIUSettings.activateOculusVRModule && OculusSDK.enabled) || VIUSettings.activateUnityXRModule);
+#elif UNITY_5_5_OR_NEWER
                     return canSupport && (VIUSettings.activateOculusVRModule || VIUSettings.activateUnityNativeVRModule) && OculusSDK.enabled;
 #elif UNITY_5_4_OR_NEWER
                     return canSupport && VIUSettings.activateOculusVRModule && OculusSDK.enabled;
@@ -92,8 +102,14 @@ namespace HTC.UnityPlugin.Vive
                     if (support == value) { return; }
 
                     VIUSettings.activateOculusVRModule = value;
-
-#if UNITY_5_5_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
+                    OculusSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
+                    VIUSettings.activateUnityXRModule = value || supportOpenVR;
+#elif UNITY_2019_3_OR_NEWER
+                    OculusSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
+                    VIUSettings.activateUnityXRModule = value || supportOpenVR;
+                    VIUSettings.activateUnityNativeVRModule = value || supportOpenVR;
+#elif UNITY_5_5_OR_NEWER
                     OculusSDK.enabled = value;
                     VIUSettings.activateUnityNativeVRModule = value || supportOpenVR;
 #elif UNITY_5_4_OR_NEWER
@@ -124,6 +140,17 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
                     }
+#if UNITY_2019_3_OR_NEWER
+                    else if (!PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "Oculus XR Plugin package required."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowAddPackageButton("Oculus XR Plugin", OCULUS_XR_PACKAGE_NAME);
+                    }
+#endif
+#if !UNITY_2020_1_OR_NEWER
                     else if (!PackageManagerHelper.IsPackageInList(OCULUS_DESKTOP_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
@@ -132,6 +159,7 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowAddPackageButton("Oculus (Desktop)", OCULUS_DESKTOP_PACKAGE_NAME);
                     }
+#endif
                     else if (!VRModule.isOculusVRPluginDetected)
                     {
                         GUI.enabled = false;
