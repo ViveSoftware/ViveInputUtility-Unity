@@ -3,7 +3,6 @@
 using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.XR;
 
