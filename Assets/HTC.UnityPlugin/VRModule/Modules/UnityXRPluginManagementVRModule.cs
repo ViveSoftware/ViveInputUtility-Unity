@@ -41,6 +41,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        private class HapticVibrationState
+        {
+            public uint deviceIndex;
+            public float amplitude;
+            public float remainingDuration;
+            public float remainingDelay;
+
+            public HapticVibrationState(uint index, float amp, float duration, float delay)
+            {
+                deviceIndex = index;
+                amplitude = amp;
+                remainingDuration = duration;
+                remainingDelay = delay;
+            }
+        }
+
         private const uint DEVICE_STATE_LENGTH = 16;
         private static UnityXRPluginManagementVRModule s_moduleInstance;
 
@@ -50,12 +66,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private Dictionary<string, uint> m_deviceSerialToIndex = new Dictionary<string, uint>();
         private List<InputDevice> m_indexToDevices = new List<InputDevice>();
         private List<InputDevice> m_connectedDevices = new List<InputDevice>();
-
-        [MenuItem("ZZZ/Vibration")]
-        public static void Test()
-        {
-            VRModule.TriggerHapticVibration(2, 2.0f);
-        }
+        private List<HapticVibrationState> m_activeHapticVibrationStates = new List<HapticVibrationState>();
 
         public override bool ShouldActiveModule()
         {
@@ -96,6 +107,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        // NOTE: Frequency not supported
         public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85.0f, float amplitude = 0.125f, float startSecondsFromNow = 0.0f)
         {
             if (TryGetDevice(deviceIndex, out InputDevice device))
@@ -107,14 +119,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (device.TryGetHapticCapabilities(out HapticCapabilities capabilities))
                 {
-                    if (capabilities.supportsBuffer)
-                    {
-                        // TODO: Frequency settings
-                    }
-
                     if (capabilities.supportsImpulse)
                     {
-                        device.SendHapticImpulse(0, amplitude, durationSeconds);
+                        for (int i = m_activeHapticVibrationStates.Count - 1; i >= 0; i--)
+                        {
+                            if (m_activeHapticVibrationStates[i].deviceIndex == deviceIndex)
+                            {
+                                m_activeHapticVibrationStates.RemoveAt(i);
+                            }
+                        }
+
+                        m_activeHapticVibrationStates.Add(new HapticVibrationState(deviceIndex, amplitude, durationSeconds, startSecondsFromNow));
                     }
                 }
             }
@@ -123,6 +138,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override void Update()
         {
             UpdateLockPhysicsUpdateRate();
+            UpdateHapticVibration();
         }
 
         public override void BeforeRenderUpdate()
@@ -149,9 +165,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     SetupKnownDeviceModel(currState);
 
                     Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} ({5})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.characteristics);
-
-                    // Debug
-                    LogDeviceFeatureUsages(device);
                 }
 
                 bool isTracked = GetDeviceFeatureValueOrDefault(device, CommonUsages.isTracked);
@@ -192,6 +205,33 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (minRefreshRate > 0 && minRefreshRate < float.MaxValue)
                 {
                     Time.fixedDeltaTime = 1.0f / minRefreshRate;
+                }
+            }
+        }
+
+        private void UpdateHapticVibration()
+        {
+            for (int i = m_activeHapticVibrationStates.Count - 1; i >= 0; i--)
+            {
+                HapticVibrationState state = m_activeHapticVibrationStates[i];
+                if (state.remainingDelay > 0.0f)
+                {
+                    state.remainingDelay -= Time.deltaTime;
+                    continue;
+                }
+
+                if (TryGetDevice(state.deviceIndex, out InputDevice device))
+                {
+                    if (device.isValid)
+                    {
+                        device.SendHapticImpulse(0, state.amplitude);
+                    }
+                }
+
+                state.remainingDuration -= Time.deltaTime;
+                if (state.remainingDuration <= 0)
+                {
+                    m_activeHapticVibrationStates.RemoveAt(i);
                 }
             }
         }
@@ -373,7 +413,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             string id = systems[0].SubsystemDescriptor.id;
-            Debug.Log("Activated XRInputSubsystem: " + id);
+            Debug.Log("Activated XRInputSubsystem Name: " + id);
 
             if (Regex.IsMatch(id, @"openvr", RegexOptions.IgnoreCase))
             {
