@@ -93,7 +93,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void Update()
         {
-            Debug.Log("UnityEngineVRModule Update");
             // set physics update rate to vr render rate
             if (VRModule.lockPhysicsUpdateRateToRenderFrequency && Time.timeScale > 0.0f)
             {

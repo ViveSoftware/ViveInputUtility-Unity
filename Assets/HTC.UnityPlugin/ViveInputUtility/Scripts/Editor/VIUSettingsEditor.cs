@@ -9,10 +9,17 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+
 #if UNITY_2018_1_OR_NEWER
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 #endif
+
+#if XR_GENERAL_SETTINGS
+using UnityEngine.XR.Management;
+using UnityEditor.XR.Management.Metadata;
+#endif
+
 using GraphicsDeviceType = UnityEngine.Rendering.GraphicsDeviceType;
 
 
@@ -904,6 +911,42 @@ far=100
 sceneResolutionScale=0.5");
             }
             GUILayout.EndHorizontal();
+        }
+
+        private static bool IsXRLoaderEnabled(string loaderName)
+        {
+#if XR_GENERAL_SETTINGS
+            foreach (XRLoader loader in XRGeneralSettings.Instance.Manager.loaders)
+            {
+                if (loader.name == loaderName)
+                {
+                    return true;
+                }
+            }
+#endif
+            return false;
+        }
+
+        private static bool IsAnyXRLoaderEnabled()
+        {
+#if XR_GENERAL_SETTINGS
+            return XRGeneralSettings.Instance.Manager.loaders.Count > 0;
+#endif
+            return false;
+        }
+
+        private static void SetXRLoaderEnabled(string loaderClassName, BuildTargetGroup buildTargetGroup, bool enabled)
+        {
+#if XR_GENERAL_SETTINGS
+            if (enabled)
+            {
+                XRPackageMetadataStore.AssignLoader(XRGeneralSettings.Instance.AssignedSettings, loaderClassName, buildTargetGroup);
+            }
+            else
+            {
+                XRPackageMetadataStore.RemoveLoader(XRGeneralSettings.Instance.AssignedSettings, loaderClassName, buildTargetGroup);
+            }
+#endif
         }
     }
 }

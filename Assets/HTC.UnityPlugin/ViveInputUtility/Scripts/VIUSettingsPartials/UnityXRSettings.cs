@@ -1,5 +1,6 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using UnityEditor;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
@@ -11,6 +12,19 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private bool m_activateUnityXRModule = ACTIVATE_UNITY_XR_MODULE_DEFAULT_VALUE;
 
-        public static bool activateUnityXRModule { get { return Instance == null ? ACTIVATE_UNITY_XR_MODULE_DEFAULT_VALUE : s_instance.m_activateUnityXRModule; } set { if (Instance != null) { Instance.m_activateUnityXRModule = value; } } }
+        public static bool activateUnityXRModule
+        {
+            get
+            {
+                return Instance == null ? ACTIVATE_UNITY_XR_MODULE_DEFAULT_VALUE : s_instance.m_activateUnityXRModule;
+            }
+            set
+            {
+                if (Instance != null)
+                {
+                    Instance.m_activateUnityXRModule = value;
+                }
+            }
+        }
     }
 }

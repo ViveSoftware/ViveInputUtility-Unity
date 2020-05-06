@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.XR;
 
-#if VIU_OPENVR_SUPPORT || VIU_OCULUSVR_DESKTOP_SUPPORT
+#if XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
 #endif
 
@@ -25,7 +25,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     {
         public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityXR; } }
 
-#if (VIU_OPENVR_SUPPORT || VIU_OCULUSVR_DESKTOP_SUPPORT) && UNITY_2019_3_OR_NEWER
+#if UNITY_2019_3_OR_NEWER && XR_GENERAL_SETTINGS
         private class CameraCreator : VRCameraHook.CameraCreator
         {
             public override bool shouldActive { get { return s_moduleInstance != null && s_moduleInstance.isActivated; } }

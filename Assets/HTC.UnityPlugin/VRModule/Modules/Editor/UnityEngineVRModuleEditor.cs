@@ -102,4 +102,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 #endif
     }
+
+    public class UnityEngineVRSymbolRequirementCollection : VRModuleManagerEditor.SymbolRequirementCollection
+    {
+        public UnityEngineVRSymbolRequirementCollection()
+        {
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "XR_GENERAL_SETTINGS",
+                reqTypeNames = new string[] {"UnityEngine.XR.Management.XRGeneralSettings"},
+            });
+        }
+    }
 }

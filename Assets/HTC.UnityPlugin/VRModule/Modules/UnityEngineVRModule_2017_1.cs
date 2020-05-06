@@ -22,7 +22,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-#if UNITY_2017_1_OR_NEWER && !UNITY_2020_1_OR_NEWER && !VIU_XR_PLUGIN_MANAGEMENT
+#if UNITY_2017_1_OR_NEWER && !UNITY_2020_1_OR_NEWER
         private static readonly VRModuleDeviceClass[] s_nodeType2DeviceClass;
 
         private uint m_leftIndex = INVALID_DEVICE_INDEX;
