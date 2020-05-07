@@ -15,7 +15,7 @@ using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 #endif
 
-#if XR_GENERAL_SETTINGS
+#if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
 using UnityEditor.XR.Management.Metadata;
 #endif
@@ -421,6 +421,7 @@ namespace HTC.UnityPlugin.Vive
             public static void AddToPackageList(string name) { }
 #endif
         }
+
         private abstract class VRPlatformSetting
         {
             public bool isStandaloneVR { get { return requirdPlatform == BuildTargetGroup.Standalone; } }
@@ -915,7 +916,7 @@ sceneResolutionScale=0.5");
 
         private static bool IsXRLoaderEnabled(string loaderName)
         {
-#if XR_GENERAL_SETTINGS
+#if VIU_XR_GENERAL_SETTINGS
             foreach (XRLoader loader in XRGeneralSettings.Instance.Manager.loaders)
             {
                 if (loader.name == loaderName)
@@ -929,7 +930,7 @@ sceneResolutionScale=0.5");
 
         private static bool IsAnyXRLoaderEnabled()
         {
-#if XR_GENERAL_SETTINGS
+#if VIU_XR_GENERAL_SETTINGS
             return XRGeneralSettings.Instance.Manager.loaders.Count > 0;
 #endif
             return false;
@@ -937,7 +938,7 @@ sceneResolutionScale=0.5");
 
         private static void SetXRLoaderEnabled(string loaderClassName, BuildTargetGroup buildTargetGroup, bool enabled)
         {
-#if XR_GENERAL_SETTINGS
+#if VIU_XR_GENERAL_SETTINGS
             if (enabled)
             {
                 XRPackageMetadataStore.AssignLoader(XRGeneralSettings.Instance.AssignedSettings, loaderClassName, buildTargetGroup);

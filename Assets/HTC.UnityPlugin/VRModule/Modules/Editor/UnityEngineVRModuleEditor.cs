@@ -109,7 +109,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             Add(new VRModuleManagerEditor.SymbolRequirement()
             {
-                symbol = "XR_GENERAL_SETTINGS",
+                symbol = "VIU_XR_GENERAL_SETTINGS",
                 reqTypeNames = new string[] {"UnityEngine.XR.Management.XRGeneralSettings"},
             });
         }

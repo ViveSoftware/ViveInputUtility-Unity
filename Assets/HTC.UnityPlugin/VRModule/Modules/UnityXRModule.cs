@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.XR;
 
-#if XR_GENERAL_SETTINGS
+#if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
 #endif
 
@@ -25,7 +25,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     {
         public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityXR; } }
 
-#if UNITY_2019_3_OR_NEWER && XR_GENERAL_SETTINGS
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
         private class CameraCreator : VRCameraHook.CameraCreator
         {
             public override bool shouldActive { get { return s_moduleInstance != null && s_moduleInstance.isActivated; } }
@@ -522,7 +522,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch); // Touchpad
             float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
             Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis); // Touchpad
-            Vector2 secondary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxis);
+            Vector2 secondary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxis); // Joystick
 
             state.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuButton);
             state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);

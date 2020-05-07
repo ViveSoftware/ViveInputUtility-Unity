@@ -4,7 +4,7 @@ using HTC.UnityPlugin.VRModuleManagement;
 using UnityEditor;
 using UnityEngine;
 
-#if XR_GENERAL_SETTINGS
+#if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
 using UnityEditor.XR.Management.Metadata;
 #endif
