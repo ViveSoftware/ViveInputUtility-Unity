@@ -89,7 +89,7 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
 #if UNITY_2019_3_OR_NEWER && !UNITY_2020_1_OR_NEWER
-                    return canSupport && (((VIUSettings.activateOculusVRModule || VIUSettings.activateUnityNativeVRModule) && OculusSDK.enabled) || VIUSettings.activateUnityXRModule && IsXRLoaderEnabled(OCULUS_LOADER_NAME));
+                    return canSupport && (((VIUSettings.activateOculusVRModule || VIUSettings.activateUnityNativeVRModule) && OculusSDK.enabled) || VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(OCULUS_LOADER_NAME));
 #elif UNITY_2020_1_OR_NEWER
                     return canSupport && ((VIUSettings.activateOculusVRModule && OculusSDK.enabled) || VIUSettings.activateUnityXRModule);
 #elif UNITY_5_5_OR_NEWER
@@ -105,13 +105,13 @@ namespace HTC.UnityPlugin.Vive
                     if (support == value) { return; }
 
                     VIUSettings.activateOculusVRModule = value;
-                    SetXRLoaderEnabled(OCULUS_LOADER_CLASS_NAME, BuildTargetGroup.Standalone, value);
+                    XRPluginManagementUtils.SetXRLoaderEnabled(OCULUS_LOADER_CLASS_NAME, BuildTargetGroup.Standalone, value);
 #if UNITY_2020_1_OR_NEWER
                     OculusSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
                     VIUSettings.activateUnityXRModule = value || supportOpenVR;
 #elif UNITY_2019_3_OR_NEWER
                     OculusSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
-                    VIUSettings.activateUnityXRModule = value || IsAnyXRLoaderEnabled();
+                    VIUSettings.activateUnityXRModule = value || XRPluginManagementUtils.IsAnyXRLoaderEnabled();
                     VIUSettings.activateUnityNativeVRModule = value || supportOpenVR;
 #elif UNITY_5_5_OR_NEWER
                     OculusSDK.enabled = value;
