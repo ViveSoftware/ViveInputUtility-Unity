@@ -12,6 +12,11 @@ namespace HTC.UnityPlugin.Vive
         public static bool IsXRLoaderEnabled(string loaderName)
         {
 #if VIU_XR_GENERAL_SETTINGS
+            if (!XRGeneralSettings.Instance || !XRGeneralSettings.Instance.Manager)
+            {
+                return false;
+            }
+
             foreach (XRLoader loader in XRGeneralSettings.Instance.Manager.loaders)
             {
                 if (loader.name == loaderName)
@@ -26,6 +31,11 @@ namespace HTC.UnityPlugin.Vive
         public static bool IsAnyXRLoaderEnabled()
         {
 #if VIU_XR_GENERAL_SETTINGS
+            if (!XRGeneralSettings.Instance || !XRGeneralSettings.Instance.Manager)
+            {
+                return false;
+            }
+
             return XRGeneralSettings.Instance.Manager.loaders.Count > 0;
 #endif
             return false;
@@ -34,6 +44,11 @@ namespace HTC.UnityPlugin.Vive
         public static void SetXRLoaderEnabled(string loaderClassName, BuildTargetGroup buildTargetGroup, bool enabled)
         {
 #if VIU_XR_GENERAL_SETTINGS
+            if (!XRGeneralSettings.Instance)
+            {
+                return;
+            }
+
             if (enabled)
             {
                 XRPackageMetadataStore.AssignLoader(XRGeneralSettings.Instance.AssignedSettings, loaderClassName, buildTargetGroup);
