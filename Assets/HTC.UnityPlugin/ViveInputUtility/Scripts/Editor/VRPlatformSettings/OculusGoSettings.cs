@@ -466,8 +466,10 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
-#if UNITY_2018_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Android && PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME);
+#if UNITY_2020_1_OR_NEWER
+                    return activeBuildTargetGroup == BuildTargetGroup.Android && PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
+#elif UNITY_2018_1_OR_NEWER
+                    return activeBuildTargetGroup == BuildTargetGroup.Android && (PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME));
 #elif UNITY_5_6_OR_NEWER
                     return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isOculusVRPluginDetected;
 #else
@@ -482,11 +484,17 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
                     if (!canSupport) { return false; }
-                    if (!VIUSettings.activateOculusVRModule) { return false; }
-                    if (!OculusSDK.enabled) { return false; }
                     if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel21) { return false; }
                     if (PlayerSettings.graphicsJobs) { return false; }
                     if ((PlayerSettings.colorSpace == ColorSpace.Linear || PlayerSettings.gpuSkinning) && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
+
+#if UNITY_2019_3_OR_NEWER
+                    if (!((VIUSettings.activateOculusVRModule && OculusSDK.enabled)
+                          || (VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(OCULUS_LOADER_NAME, requirdPlatform)))) { return false; }
+#else
+                    if (!VIUSettings.activateOculusVRModule) { return false; }
+                    if (!OculusSDK.enabled) { return false; }
+#endif
                     return true;
                 }
                 set
@@ -512,8 +520,18 @@ namespace HTC.UnityPlugin.Vive
                     }
 
                     VIUSettings.activateOculusVRModule = value;
+                    XRPluginManagementUtils.SetXRLoaderEnabled(OCULUS_LOADER_CLASS_NAME, requirdPlatform, value);
+#if UNITY_2020_1_OR_NEWER
+                    OculusSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
+                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
+#elif UNITY_2019_3_OR_NEWER
+                    OculusSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
+                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
+                    VIUSettings.activateUnityNativeVRModule = value || supportOpenVR;
+#else
                     OculusSDK.enabled = value;
                     VIUSettings.activateUnityNativeVRModule = value;
+#endif
                 }
 #else
                 get { return false; }
@@ -543,6 +561,17 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
                     }
+#if UNITY_2019_3_OR_NEWER
+                    else if (!PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "Oculus XR Plugin package required."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowAddPackageButton("Oculus XR Plugin", OCULUS_XR_PACKAGE_NAME);
+                    }
+#endif
+#if !UNITY_2020_1_OR_NEWER
                     else if (!PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
@@ -551,6 +580,7 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowAddPackageButton("Oculus Android", OCULUS_ANDROID_PACKAGE_NAME);
                     }
+#endif
                     else if (!VRModule.isOculusVRPluginDetected)
                     {
                         GUI.enabled = false;

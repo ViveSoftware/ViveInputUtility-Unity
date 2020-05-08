@@ -407,7 +407,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SubsystemManager.GetInstances(systems);
             if (systems.Count == 0)
             {
-                Debug.Log("No XRInputSubsystem detected.");
+                Debug.LogWarning("No XRInputSubsystem detected.");
                 return XRInputSubsystemType.Unknown;
             }
 

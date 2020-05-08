@@ -387,10 +387,10 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
-#if UNITY_2019_3_OR_NEWER && !UNITY_2020_1_OR_NEWER
-                    return canSupport && (((VIUSettings.activateSteamVRModule || VIUSettings.activateUnityNativeVRModule) && OpenVRSDK.enabled) || VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(OPENVR_LOADER_NAME));
-#elif UNITY_2020_1_OR_NEWER
-                    return canSupport && ((VIUSettings.activateSteamVRModule && OpenVRSDK.enabled) || VIUSettings.activateUnityXRModule);
+#if UNITY_2020_1_OR_NEWER
+                    return canSupport && ((VIUSettings.activateSteamVRModule && OpenVRSDK.enabled) || (VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(OPENVR_LOADER_NAME, requirdPlatform)));
+#elif UNITY_2019_3_OR_NEWER
+                    return canSupport && (((VIUSettings.activateSteamVRModule || VIUSettings.activateUnityNativeVRModule) && OpenVRSDK.enabled) || VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(OPENVR_LOADER_NAME, requirdPlatform));
 #elif UNITY_5_5_OR_NEWER
                     return canSupport && (VIUSettings.activateSteamVRModule || VIUSettings.activateUnityNativeVRModule) && OpenVRSDK.enabled;
 #elif UNITY_5_4_OR_NEWER
@@ -404,10 +404,13 @@ namespace HTC.UnityPlugin.Vive
                     if (support == value) { return; }
 
                     VIUSettings.activateSteamVRModule = value;
-                    XRPluginManagementUtils.SetXRLoaderEnabled(OPENVR_LOADER_CLASS_NAME, BuildTargetGroup.Standalone, value);
-#if UNITY_2019_3_OR_NEWER
+                    XRPluginManagementUtils.SetXRLoaderEnabled(OPENVR_LOADER_CLASS_NAME, requirdPlatform, value);
+#if UNITY_2020_1_OR_NEWER
                     OpenVRSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME);
-                    VIUSettings.activateUnityXRModule = value || XRPluginManagementUtils.IsAnyXRLoaderEnabled();
+                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
+#elif UNITY_2019_3_OR_NEWER
+                    OpenVRSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME);
+                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
                     VIUSettings.activateUnityNativeVRModule = value || supportOculus;
 #elif UNITY_5_5_OR_NEWER
                     OpenVRSDK.enabled = value;
