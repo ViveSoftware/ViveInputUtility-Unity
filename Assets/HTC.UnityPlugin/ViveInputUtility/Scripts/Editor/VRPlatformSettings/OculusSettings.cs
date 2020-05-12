@@ -4,11 +4,6 @@ using HTC.UnityPlugin.VRModuleManagement;
 using UnityEditor;
 using UnityEngine;
 
-#if VIU_XR_GENERAL_SETTINGS
-using UnityEngine.XR.Management;
-using UnityEditor.XR.Management.Metadata;
-#endif
-
 namespace HTC.UnityPlugin.Vive
 {
     public class OculusRecommendedSettings : VIUVersionCheck.RecommendedSettingCollection
