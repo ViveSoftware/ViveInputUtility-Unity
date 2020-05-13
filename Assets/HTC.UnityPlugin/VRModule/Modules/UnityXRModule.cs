@@ -69,7 +69,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool ShouldActiveModule()
         {
-            return VIUSettings.activateUnityXRModule && XRGeneralSettings.Instance.InitManagerOnStart;
+            return VIUSettings.activateUnityXRModule && XRGeneralSettings.Instance.InitManagerOnStart && XRGeneralSettings.Instance.Manager.activeLoader != null;
         }
 
         public override void OnActivated()
