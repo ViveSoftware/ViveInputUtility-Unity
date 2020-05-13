@@ -148,10 +148,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             foreach (InputDevice device in m_connectedDevices)
             {
                 uint deviceIndex = GetOrCreateDeviceIndex(device);
-
-                IVRModuleDeviceState prevState;
-                IVRModuleDeviceStateRW currState;
-                EnsureValidDeviceState(deviceIndex, out prevState, out currState);
+                EnsureValidDeviceState(deviceIndex, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState);
 
                 if (!prevState.isConnected)
                 {
@@ -166,7 +163,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} ({5})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.characteristics);
                 }
 
-                bool isTracked = GetDeviceFeatureValueOrDefault(device, CommonUsages.isTracked);
+                device.TryGetFeatureValue(CommonUsages.isTracked, out bool isTracked);
                 currState.isPoseValid = device.isValid && isTracked;
 
                 UpdateTrackingState(currState, device);
