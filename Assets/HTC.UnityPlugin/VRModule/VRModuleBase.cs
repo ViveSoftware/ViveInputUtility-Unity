@@ -23,6 +23,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", RegexOptions.IgnoreCase);
             private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_viveFocusRgx = new Regex("^.*(wvr).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_leftRgx = new Regex("^.*(left|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_rightRgx = new Regex("^.*(right|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
 
@@ -289,6 +290,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         case VRModuleDeviceClass.Controller:
                             deviceState.deviceModel = VRModuleDeviceModel.MagicLeapController;
                             deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                            return;
+                    }
+                }
+
+                else if (s_viveFocusRgx.IsMatch(deviceState.modelNumber))
+                {
+                    switch (deviceState.deviceClass)
+                    {
+                        case VRModuleDeviceClass.HMD:
+                            deviceState.deviceModel = VRModuleDeviceModel.ViveFocusHMD;
+                            return;
+                        case VRModuleDeviceClass.Controller:
+                            deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                            deviceState.deviceModel = VRModuleDeviceModel.ViveFocusChirp;
                             return;
                     }
                 }

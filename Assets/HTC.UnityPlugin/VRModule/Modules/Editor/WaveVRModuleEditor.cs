@@ -2,6 +2,7 @@
 
 using System;
 using System.Reflection;
+using HTC.UnityPlugin.Vive;
 using SymbolRequirement = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirement;
 using SymbolRequirementCollection = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirementCollection;
 
@@ -22,6 +23,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 symbol = "VIU_WAVEVR",
                 reqTypeNames = new string[] { "WaveVR" },
                 reqFileNames = new string[] { "WaveVR.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_RENDER",
+                reqTypeNames = new string[] { "WaveVR_Render" },
             });
 
             Add(new SymbolRequirement()

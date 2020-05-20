@@ -32,6 +32,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         DaydreamController,
         ViveFocusHMD,
         ViveFocusFinch,
+        ViveFocusChirp,
         OculusGoController,
         OculusGearVrController,
         WMRHMD,

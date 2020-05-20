@@ -20,6 +20,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+
+        public static readonly bool isWaveVRRenderDetected =
+#if VIU_WAVEVR_RENDER
+            true;
+#else
+            false;
+#endif
+
         public static readonly bool isWaveVRSupported =
 #if VIU_WAVEVR_SUPPORT
             true;
@@ -32,7 +40,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     {
         public override int moduleIndex { get { return (int)VRModuleActiveEnum.WaveVR; } }
 
-#if VIU_WAVEVR && UNITY_ANDROID
+#if VIU_WAVEVR && VIU_WAVEVR_RENDER && UNITY_ANDROID
         private class CameraCreator : VRCameraHook.CameraCreator
         {
             public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }

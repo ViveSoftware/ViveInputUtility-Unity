@@ -107,6 +107,7 @@ namespace HTC.UnityPlugin.Vive
 #endif
         }
 
+#if VIU_XR_GENERAL_SETTINGS
         private static bool AssignLoader(XRManagerSettings settings, string loaderTypeName)
         {
             var instance = GetInstanceOfTypeWithNameFromAssetDatabase(loaderTypeName);
@@ -257,5 +258,6 @@ namespace HTC.UnityPlugin.Vive
 
             return loaderTypeNames;
         }
+#endif
     }
 }

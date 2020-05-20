@@ -59,6 +59,10 @@ namespace HTC.UnityPlugin.Vive
 
     public static partial class VIUSettingsEditor
     {
+        private const string WAVEVR_XR_PACKAGE_NAME = "com.htc.wavevr";
+        private const string WAVEVR_LOADER_NAME = "Wave VR XR Loader";
+        private const string WAVEVR_LOADER_CLASS_NAME = "WaveVR_XRLoader";
+
         public static bool canSupportWaveVR
         {
             get { return WaveVRSettings.instance.canSupport; }
@@ -107,7 +111,11 @@ namespace HTC.UnityPlugin.Vive
             public override bool canSupport
             {
 #if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
-                get { return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isWaveVRPluginDetected; }
+                get
+                {
+                    return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isWaveVRPluginDetected &&
+                           (VRModule.isWaveVRRenderDetected || PackageManagerHelper.IsPackageInList(WAVEVR_XR_PACKAGE_NAME));
+                }
 #else
                 get { return false; }
 #endif
@@ -120,10 +128,15 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateWaveVRModule) { return false; }
-                    if (!MockHMDSDK.enabled) { return false; }
+                    
 #if !VIU_WAVEVR_3_0_0_OR_NEWER
                     if (virtualRealitySupported) { return false; }
 #endif
+                    if (!((VRModule.isWaveVRRenderDetected && MockHMDSDK.enabled) || XRPluginManagementUtils.IsXRLoaderEnabled(WAVEVR_LOADER_NAME, requirdPlatform)))
+                    {
+                        return false;
+                    }
+
                     if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23) { return false; }
                     if (PlayerSettings.colorSpace == ColorSpace.Linear && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
                     return true;
@@ -152,7 +165,13 @@ namespace HTC.UnityPlugin.Vive
                         supportOculusGo = false;
                     }
 
-                    MockHMDSDK.enabled = value;
+                    if (virtualRealitySupported)
+                    {
+                        MockHMDSDK.enabled = value;
+                    }
+
+                    XRPluginManagementUtils.SetXRLoaderEnabled(WAVEVR_LOADER_CLASS_NAME, requirdPlatform, value);
+
                     VIUSettings.activateWaveVRModule = value;
                 }
 #else
