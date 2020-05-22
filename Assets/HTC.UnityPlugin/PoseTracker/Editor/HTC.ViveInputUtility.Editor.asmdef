@@ -1,0 +1,27 @@
+{
+    "name": "HTC.ViveInputUtility.Editor",
+    "references": [
+        "GUID:4aa80e501d649f0408d84c41352e4032",
+        "GUID:1fbf338ef6b952a448262a7ff7df5fe4",
+        "GUID:9bac448de04a4f6448fee1acc220e5a1",
+        "GUID:2476fd5d698aa614194466a3af5d192f",
+        "GUID:256e975f9c776644aa4d86bc0c894f33",
+        "GUID:2ad7ddec91ba46744a6bbd71b5659cd6",
+        "GUID:8c01d52dc9e9c7c41b509ed43aa1d098",
+        "GUID:ae177491a94151a4899094505be41938",
+        "GUID:f64c9ebcd7899c3448a08dc9f9ddbe30",
+        "GUID:7305c54a43f3814439df347c7519653e",
+        "GUID:d2761a0af0f567748a72629d4bb18a26"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
