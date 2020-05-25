@@ -603,8 +603,23 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         private OvrAvatarSkinnedMeshRenderPBSComponent AddSkinnedMeshRenderPBSComponent(GameObject gameObject, ovrAvatarRenderPart_SkinnedMeshRenderPBS skinnedMeshRenderPBS)
         {
             OvrAvatarSkinnedMeshRenderPBSComponent skinnedMeshRenderer = gameObject.AddComponent<OvrAvatarSkinnedMeshRenderPBSComponent>();
-            InitializeOvrAvatarSkinnedMesh(skinnedMeshRenderer, skinnedMeshRenderPBS.meshAssetID, skinnedMeshRenderPBS.visibilityMask, "OvrAvatar/AvatarSurfaceShaderPBS", 0, 0, renderPartCount);
-            renderPartCount++;
+            OvrAvatarAssetMesh meshAsset = (OvrAvatarAssetMesh)OvrAvatarSDKManager.Instance.GetAsset(skinnedMeshRenderPBS.meshAssetID);
+            SkinnedMeshRenderer renderer = meshAsset.CreateSkinnedMeshRendererOnObject(gameObject);
+
+#if UNITY_ANDROID
+            renderer.quality = SkinQuality.Bone2;
+#else
+            renderer.quality = SkinQuality.Bone4;
+#endif
+            renderer.updateWhenOffscreen = true;
+            skinnedMeshRenderer.mesh = renderer;
+            transform.GetChild(0).localPosition = Vector2.zero;
+            transform.GetChild(0).localRotation = Quaternion.identity;
+            transform.GetChild(0).GetComponentInChildren<OvrAvatarSkinnedMeshRenderPBSComponent>().gameObject.SetActive(false);
+            var shader = Shader.Find("OvrAvatar/AvatarSurfaceShaderPBS");
+            renderer.sharedMaterial = CreateAvatarMaterial(gameObject.name + "_material", shader);
+            SetMaterialOpaque(renderer.sharedMaterial);
+            skinnedMeshRenderer.bones = renderer.bones;
 
             return skinnedMeshRenderer;
         }
@@ -612,10 +627,23 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         private OvrAvatarSkinnedMeshPBSV2RenderComponent AddSkinnedMeshRenderPBSV2Component(GameObject gameObject, ovrAvatarRenderPart_SkinnedMeshRenderPBS_V2 skinnedMeshRenderPBSV2)
         {
             OvrAvatarSkinnedMeshPBSV2RenderComponent skinnedMeshRenderer = gameObject.AddComponent<OvrAvatarSkinnedMeshPBSV2RenderComponent>();
-            InitializeOvrAvatarSkinnedMesh(skinnedMeshRenderer, skinnedMeshRenderPBSV2.meshAssetID, skinnedMeshRenderPBSV2.visibilityMask, "OvrAvatar/AvatarPBRV2Simple", 0, 0, renderPartCount);
-            renderPartCount++;
+            OvrAvatarAssetMesh meshAsset = (OvrAvatarAssetMesh)OvrAvatarSDKManager.Instance.GetAsset(skinnedMeshRenderPBSV2.meshAssetID);
+            SkinnedMeshRenderer renderer = meshAsset.CreateSkinnedMeshRendererOnObject(gameObject);
 
-            SetMaterialOpaque(skinnedMeshRenderer.mesh.sharedMaterial);
+#if UNITY_ANDROID
+            renderer.quality = SkinQuality.Bone2;
+#else
+            renderer.quality = SkinQuality.Bone4;
+#endif
+            renderer.updateWhenOffscreen = true;
+            skinnedMeshRenderer.mesh = renderer;
+            transform.GetChild(0).localPosition = Vector2.zero;
+            transform.GetChild(0).localRotation = Quaternion.identity;
+            transform.GetChild(0).GetComponentInChildren<OvrAvatarSkinnedMeshPBSV2RenderComponent>().gameObject.SetActive(false);
+            var shader = Shader.Find("OvrAvatar/AvatarPBRV2Simple");
+            renderer.sharedMaterial = CreateAvatarMaterial(gameObject.name + "_material", shader);
+            SetMaterialOpaque(renderer.sharedMaterial);
+            skinnedMeshRenderer.bones = renderer.bones;
 
             return skinnedMeshRenderer;
         }
@@ -801,6 +829,18 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             }
             firstSkinnedUpdate = false;
         }
+
+        private void ConvertTransform(ovrAvatarTransform transform, Transform target)
+        {
+            Vector3 position = transform.position;
+            position.z = -position.z;
+            Quaternion orientation = transform.orientation;
+            orientation.x = -orientation.x;
+            orientation.y = -orientation.y;
+            target.localPosition = position;
+            target.localRotation = orientation;
+            target.localScale = transform.scale;
+        }
 #endif
 
         public void SetDeviceIndex(uint index)
@@ -841,86 +881,5 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
             LoadPreferedModel();
         }
-
-#if VIU_OCULUSVR
-        private void ConvertTransform(ovrAvatarTransform transform, Transform target)
-        {
-            Vector3 position = transform.position;
-            position.z = -position.z;
-            Quaternion orientation = transform.orientation;
-            orientation.x = -orientation.x;
-            orientation.y = -orientation.y;
-            target.localPosition = position;
-            target.localRotation = orientation;
-            target.localScale = transform.scale;
-        }
-
-        private void InitializeOvrAvatarSkinnedMesh(OvrAvatarRenderComponent skinnedMesh, UInt64 meshAssetID, ovrAvatarVisibilityFlags visibilityMask, string shaderName, int thirdPersonLayer, int firstPersonLayer, int sortingOrder)
-        {
-            if (!skinnedMesh)
-            {
-                return;
-            }
-
-            Shader shader = Shader.Find(shaderName);
-            if (!shader)
-            {
-                Debug.LogWarning("Shader not found: " + shaderName);
-                return;
-            }
-
-            skinnedMesh.mesh = CreateOvrAvatarSkinnedMesh(skinnedMesh, meshAssetID, visibilityMask, thirdPersonLayer, firstPersonLayer, sortingOrder);
-            skinnedMesh.mesh.sharedMaterial = CreateOvrAvatarMaterial(skinnedMesh.gameObject.name + "_material", shader);
-            skinnedMesh.bones = skinnedMesh.mesh.bones;
-        }
-
-        private SkinnedMeshRenderer CreateOvrAvatarSkinnedMesh(OvrAvatarRenderComponent avatarRender, ulong assetID, ovrAvatarVisibilityFlags visibilityMask, int thirdPersonLayer, int firstPersonLayer, int sortingOrder)
-        {
-            OvrAvatarAssetMesh meshAsset = (OvrAvatarAssetMesh)OvrAvatarSDKManager.Instance.GetAsset(assetID);
-            if (meshAsset == null)
-            {
-                throw new Exception("Couldn't find mesh for asset " + assetID);
-            }
-            if ((visibilityMask & ovrAvatarVisibilityFlags.ThirdPerson) != 0)
-            {
-                avatarRender.gameObject.layer = thirdPersonLayer;
-            }
-            else
-            {
-                avatarRender.gameObject.layer = firstPersonLayer;
-            }
-            SkinnedMeshRenderer renderer = meshAsset.CreateSkinnedMeshRendererOnObject(avatarRender.gameObject);
-#if UNITY_ANDROID
-            renderer.quality = SkinQuality.Bone2;
-#else
-            renderer.quality = SkinQuality.Bone4;
-#endif
-#if !VIU_OCULUSVR_1_37_0_OR_NEWER
-            renderer.sortingOrder = sortingOrder;
-#endif
-            renderer.updateWhenOffscreen = true;
-            if ((visibilityMask & ovrAvatarVisibilityFlags.SelfOccluding) == 0)
-            {
-                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            }
-
-#if VIU_OCULUSVR_1_37_0_OR_NEWER
-            avatarRender.gameObject.SetActive(false);
-#endif
-
-            return renderer;
-        }
-
-        private Material CreateOvrAvatarMaterial(string name, Shader shader)
-        {
-            if (shader == null)
-            {
-                throw new Exception("No shader provided for avatar material.");
-            }
-            Material mat = new Material(shader);
-            mat.name = name;
-            return mat;
-        }
-#endif
     }
 }
