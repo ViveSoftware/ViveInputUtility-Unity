@@ -2,6 +2,7 @@
 
 using System;
 using System.Reflection;
+using UnityEngine;
 using SymbolRequirement = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirement;
 using SymbolRequirementCollection = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirementCollection;
 
@@ -96,6 +97,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 },
                 reqFileNames = new string[] { "OvrAvatarSDKManager.cs" },
+            });
+
+            Add(new SymbolRequirement
+            {
+                symbol = "VIU_OCULUSVR_AVATAR",
+                validateFunc = (req) =>
+                {
+                    Type type = Type.GetType("OvrAvatar, Oculus.Avatar");
+                    return type != null;
+                },
             });
         }
     }

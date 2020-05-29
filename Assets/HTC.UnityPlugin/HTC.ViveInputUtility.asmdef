@@ -1,10 +1,10 @@
 {
     "name": "HTC.ViveInputUtility",
     "references": [
-        "GUID:1fbf338ef6b952a448262a7ff7df5fe4",
-        "GUID:2ad7ddec91ba46744a6bbd71b5659cd6",
-        "GUID:f64c9ebcd7899c3448a08dc9f9ddbe30",
-        "GUID:8c01d52dc9e9c7c41b509ed43aa1d098"
+        "SteamVR",
+        "Oculus.Avatar",
+        "Oculus.VR",
+        "Oculus.Platform"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

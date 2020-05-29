@@ -11,6 +11,7 @@ namespace HTC.UnityPlugin.Vive
         public const bool AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE = true;
         public const float VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE = 0.15f;
         public const bool INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE = false;
+        public const string VIU_PACKAGE_NAME = "com.htc.explab.vive-input-utility";
 
         [SerializeField]
         private bool m_autoCheckNewVIUVersion = AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE;

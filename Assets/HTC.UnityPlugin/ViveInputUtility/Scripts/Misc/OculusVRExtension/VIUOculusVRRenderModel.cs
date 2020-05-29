@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+#if VIU_OCULUSVR_AVATAR
 using Oculus.Avatar;
 #endif
 
@@ -51,7 +51,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         private HashSet<string> m_loadingRenderModels = new HashSet<string>();
         private bool m_isAppQuit;
 
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
         private IntPtr sdkAvatar = IntPtr.Zero;
         private HashSet<UInt64> assetLoadingIds = new HashSet<UInt64>();
         private Dictionary<string, OvrAvatarComponent> trackedComponents =
@@ -144,7 +144,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         {
             if (m_updateDynamically)
             {
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
                 if (sdkAvatar == IntPtr.Zero)
                 {
                     return;
@@ -264,7 +264,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
                 UpdateComponents();
 
-#if VIU_OCULUSVR_1_37_0_OR_NEWER
+#if VIU_OCULUSVR_1_37_0_OR_NEWER && VIU_OCULUSVR_AVATAR
                 if (m_deviceIndex == LEFT_INDEX)
                 {
                     ovrAvatarControllerComponent component = new ovrAvatarControllerComponent();
@@ -370,7 +370,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             {
                 //Debug.Log(transform.parent.parent.name + " LoadModel " + renderModelName);
                 m_loadingRenderModels.Add(renderModelName);
-#if VIU_OCULUSVR_1_37_0_OR_NEWER
+#if VIU_OCULUSVR_1_37_0_OR_NEWER && VIU_OCULUSVR_AVATAR
                 OvrAvatarSDKManager.AvatarSpecRequestParams avatarSpecRequest = new OvrAvatarSDKManager.AvatarSpecRequestParams(
                     0,
                     this.AvatarSpecificationCallback,
@@ -382,7 +382,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                     false);
 
                 OvrAvatarSDKManager.Instance.RequestAvatarSpecification(avatarSpecRequest);
-#elif VIU_OCULUSVR_1_36_0_OR_NEWER
+#elif VIU_OCULUSVR_1_36_0_OR_NEWER && VIU_OCULUSVR_AVATAR
                 OvrAvatarSDKManager.Instance.RequestAvatarSpecification(
                     0,
                     this.AvatarSpecificationCallback,
@@ -392,7 +392,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                     ovrAvatarLookAndFeelVersion.Two,
                     ovrAvatarLookAndFeelVersion.One,
                     false);
-#elif VIU_OCULUSVR_1_32_0_OR_NEWER
+#elif VIU_OCULUSVR_1_32_0_OR_NEWER && VIU_OCULUSVR_AVATAR
                     OvrAvatarSDKManager.Instance.RequestAvatarSpecification(
                     0,
                     this.AvatarSpecificationCallback,
@@ -406,7 +406,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
         private void AvatarSpecificationCallback(IntPtr avatarSpecification)
         {
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
             sdkAvatar = CAPI.ovrAvatar_Create(avatarSpecification, ovrAvatarCapabilities.All);
             CAPI.ovrAvatar_SetLeftControllerVisibility(sdkAvatar, true);
             CAPI.ovrAvatar_SetRightControllerVisibility(sdkAvatar, true);
@@ -429,7 +429,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
         }
 
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
         private void AssetLoadedCallback(OvrAvatarAsset asset)
         {
             assetLoadingIds.Remove(asset.assetID);
@@ -451,7 +451,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
         private void UpdateComponents()
         {
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
             if (assetLoadingIds.Count == 0)
             {
                 if (!assetsFinishedLoading)
@@ -463,10 +463,10 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
         }
 
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
         private void UpdateSDKAvatarUnityState()
         {
-#if VIU_OCULUSVR_1_37_0_OR_NEWER
+#if VIU_OCULUSVR_1_37_0_OR_NEWER && VIU_OCULUSVR_AVATAR
             ovrAvatarControllerComponent controllerComponent = new ovrAvatarControllerComponent();
             ovrAvatarComponent dummyComponent = new ovrAvatarComponent();
             OvrAvatarTouchController controller = null;
@@ -489,7 +489,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                     controller.isLeftHand = false;
                 }
             }
-#elif VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER
+#elif (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
             //Iterate through all the render components
             UInt32 componentCount = CAPI.ovrAvatarComponent_Count(sdkAvatar);
 
@@ -544,7 +544,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
         }
 
-#if VIU_OCULUSVR_1_37_0_OR_NEWER
+#if VIU_OCULUSVR_1_37_0_OR_NEWER && VIU_OCULUSVR_AVATAR
         private void AddAvatarComponent<T>(ref T root, ovrAvatarComponent nativeComponent) where T : OvrAvatarComponent
         {
             GameObject componentObject = new GameObject();
@@ -847,10 +847,10 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         {
             //Debug.Log(transform.parent.parent.name + " SetDeviceIndex " + index);
             m_deviceIndex = index;
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER
+#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
             ovrController = this.GetComponent<OvrAvatarTouchController>();
 #endif
-#if VIU_OCULUSVR
+#if VIU_OCULUSVR && VIU_OCULUSVR_AVATAR
             var headsetType = OVRPlugin.GetSystemHeadsetType();
             switch (headsetType)
             {

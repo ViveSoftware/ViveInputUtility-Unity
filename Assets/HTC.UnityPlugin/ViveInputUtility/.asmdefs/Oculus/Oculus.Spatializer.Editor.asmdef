@@ -1,10 +1,7 @@
 {
-    "name": "HTC.ViveInputUtility.Editor",
+    "name": "Oculus.Spatializer.Editor",
     "references": [
-        "HTC.ViveInputUtility",
-        "SteamVR",
-        "SteamVR_Input_Editor",
-        "Oculus.VR"
+        "Oculus.Spatializer"
     ],
     "includePlatforms": [
         "Editor"

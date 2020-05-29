@@ -1,14 +1,12 @@
 {
-    "name": "HTC.ViveInputUtility.Editor",
+    "name": "Oculus.Avatar",
     "references": [
-        "HTC.ViveInputUtility",
-        "SteamVR",
-        "SteamVR_Input_Editor",
+        "Oculus.LipSync",
+        "Oculus.Platform",
+        "Oculus.Spatializer",
         "Oculus.VR"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

@@ -1,13 +1,23 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
-using HTC.UnityPlugin.VRModuleManagement;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
+using HTC.UnityPlugin.VRModuleManagement;
 
 namespace HTC.UnityPlugin.Vive
 {
     public class OculusRecommendedSettings : VIUVersionCheck.RecommendedSettingCollection
     {
+        private const string AVATAR_CLASS_FULL_NAME = "OvrAvatar, Oculus.Avatar";
+        private const string ASMDEFS_PATH = "Packages/" + VIUSettings.VIU_PACKAGE_NAME + "/ViveInputUtility/.asmdefs/Oculus/";
+        private const string OCULUS_SDK_PATH = "Assets/Oculus/";
+        private const string AVATAR_ASMDEF_FILE_NAME = "Oculus.Avatar.asmdef";
+        private const string LIPSYNC_ASMDEF_FILE_NAME = "Oculus.LipSync.asmdef";
+        private const string LIPSYNC_EDITOR_ASMDEF_FILE_NAME = "Oculus.LipSync.Editor.asmdef";
+        private const string SPATIALIZER_ASMDEF_FILE_NAME = "Oculus.Spatializer.asmdef";
+        private const string SPATIALIZER_EDITOR_ASMDEF_FILE_NAME = "Oculus.Spatializer.Editor.asmdef";
+
         public OculusRecommendedSettings()
         {
             Add(new VIUVersionCheck.RecommendedSetting<bool>()
@@ -30,6 +40,42 @@ namespace HTC.UnityPlugin.Vive
                 currentValueFunc = () => PlayerSettings.mobileMTRendering,
                 setValueFunc = v => PlayerSettings.mobileMTRendering = v,
 #endif
+                recommendedValue = true,
+            });
+
+            Add(new VIUVersionCheck.RecommendedSetting<bool>()
+            {
+                settingTitle = "Add Missing Assembly Definitions in Oculus SDK",
+                skipCheckFunc = () =>
+                {
+#if !VIU_OCULUSVR
+                    return true;
+#else
+                    return false;
+#endif
+                },
+                currentValueFunc = () =>
+                {
+#if VIU_OCULUSVR_AVATAR
+                    return true;
+#else
+                    return false;
+#endif
+                },
+                setValueFunc = v =>
+                {
+                    if (v)
+                    {
+                        string asmdefFullPath = Path.GetFullPath(ASMDEFS_PATH);
+                        string oculusFullPath = Path.GetFullPath(OCULUS_SDK_PATH);
+                        File.Copy(asmdefFullPath + AVATAR_ASMDEF_FILE_NAME, oculusFullPath + "Avatar/" + AVATAR_ASMDEF_FILE_NAME);
+                        File.Copy(asmdefFullPath + LIPSYNC_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/" + LIPSYNC_ASMDEF_FILE_NAME);
+                        File.Copy(asmdefFullPath + LIPSYNC_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/Editor/" + LIPSYNC_EDITOR_ASMDEF_FILE_NAME);
+                        File.Copy(asmdefFullPath + SPATIALIZER_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/" + SPATIALIZER_ASMDEF_FILE_NAME);
+                        File.Copy(asmdefFullPath + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/Editor/" + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME);
+                        AssetDatabase.Refresh();
+                    }
+                },
                 recommendedValue = true,
             });
         }

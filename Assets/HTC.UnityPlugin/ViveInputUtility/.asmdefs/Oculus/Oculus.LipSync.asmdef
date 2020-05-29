@@ -1,14 +1,7 @@
 {
-    "name": "HTC.ViveInputUtility.Editor",
-    "references": [
-        "HTC.ViveInputUtility",
-        "SteamVR",
-        "SteamVR_Input_Editor",
-        "Oculus.VR"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "name": "Oculus.LipSync",
+    "references": [],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
