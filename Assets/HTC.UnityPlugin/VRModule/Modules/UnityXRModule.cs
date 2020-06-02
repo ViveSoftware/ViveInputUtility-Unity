@@ -160,10 +160,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     SetupKnownDeviceModel(currState);
 
-                    Debug.LogWarningFormat("Device connected: {0} / {1} / {2} / {3} / {4} ({5})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.characteristics);
-
-                    // Debug
-                    LogDeviceFeatureUsages(device);
+                    Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} ({5})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.characteristics);
                 }
 
                 device.TryGetFeatureValue(CommonUsages.isTracked, out bool isTracked);
@@ -836,7 +833,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     strUsages += usage.name;
                 }
 
-                Debug.LogWarning(device.name + " feature usages:\n\n" + strUsages + "\n");
+                Debug.Log(device.name + " feature usages:\n\n" + strUsages + "\n");
             }
         }
 #endif
