@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 #if UNITY_2017_1_OR_NEWER
 
@@ -80,7 +80,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
                     break;
                 case VRModuleTrackingSpaceType.RoomScale:
+                    var prev_trackingOrigin = XRDevice.trackingOriginMode;
                     XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale);
+                    if (prev_trackingOrigin == XRDevice.trackingOriginMode)
+                    {
+                        XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
+                    }
                     break;
             }
         }

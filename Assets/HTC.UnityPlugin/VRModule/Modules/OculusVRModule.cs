@@ -1,9 +1,10 @@
-//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 #if VIU_OCULUSVR
 using UnityEngine;
 using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.Vive.OculusVRExtension;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #else
@@ -39,6 +40,60 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public sealed class OculusVRModule : VRModule.ModuleBase
     {
         public override int moduleIndex { get { return (int)VRModuleActiveEnum.OculusVR; } }
+
+#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+        private class RenderModelCreator : RenderModelHook.RenderModelCreator
+        {
+            private uint m_index = INVALID_DEVICE_INDEX;
+            private VIUOculusVRRenderModel m_model;
+
+            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+
+            public override void UpdateRenderModel()
+            {
+                if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
+
+                if (VRModule.IsValidDeviceIndex(m_index))
+                {
+                    // create object for render model
+                    if (m_model == null)
+                    {
+                        var go = new GameObject("Model");
+                        go.transform.SetParent(hook.transform, false);
+                        m_model = go.AddComponent<VIUOculusVRRenderModel>();
+                    }
+
+                    // set render model index
+                    m_model.gameObject.SetActive(true);
+                    m_model.shaderOverride = hook.overrideShader;
+#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER
+                    m_model.gameObject.AddComponent(System.Type.GetType("OvrAvatarTouchController"));
+#endif
+                    m_model.SetDeviceIndex(m_index);
+                }
+                else
+                {
+                    // deacitvate object for render model
+                    if (m_model != null)
+                    {
+                        m_model.gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            public override void CleanUpRenderModel()
+            {
+                if (m_model != null)
+                {
+                    Object.Destroy(m_model.gameObject);
+                    m_model = null;
+                    m_index = INVALID_DEVICE_INDEX;
+                }
+            }
+        }
+
+        private static OculusVRModule s_moduleInstance;
+#endif
 
 #if VIU_OCULUSVR
         public const int VALID_NODE_COUNT = 7;
@@ -89,6 +144,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             UpdateTrackingSpaceType();
 
             EnsureDeviceStateLength(VALID_NODE_COUNT);
+
+#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+            s_moduleInstance = this;
+#endif
         }
 
         public override void OnDeactivated()
@@ -101,7 +160,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (VRModule.trackingSpaceType)
             {
                 case VRModuleTrackingSpaceType.RoomScale:
-                    OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.FloorLevel);
+                    if (OVRPlugin.GetSystemHeadsetType().Equals(OVRPlugin.SystemHeadset.Oculus_Go))
+                    {
+                        OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.EyeLevel);
+                    }
+                    else
+                    {
+                        OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.FloorLevel);
+                    }
                     break;
                 case VRModuleTrackingSpaceType.Stationary:
                     OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.EyeLevel);

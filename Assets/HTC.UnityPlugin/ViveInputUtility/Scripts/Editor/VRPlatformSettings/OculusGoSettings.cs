@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEditor;
@@ -606,10 +606,18 @@ namespace HTC.UnityPlugin.Vive
                                                 VIUSettings.oculusVRAndroidManifestPath, style);
                         if (GUILayout.Button("Open", new GUILayoutOption[] { GUILayout.Width(44), GUILayout.Height(18) }))
                         {
-                            VIUSettings.oculusVRAndroidManifestPath = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
+                            var path = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
+                            if (path.Length != 0)
+                            {
+                                // make relative path if it is under Assets folder.
+                                if (path.StartsWith(Application.dataPath))
+                                {
+                                    path = "Assets" + path.Substring(Application.dataPath.Length);
+                                }
+                                VIUSettings.oculusVRAndroidManifestPath = path;
+                            }
                         }
 
-                        EditorGUI.BeginChangeCheck();
                         EditorGUILayout.EndHorizontal();
 
                         EditorGUILayout.BeginHorizontal();
@@ -623,7 +631,6 @@ namespace HTC.UnityPlugin.Vive
                             EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
                         }
 
-                        EditorGUI.BeginChangeCheck();
                         EditorGUILayout.EndHorizontal();
                         EditorGUI.indentLevel -= 2;
                     }
@@ -652,11 +659,27 @@ namespace HTC.UnityPlugin.Vive
 
                 if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
                 {
-                    File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    if (Directory.Exists("Assets/Plugins/Android/AndroidManifest.xml"))
+                    {
+                        File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory("Assets/Plugins/Android/");
+                        File.Copy(VIUSettings.oculusVRAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    }
                 }
                 else if (File.Exists(defaultAndroidManifestPath))
                 {
-                    File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    if (Directory.Exists("Assets/Plugins/Android/AndroidManifest.xml"))
+                    {
+                        File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory("Assets/Plugins/Android/");
+                        File.Copy(defaultAndroidManifestPath, "Assets/Plugins/Android/AndroidManifest.xml", true);
+                    }
                 }
             }
 #endif

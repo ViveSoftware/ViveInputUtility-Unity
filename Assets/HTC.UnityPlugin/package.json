@@ -1,0 +1,72 @@
+{
+    "name": "com.htc.explab.vive-input-utility",
+    "version": "1.10.7-preview.4",
+    "displayName": "HTC VIVE Input Utility",
+    "description": "The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity, especially with the VIVE/VIVE Pro but also targeting many platforms from a common code base including Oculus Rift, Rift S Go, Quest, Google Daydream, VIVE Wave SDK (e.g. VIVE Focus standalone) and additional VR platforms as supported by Unity such as Microsoft's 'Mixed Reality' VR headsets and more.\n\nCompatible with SteamVR 2.4.0+ and Oculus Integration 17.0+.",
+    "dependencies": { 
+    },
+    "keywords": [
+      "HTC",
+      "VR",
+      "Input",
+      "VIVE",
+      "Oculus",
+      "WaveVR",
+      "Daydream",
+      "OpenVR",
+      "Microsoft Mixed Reality"
+    ],
+    "author": {
+      "name": "HTC",
+      "email": "ViveSoftware@htc.com",
+      "url": "https://www.htc.com"
+    },
+    "homepage": "https://github.com/ViveSoftware/ViveInputUtility-Unity",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ViveSoftware/ViveInputUtility-Unity.git"
+    },
+    "samples": [
+      {
+        "displayName": "0. Tutorial",
+        "description": "This example shows how to build up the basic environment that can interact with Unity built-in UI component.",
+        "path": "ViveInputUtility/Examples/0.Tutorial"
+      },
+      {
+        "displayName": "1. UGUI",
+        "description": "This example extends from 0.Tutorial example to introduce more UI components and developers also can re-use UGUI components from their previous projects to work with Vive Input Utility seamlessly.",
+        "path": "ViveInputUtility/Examples/1.UGUI"
+      },
+      {
+        "displayName": "2. 2DDragDrop",
+        "description": "This example introduces drag and drop action with scripts. Developers can use Vive Controllers to drag and drop game objects in this scene.",
+        "path": "ViveInputUtility/Examples/2.2DDragDrop"
+      },
+      {
+        "displayName": "3. 3DDrag",
+        "description": "",
+        "path": "ViveInputUtility/Examples/3.3DDrag"
+      },
+      { 
+        "displayName": "4. Teleport",
+        "description": "This example introduces teleport in 3D space. Developers can use Trackpad to teleport in this scene.",
+        "path": "ViveInputUtility/Examples/4.Teleport"
+      },
+      {
+        "displayName": "5. ColliderEvent",
+        "description": "This example introduces various types of collider events and using Rigidbody script to allow developers to apply forces to the object and control it in a physically realistic way.",
+        "path": "ViveInputUtility/Examples/5.ColliderEvent"
+      },
+      {
+        "displayName": "6. ControllerManagerSample",
+        "description": "This example introduces various ways of controller interactions.",
+        "path": "ViveInputUtility/Examples/6.ControllerManagerSample"
+      },
+      {
+        "displayName": "7. RoleBindingExample",
+        "description": "",
+        "path": "ViveInputUtility/Examples/7.RoleBindingExample"
+      }
+    ]
+  }
+  

@@ -151,6 +151,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 },
             });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_STEAMVR_2_6_0_OR_NEWER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Valve.VR.CVROverlay",
+                        name = "ShowKeyboard",
+                        argTypeNames = new string[]
+                        {
+                            "System.Int32",
+                            "System.Int32",
+                            "System.UInt32",
+                            "System.String",
+                            "System.UInt32",
+                            "System.String",
+                            "System.UInt64",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Instance,
+                    }
+                },
+            });
         }
     }
 }

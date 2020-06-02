@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -72,7 +72,16 @@ public class OverlayKeyboardSample : MonoBehaviour
             if (vr != null)
             {
                 caller.text = caller.textEntry.text;
+#if VIU_STEAMVR_2_6_0_OR_NEWER
+                uint flag = 0;
+                if (caller.minimalMode)
+                {
+                    flag = (uint)EKeyboardFlags.KeyboardFlag_Minimal;
+                }
+                vr.overlay.ShowKeyboard(0, 0, flag, "Description", 256, caller.text, 0);
+#else
                 vr.overlay.ShowKeyboard(0, 0, "Description", 256, caller.text, caller.minimalMode, 0);
+#endif
             }
 
             activeKeyboard = caller;

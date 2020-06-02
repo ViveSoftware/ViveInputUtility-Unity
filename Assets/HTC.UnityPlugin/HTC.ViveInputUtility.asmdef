@@ -1,0 +1,18 @@
+{
+    "name": "HTC.ViveInputUtility",
+    "references": [
+        "SteamVR",
+        "Oculus.Avatar",
+        "Oculus.VR",
+        "Oculus.Platform"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
