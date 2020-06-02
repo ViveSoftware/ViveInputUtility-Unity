@@ -2,6 +2,8 @@
     "name": "HTC.ViveInputUtility.Editor",
     "references": [
         "HTC.ViveInputUtility",
+        "Unity.XR.Management",
+        "Unity.XR.Management.Editor",
         "SteamVR",
         "SteamVR_Input_Editor",
         "Oculus.VR"

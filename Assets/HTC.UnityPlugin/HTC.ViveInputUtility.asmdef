@@ -1,6 +1,7 @@
 {
     "name": "HTC.ViveInputUtility",
     "references": [
+        "Unity.XR.Management",
         "SteamVR",
         "Oculus.Avatar",
         "Oculus.VR",
