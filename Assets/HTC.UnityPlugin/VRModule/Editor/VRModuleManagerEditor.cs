@@ -8,7 +8,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEditor.Compilation;
 using UnityEngine;
+using Assembly = System.Reflection.Assembly;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -131,6 +133,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (type == null) { return false; }
                 if (s_foundTypes == null) { s_foundTypes = new Dictionary<string, Type>(); }
                 s_foundTypes.Add(name, type);
+
                 return true;
             }
 
@@ -342,8 +345,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             if (Vive.VIUSettingsEditor.PackageManagerHelper.isPreparingList) { return; }
 
+            UnityEditor.Compilation.Assembly editorUnityAsm = FindUnityAssembly(typeof(VRModuleManagerEditor).Assembly.GetName().Name, AssembliesType.Editor);
+            if (editorUnityAsm == null)
+            {
+                Debug.LogWarning("Editor assembly not found.");
+                return;
+            }
+
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
+                bool isReferenced = false;
+                foreach (UnityEditor.Compilation.Assembly asm in editorUnityAsm.assemblyReferences)
+                {
+                    if (assembly.GetName().Name == asm.name)
+                    {
+                        isReferenced = true;
+                        break;
+                    }
+                }
+
+                if (!isReferenced)
+                {
+                    continue;
+                }
+
                 try
                 {
                     foreach (var symbolReq in s_symbolReqList)
@@ -459,6 +484,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static void SetDefineSymbols(List<string> symbols)
         {
             PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), string.Join(";", symbols.ToArray()));
+        }
+
+        private static UnityEditor.Compilation.Assembly FindUnityAssembly(string name, AssembliesType type)
+        {
+            UnityEditor.Compilation.Assembly foundAssembly = null;
+            UnityEditor.Compilation.Assembly[] assemblies = CompilationPipeline.GetAssemblies(type);
+            foreach (UnityEditor.Compilation.Assembly asm in assemblies)
+            {
+                if (asm.name == name)
+                {
+                    foundAssembly = asm;
+                    break;
+                }
+            }
+
+            return foundAssembly;
         }
     }
 }
