@@ -5,6 +5,7 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 #if VIU_XR_GENERAL_SETTINGS
 using UnityEditor.XR.Management;
@@ -16,23 +17,6 @@ namespace HTC.UnityPlugin.Vive
     public static class XRPluginManagementUtils
     {
         private static readonly string[] s_loaderBlackList = { "DummyLoader", "SampleLoader", "XRLoaderHelper" };
-        private static string s_defaultAssetPath;
-
-        public static string defaultAssetPath
-        {
-            get
-            {
-                if (s_defaultAssetPath == null)
-                {
-                    var ms = MonoScript.FromScriptableObject(ScriptableObject.CreateInstance<XRGeneralSettings>());
-                    var msPath = AssetDatabase.GetAssetPath(ms);
-                    var assetsPath = msPath.Replace(msPath.Substring(0, msPath.LastIndexOf("/")), "Assets/XR");
-                    s_defaultAssetPath = System.IO.Path.ChangeExtension(assetsPath, "asset");
-                }
-
-                return s_defaultAssetPath;
-            }
-        }
 
         public static bool IsXRLoaderEnabled(string loaderName, BuildTargetGroup buildTargetGroup)
         {
@@ -40,13 +24,11 @@ namespace HTC.UnityPlugin.Vive
             XRGeneralSettings xrSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
             if (!xrSettings)
             {
-                Debug.LogWarning("Failed to find XRGeneralSettings for build target group: " + buildTargetGroup);
                 return false;
             }
 
             if (!xrSettings.AssignedSettings)
             {
-                Debug.LogWarning("No assigned manager settings in the XRGeneralSettings for build target group: " + buildTargetGroup);
                 return false;
             }
             
@@ -67,13 +49,11 @@ namespace HTC.UnityPlugin.Vive
             XRGeneralSettings xrSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
             if (!xrSettings)
             {
-                Debug.LogWarning("Failed to find XRGeneralSettings for build target group: " + buildTargetGroup);
                 return false;
             }
 
             if (!xrSettings.AssignedSettings)
             {
-                Debug.LogWarning("No assigned manager settings in the XRGeneralSettings for build target group: " + buildTargetGroup);
                 return false;
             }
 
@@ -86,33 +66,9 @@ namespace HTC.UnityPlugin.Vive
         public static void SetXRLoaderEnabled(string loaderClassName, BuildTargetGroup buildTargetGroup, bool enabled)
         {
 #if VIU_XR_GENERAL_SETTINGS
-            XRGeneralSettingsPerBuildTarget generalSettings = null;
-            if (!File.Exists(defaultAssetPath))
-            {
-                if (!Directory.Exists(defaultAssetPath))
-                {
-                    Directory.CreateDirectory(defaultAssetPath);
-                }
-
-                generalSettings = ScriptableObject.CreateInstance(typeof(XRGeneralSettingsPerBuildTarget)) as XRGeneralSettingsPerBuildTarget;
-                AssetDatabase.CreateAsset(generalSettings, defaultAssetPath);
-            }
-            else
-            {
-                EditorBuildSettings.TryGetConfigObject(XRGeneralSettings.k_SettingsKey, out generalSettings);
-                if (generalSettings == null)
-                {
-                    string searchText = "t:XRGeneralSettings";
-                    string[] assets = AssetDatabase.FindAssets(searchText);
-                    if (assets.Length > 0)
-                    {
-                        string path = AssetDatabase.GUIDToAssetPath(assets[0]);
-                        generalSettings = AssetDatabase.LoadAssetAtPath(path, typeof(XRGeneralSettingsPerBuildTarget)) as XRGeneralSettingsPerBuildTarget;
-                    }
-                }
-            }
-
-            EditorBuildSettings.AddConfigObject(XRGeneralSettings.k_SettingsKey, generalSettings, true);
+            MethodInfo method = Type.GetType("UnityEditor.XR.Management.XRSettingsManager, Unity.XR.Management.Editor")
+                .GetProperty("currentSettings", BindingFlags.NonPublic | BindingFlags.Static).GetGetMethod(true);
+            XRGeneralSettingsPerBuildTarget generalSettings = (XRGeneralSettingsPerBuildTarget)method.Invoke(null, new object[]{});
 
             XRGeneralSettings xrSettings = generalSettings.SettingsForBuildTarget(buildTargetGroup);
 
@@ -125,8 +81,6 @@ namespace HTC.UnityPlugin.Vive
             }
 
             var serializedSettingsObject = new SerializedObject(xrSettings);
-            serializedSettingsObject.Update();
-
             SerializedProperty loaderProp = serializedSettingsObject.FindProperty("m_LoaderManagerInstance");
             if (loaderProp.objectReferenceValue == null)
             {
@@ -136,16 +90,6 @@ namespace HTC.UnityPlugin.Vive
                 loaderProp.objectReferenceValue = xrManagerSettings;
                 serializedSettingsObject.ApplyModifiedProperties();
             }
-
-            var obj = loaderProp.objectReferenceValue;
-
-            if (obj == null)
-            {
-                xrSettings.AssignedSettings = null;
-                loaderProp.objectReferenceValue = null;
-            }
-
-            serializedSettingsObject.ApplyModifiedProperties();
 
             if (enabled)
             {
