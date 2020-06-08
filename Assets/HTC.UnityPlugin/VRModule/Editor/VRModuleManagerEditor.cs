@@ -345,6 +345,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             if (Vive.VIUSettingsEditor.PackageManagerHelper.isPreparingList) { return; }
 
+            UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(typeof(VRModule).Assembly.GetName().Name, AssembliesType.Player);
+            if (playerUnityAsm == null)
+            {
+                Debug.LogWarning("Player assembly not found.");
+                return;
+            }
+
             UnityEditor.Compilation.Assembly editorUnityAsm = FindUnityAssembly(typeof(VRModuleManagerEditor).Assembly.GetName().Name, AssembliesType.Editor);
             if (editorUnityAsm == null)
             {
@@ -355,12 +362,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 bool isReferenced = false;
-                foreach (UnityEditor.Compilation.Assembly asm in editorUnityAsm.assemblyReferences)
+                foreach (UnityEditor.Compilation.Assembly asm in playerUnityAsm.assemblyReferences)
                 {
                     if (assembly.GetName().Name == asm.name)
                     {
                         isReferenced = true;
                         break;
+                    }
+                }
+
+                if (!isReferenced)
+                {
+                    foreach (UnityEditor.Compilation.Assembly asm in editorUnityAsm.assemblyReferences)
+                    {
+                        if (assembly.GetName().Name == asm.name)
+                        {
+                            isReferenced = true;
+                            break;
+                        }
                     }
                 }
 

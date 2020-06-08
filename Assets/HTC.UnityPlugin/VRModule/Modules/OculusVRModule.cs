@@ -35,6 +35,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+
+        public static readonly bool isOculusVRAvatarSupported =
+#if VIU_OCULUSVR_AVATAR
+            true;
+#else
+            false;
+#endif
     }
 
     public sealed class OculusVRModule : VRModule.ModuleBase

@@ -46,22 +46,8 @@ namespace HTC.UnityPlugin.Vive
             Add(new VIUVersionCheck.RecommendedSetting<bool>()
             {
                 settingTitle = "Add Missing Assembly Definitions in Oculus SDK",
-                skipCheckFunc = () =>
-                {
-#if !VIU_OCULUSVR
-                    return true;
-#else
-                    return false;
-#endif
-                },
-                currentValueFunc = () =>
-                {
-#if VIU_OCULUSVR_AVATAR
-                    return true;
-#else
-                    return false;
-#endif
-                },
+                skipCheckFunc = () => { return !VRModule.isOculusVRPluginDetected; },
+                currentValueFunc = () => { return VRModule.isOculusVRAvatarSupported; },
                 setValueFunc = v =>
                 {
                     if (v)
