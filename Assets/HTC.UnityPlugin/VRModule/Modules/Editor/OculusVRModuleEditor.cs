@@ -103,6 +103,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 symbol = "VIU_OCULUSVR_AVATAR",
                 reqTypeNames = new string[] { "OvrAvatar" },
+                reqFileNames = new string[] { "OvrAvatar.cs" },
             });
         }
     }
