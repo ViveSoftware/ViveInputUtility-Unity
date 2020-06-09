@@ -549,7 +549,13 @@ namespace HTC.UnityPlugin.Vive
 #else
                         ", VIVE Tracker device" +
 #endif
-                        " NOT supported! Install SteamVR Plugin to get support.", MessageType.Warning);
+                        " NOT supported! " +
+#if VIU_PLUGIN
+                        "Install SteamVR Plugin to get support."
+#else
+                        "Install SteamVR Plugin 2.4.0 or newer to get support."
+#endif
+                        , MessageType.Warning);
 
                     s_warningHeight = Mathf.Max(s_warningHeight, GUILayoutUtility.GetLastRect().height);
 
