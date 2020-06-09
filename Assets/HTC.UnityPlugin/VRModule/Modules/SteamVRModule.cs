@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed partial class SteamVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)VRModuleActiveEnum.SteamVR; } }
+        public override int moduleIndex { get { return (int)DefaultModuleOrder.SteamVR; } }
 
 #if VIU_STEAMVR
         private class CameraCreator : VRCameraHook.CameraCreator
@@ -43,10 +43,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public override void CreateCamera(VRCameraHook hook)
             {
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+                if (hook.GetComponent<VivePoseTracker>() == null)
+                {
+                    VivePoseTracker poseTracker = hook.gameObject.AddComponent<VivePoseTracker>();
+                    poseTracker.viveRole.SetEx(DeviceRole.Hmd);
+                }
+#else
                 if (hook.GetComponent<SteamVR_Camera>() == null)
                 {
                     hook.gameObject.AddComponent<SteamVR_Camera>();
                 }
+#endif
             }
         }
 

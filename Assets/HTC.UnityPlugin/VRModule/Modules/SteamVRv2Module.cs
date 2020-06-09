@@ -15,12 +15,18 @@ using UnityEngine.XR;
 #elif UNITY_5_4_OR_NEWER
 using XRSettings = UnityEngine.VR.VRSettings;
 #endif
+#if VIU_XR_GENERAL_SETTINGS
+using UnityEngine.XR.Management;
+#endif
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class SteamVRModule : VRModule.ModuleBase
     {
+        public const string OPENVR_XR_LOADER_NAME = "Open VR Loader";
+        public const string OPENVR_XR_LOADER_CLASS_NAME = "OpenVRLoader";
+
 #if VIU_STEAMVR_2_0_0_OR_NEWER
         public class ActionArray<T> where T : struct
         {
@@ -358,7 +364,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool ShouldActiveModule()
         {
-#if UNITY_5_4_OR_NEWER
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+            return VIUSettings.activateSteamVRModule && XRGeneralSettings.Instance.InitManagerOnStart
+                && (XRGeneralSettings.Instance.Manager.activeLoader != null && XRGeneralSettings.Instance.Manager.activeLoader.name == OPENVR_XR_LOADER_NAME);
+#elif UNITY_5_4_OR_NEWER
             return VIUSettings.activateSteamVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR";
 #else
             return VIUSettings.activateSteamVRModule && SteamVR.enabled;
@@ -701,5 +710,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 #endif
-        }
     }
+}
