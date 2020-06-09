@@ -325,6 +325,7 @@ namespace HTC.UnityPlugin.Vive
             private static bool m_wasAdded;
             private static ListRequest m_listRequest;
             private static AddRequest m_addRequest;
+            private static string s_fallbackIdentifier;
 
             public static bool isPreparingList
             {
@@ -364,12 +365,23 @@ namespace HTC.UnityPlugin.Vive
                             if (!m_wasAdded)
                             {
                                 Debug.LogError("Something wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
+
+                                string fallbackIdentifier = s_fallbackIdentifier;
+                                m_addRequest = null;
+                                s_fallbackIdentifier = null;
+
+                                if (!string.IsNullOrEmpty(fallbackIdentifier))
+                                {
+                                    Debug.Log("Retry installing package with fallback identifier: " + fallbackIdentifier);
+                                    AddToPackageList(fallbackIdentifier);
+                                }
                             }
                             break;
                         case StatusCode.Success:
                             if (!m_wasAdded)
                             {
                                 m_addRequest = null;
+                                s_fallbackIdentifier = null;
                                 ResetPackageList();
                             }
                             break;
@@ -402,10 +414,12 @@ namespace HTC.UnityPlugin.Vive
                 return m_listRequest.Result.Any(pkg => pkg.name == name);
             }
 
-            public static void AddToPackageList(string name)
+            public static void AddToPackageList(string identifier, string fallbackIdentifier = null)
             {
                 Debug.Assert(m_addRequest == null);
-                m_addRequest = Client.Add(name);
+
+                m_addRequest = Client.Add(identifier);
+                s_fallbackIdentifier = fallbackIdentifier;
             }
 #else
             public static bool isPreparingList { get { return false; } }
@@ -413,7 +427,7 @@ namespace HTC.UnityPlugin.Vive
             public static void PreparePackageList() { }
             public static void ResetPackageList() { }
             public static bool IsPackageInList(string name) { return true; }
-            public static void AddToPackageList(string name) { }
+            public static void AddToPackageList(string identifier, string fallbackIdentifier = null) { }
 #endif
         }
 
@@ -862,11 +876,11 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private static void ShowAddPackageButton(string displayName, string pkgName)
+        private static void ShowAddPackageButton(string displayName, string identifier, string fallbackIdentifier = null)
         {
-            if (GUILayout.Button(new GUIContent("Add " + displayName + " Package", "Add " + pkgName + " to Package Manager"), GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(new GUIContent("Add " + displayName + " Package", "Add " + identifier + " to Package Manager"), GUILayout.ExpandWidth(false)))
             {
-                PackageManagerHelper.AddToPackageList(pkgName);
+                PackageManagerHelper.AddToPackageList(identifier, fallbackIdentifier);
             }
         }
 

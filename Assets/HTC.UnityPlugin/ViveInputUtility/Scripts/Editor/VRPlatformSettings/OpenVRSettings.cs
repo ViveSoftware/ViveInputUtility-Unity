@@ -340,7 +340,8 @@ namespace HTC.UnityPlugin.Vive
     public static partial class VIUSettingsEditor
     {
         private const string OPENVR_PACKAGE_NAME = "com.unity.xr.openvr.standalone";
-        private const string OPENVR_XR_PACKAGE_NAME = "com.valve.openvr"; //"com.unity.xr.openvr";
+        private const string OPENVR_XR_PACKAGE_NAME = "com.valve.openvr";
+        private const string OPNEVR_XR_PACKAGE_GIT = "https://github.com/ValveSoftware/steamvr_unity_plugin.git#UnityXRPlugin";
         private const string OPENVR_LOADER_NAME = "Open VR Loader";
         private const string OPENVR_LOADER_CLASS_NAME = "OpenVRLoader";
 
@@ -461,7 +462,7 @@ namespace HTC.UnityPlugin.Vive
                         ShowToggle(new GUIContent(title, "OpenVR XR Plugin package required."), false, GUILayout.Width(230f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
-                        ShowAddPackageButton("OpenVR XR Plugin", OPENVR_XR_PACKAGE_NAME);
+                        ShowAddPackageButton("OpenVR XR Plugin", OPENVR_XR_PACKAGE_NAME, OPNEVR_XR_PACKAGE_GIT);
                     }
 #endif
 #if !UNITY_2020_1_OR_NEWER
