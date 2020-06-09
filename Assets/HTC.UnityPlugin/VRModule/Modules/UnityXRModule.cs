@@ -23,7 +23,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class UnityXRPluginManagementVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityXR; } }
+        public override int moduleIndex { get { return (int)DefaultModuleOrder.UnityXR; } }
 
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
         private class CameraCreator : VRCameraHook.CameraCreator

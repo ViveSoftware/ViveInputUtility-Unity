@@ -38,7 +38,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class WaveVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)VRModuleActiveEnum.WaveVR; } }
+        public override int moduleIndex { get { return (int)DefaultModuleOrder.WaveVR; } }
 
 #if VIU_WAVEVR && VIU_WAVEVR_RENDER && UNITY_ANDROID
         private class CameraCreator : VRCameraHook.CameraCreator

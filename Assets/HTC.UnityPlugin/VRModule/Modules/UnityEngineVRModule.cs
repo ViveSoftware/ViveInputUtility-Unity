@@ -14,7 +14,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)VRModuleActiveEnum.UnityNativeVR; } }
+        public override int moduleIndex { get { return (int)DefaultModuleOrder.UnityNativeVR; } }
 
 #if !UNITY_2020_1_OR_NEWER
         private static KeyCode[] s_keyCodes = new KeyCode[]

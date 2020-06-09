@@ -11,6 +11,9 @@ using UnityEngine.XR;
 using XRDevice = UnityEngine.VR.VRDevice;
 using XRSettings = UnityEngine.VR.VRSettings;
 #endif
+#if VIU_XR_GENERAL_SETTINGS
+using UnityEngine.XR.Management;
+#endif
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -46,7 +49,28 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class OculusVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)VRModuleActiveEnum.OculusVR; } }
+        public override int moduleIndex { get { return (int)DefaultModuleOrder.OculusVR; } }
+
+        public const string OCULUS_XR_LOADER_NAME = "Oculus Loader";
+        public const string OCULUS_XR_LOADER_CLASS_NAME = "OculusLoader";
+
+#if VIU_OCULUSVR
+        private class CameraCreator : VRCameraHook.CameraCreator
+        {
+            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+
+            public override void CreateCamera(VRCameraHook hook)
+            {
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+                if (hook.GetComponent<VivePoseTracker>() == null)
+                {
+                    VivePoseTracker poseTracker = hook.gameObject.AddComponent<VivePoseTracker>();
+                    poseTracker.viveRole.SetEx(DeviceRole.Hmd);
+                }
+#endif
+            }
+        }
+#endif
 
 #if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
         private class RenderModelCreator : RenderModelHook.RenderModelCreator
@@ -143,7 +167,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_node2class[(int)OVRPlugin.Node.TrackerThree] = VRModuleDeviceClass.TrackingReference;
         }
 
-        public override bool ShouldActiveModule() { return VIUSettings.activateOculusVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus"; }
+        public override bool ShouldActiveModule()
+        {
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+            return VIUSettings.activateOculusVRModule && XRGeneralSettings.Instance.InitManagerOnStart
+                && (XRGeneralSettings.Instance.Manager.activeLoader != null && XRGeneralSettings.Instance.Manager.activeLoader.name == OCULUS_XR_LOADER_NAME);
+#else
+            return VIUSettings.activateOculusVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus";
+#endif
+        }
 
         public override void OnActivated()
         {
