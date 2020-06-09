@@ -105,6 +105,9 @@ namespace HTC.UnityPlugin.Vive
         DPadUpperRightTouch = 33,
         DPadLowerRightTouch = 34,
         DPadLowerLeftTouch = 35,
+
+        DPadCenter = 36,
+        DPadCenterTouch = 37,
     }
 
     public enum ControllerAxis

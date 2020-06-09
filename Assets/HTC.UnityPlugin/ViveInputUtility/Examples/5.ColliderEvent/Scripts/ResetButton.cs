@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ResetButton : MonoBehaviour
-    , IColliderEventPressUpHandler
     , IColliderEventPressEnterHandler
     , IColliderEventPressExitHandler
 {
@@ -15,62 +14,15 @@ public class ResetButton : MonoBehaviour
     [SerializeField]
     private ColliderButtonEventData.InputButton m_activeButton = ColliderButtonEventData.InputButton.Trigger;
 
-    private RigidPose[] resetPoses;
+    private RigidPose[] storedPoses;
 
     private HashSet<ColliderButtonEventData> pressingEvents = new HashSet<ColliderButtonEventData>();
 
-    public ColliderButtonEventData.InputButton activeButton
-    {
-        get
-        {
-            return m_activeButton;
-        }
-        set
-        {
-            m_activeButton = value;
-            // set all child MaterialChanger heighlightButton to value;
-            var changers = ListPool<MaterialChanger>.Get();
-            GetComponentsInChildren(changers);
-            for (int i = changers.Count - 1; i >= 0; --i) { changers[i].heighlightButton = value; }
-            ListPool<MaterialChanger>.Release(changers);
-        }
-    }
+    public ColliderButtonEventData.InputButton activeButton { get { return m_activeButton; } set { m_activeButton = value; } }
 
     private void Start()
     {
-        resetPoses = new RigidPose[effectTargets.Length];
-        for (int i = 0; i < effectTargets.Length; ++i)
-        {
-            resetPoses[i] = new RigidPose(effectTargets[i]);
-        }
-    }
-#if UNITY_EDITOR
-    protected virtual void OnValidate()
-    {
-        activeButton = m_activeButton;
-    }
-#endif
-    public void OnColliderEventPressUp(ColliderButtonEventData eventData)
-    {
-        if (pressingEvents.Contains(eventData) && pressingEvents.Count == 1)
-        {
-            for (int i = 0; i < effectTargets.Length; ++i)
-            {
-                var rigid = effectTargets[i].GetComponent<Rigidbody>();
-                if (rigid != null)
-                {
-                    rigid.MovePosition(resetPoses[i].pos);
-                    rigid.MoveRotation(resetPoses[i].rot);
-                    rigid.velocity = Vector3.zero;
-                    //rigid.angularVelocity = Vector3.zero;
-                }
-                else
-                {
-                    effectTargets[i].position = resetPoses[i].pos;
-                    effectTargets[i].rotation = resetPoses[i].rot;
-                }
-            }
-        }
+        StorePoses();
     }
 
     public void OnColliderEventPressEnter(ColliderButtonEventData eventData)
@@ -86,6 +38,57 @@ public class ResetButton : MonoBehaviour
         if (pressingEvents.Remove(eventData) && pressingEvents.Count == 0)
         {
             buttonObject.localPosition -= buttonDownDisplacement;
+
+            // check if event caster is still hovering this object
+            foreach (var c in eventData.eventCaster.enteredColliders)
+            {
+                if (c.transform.IsChildOf(transform))
+                {
+                    DoReset();
+                    return;
+                }
+            }
+        }
+    }
+
+    public void StorePoses()
+    {
+        if (effectTargets == null)
+        {
+            storedPoses = null;
+            return;
+        }
+
+        if (storedPoses == null || storedPoses.Length != effectTargets.Length)
+        {
+            storedPoses = new RigidPose[effectTargets.Length];
+        }
+
+        for (int i = 0; i < effectTargets.Length; ++i)
+        {
+            storedPoses[i] = new RigidPose(effectTargets[i]);
+        }
+    }
+
+    public void DoReset()
+    {
+        if (effectTargets == null) { return; }
+
+        for (int i = 0; i < effectTargets.Length; ++i)
+        {
+            var rigid = effectTargets[i].GetComponent<Rigidbody>();
+            if (rigid != null)
+            {
+                rigid.MovePosition(storedPoses[i].pos);
+                rigid.MoveRotation(storedPoses[i].rot);
+                rigid.velocity = Vector3.zero;
+                //rigid.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                effectTargets[i].position = storedPoses[i].pos;
+                effectTargets[i].rotation = storedPoses[i].rot;
+            }
         }
     }
 }
