@@ -1,7 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -345,45 +344,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             if (Vive.VIUSettingsEditor.PackageManagerHelper.isPreparingList) { return; }
 
-            UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(typeof(VRModule).Assembly.GetName().Name, AssembliesType.Player);
-            if (playerUnityAsm == null)
-            {
-                Debug.LogWarning("Player assembly not found.");
-                return;
-            }
-
-            UnityEditor.Compilation.Assembly editorUnityAsm = FindUnityAssembly(typeof(VRModuleManagerEditor).Assembly.GetName().Name, AssembliesType.Editor);
-            if (editorUnityAsm == null)
-            {
-                Debug.LogWarning("Editor assembly not found.");
-                return;
-            }
-
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                bool isReferenced = false;
-                foreach (UnityEditor.Compilation.Assembly asm in playerUnityAsm.assemblyReferences)
-                {
-                    if (assembly.GetName().Name == asm.name)
-                    {
-                        isReferenced = true;
-                        break;
-                    }
-                }
-
-                if (!isReferenced)
-                {
-                    foreach (UnityEditor.Compilation.Assembly asm in editorUnityAsm.assemblyReferences)
-                    {
-                        if (assembly.GetName().Name == asm.name)
-                        {
-                            isReferenced = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!isReferenced)
+                if (!IsReferenced(assembly))
                 {
                     continue;
                 }
@@ -503,6 +466,63 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static void SetDefineSymbols(List<string> symbols)
         {
             PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), string.Join(";", symbols.ToArray()));
+        }
+
+        private static bool IsReferenced(Assembly assembly)
+        {
+            // C# player referenced assemblies
+            foreach (AssemblyName asmName in typeof(VRModule).Assembly.GetReferencedAssemblies())
+            {
+                if (assembly.GetName().Name == asmName.Name)
+                {
+                    return true;
+                }
+            }
+
+            // C# editor referenced assemblies
+            foreach (AssemblyName asmName in typeof(VRModuleManagerEditor).Assembly.GetReferencedAssemblies())
+            {
+                if (assembly.GetName().Name == asmName.Name)
+                {
+                    return true;
+                }
+            }
+
+            // Unity player referenced assemblies
+            UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(typeof(VRModule).Assembly.GetName().Name, AssembliesType.Player);
+            if (playerUnityAsm != null)
+            {
+                foreach (UnityEditor.Compilation.Assembly asm in playerUnityAsm.assemblyReferences)
+                {
+                    if (assembly.GetName().Name == asm.name)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Player assembly not found.");
+            }
+
+            // Unity editor referenced assemblies
+            UnityEditor.Compilation.Assembly editorUnityAsm = FindUnityAssembly(typeof(VRModuleManagerEditor).Assembly.GetName().Name, AssembliesType.Editor);
+            if (editorUnityAsm != null)
+            {
+                foreach (UnityEditor.Compilation.Assembly asm in editorUnityAsm.assemblyReferences)
+                {
+                    if (assembly.GetName().Name == asm.name)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Editor assembly not found.");
+            }
+
+            return false;
         }
 
         private static UnityEditor.Compilation.Assembly FindUnityAssembly(string name, AssembliesType type)
