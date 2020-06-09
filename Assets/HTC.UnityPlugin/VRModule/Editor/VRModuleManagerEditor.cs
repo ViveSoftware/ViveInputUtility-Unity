@@ -288,8 +288,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_PLUGIN",
-                reqTypeNames = new string[] { "HTC.UnityPlugin.Vive.ViveInput" },
-                reqFileNames = new string[] { "ViveInput.cs", "VRModuleManagerEditor.cs" },
+                validateFunc = (req) => true,
             });
 
             s_symbolReqList.Add(new SymbolRequirement()
