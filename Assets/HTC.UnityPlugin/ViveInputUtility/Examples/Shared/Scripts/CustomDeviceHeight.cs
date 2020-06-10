@@ -38,12 +38,7 @@ namespace HTC.UnityPlugin.Vive
             VRModule.onActiveModuleChanged += OnActiveModuleChanged;
             VRModule.Initialize();
 
-#if UNITY_2017_2_OR_NEWER
-            if (XRDevice.model.Equals("Oculus Go"))
-            {
-                UpdateHeight();
-            }
-#endif
+            UpdateHeight();
         }
 
         private void OnDisable()
@@ -73,7 +68,7 @@ namespace HTC.UnityPlugin.Vive
                     }
                     break;
 #endif
-#if UNITY_2017_2_OR_NEWER
+#if UNITY_2019_2_OR_NEWER && !UNITY_2019_3_OR_NEWER
                 case VRModuleActiveEnum.UnityNativeVR:
                     if (XRDevice.model.Equals("Oculus Go"))
                     {

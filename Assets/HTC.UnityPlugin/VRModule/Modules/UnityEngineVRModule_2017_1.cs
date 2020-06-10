@@ -80,12 +80,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
                     break;
                 case VRModuleTrackingSpaceType.RoomScale:
+#if UNITY_2019_2_OR_NEWER && !UNITY_2019_3_OR_NEWER
                     var prev_trackingOrigin = XRDevice.trackingOriginMode;
                     XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale);
                     if (prev_trackingOrigin == XRDevice.trackingOriginMode)
                     {
                         XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
                     }
+#else
+                    XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale);
+#endif
                     break;
             }
         }
