@@ -1,59 +1,88 @@
 fileFormatVersion: 2
-guid: 9cdaa17bb8c29f0428ab58756976b4d5
+guid: 862629c097036324e8afeb4ce76e7a36
+timeCreated: 1537349103
+licenseType: Pro
 ModelImporter:
-  serializedVersion: 19300
-  internalIDToNameTable: []
-  externalObjects: {}
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: __CM__AppButton
+    100002: __CM__BeamOrigin
+    100004: __CM__Body
+    100006: __CM__Grip
+    100008: __CM__HomeButton
+    100010: __CM__TouchPad
+    100012: __CM__TouchPad_Touch
+    100014: __CM__TriggerKey
+    100016: //RootNode
+    400000: __CM__AppButton
+    400002: __CM__BeamOrigin
+    400004: __CM__Body
+    400006: __CM__Grip
+    400008: __CM__HomeButton
+    400010: __CM__TouchPad
+    400012: __CM__TouchPad_Touch
+    400014: __CM__TriggerKey
+    400016: //RootNode
+    2100000: Default
+    2100002: Touch
+    2300000: __CM__AppButton
+    2300002: __CM__BeamOrigin
+    2300004: __CM__Body
+    2300006: __CM__Grip
+    2300008: __CM__HomeButton
+    2300010: __CM__TouchPad
+    2300012: __CM__TouchPad_Touch
+    2300014: __CM__TriggerKey
+    3300000: __CM__AppButton
+    3300002: __CM__BeamOrigin
+    3300004: __CM__Body
+    3300006: __CM__Grip
+    3300008: __CM__HomeButton
+    3300010: __CM__TouchPad
+    3300012: __CM__TouchPad_Touch
+    3300014: __CM__TriggerKey
+    4300000: __CM__BeamOrigin
+    4300002: __CM__Grip
+    4300004: __CM__TriggerKey
+    4300006: __CM__TouchPad
+    4300008: __CM__TouchPad_Touch
+    4300010: __CM__AppButton
+    4300012: __CM__HomeButton
+    4300014: __CM__Body
   materials:
-    materialImportMode: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
-    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
-    resampleCurves: 1
+    resampleRotations: 1
     optimizeGameObjects: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
-    importAnimatedCustomProperties: 0
-    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
-    extraUserProperties: []
     clipAnimations: []
-    isReadable: 0
+    isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
     meshCompression: 0
     addColliders: 0
-    useSRGBMaterialColor: 1
-    sortHierarchyByName: 1
-    importVisibility: 1
     importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
+    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
-    preserveHierarchy: 0
-    skinWeightsMode: 0
-    maxBonesPerVertex: 4
-    minBoneWeight: 0.001
-    meshOptimizationFlags: -1
-    indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
@@ -63,14 +92,9 @@ ModelImporter:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
-    normalCalculationMode: 4
-    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
-    blendShapeNormalImportMode: 1
-    normalSmoothingSource: 0
-  referencedClips: []
-  importAnimation: 1
+  importAnimation: 0
+  copyAvatar: 0
   humanDescription:
-    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -80,16 +104,11 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
-    hasExtraRoot: 0
-    skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  autoGenerateAvatarMappingIfUnspecified: 1
-  animationType: 2
+  animationType: 0
   humanoidOversampling: 1
-  avatarSetup: 0
   additionalBone: 0
   userData: 
   assetBundleName: 

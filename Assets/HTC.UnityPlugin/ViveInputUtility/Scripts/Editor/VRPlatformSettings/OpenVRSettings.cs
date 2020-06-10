@@ -8,7 +8,9 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
+#if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
+#endif
 #if VIU_STEAMVR_2_0_0_OR_NEWER
 using Valve.VR;
 using HTC.UnityPlugin.Vive.SteamVRExtension;

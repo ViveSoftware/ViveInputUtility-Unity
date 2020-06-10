@@ -7,7 +7,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
+#if UNITY_2017_3_OR_NEWER
 using UnityEditor.Compilation;
+#endif
 using UnityEngine;
 using Assembly = System.Reflection.Assembly;
 
@@ -487,6 +489,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+#if UNITY_2017_3_OR_NEWER
             // Unity player referenced assemblies
             UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(typeof(VRModule).Assembly.GetName().Name, AssembliesType.Player);
             if (playerUnityAsm != null)
@@ -520,10 +523,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 Debug.LogWarning("Editor assembly not found.");
             }
+#endif
 
             return false;
         }
 
+#if UNITY_2017_3_OR_NEWER
         private static UnityEditor.Compilation.Assembly FindUnityAssembly(string name, AssembliesType type)
         {
             UnityEditor.Compilation.Assembly foundAssembly = null;
@@ -539,5 +544,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             return foundAssembly;
         }
+#endif
     }
 }

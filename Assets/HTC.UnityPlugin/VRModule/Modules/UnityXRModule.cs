@@ -4,7 +4,9 @@ using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
+#if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
+#endif
 
 #if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
