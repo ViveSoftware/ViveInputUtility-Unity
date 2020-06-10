@@ -567,7 +567,9 @@ namespace HTC.UnityPlugin.Vive
             PlayerSettings.SetGraphicsAPIs(buildTarget, types);
         }
 
+#pragma warning disable 0618
         [PreferenceItem("VIU Settings")]
+#pragma warning restore 0618
         private static void OnVIUPreferenceGUI()
         {
 #if UNITY_2017_1_OR_NEWER

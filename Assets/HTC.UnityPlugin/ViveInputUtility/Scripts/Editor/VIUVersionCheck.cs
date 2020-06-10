@@ -222,8 +222,12 @@ namespace HTC.UnityPlugin.Vive
 
                 if (UrlSuccess(webReq))
                 {
-                    latestRepoInfo = JsonUtility.FromJson<RepoInfo>(GetWebText(webReq));
-                    VersionCheckLog("Fetched");
+                    var json = GetWebText(webReq);
+                    if (!string.IsNullOrEmpty(json))
+                    {
+                        latestRepoInfo = JsonUtility.FromJson<RepoInfo>(json);
+                        VersionCheckLog("Fetched");
+                    }
                 }
 
                 // parse latestVersion and ignoreThisVersionKey
@@ -338,9 +342,9 @@ namespace HTC.UnityPlugin.Vive
         private static string GetWebText(UnityWebRequest wr)
         {
 #if UNITY_5_4_OR_NEWER
-            return wr.downloadHandler.text;
+            return wr != null && wr.downloadHandler != null ? wr.downloadHandler.text : string.Empty;
 #else
-            return wr.text;
+            return wr != null ? wr.text : string.Empty;
 #endif
         }
 
@@ -359,6 +363,8 @@ namespace HTC.UnityPlugin.Vive
         {
             try
             {
+                if (wr == null) { return false; }
+
                 if (!string.IsNullOrEmpty(wr.error))
                 {
                     // API rate limit exceeded, see https://developer.github.com/v3/#rate-limiting

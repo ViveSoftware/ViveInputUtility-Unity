@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+#pragma warning disable 0618
 #if UNITY_2017_1_OR_NEWER
 
 using HTC.UnityPlugin.Utility;
