@@ -26,7 +26,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 493476}
   m_Layer: 0
-  m_Name: VIUModelOculusQuestControllerRight
+  m_Name: VIUModelOculusQuestOrRiftSControllerRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
