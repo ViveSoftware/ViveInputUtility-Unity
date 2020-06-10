@@ -9,7 +9,6 @@ namespace HTC.UnityPlugin.Vive
 {
     public class OculusRecommendedSettings : VIUVersionCheck.RecommendedSettingCollection
     {
-        private const string AVATAR_CLASS_FULL_NAME = "OvrAvatar, Oculus.Avatar";
         private const string ASMDEFS_PATH = "Packages/" + VIUSettings.VIU_PACKAGE_NAME + "/ViveInputUtility/.asmdefs/Oculus/";
         private const string OCULUS_SDK_PATH = "Assets/Oculus/";
         private const string AVATAR_ASMDEF_FILE_NAME = "Oculus.Avatar.asmdef";
