@@ -389,7 +389,7 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
 #if UNITY_2020_1_OR_NEWER
-                    return canSupport && (VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, requirdPlatform));
+                    return canSupport && ((VIUSettings.activateSteamVRModule || VIUSettings.activateUnityXRModule) && XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, requirdPlatform));
 #elif UNITY_2019_3_OR_NEWER
                     return canSupport && (((VIUSettings.activateSteamVRModule || VIUSettings.activateUnityNativeVRModule) && OpenVRSDK.enabled) || VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, requirdPlatform));
 #elif UNITY_5_5_OR_NEWER
