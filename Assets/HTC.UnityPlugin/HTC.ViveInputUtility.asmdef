@@ -5,7 +5,8 @@
         "SteamVR",
         "Oculus.Avatar",
         "Oculus.VR",
-        "Oculus.Platform"
+        "Oculus.Platform",
+        "UnityEngine.SpatialTracking"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

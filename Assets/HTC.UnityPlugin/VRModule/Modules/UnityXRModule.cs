@@ -10,6 +10,7 @@ using UnityEngine.XR;
 
 #if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
+using UnityEngine.SpatialTracking;
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -34,10 +35,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public override void CreateCamera(VRCameraHook hook)
             {
-                if (hook.GetComponent<VivePoseTracker>() == null)
+                if (hook.GetComponent<TrackedPoseDriver>() == null)
                 {
-                    VivePoseTracker poseTracker = hook.gameObject.AddComponent<VivePoseTracker>();
-                    poseTracker.viveRole.SetEx(DeviceRole.Hmd);
+                    hook.gameObject.AddComponent<TrackedPoseDriver>();
                 }
             }
         }

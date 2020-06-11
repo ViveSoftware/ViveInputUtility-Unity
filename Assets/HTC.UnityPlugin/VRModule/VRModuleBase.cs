@@ -35,8 +35,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", RegexOptions.IgnoreCase);
             private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_viveFocusRgx = new Regex("^.*(wvr).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_leftRgx = new Regex("^.*(left|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_rightRgx = new Regex("^.*(right|(mr|windowsmr)).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", RegexOptions.IgnoreCase);
 
             public bool isActivated { get; private set; }
 
