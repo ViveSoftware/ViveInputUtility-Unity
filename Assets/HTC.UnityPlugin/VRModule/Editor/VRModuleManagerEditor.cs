@@ -489,7 +489,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-#if UNITY_2017_3_OR_NEWER
+#if UNITY_2018_1_OR_NEWER
             // Unity player referenced assemblies
             UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(typeof(VRModule).Assembly.GetName().Name, AssembliesType.Player);
             if (playerUnityAsm != null)
@@ -528,7 +528,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return false;
         }
 
-#if UNITY_2017_3_OR_NEWER
+#if UNITY_2018_1_OR_NEWER
         private static UnityEditor.Compilation.Assembly FindUnityAssembly(string name, AssembliesType type)
         {
             UnityEditor.Compilation.Assembly foundAssembly = null;
