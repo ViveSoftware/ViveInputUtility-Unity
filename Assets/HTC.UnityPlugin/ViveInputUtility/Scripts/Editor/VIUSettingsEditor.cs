@@ -425,6 +425,16 @@ namespace HTC.UnityPlugin.Vive
                 m_addRequest = Client.Add(identifier);
                 s_fallbackIdentifier = fallbackIdentifier;
             }
+
+            public static PackageCollection GetPackageList()
+            {
+                if (m_listRequest == null || m_listRequest.Result == null)
+                {
+                    return null;
+                }
+
+                return m_listRequest.Result;
+            }
 #else
             public static bool isPreparingList { get { return false; } }
             public static bool isAddingToList { get { return false; } }

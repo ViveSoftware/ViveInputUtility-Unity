@@ -5,18 +5,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using HTC.UnityPlugin.Vive;
 using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEditor.PackageManager;
+using UnityEditorInternal.VR;
 #if UNITY_2017_3_OR_NEWER
 using UnityEditor.Compilation;
 #endif
 using UnityEngine;
 using Assembly = System.Reflection.Assembly;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
     // This script manage define symbols used by VIU
-    public class VRModuleManagerEditor : UnityEditor.AssetModificationProcessor
+    public class VRModuleManagerEditor : AssetPostprocessor
 #if UNITY_2017_1_OR_NEWER
         , UnityEditor.Build.IActiveBuildTargetChanged
 #endif
@@ -175,8 +179,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     foreach (var requiredFile in reqFileNames)
                     {
-                        var files = Directory.GetFiles(Application.dataPath, requiredFile, SearchOption.AllDirectories);
-                        if (files == null || files.Length == 0) { return false; }
+                        if (!DoesFileExist(requiredFile))
+                        {
+                            return false;
+                        }
                     }
                 }
 
@@ -337,6 +343,42 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        // From UnityEditor.AssetPostprocessor
+        public static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        {
+            foreach (string assetPath in deletedAssets)
+            {
+                string deletedFileName = Path.GetFileName(assetPath);
+                bool isFound = s_symbolReqList.Exists((req) =>
+                {
+                    if (req == null || req.reqFileNames == null)
+                    {
+                        return false;
+                    }
+
+                    foreach (string fileName in req.reqFileNames)
+                    {
+                        if (fileName == deletedFileName)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+
+                if (isFound)
+                {
+                    if (!s_delayCallRemoveRegistered)
+                    {
+                        s_delayCallRemoveRegistered = true;
+                        EditorApplication.delayCall += RemoveAllVIUSymbols;
+                    }
+                    break;
+                }
+            }
+        }
+
         private static bool s_isUpdatingScriptingDefineSymbols = false;
         private static void DoUpdateScriptingDefineSymbols()
         {
@@ -405,48 +447,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static bool s_delayCallRemoveRegistered;
 
-        // This is called when ever an asset deleted
-        // If the deleted asset include sdk files, then remove all symbols defined by VIU
-        public static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions option)
-        {
-            var fullPath = Application.dataPath + "/../" + assetPath;
-            var isDir = Directory.Exists(fullPath); // otherwise, removed asset is file
-            var reqFileFound = false;
-
-            foreach (var symbolReq in s_symbolReqList)
-            {
-                if (symbolReq == null || symbolReq.reqFileNames == null) { continue; }
-
-                foreach (var reqFileName in symbolReq.reqFileNames)
-                {
-                    if (isDir)
-                    {
-                        var files = Directory.GetFiles(fullPath, reqFileName, SearchOption.AllDirectories);
-                        reqFileFound = files != null && files.Length > 0;
-                    }
-                    else
-                    {
-                        reqFileFound = Path.GetFileName(fullPath) == reqFileName;
-                    }
-
-                    if (reqFileFound)
-                    {
-                        if (!s_delayCallRemoveRegistered)
-                        {
-                            s_delayCallRemoveRegistered = true;
-                            EditorApplication.delayCall += RemoveAllVIUSymbols;
-                        }
-
-                        return AssetDeleteResult.DidNotDelete;
-                    }
-                }
-            }
-
-            return AssetDeleteResult.DidNotDelete;
-        }
-
         private static void RemoveAllVIUSymbols()
         {
+            s_delayCallRemoveRegistered = false;
             EditorApplication.delayCall -= RemoveAllVIUSymbols;
 
             var defineSymbols = GetDefineSymbols();
@@ -545,5 +548,36 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return foundAssembly;
         }
 #endif
+
+        private static bool DoesFileExist(string fileName)
+        {
+            string[] fileNamesInAsset = Directory.GetFiles(Application.dataPath, fileName, SearchOption.AllDirectories);
+            if (fileNamesInAsset != null && fileNamesInAsset.Length > 0)
+            {
+                return true;
+            }
+
+            PackageCollection packages = VIUSettingsEditor.PackageManagerHelper.GetPackageList();
+            foreach (PackageInfo package in packages)
+            {
+                if (package == null)
+                {
+                    continue;
+                }
+
+                if (package.source == PackageSource.BuiltIn)
+                {
+                    continue;
+                }
+
+                string[] fileNamesInPackage = Directory.GetFiles(package.resolvedPath, fileName, SearchOption.AllDirectories);
+                if (fileNamesInPackage != null && fileNamesInPackage.Length > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
