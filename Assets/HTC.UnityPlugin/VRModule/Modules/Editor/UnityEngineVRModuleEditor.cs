@@ -110,13 +110,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Add(new VRModuleManagerEditor.SymbolRequirement()
             {
                 symbol = "VIU_XR_GENERAL_SETTINGS",
-                reqTypeNames = new string[] {"UnityEngine.XR.Management.XRGeneralSettings"},
+                reqTypeNames = new string[] { "UnityEngine.XR.Management.XRGeneralSettings" },
+                reqFileNames = new string[] { "XRGeneralSettings.cs" },
             });
 
             Add(new VRModuleManagerEditor.SymbolRequirement()
             {
                 symbol = "VIU_XR_PACKAGE_METADATA_STORE",
-                reqTypeNames = new string[] {"UnityEditor.XR.Management.Metadata.XRPackageMetadataStore"},
+                reqTypeNames = new string[] { "UnityEditor.XR.Management.Metadata.XRPackageMetadataStore" },
+                reqFileNames = new string[] { "XRPackageMetadata.cs" },
             });
         }
     }
