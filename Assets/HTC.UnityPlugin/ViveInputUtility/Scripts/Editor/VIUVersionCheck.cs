@@ -33,7 +33,7 @@ namespace HTC.UnityPlugin.Vive
             void UpdateCurrentValue();
             bool IsIgnored();
             bool IsUsingRecommendedValue();
-            void DoDrawRecommend();
+            bool DoDrawRecommend(); // return true if setting accepted
             void AcceptRecommendValue();
             void DoIgnore();
             void DeleteIgnore();
@@ -69,7 +69,7 @@ namespace HTC.UnityPlugin.Vive
 
             public void UpdateCurrentValue() { currentValue = currentValueFunc(); }
 
-            public void DoDrawRecommend()
+            public bool DoDrawRecommend()
             {
                 GUILayout.Label(new GUIContent(string.Format(fmtTitle, settingTitle, currentValue), toolTip));
 
@@ -98,6 +98,8 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 GUILayout.EndHorizontal();
+
+                return recommendBtnClicked;
             }
 
             public void AcceptRecommendValue()
@@ -266,13 +268,14 @@ namespace HTC.UnityPlugin.Vive
             EditorApplication.update -= CheckVersionAndSettings;
         }
 
-        public static void UpdateIgnoredNotifiedSettingsCount(bool drawNotifiedPrompt)
+        public static bool UpdateIgnoredNotifiedSettingsCount(bool drawNotifiedPrompt)
         {
             InitializeSettins();
 
             ignoredSettingsCount = 0;
             shouldNotifiedSettingsCount = 0;
             notifiedSettingsCount = 0;
+            var hasSettingsAccepted = false;
 
             foreach (var setting in s_settings)
             {
@@ -299,11 +302,13 @@ namespace HTC.UnityPlugin.Vive
                             settingScrollPosition = GUILayout.BeginScrollView(settingScrollPosition, GUILayout.ExpandHeight(true));
                         }
 
-                        setting.DoDrawRecommend();
+                        hasSettingsAccepted |= setting.DoDrawRecommend();
                     }
 
                 }
             }
+
+            return hasSettingsAccepted;
         }
 
         // Open recommended setting window (with possible new version prompt)
@@ -466,7 +471,7 @@ namespace HTC.UnityPlugin.Vive
                 GUILayout.EndHorizontal();
             }
 
-            UpdateIgnoredNotifiedSettingsCount(true);
+            var hasSettingsAccepted = UpdateIgnoredNotifiedSettingsCount(true);
 
             if (notifiedSettingsCount > 0)
             {
@@ -492,6 +497,8 @@ namespace HTC.UnityPlugin.Vive
 
                             UpdateIgnoredNotifiedSettingsCount(false);
                         }
+
+                        hasSettingsAccepted = true;
                     }
 
                     if (GUILayout.Button("Ignore All(" + notifiedSettingsCount + ")"))
@@ -530,6 +537,11 @@ namespace HTC.UnityPlugin.Vive
             if (GUILayout.Button("Close"))
             {
                 Close();
+            }
+
+            if (hasSettingsAccepted)
+            {
+                VRModuleManagement.VRModuleManagerEditor.UpdateScriptingDefineSymbols();
             }
         }
 
