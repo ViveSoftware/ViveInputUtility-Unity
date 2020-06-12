@@ -440,7 +440,7 @@ namespace HTC.UnityPlugin.Vive
             public static bool isAddingToList { get { return false; } }
             public static void PreparePackageList() { }
             public static void ResetPackageList() { }
-            public static bool IsPackageInList(string name) { return true; }
+            public static bool IsPackageInList(string name) { return false; }
             public static void AddToPackageList(string identifier, string fallbackIdentifier = null) { }
 #endif
         }
