@@ -138,6 +138,7 @@ namespace HTC.UnityPlugin.Vive
         private static bool toggleSkipThisVersion = false;
         private static VIUVersionCheck windowInstance;
         private static List<IPropSetting> s_settings;
+        private static bool editorUpdateRegistered;
         private Texture2D viuLogo;
 
         /// <summary>
@@ -157,7 +158,24 @@ namespace HTC.UnityPlugin.Vive
 
         static VIUVersionCheck()
         {
+            editorUpdateRegistered = true;
             EditorApplication.update += CheckVersionAndSettings;
+
+#if UNITY_2017_2_OR_NEWER
+            EditorApplication.playModeStateChanged += (mode) =>
+            {
+                if (mode == PlayModeStateChange.EnteredEditMode && !editorUpdateRegistered)
+                {
+#else
+            EditorApplication.playmodeStateChanged += () =>
+            {
+                if (!EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode && !editorUpdateRegistered)
+                {
+#endif
+                    editorUpdateRegistered = true;
+                    EditorApplication.update += CheckVersionAndSettings;
+                }
+            };
         }
 
         public static void AddRecommendedSetting<T>(RecommendedSetting<T> setting)
@@ -194,6 +212,7 @@ namespace HTC.UnityPlugin.Vive
             if (Application.isPlaying)
             {
                 EditorApplication.update -= CheckVersionAndSettings;
+                editorUpdateRegistered = false;
                 return;
             }
 
@@ -266,6 +285,7 @@ namespace HTC.UnityPlugin.Vive
             }
 
             EditorApplication.update -= CheckVersionAndSettings;
+            editorUpdateRegistered = false;
         }
 
         public static bool UpdateIgnoredNotifiedSettingsCount(bool drawNotifiedPrompt)
