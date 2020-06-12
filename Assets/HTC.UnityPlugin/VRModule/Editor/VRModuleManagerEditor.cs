@@ -301,6 +301,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             s_symbolReqList.Add(new SymbolRequirement()
             {
+                symbol = "VIU_PACKAGE",
+                validateFunc = (req) => VIUSettingsEditor.PackageManagerHelper.IsPackageInList(VIUSettings.VIU_PACKAGE_NAME),
+            });
+
+            s_symbolReqList.Add(new SymbolRequirement()
+            {
                 symbol = "VIU_SIUMULATOR_SUPPORT",
                 validateFunc = (req) => Vive.VIUSettingsEditor.supportSimulator,
             });
