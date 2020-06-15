@@ -26,7 +26,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class UnityXRPluginManagementVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)DefaultModuleOrder.UnityXR; } }
+        public override int moduleOrder { get { return (int)DefaultModuleOrder.UnityXR; } }
+
+        public override int moduleIndex { get { return (int)VRModuleSelectEnum.UnityXR; } }
 
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
         private class CameraCreator : VRCameraHook.CameraCreator
@@ -79,6 +81,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_moduleInstance = this;
             m_currentInputSubsystemType = DetectCurrentInputSubsystemType();
             EnsureDeviceStateLength(DEVICE_STATE_LENGTH);
+            Debug.Log("Activated XRLoader Name: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
         }
 
         public override void OnDeactivated()

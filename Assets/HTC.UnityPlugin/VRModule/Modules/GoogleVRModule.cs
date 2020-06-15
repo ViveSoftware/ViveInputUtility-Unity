@@ -36,7 +36,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class GoogleVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)DefaultModuleOrder.DayDream; } }
+        public override int moduleOrder { get { return (int)DefaultModuleOrder.DayDream; } }
+
+        public override int moduleIndex { get { return (int)VRModuleSelectEnum.DayDream; } }
 
 #if VIU_GOOGLEVR && UNITY_5_6_OR_NEWER
         private const uint HEAD_INDEX = 0u;

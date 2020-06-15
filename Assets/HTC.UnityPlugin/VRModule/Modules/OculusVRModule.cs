@@ -49,7 +49,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class OculusVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)DefaultModuleOrder.OculusVR; } }
+        public override int moduleOrder { get { return (int)DefaultModuleOrder.OculusVR; } }
+
+        public override int moduleIndex { get { return (int)VRModuleSelectEnum.OculusVR; } }
 
         public const string OCULUS_XR_LOADER_NAME = "Oculus Loader";
         public const string OCULUS_XR_LOADER_CLASS_NAME = "OculusLoader";

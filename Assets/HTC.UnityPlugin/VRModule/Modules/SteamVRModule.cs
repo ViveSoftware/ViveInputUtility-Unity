@@ -34,7 +34,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed partial class SteamVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)DefaultModuleOrder.SteamVR; } }
+        public override int moduleOrder { get { return (int)DefaultModuleOrder.SteamVR; } }
+
+        public override int moduleIndex { get { return (int)VRModuleSelectEnum.SteamVR; } }
 
 #if VIU_STEAMVR
         private class CameraCreator : VRCameraHook.CameraCreator

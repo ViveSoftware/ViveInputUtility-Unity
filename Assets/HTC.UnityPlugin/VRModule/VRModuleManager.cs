@@ -45,6 +45,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private bool m_isDestoryed = false;
 
         private ModuleBase[] m_modules;
+        private ModuleBase[] m_modulesOrdered;
         private VRModuleActiveEnum m_activatedModule = VRModuleActiveEnum.Uninitialized;
         private ModuleBase m_activatedModuleBase;
         private DeviceState[] m_prevStates;
@@ -82,11 +83,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             try
             {
                 var modules = new List<ModuleBase>();
+                var modulesOrdered = new List<ModuleBase>();
                 foreach (var type in Assembly.GetAssembly(typeof(ModuleBase)).GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(ModuleBase))))
                 {
                     var inst = type == typeof(SimulatorVRModule) ? s_simulator : (ModuleBase)Activator.CreateInstance(type);
                     var index = inst.moduleIndex;
-                    
+
                     if (index < 0)
                     {
                         Debug.LogWarning("Invalid module index, module will not be activated! module name=" + type.Name + " index=" + index);
@@ -100,12 +102,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         while (index >= modules.Count) { modules.Add(null); }
                         modules[index] = inst;
                     }
+
+                    var order = inst.moduleOrder;
+
+                    if (order < 0)
+                    {
+                        Debug.LogWarning("Invalid module order, module will not be activated! module name=" + type.Name + " order=" + order);
+                    }
+                    else if (order < modulesOrdered.Count && modulesOrdered[order] != null)
+                    {
+                        Debug.LogWarning("Duplicated module order, module will not be activated! module name=" + type.Name + " order=" + order);
+                    }
+                    else
+                    {
+                        while (order >= modulesOrdered.Count) { modulesOrdered.Add(null); }
+                        modulesOrdered[order] = inst;
+                    }
                 }
                 m_modules = modules.ToArray();
+                m_modulesOrdered = modulesOrdered.ToArray();
             }
             catch (Exception e)
             {
                 m_modules = new ModuleBase[] { new DefaultModule() };
+                m_modulesOrdered = new ModuleBase[] { new DefaultModule() };
                 Debug.LogError(e);
             }
         }
@@ -235,11 +255,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             if (m_selectModule == VRModuleSelectEnum.Auto)
             {
-                for (int i = m_modules.Length - 1; i >= 0; --i)
+                for (int i = m_modulesOrdered.Length - 1; i >= 0; --i)
                 {
-                    if (m_modules[i] != null && m_modules[i].ShouldActiveModule())
+                    if (m_modulesOrdered[i] != null && m_modulesOrdered[i].ShouldActiveModule())
                     {
-                        return (VRModuleActiveEnum)i;
+                        return (VRModuleActiveEnum)m_modulesOrdered[i].moduleIndex;
                     }
                 }
             }

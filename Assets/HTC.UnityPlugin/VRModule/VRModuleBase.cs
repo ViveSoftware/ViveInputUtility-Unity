@@ -40,6 +40,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public bool isActivated { get; private set; }
 
+            public virtual int moduleOrder { get { return moduleIndex; } }
+
             public abstract int moduleIndex { get; }
 
             public virtual bool ShouldActiveModule() { return false; }

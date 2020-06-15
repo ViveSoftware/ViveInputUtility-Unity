@@ -53,7 +53,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public event Action onDeactivated;
         public event UpdateDeviceStateHandler onUpdateDeviceState;
 
-        public override int moduleIndex { get { return (int)DefaultModuleOrder.Simulator; } }
+        public override int moduleOrder { get { return (int)DefaultModuleOrder.Simulator; } }
+
+        public override int moduleIndex { get { return (int)VRModuleSelectEnum.Simulator; } }
 
         public uint selectedDeviceIndex { get; private set; }
 
