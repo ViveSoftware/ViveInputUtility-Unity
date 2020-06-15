@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
@@ -64,7 +64,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private XRInputSubsystemType m_currentInputSubsystemType = XRInputSubsystemType.Unknown;
         private uint m_rightHandedDeviceIndex = INVALID_DEVICE_INDEX;
         private uint m_leftHandedDeviceIndex = INVALID_DEVICE_INDEX;
-        private Dictionary<string, uint> m_deviceSerialToIndex = new Dictionary<string, uint>();
+        private Dictionary<string, uint> m_deviceUidToIndex = new Dictionary<string, uint>();
         private List<InputDevice> m_indexToDevices = new List<InputDevice>();
         private List<InputDevice> m_connectedDevices = new List<InputDevice>();
         private List<HapticVibrationState> m_activeHapticVibrationStates = new List<HapticVibrationState>();
@@ -84,7 +84,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override void OnDeactivated()
         {
             s_moduleInstance = null;
-            m_deviceSerialToIndex.Clear();
+            m_deviceUidToIndex.Clear();
             m_indexToDevices.Clear();
             m_connectedDevices.Clear();
         }
@@ -164,7 +164,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!prevState.isConnected)
                 {
                     currState.deviceClass = GetDeviceClass(device.characteristics);
-                    currState.serialNumber = GetDeviceSerial(device);
+                    currState.serialNumber = GetDeviceUID(device);
                     currState.modelNumber = device.name;
                     currState.renderModelName = device.name;
 
@@ -319,14 +319,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             InputDevice leftHandedDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
             if (leftHandedDevice.isValid)
             {
-                leftHandedDeviceIndex = GetDeviceIndex(leftHandedDevice.serialNumber);
+                leftHandedDeviceIndex = GetDeviceIndex(GetDeviceUID(leftHandedDevice));
             }
 
             uint rightHandedDeviceIndex = INVALID_DEVICE_INDEX;
             InputDevice rightHandedDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
             if (rightHandedDevice.isValid)
             {
-                rightHandedDeviceIndex = GetDeviceIndex(rightHandedDevice.serialNumber);
+                rightHandedDeviceIndex = GetDeviceIndex(GetDeviceUID(rightHandedDevice));
             }
 
             if (m_rightHandedDeviceIndex != rightHandedDeviceIndex || m_leftHandedDeviceIndex != leftHandedDeviceIndex)
@@ -338,9 +338,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_rightHandedDeviceIndex = rightHandedDeviceIndex;
         }
 
-        private uint GetDeviceIndex(string serial)
+        private uint GetDeviceIndex(string uid)
         {
-            if (m_deviceSerialToIndex.TryGetValue(serial, out uint index))
+            if (m_deviceUidToIndex.TryGetValue(uid, out uint index))
             {
                 return index;
             }
@@ -362,14 +362,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private uint GetOrCreateDeviceIndex(InputDevice device)
         {
-            string serial = GetDeviceSerial(device);
-            if (m_deviceSerialToIndex.TryGetValue(serial, out uint index))
+            string uid = GetDeviceUID(device);
+            if (m_deviceUidToIndex.TryGetValue(uid, out uint index))
             {
                 return index;
             }
 
-            uint newIndex = (uint)m_deviceSerialToIndex.Count;
-            m_deviceSerialToIndex.Add(serial, newIndex);
+            uint newIndex = (uint)m_deviceUidToIndex.Count;
+            m_deviceUidToIndex.Add(uid, newIndex);
             m_indexToDevices.Add(device);
 
             return newIndex;
@@ -413,7 +413,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private string GetDeviceSerial(InputDevice device)
+        private string GetDeviceUID(InputDevice device)
         {
             if (!string.IsNullOrEmpty(device.serialNumber))
             {
