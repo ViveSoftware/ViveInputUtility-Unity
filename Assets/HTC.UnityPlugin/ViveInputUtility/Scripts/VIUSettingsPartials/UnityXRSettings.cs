@@ -1,6 +1,5 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
-using UnityEditor;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
