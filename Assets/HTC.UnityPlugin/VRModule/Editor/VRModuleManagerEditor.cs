@@ -15,7 +15,6 @@ using UnityEditor.Compilation;
 #endif
 using UnityEngine;
 using Assembly = System.Reflection.Assembly;
-using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
@@ -395,12 +394,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-#if UNITY_2018_1_OR_NEWER
                 if (!IsReferenced(assembly))
                 {
                     continue;
                 }
-#endif
+
                 try
                 {
                     foreach (var symbolReq in s_symbolReqList)
@@ -479,7 +477,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), string.Join(";", symbols.ToArray()));
         }
 
-#if UNITY_2018_1_OR_NEWER
         private static bool IsReferenced(Assembly assembly)
         {
             // C# player referenced assemblies
@@ -500,6 +497,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+#if UNITY_2018_1_OR_NEWER
             // Unity player referenced assemblies
             UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(typeof(VRModule).Assembly.GetName().Name, AssembliesType.Player);
             if (playerUnityAsm != null)
@@ -533,10 +531,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 Debug.LogWarning("Editor assembly not found.");
             }
+#elif UNITY_2017_3_OR_NEWER
+            UnityEditor.Compilation.Assembly[] assemblies = CompilationPipeline.GetAssemblies();
+            foreach (UnityEditor.Compilation.Assembly asm in assemblies)
+            {
+                if (assembly.GetName().Name == asm.name)
+                {
+                    return true;
+                }
+            }
+#endif
 
             return false;
         }
 
+#if UNITY_2018_1_OR_NEWER
         private static UnityEditor.Compilation.Assembly FindUnityAssembly(string name, AssembliesType type)
         {
             UnityEditor.Compilation.Assembly foundAssembly = null;
@@ -553,6 +562,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return foundAssembly;
         }
 #endif
+
         private static bool DoesFileExist(string fileName)
         {
             string[] fileNamesInAsset = Directory.GetFiles(Application.dataPath, fileName, SearchOption.AllDirectories);
@@ -562,7 +572,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 #if UNITY_2018_1_OR_NEWER
             PackageCollection packages = VIUSettingsEditor.PackageManagerHelper.GetPackageList();
-            foreach (PackageInfo package in packages)
+            foreach (UnityEditor.PackageManager.PackageInfo package in packages)
             {
                 if (package == null)
                 {
