@@ -44,10 +44,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public override void CreateCamera(VRCameraHook hook)
             {
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
-                if (hook.GetComponent<VivePoseTracker>() == null)
+                if (hook.GetComponent<TrackedPoseDriver>() == null)
                 {
-                    VivePoseTracker poseTracker = hook.gameObject.AddComponent<VivePoseTracker>();
-                    poseTracker.viveRole.SetEx(DeviceRole.Hmd);
+                    hook.gameObject.AddComponent<TrackedPoseDriver>();
                 }
 #else
                 if (hook.GetComponent<SteamVR_Camera>() == null)
