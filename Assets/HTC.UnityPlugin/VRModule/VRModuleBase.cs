@@ -253,7 +253,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 else
                                 {
                                     deviceState.deviceModel = VRModuleDeviceModel.IndexControllerLeft;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER || (UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS)
                                     deviceState.input2DType = VRModuleInput2DType.Both;
 #endif
                                 }
@@ -267,7 +267,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 else
                                 {
                                     deviceState.deviceModel = VRModuleDeviceModel.IndexControllerRight;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER || (UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS)
                                     deviceState.input2DType = VRModuleInput2DType.Both;
 #endif
                                 }

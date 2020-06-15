@@ -438,7 +438,7 @@ namespace HTC.UnityPlugin.Vive
                         case VRModuleInput2DType.Both:
                             var padValue = Vector2.SqrMagnitude(new Vector2(GetAxis(ControllerAxis.PadX), GetAxis(ControllerAxis.PadY)));
                             var stickValue = Vector2.SqrMagnitude(new Vector2(GetAxis(ControllerAxis.JoystickX), GetAxis(ControllerAxis.JoystickY)));
-                            if(padValue > stickValue)
+                            if (padValue > stickValue)
                             {
                                 xAxis = ControllerAxis.PadX;
                                 yAxis = ControllerAxis.PadY;

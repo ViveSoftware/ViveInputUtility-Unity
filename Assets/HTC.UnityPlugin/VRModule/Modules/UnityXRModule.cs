@@ -79,8 +79,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_moduleInstance = this;
             m_currentInputSubsystemType = DetectCurrentInputSubsystemType();
             EnsureDeviceStateLength(DEVICE_STATE_LENGTH);
-
-            Debug.Log("Detected XRInputSubsystemType: " + m_currentInputSubsystemType);
         }
 
         public override void OnDeactivated()
@@ -144,17 +142,27 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void BeforeRenderUpdate()
         {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+            uint deviceIndex;
+
             FlushDeviceState();
+
+            // mark all devices as disconnected
+            deviceIndex = 0u;
+            while (TryGetValidDeviceState(deviceIndex++, out prevState, out currState))
+            {
+                currState.isConnected = false;
+            }
 
             InputDevices.GetDevices(m_connectedDevices);
             foreach (InputDevice device in m_connectedDevices)
             {
-                uint deviceIndex = GetOrCreateDeviceIndex(device);
-                EnsureValidDeviceState(deviceIndex, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState);
+                deviceIndex = GetOrCreateDeviceIndex(device);
+                EnsureValidDeviceState(deviceIndex, out prevState, out currState);
 
                 if (!prevState.isConnected)
                 {
-                    currState.isConnected = true;
                     currState.deviceClass = GetDeviceClass(device.characteristics);
                     currState.serialNumber = GetDeviceSerial(device);
                     currState.modelNumber = device.name;
@@ -162,11 +170,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     SetupKnownDeviceModel(currState);
 
-                    Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} ({5})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.characteristics);
+                    Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.name, device.characteristics);
                 }
 
                 device.TryGetFeatureValue(CommonUsages.isTracked, out bool isTracked);
                 currState.isPoseValid = device.isValid && isTracked;
+                currState.isConnected = true;
 
                 UpdateTrackingState(currState, device);
                 if (currState.deviceClass == VRModuleDeviceClass.Controller)
@@ -174,7 +183,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     UpdateControllerState(currState, device);
                 }
             }
+
             UpdateHandHeldDeviceIndex();
+
+            deviceIndex = 0u;
+            // reset all devices that is not connected in this frame
+            while (TryGetValidDeviceState(deviceIndex++, out prevState, out currState))
+            {
+                if (!currState.isConnected) { currState.Reset(); }
+            }
 
             ProcessConnectedDeviceChanged();
             ProcessDevicePoseChanged();
@@ -342,7 +359,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             return false;
         }
-        
+
         private uint GetOrCreateDeviceIndex(InputDevice device)
         {
             string serial = GetDeviceSerial(device);
@@ -350,7 +367,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 return index;
             }
-            
+
             uint newIndex = (uint)m_deviceSerialToIndex.Count;
             m_deviceSerialToIndex.Add(serial, newIndex);
             m_indexToDevices.Add(device);
@@ -435,7 +452,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 return XRInputSubsystemType.MagicLeap;
             }
-            
+
             return XRInputSubsystemType.Unknown;
         }
 
@@ -505,7 +522,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 bool thumbrest = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Thumbrest"));
                 float indexTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("IndexTouch"));
                 float thumbTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("ThumbTouch")); // Not in use
-                
+
                 state.SetButtonTouch(VRModuleRawButton.Touchpad, thumbrest);
                 state.SetButtonTouch(VRModuleRawButton.Trigger, indexTouch >= 1.0f);
 
@@ -534,7 +551,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetButtonPress(VRModuleRawButton.Grip, gripButton);
             state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
             state.SetButtonPress(VRModuleRawButton.Axis0, secondary2DAxisClick);
-            
+
             state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
 
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
@@ -562,18 +579,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
             bool secondaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryButton); // B
             bool primary2DAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisClick);
             bool secondary2DAxisClick = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisClick")); // Joystick
-            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
-            bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
+            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton); // trigger >= 0.5
+            bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton); // grip force >= 0.5
             bool primaryTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("PrimaryTouch"));
             bool secondaryTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("SecondaryTouch"));
             bool triggerTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerTouch"));
-            bool gripGrab = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("GripGrab"));
+            bool gripTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("GripTouch"));
+            bool gripGrab = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("GripGrab")); // gripCapacitive >= 0.7
             bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch);
             bool secondary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisTouch")); // Joystick
             float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
-            float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip);
-            float gripCapacitive = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("GripCapacitive")); // Not in use
+            float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip); // grip force
+            float gripCapacitive = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("GripCapacitive")); // touch area on grip
             Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
+            Vector2 secondary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxis);
 
             state.SetButtonPress(VRModuleRawButton.A, primaryButton);
             state.SetButtonPress(VRModuleRawButton.ApplicationMenu, secondaryButton);
@@ -585,14 +604,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetButtonTouch(VRModuleRawButton.A, primaryTouch);
             state.SetButtonTouch(VRModuleRawButton.ApplicationMenu, secondaryTouch);
             state.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
-            state.SetButtonTouch(VRModuleRawButton.Grip, gripGrab);
+            state.SetButtonTouch(VRModuleRawButton.Grip, gripTouch);
             state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
             state.SetButtonTouch(VRModuleRawButton.Axis0, secondary2DAxisTouch);
 
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
             state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.JoystickX, secondary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.JoystickY, secondary2DAxis.y);
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
-            state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
         }
 
         private void UpdateMagicLeapControllerState(IVRModuleDeviceStateRW state, InputDevice device)
@@ -827,15 +847,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 string strUsages = "";
                 foreach (var usage in usages)
                 {
-                    if (strUsages.Length > 0)
-                    {
-                        strUsages += ", ";
-                    }
-
-                    strUsages += usage.name;
+                    strUsages += "[" + usage.type.Name + "] " + usage.name + "\n";
                 }
 
-                Debug.Log(device.name + " feature usages:\n\n" + strUsages + "\n");
+                Debug.Log(device.name + " feature usages:\n\n" + strUsages);
             }
         }
 #endif
