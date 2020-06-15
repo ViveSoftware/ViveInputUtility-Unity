@@ -568,7 +568,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Vector3 sourceMitigationDirection = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<Vector3>("SourceMitigationDirection")); // Not in use
                 Quaternion pointerRotation = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<Quaternion>("PointerRotation")); // Not in use
 
-                state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
+                // conflict with JoystickX
+                //state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
             }
         }
 
@@ -613,6 +614,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetAxisValue(VRModuleRawAxis.JoystickX, secondary2DAxis.x);
             state.SetAxisValue(VRModuleRawAxis.JoystickY, secondary2DAxis.y);
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            // conflict with JoystickX
+            //state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
         }
 
         private void UpdateMagicLeapControllerState(IVRModuleDeviceStateRW state, InputDevice device)
