@@ -107,6 +107,7 @@ namespace HTC.UnityPlugin.Vive
             public static readonly VRSDK OpenVR = new VRSDK("OpenVR", true);
             public static readonly VRSDK Daydream = new VRSDK("daydream");
             public static readonly VRSDK MockHMD = new VRSDK("MockHMD");
+            public static readonly VRSDK WindowsMR = new VRSDK("WindowsMR");
 
             public static bool vrEnabled
             {
@@ -491,6 +492,7 @@ namespace HTC.UnityPlugin.Vive
         public static ISupportedSDK OculusSDK { get { return VRSDKSettings.Oculus; } }
         public static ISupportedSDK DaydreamSDK { get { return VRSDKSettings.Daydream; } }
         public static ISupportedSDK MockHMDSDK { get { return VRSDKSettings.MockHMD; } }
+        public static ISupportedSDK WindowsMRSDK { get { return VRSDKSettings.WindowsMR; } }
         public static void ApplySDKChanges() { VRSDKSettings.ApplyChanges(); }
 
         public static BuildTargetGroup activeBuildTargetGroup { get { return BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget); } }

@@ -31,6 +31,7 @@ namespace HTC.UnityPlugin.Vive
 
     public static partial class VIUSettingsEditor
     {
+        private const string WINDOWSMR_PACKAGE_NAME = "com.unity.xr.windowsmr.metro";
         private const string WINDOWSMR_XR_PACKAGE_NAME = "com.unity.xr.windowsmr";
         public const string WINDOWSMR_XR_LOADER_NAME = "Windows MR Loader";
         public const string WINDOWSMR_XR_LOADER_CLASS_NAME = "WindowsMRLoader";
@@ -64,6 +65,8 @@ namespace HTC.UnityPlugin.Vive
                 {
 #if UNITY_2019_3_OR_NEWER
                     return activeBuildTargetGroup == BuildTargetGroup.Standalone && PackageManagerHelper.IsPackageInList(WINDOWSMR_XR_PACKAGE_NAME);
+#elif UNITY_2018_2_OR_NEWER
+                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && PackageManagerHelper.IsPackageInList(WINDOWSMR_PACKAGE_NAME);
 #else
                     return false;
 #endif
@@ -76,6 +79,8 @@ namespace HTC.UnityPlugin.Vive
                 {
 #if UNITY_2019_3_OR_NEWER
                     return canSupport && VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(WINDOWSMR_XR_LOADER_NAME, requirdPlatform);
+#elif UNITY_2018_2_OR_NEWER
+                    return canSupport && VIUSettings.activateUnityNativeVRModule;
 #else
                     return false;
 #endif
@@ -86,6 +91,9 @@ namespace HTC.UnityPlugin.Vive
 #if UNITY_2019_3_OR_NEWER
                     XRPluginManagementUtils.SetXRLoaderEnabled(WINDOWSMR_XR_LOADER_CLASS_NAME, requirdPlatform, value);
                     VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
+#elif UNITY_2018_2_OR_NEWER
+                    WindowsMRSDK.enabled = value;
+                    VIUSettings.activateUnityNativeVRModule = value;
 #endif
                 }
             }
@@ -118,6 +126,16 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         ShowAddPackageButton("Windows XR Plugin", WINDOWSMR_XR_PACKAGE_NAME);
+                    }
+#endif
+#if UNITY_2018_2_OR_NEWER && !UNITY_2020_1_OR_NEWER
+                    else if (!PackageManagerHelper.IsPackageInList(WINDOWSMR_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "Windows Mixed Reality package required."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowAddPackageButton("Windows Mixed Reality", WINDOWSMR_PACKAGE_NAME);
                     }
 #endif
 
