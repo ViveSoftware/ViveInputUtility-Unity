@@ -112,14 +112,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
         // NOTE: Frequency not supported
         public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85.0f, float amplitude = 0.125f, float startSecondsFromNow = 0.0f)
         {
-            if (TryGetDevice(deviceIndex, out InputDevice device))
+            InputDevice device;
+            if (TryGetDevice(deviceIndex, out device))
             {
                 if (!device.isValid)
                 {
                     return;
                 }
 
-                if (device.TryGetHapticCapabilities(out HapticCapabilities capabilities))
+                HapticCapabilities capabilities;
+                if (device.TryGetHapticCapabilities(out capabilities))
                 {
                     if (capabilities.supportsImpulse)
                     {
@@ -176,7 +178,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.name, device.characteristics);
                 }
 
-                device.TryGetFeatureValue(CommonUsages.isTracked, out bool isTracked);
+                bool isTracked = false;
+                device.TryGetFeatureValue(CommonUsages.isTracked, out isTracked);
                 currState.isPoseValid = device.isValid && isTracked;
                 currState.isConnected = true;
 
@@ -211,7 +214,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 float minRefreshRate = float.MaxValue;
                 foreach (XRDisplaySubsystem system in displaySystems)
                 {
-                    if (system.TryGetDisplayRefreshRate(out float rate))
+                    float rate = 60.0f;
+                    if (system.TryGetDisplayRefreshRate(out rate))
                     {
                         if (rate < minRefreshRate)
                         {
@@ -238,7 +242,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     continue;
                 }
 
-                if (TryGetDevice(state.deviceIndex, out InputDevice device))
+                InputDevice device;
+                if (TryGetDevice(state.deviceIndex, out device))
                 {
                     if (device.isValid)
                     {
@@ -256,23 +261,26 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateTrackingState(IVRModuleDeviceStateRW state, InputDevice device)
         {
-
-            if (device.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 position))
+            Vector3 position = Vector3.zero;
+            if (device.TryGetFeatureValue(CommonUsages.devicePosition, out position))
             {
                 state.position = position;
             }
 
-            if (device.TryGetFeatureValue(CommonUsages.deviceRotation, out Quaternion rotation))
+            Quaternion rotation = Quaternion.identity;
+            if (device.TryGetFeatureValue(CommonUsages.deviceRotation, out rotation))
             {
                 state.rotation = rotation;
             }
 
-            if (device.TryGetFeatureValue(CommonUsages.deviceVelocity, out Vector3 velocity))
+            Vector3 velocity = Vector3.zero;
+            if (device.TryGetFeatureValue(CommonUsages.deviceVelocity, out velocity))
             {
                 state.velocity = velocity;
             }
 
-            if (device.TryGetFeatureValue(CommonUsages.deviceAngularVelocity, out Vector3 angularVelocity))
+            Vector3 angularVelocity = Vector3.zero;
+            if (device.TryGetFeatureValue(CommonUsages.deviceAngularVelocity, out angularVelocity))
             {
                 state.angularVelocity = angularVelocity;
             }
@@ -343,7 +351,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private uint GetDeviceIndex(string uid)
         {
-            if (m_deviceUidToIndex.TryGetValue(uid, out uint index))
+            uint index = 0;
+            if (m_deviceUidToIndex.TryGetValue(uid, out index))
             {
                 return index;
             }
@@ -365,8 +374,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private uint GetOrCreateDeviceIndex(InputDevice device)
         {
+            uint index = 0;
             string uid = GetDeviceUID(device);
-            if (m_deviceUidToIndex.TryGetValue(uid, out uint index))
+            if (m_deviceUidToIndex.TryGetValue(uid, out index))
             {
                 return index;
             }
@@ -707,7 +717,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private bool GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<bool> feature)
         {
-            if (device.TryGetFeatureValue(feature, out bool value))
+            bool value = false;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -721,7 +732,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private uint GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<uint> feature)
         {
-            if (device.TryGetFeatureValue(feature, out uint value))
+            uint value = 0;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -735,7 +747,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private float GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<float> feature)
         {
-            if (device.TryGetFeatureValue(feature, out float value))
+            float value = 0.0f;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -749,7 +762,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private Vector2 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector2> feature)
         {
-            if (device.TryGetFeatureValue(feature, out Vector2 value))
+            Vector2 value = Vector2.zero;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -763,7 +777,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private Vector3 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector3> feature)
         {
-            if (device.TryGetFeatureValue(feature, out Vector3 value))
+            Vector3 value = Vector3.zero;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -777,7 +792,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature)
         {
-            if (device.TryGetFeatureValue(feature, out Quaternion value))
+            Quaternion value = Quaternion.identity;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -791,7 +807,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private Hand GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Hand> feature)
         {
-            if (device.TryGetFeatureValue(feature, out Hand value))
+            Hand value;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -805,7 +822,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private Bone GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Bone> feature)
         {
-            if (device.TryGetFeatureValue(feature, out Bone value))
+            Bone value;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -819,7 +837,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private Eyes GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Eyes> feature)
         {
-            if (device.TryGetFeatureValue(feature, out Eyes value))
+            Eyes value;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
@@ -833,7 +852,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private InputTrackingState GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<InputTrackingState> feature)
         {
-            if (device.TryGetFeatureValue(feature, out InputTrackingState value))
+            InputTrackingState value;
+            if (device.TryGetFeatureValue(feature, out value))
             {
                 return value;
             }
