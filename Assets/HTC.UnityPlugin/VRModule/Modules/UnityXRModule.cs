@@ -24,7 +24,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         MagicLeap,
     }
 
-    public sealed class UnityXRPluginManagementVRModule : VRModule.ModuleBase
+    public sealed class UnityXRModule : VRModule.ModuleBase
     {
         public override int moduleOrder { get { return (int)DefaultModuleOrder.UnityXR; } }
 
@@ -61,7 +61,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 
         private const uint DEVICE_STATE_LENGTH = 16;
-        private static UnityXRPluginManagementVRModule s_moduleInstance;
+        private static UnityXRModule s_moduleInstance;
 
         private XRInputSubsystemType m_currentInputSubsystemType = XRInputSubsystemType.Unknown;
         private uint m_rightHandedDeviceIndex = INVALID_DEVICE_INDEX;
@@ -71,9 +71,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private List<InputDevice> m_connectedDevices = new List<InputDevice>();
         private List<HapticVibrationState> m_activeHapticVibrationStates = new List<HapticVibrationState>();
 
+        public static bool HasActiveLoader(string loaderName = null)
+        {
+            var instance = XRGeneralSettings.Instance;
+            if (instance == null) { return false; }
+            var manager = instance.Manager;
+            if (manager == null) { return false; }
+            var loader = manager.activeLoader;
+            if (loader == null) { return false; }
+            if (loaderName != null && loaderName != loader.name) { return false; }
+            return true;
+        }
+
         public override bool ShouldActiveModule()
         {
-            return VIUSettings.activateUnityXRModule && XRGeneralSettings.Instance.InitManagerOnStart && XRGeneralSettings.Instance.Manager.activeLoader != null;
+            return VIUSettings.activateUnityXRModule && HasActiveLoader();
         }
 
         public override void OnActivated()

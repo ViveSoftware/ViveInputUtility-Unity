@@ -171,8 +171,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override bool ShouldActiveModule()
         {
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
-            return VIUSettings.activateOculusVRModule && XRGeneralSettings.Instance.InitManagerOnStart
-                && (XRGeneralSettings.Instance.Manager.activeLoader != null && XRGeneralSettings.Instance.Manager.activeLoader.name == OCULUS_XR_LOADER_NAME);
+            return VIUSettings.activateOculusVRModule && UnityXRModule.HasActiveLoader(OCULUS_XR_LOADER_NAME);
 #else
             return VIUSettings.activateOculusVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus";
 #endif
