@@ -1,1 +1,0 @@
-del /s *.asmdef *.asmref
