@@ -12,7 +12,7 @@ using UnityEditorInternal.VR;
 using UnityEngine;
 using Assembly = System.Reflection.Assembly;
 
-#if UNITY_EDITOR_2018_1_OR_NEWER
+#if UNITY_2018_1_OR_NEWER
 using UnityEditor.PackageManager;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 #endif
