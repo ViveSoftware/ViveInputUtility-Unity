@@ -546,7 +546,10 @@ namespace HTC.UnityPlugin.Vive
                     EditorGUI.indentLevel += 2;
 
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.HelpBox("External-Camera(Mix-Reality), animated controller model, VIVE Controller haptics(vibration)" +
+                    EditorGUILayout.HelpBox("External-Camera(Mix-Reality), animated controller model" +
+#if !VIU_XR_GENERAL_SETTINGS
+                        ", VIVE Controller haptics(vibration)" +
+#endif
 #if UNITY_2017_1_OR_NEWER
                         ", VIVE Tracker USB/Pogo-pin input" +
 #else
