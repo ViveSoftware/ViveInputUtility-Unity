@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
@@ -16,8 +18,6 @@ namespace HTC.UnityPlugin.Vive
 {
     public static class XRPluginManagementUtils
     {
-        private static readonly string[] s_loaderBlackList = { "DummyLoader", "SampleLoader", "XRLoaderHelper" };
-
         public static bool IsXRLoaderEnabled(string loaderName, BuildTargetGroup buildTargetGroup)
         {
 #if VIU_XR_GENERAL_SETTINGS
@@ -123,6 +123,8 @@ namespace HTC.UnityPlugin.Vive
         }
 
 #if VIU_XR_GENERAL_SETTINGS
+        private static readonly string[] s_loaderBlockList = { "DummyLoader", "SampleLoader", "XRLoaderHelper" };
+
         private static bool AssignLoader(XRManagerSettings settings, string loaderTypeName)
         {
             var instance = GetInstanceOfTypeWithNameFromAssetDatabase(loaderTypeName);
@@ -265,7 +267,7 @@ namespace HTC.UnityPlugin.Vive
                 if (loaderType.IsAbstract)
                     continue;
 
-                if (s_loaderBlackList.Contains(loaderType.Name))
+                if (s_loaderBlockList.Contains(loaderType.Name))
                     continue;
 
                 loaderTypeNames.Add(loaderType.Name);

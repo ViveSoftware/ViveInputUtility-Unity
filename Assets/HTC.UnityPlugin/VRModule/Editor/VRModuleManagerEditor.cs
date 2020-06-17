@@ -8,13 +8,18 @@ using System.Reflection;
 using HTC.UnityPlugin.Vive;
 using UnityEditor;
 using UnityEditor.Callbacks;
-using UnityEditor.PackageManager;
 using UnityEditorInternal.VR;
+using UnityEngine;
+using Assembly = System.Reflection.Assembly;
+
+#if UNITY_EDITOR_2018_1_OR_NEWER
+using UnityEditor.PackageManager;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
+#endif
+
 #if UNITY_2017_3_OR_NEWER
 using UnityEditor.Compilation;
 #endif
-using UnityEngine;
-using Assembly = System.Reflection.Assembly;
 
 namespace HTC.UnityPlugin.VRModuleManagement
 {
