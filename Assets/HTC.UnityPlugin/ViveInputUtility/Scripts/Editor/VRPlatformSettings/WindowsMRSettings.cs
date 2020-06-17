@@ -80,7 +80,7 @@ namespace HTC.UnityPlugin.Vive
 #if UNITY_2019_3_OR_NEWER
                     return canSupport && VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(WINDOWSMR_XR_LOADER_NAME, requirdPlatform);
 #elif UNITY_2018_2_OR_NEWER
-                    return canSupport && VIUSettings.activateUnityNativeVRModule;
+                    return canSupport && VIUSettings.activateUnityNativeVRModule && WindowsMRSDK.enabled;
 #else
                     return false;
 #endif
