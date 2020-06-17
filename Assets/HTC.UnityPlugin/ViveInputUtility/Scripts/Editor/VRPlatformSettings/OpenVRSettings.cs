@@ -341,6 +341,7 @@ namespace HTC.UnityPlugin.Vive
 
     public static partial class VIUSettingsEditor
     {
+        public const string URL_STEAM_VR_PLUGIN = "https://assetstore.unity.com/packages/tools/integration/steamvr-plugin-32647";
         private const string OPENVR_PACKAGE_NAME = "com.unity.xr.openvr.standalone";
         private const string OPENVR_XR_PACKAGE_NAME = "com.valve.openvr";
         private const string OPNEVR_XR_PACKAGE_GIT = "https://github.com/ValveSoftware/steamvr_unity_plugin.git#UnityXRPlugin";

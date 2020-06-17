@@ -24,6 +24,8 @@ namespace HTC.UnityPlugin.Vive
 
     public static partial class VIUSettingsEditor
     {
+        public const string URL_GOOGLE_VR_PLUGIN = "https://developers.google.com/vr/develop/unity/download";
+
         public static bool canSupportDaydream
         {
             get { return DaydreamSettings.instance.canSupport; }
