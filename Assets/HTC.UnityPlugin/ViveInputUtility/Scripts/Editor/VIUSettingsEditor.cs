@@ -345,7 +345,7 @@ namespace HTC.UnityPlugin.Vive
                         case StatusCode.Failure:
                             if (!s_wasPreparing)
                             {
-                                Debug.LogError("Something wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
+                                Debug.LogError("Something wrong when adding package to list. error:" + m_listRequest.Error.errorCode + "(" + m_listRequest.Error.message + ")");
                             }
                             break;
                         case StatusCode.Success:
@@ -369,17 +369,19 @@ namespace HTC.UnityPlugin.Vive
                         case StatusCode.Failure:
                             if (!m_wasAdded)
                             {
-                                Debug.LogError("Something wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
-
-                                string fallbackIdentifier = s_fallbackIdentifier;
+                                AddRequest request = m_addRequest;
                                 m_addRequest = null;
-                                s_fallbackIdentifier = null;
-
-                                if (!string.IsNullOrEmpty(fallbackIdentifier))
+                                if (string.IsNullOrEmpty(s_fallbackIdentifier))
                                 {
-                                    Debug.Log("Retry installing package with fallback identifier: " + fallbackIdentifier);
-                                    AddToPackageList(fallbackIdentifier);
+                                    Debug.LogError("Something wrong when adding package to list. error:" + request.Error.errorCode + "(" + request.Error.message + ")");
                                 }
+                                else
+                                {
+                                    Debug.Log($"Failed to install package: \"{request.Error.message}\". Retry with fallback identifier \"{s_fallbackIdentifier}\"");
+                                    AddToPackageList(s_fallbackIdentifier);
+                                }
+
+                                s_fallbackIdentifier = null;
                             }
                             break;
                         case StatusCode.Success:
