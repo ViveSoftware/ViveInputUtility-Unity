@@ -316,35 +316,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (Object.FindObjectOfType<WaveVR_ButtonList>() == null)
             {
                 VRModule.Instance.gameObject.AddComponent<WaveVR_ButtonList>();
+
+                var buttonList = VRModule.Instance.gameObject.GetComponent<WaveVR_ButtonList>();
+                if (buttonList != null)
+                {
+                    buttonList.HmdButtons.Add(WaveVR_ButtonList.EHmdButtons.Enter);
+                    buttonList.DominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Grip);
+                    buttonList.DominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Menu);
+                    buttonList.DominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Touchpad);
+                    buttonList.DominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Trigger);
+                    buttonList.NonDominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Grip);
+                    buttonList.NonDominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Menu);
+                    buttonList.NonDominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Touchpad);
+                    buttonList.NonDominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Trigger);
+                }
             }
-#endif
-
-#if VIU_WAVEVR_3_0_0_OR_NEWER
-            var digitalCapability = (uint)WVR_InputType.WVR_InputType_Button;
-            var analogCapability = (uint)(WVR_InputType.WVR_InputType_Button | WVR_InputType.WVR_InputType_Touch | WVR_InputType.WVR_InputType_Analog);
-            var inputRequests = new WVR_InputAttribute_t[]
-            {
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Menu, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Grip, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Left, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Up, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Right, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_DPad_Down, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Volume_Up, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Volume_Down, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Enter, axis_type = WVR_AnalogType.WVR_AnalogType_None, capability = digitalCapability },
-
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Touchpad, axis_type = WVR_AnalogType.WVR_AnalogType_2D, capability = analogCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Thumbstick, axis_type = WVR_AnalogType.WVR_AnalogType_2D, capability = analogCapability },
-
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Digital_Trigger, axis_type = WVR_AnalogType.WVR_AnalogType_1D, capability = analogCapability },
-                new WVR_InputAttribute_t() { id = WVR_InputId.WVR_InputId_Alias1_Trigger, axis_type = WVR_AnalogType.WVR_AnalogType_1D, capability = analogCapability },
-            };
-
-#if !UNITY_EDITOR
-            Interop.WVR_SetInputRequest(WVR_DeviceType.WVR_DeviceType_Controller_Right, inputRequests, (uint)inputRequests.Length);
-            Interop.WVR_SetInputRequest(WVR_DeviceType.WVR_DeviceType_Controller_Left, inputRequests, (uint)inputRequests.Length);
-#endif
 #endif
 
             EnsureDeviceStateLength(DEVICE_COUNT);
