@@ -181,7 +181,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (!prevState.isConnected)
                 {
-                    currState.deviceClass = GetDeviceClass(device.characteristics);
+                    currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
                     currState.serialNumber = GetDeviceUID(device);
                     currState.modelNumber = device.name;
                     currState.renderModelName = device.name;
@@ -197,7 +197,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState.isConnected = true;
 
                 UpdateTrackingState(currState, device);
-                if (currState.deviceClass == VRModuleDeviceClass.Controller)
+                if (currState.deviceClass == VRModuleDeviceClass.Controller || currState.deviceModel == VRModuleDeviceModel.ViveTracker)
                 {
                     UpdateControllerState(currState, device);
                 }
@@ -310,6 +310,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveCosmosControllerRight:
                     UpdateViveCosmosControllerState(state, device);
                     break;
+                case VRModuleDeviceModel.ViveTracker:
+                    UpdateViveTrackerState(state, device);
+                    break;
                 case VRModuleDeviceModel.OculusTouchLeft:
                 case VRModuleDeviceModel.OculusTouchRight:
                 case VRModuleDeviceModel.OculusGoController:
@@ -403,14 +406,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return newIndex;
         }
 
-        private VRModuleDeviceClass GetDeviceClass(InputDeviceCharacteristics characteristics)
+        private VRModuleDeviceClass GetDeviceClass(string name, InputDeviceCharacteristics characteristics)
         {
+            bool isTracker = Regex.IsMatch(name, @"tracker", RegexOptions.IgnoreCase);
             if ((characteristics & InputDeviceCharacteristics.HeadMounted) != 0)
             {
                 return VRModuleDeviceClass.HMD;
             }
 
-            if ((characteristics & InputDeviceCharacteristics.Controller) != 0)
+            if ((characteristics & InputDeviceCharacteristics.Controller) != 0 && !isTracker)
             {
                 return VRModuleDeviceClass.Controller;
             }
@@ -541,6 +545,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
             state.SetButtonTouch(VRModuleRawButton.Grip, gripButton);
             state.SetButtonTouch(VRModuleRawButton.Bumper, bumperButton);
+
+            state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
+        }
+
+        private void UpdateViveTrackerState(IVRModuleDeviceStateRW state, InputDevice device)
+        {
+            bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+            bool primary2DAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisClick);
+            bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch);
+            bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
+            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
+            float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
+            Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
+
+            state.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuButton);
+            state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
+            state.SetButtonPress(VRModuleRawButton.Grip, gripButton);
+            state.SetButtonPress(VRModuleRawButton.CapSenseGrip, gripButton);
+            state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
+
+            state.SetButtonTouch(VRModuleRawButton.Trigger, triggerButton);
+            state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
 
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
