@@ -182,7 +182,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint m_digitalDataSize;
         private uint m_analogDataSize;
         private uint m_originInfoSize;
-        private uint m_activeActionSetSize;
 
         private ETrackingUniverseOrigin m_prevTrackingSpace;
         private bool m_hasInputFocus = true;
@@ -378,7 +377,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_digitalDataSize = (uint)Marshal.SizeOf(new InputDigitalActionData_t());
             m_analogDataSize = (uint)Marshal.SizeOf(new InputAnalogActionData_t());
             m_originInfoSize = (uint)Marshal.SizeOf(new InputOriginInfo_t());
-            m_activeActionSetSize = (uint)Marshal.SizeOf(new VRActiveActionSet_t());
 
 
             m_poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
