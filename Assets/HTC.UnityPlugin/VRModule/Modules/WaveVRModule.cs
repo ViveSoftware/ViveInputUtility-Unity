@@ -320,15 +320,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var buttonList = VRModule.Instance.gameObject.GetComponent<WaveVR_ButtonList>();
                 if (buttonList != null)
                 {
-                    buttonList.HmdButtons.Add(WaveVR_ButtonList.EHmdButtons.Enter);
-                    buttonList.DominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Grip);
-                    buttonList.DominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Menu);
-                    buttonList.DominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Touchpad);
-                    buttonList.DominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Trigger);
-                    buttonList.NonDominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Grip);
-                    buttonList.NonDominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Menu);
-                    buttonList.NonDominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Touchpad);
-                    buttonList.NonDominantButtons.Add(WaveVR_ButtonList.EControllerButtons.Trigger);
+                    buttonList.HmdButtons = new List<WaveVR_ButtonList.EHmdButtons>()
+                    {
+                        WaveVR_ButtonList.EHmdButtons.Enter
+                    };
+                    buttonList.DominantButtons = new List<WaveVR_ButtonList.EControllerButtons>()
+                    {
+                        WaveVR_ButtonList.EControllerButtons.Grip,
+                        WaveVR_ButtonList.EControllerButtons.Menu,
+                        WaveVR_ButtonList.EControllerButtons.Touchpad,
+                        WaveVR_ButtonList.EControllerButtons.Trigger
+                    };
+                    buttonList.NonDominantButtons = new List<WaveVR_ButtonList.EControllerButtons>()
+                    {
+                        WaveVR_ButtonList.EControllerButtons.Grip,
+                        WaveVR_ButtonList.EControllerButtons.Menu,
+                        WaveVR_ButtonList.EControllerButtons.Touchpad,
+                        WaveVR_ButtonList.EControllerButtons.Trigger
+                    };
                 }
             }
 #endif
