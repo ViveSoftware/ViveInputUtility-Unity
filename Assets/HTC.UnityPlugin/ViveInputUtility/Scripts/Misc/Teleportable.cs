@@ -43,7 +43,7 @@ namespace HTC.UnityPlugin.Vive
 
         [Serializable]
         public class UnityEventTeleport : UnityEvent<Teleportable, RaycastResult, float> { }
-        public delegate void OnBeforeTeleportAction(Teleportable src, RaycastResult hitResult, float delay);
+        public delegate void OnTeleportAction(Teleportable src, RaycastResult hitResult, float delay);
 
         /// <summary>
         /// The actual transfrom that will be moved Ex. CameraRig
@@ -79,6 +79,10 @@ namespace HTC.UnityPlugin.Vive
         private bool useSteamVRFade = true;
         [SerializeField]
         private UnityEventTeleport onBeforeTeleport = new UnityEventTeleport();
+        [SerializeField]
+        private UnityEventTeleport onAfterTeleport = new UnityEventTeleport();
+
+
         private Quaternion additionalTeleportRotation = Quaternion.identity;
 
         public ulong PrimeryTeleportButton { get { return primaryTeleportButton; } set { primaryTeleportButton = value; } }
@@ -111,13 +115,20 @@ namespace HTC.UnityPlugin.Vive
 
         public virtual Quaternion AdditionalTeleportRotation { get { return additionalTeleportRotation; } set { additionalTeleportRotation = value; } }
 
-        public event OnBeforeTeleportAction OnBeforeTeleport
+        public event OnTeleportAction OnBeforeTeleport
         {
             add { onBeforeTeleport.AddListener(new UnityAction<Teleportable, RaycastResult, float>(value)); }
             remove { onBeforeTeleport.RemoveListener(new UnityAction<Teleportable, RaycastResult, float>(value)); }
         }
 
-        public static event OnBeforeTeleportAction OnBeforeAnyTeleport;
+        public event OnTeleportAction OnAfterTeleport
+        {
+            add { onAfterTeleport.AddListener(new UnityAction<Teleportable, RaycastResult, float>(value)); }
+            remove { onAfterTeleport.RemoveListener(new UnityAction<Teleportable, RaycastResult, float>(value)); }
+        }
+
+        public static event OnTeleportAction OnBeforeAnyTeleport;
+        public static event OnTeleportAction OnAfterAnyTeleport;
 
         public bool IsAborted { get { return abort; } }
 
@@ -235,7 +246,7 @@ namespace HTC.UnityPlugin.Vive
 
             abort = false;
 
-            if (useSteamVRFade && fadeDuration > 0f && VRModule.activeModule != VRModuleActiveEnum.SteamVR)
+            if (useSteamVRFade && fadeDuration > 0f && VRModule.isSteamVRPluginDetected && VRModule.activeModule != VRModuleActiveEnum.SteamVR)
             {
                 Debug.LogWarning("Install SteamVR plugin and enable SteamVRModule support to enable fading");
                 fadeDuration = 0f;
@@ -247,7 +258,7 @@ namespace HTC.UnityPlugin.Vive
 
             if (abort) { return; }
 
-            teleportCoroutine = StartCoroutine(StartTeleport(targetPos, targetRot, delay));
+            teleportCoroutine = StartCoroutine(StartTeleport(hitResult, targetPos, targetRot, delay));
         }
 
         protected bool IsValidTeleportButton(PointerEventData eventData)
@@ -264,7 +275,7 @@ namespace HTC.UnityPlugin.Vive
         private bool m_steamVRFadeInitialized;
         private bool m_isSteamVRFading;
 
-        public IEnumerator StartTeleport(Vector3 position, Quaternion rotation, float delay)
+        public IEnumerator StartTeleport(RaycastResult hitResult, Vector3 position, Quaternion rotation, float delay)
         {
             if (VRModule.activeModule == VRModuleActiveEnum.SteamVR && !Mathf.Approximately(delay, 0f))
             {
@@ -286,18 +297,32 @@ namespace HTC.UnityPlugin.Vive
 
                 m_isSteamVRFading = true;
                 SteamVR_Fade.Start(new Color(0f, 0f, 0f, 1f), delay);
+
                 yield return new WaitForSeconds(delay);
                 yield return new WaitForEndOfFrame(); // to avoid from rendering guideline in wrong position
+
                 TeleportTarget(position, rotation);
+
+                if (OnAfterAnyTeleport != null) { OnAfterAnyTeleport.Invoke(this, hitResult, delay); }
+                if (onAfterTeleport != null) { onAfterTeleport.Invoke(this, hitResult, delay); }
+
                 SteamVR_Fade.Start(new Color(0f, 0f, 0f, 0f), delay);
+
                 yield return new WaitForSeconds(delay);
+
                 m_isSteamVRFading = false;
             }
             else
             {
                 if (delay > 0) { yield return new WaitForSeconds(delay); }
+
                 yield return new WaitForEndOfFrame(); // to avoid from rendering guideline in wrong position
+
                 TeleportTarget(position, rotation);
+
+                if (OnAfterAnyTeleport != null) { OnAfterAnyTeleport.Invoke(this, hitResult, delay); }
+                if (onAfterTeleport != null) { onAfterTeleport.Invoke(this, hitResult, delay); }
+
                 if (delay > 0) { yield return new WaitForSeconds(delay); }
             }
 
@@ -321,11 +346,17 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 #else
-        public IEnumerator StartTeleport(Vector3 position, Quaternion rotation, float delay)
+        public IEnumerator StartTeleport(RaycastResult hitResult, Vector3 position, Quaternion rotation, float delay)
         {
             if (delay > 0) { yield return new WaitForSeconds(delay); }
+
             yield return new WaitForEndOfFrame(); // to avoid from rendering guideline in wrong position
+
             TeleportTarget(position, rotation);
+
+            if (OnAfterAnyTeleport != null) { OnAfterAnyTeleport.Invoke(this, hitResult, delay); }
+            if (onAfterTeleport != null) { onAfterTeleport.Invoke(this, hitResult, delay); }
+
             if (delay > 0) { yield return new WaitForSeconds(delay); }
 
             teleportCoroutine = null;
