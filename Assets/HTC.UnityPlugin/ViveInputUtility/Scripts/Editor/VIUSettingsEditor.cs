@@ -377,7 +377,7 @@ namespace HTC.UnityPlugin.Vive
                                 }
                                 else
                                 {
-                                    Debug.Log($"Failed to install package: \"{request.Error.message}\". Retry with fallback identifier \"{s_fallbackIdentifier}\"");
+                                    Debug.Log("Failed to install package: \"" + request.Error.message + "\". Retry with fallback identifier \"" + s_fallbackIdentifier + "\"");
                                     AddToPackageList(s_fallbackIdentifier);
                                 }
 
@@ -768,7 +768,7 @@ namespace HTC.UnityPlugin.Vive
                 if (GUILayout.Button("Use Default Settings"))
                 {
                     AssetDatabase.DeleteAsset(assetPath);
-                    foreach(var ps in s_platformSettings)
+                    foreach (var ps in s_platformSettings)
                     {
                         ps.support = ps.canSupport;
                     }
