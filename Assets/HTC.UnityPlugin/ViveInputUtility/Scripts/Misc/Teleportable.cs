@@ -246,10 +246,9 @@ namespace HTC.UnityPlugin.Vive
 
             abort = false;
 
-            if (useSteamVRFade && fadeDuration > 0f && VRModule.isSteamVRPluginDetected && VRModule.activeModule != VRModuleActiveEnum.SteamVR)
+            if (useSteamVRFade && fadeDuration > 0f && !VRModule.isSteamVRPluginDetected)
             {
                 Debug.LogWarning("Install SteamVR plugin and enable SteamVRModule support to enable fading");
-                fadeDuration = 0f;
             }
 
             var delay = Mathf.Max(0f, fadeDuration * 0.5f);
@@ -277,7 +276,7 @@ namespace HTC.UnityPlugin.Vive
 
         public IEnumerator StartTeleport(RaycastResult hitResult, Vector3 position, Quaternion rotation, float delay)
         {
-            if (VRModule.activeModule == VRModuleActiveEnum.SteamVR && !Mathf.Approximately(delay, 0f))
+            if (useSteamVRFade && VRModule.activeModule == VRModuleActiveEnum.SteamVR && !Mathf.Approximately(delay, 0f))
             {
                 if (!m_steamVRFadeInitialized)
                 {
