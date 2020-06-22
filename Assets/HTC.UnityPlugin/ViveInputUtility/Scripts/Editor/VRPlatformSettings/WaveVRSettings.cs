@@ -80,7 +80,7 @@ namespace HTC.UnityPlugin.Vive
 #if UNITY_2018_1_OR_NEWER
         , IPreprocessBuildWithReport
 #elif UNITY_5_6_OR_NEWER
-		, IPreprocessBuild
+        , IPreprocessBuild
 #endif
         {
             private Foldouter m_foldouter = new Foldouter();
@@ -130,14 +130,15 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateWaveVRModule) { return false; }
-                    
+
 #if !VIU_WAVEVR_3_0_0_OR_NEWER
                     if (virtualRealitySupported) { return false; }
-#endif
+#else
                     if (!((VRModule.isWaveVRRenderDetected && MockHMDSDK.enabled) || XRPluginManagementUtils.IsXRLoaderEnabled(WAVEVR_LOADER_NAME, requirdPlatform)))
                     {
                         return false;
                     }
+#endif
 
                     if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23) { return false; }
                     if (PlayerSettings.colorSpace == ColorSpace.Linear && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
@@ -149,7 +150,9 @@ namespace HTC.UnityPlugin.Vive
 
                     if (value)
                     {
-#if !VIU_WAVEVR_3_0_0_OR_NEWER
+#if VIU_WAVEVR_3_0_0_OR_NEWER
+                        virtualRealitySupported = value;
+#else
                         virtualRealitySupported = false;
 #endif
 
@@ -167,12 +170,14 @@ namespace HTC.UnityPlugin.Vive
                         supportOculusGo = false;
                     }
 
+#if VIU_WAVEVR_3_0_0_OR_NEWER
                     if (virtualRealitySupported)
                     {
                         MockHMDSDK.enabled = value;
                     }
 
                     XRPluginManagementUtils.SetXRLoaderEnabled(WAVEVR_LOADER_CLASS_NAME, requirdPlatform, value);
+#endif
 
                     VIUSettings.activateWaveVRModule = value;
                 }

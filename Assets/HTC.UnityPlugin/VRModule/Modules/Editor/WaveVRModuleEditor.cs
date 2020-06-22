@@ -29,6 +29,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 symbol = "VIU_WAVEVR_RENDER",
                 reqTypeNames = new string[] { "WaveVR_Render" },
+                reqFileNames = new string[] { "WaveVR_Render.cs" },
             });
 
             Add(new SymbolRequirement()
