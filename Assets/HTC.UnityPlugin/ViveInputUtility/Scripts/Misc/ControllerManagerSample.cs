@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
@@ -329,8 +329,9 @@ public class ControllerManagerSample : MonoBehaviour
     public void OnStickyGrabbed(StickyGrabbable grabbedObj)
     {
         ViveColliderButtonEventData viveEventData;
-        if (!grabbedObj.grabbedEvent.TryGetViveButtonEventData(out viveEventData)) {
-            return; 
+        if (!grabbedObj.grabbedEvent.TryGetViveButtonEventData(out viveEventData))
+        {
+            return;
         }
         UpdateActivity();
         switch (viveEventData.viveRole.ToRole<HandRole>())
@@ -353,7 +354,7 @@ public class ControllerManagerSample : MonoBehaviour
                 }
                 if (leftGrabbingSet.Add(grabbedObj.gameObject) && leftGrabbingSet.Count == 1)
                 {
-                     UpdateActivity();
+                    UpdateActivity();
                 }
                 break;
         }
@@ -463,7 +464,7 @@ public class ControllerManagerSample : MonoBehaviour
             rightGrabber.SetActive(rightGrabberShouldActive);
         }
 
-//      var leftRenderModelShouldActive = !m_leftCustomModelActive && (!hideRenderModelOnGrab || leftGrabbingSet.Count == 0);
+        //      var leftRenderModelShouldActive = !m_leftCustomModelActive && (!hideRenderModelOnGrab || leftGrabbingSet.Count == 0);
         var leftRenderModelShouldActive = !hideRenderModelOnGrab || leftGrabbingSet.Count == 0;
         var leftCustomModelShouldActive = m_leftCustomModelActive;
         var leftLaserPointerShouldActive = m_leftLaserPointerActive;
