@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.ColliderEvent;
 using HTC.UnityPlugin.Utility;
@@ -77,6 +77,13 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private bool m_unblockableGrab = true;
         [SerializeField]
+        [FlagsFromEnum(typeof(ControllerButton))]
+        private ulong m_primaryGrabButton = 0ul;
+        [SerializeField]
+        [FlagsFromEnum(typeof(ColliderButtonEventData.InputButton))]
+        private uint m_secondaryGrabButton = 1u << (int)ColliderButtonEventData.InputButton.Trigger;
+        [SerializeField]
+        [HideInInspector]
         private ColliderButtonEventData.InputButton m_grabButton = ColliderButtonEventData.InputButton.Trigger;
         [SerializeField]
         private bool m_toggleToRelease = true;
@@ -109,35 +116,57 @@ namespace HTC.UnityPlugin.Vive
 
         public ColliderButtonEventData grabbedEvent { get { return isGrabbed ? currentGrabber.eventData : null; } }
 
+        public ulong primaryGrabButton { get { return m_primaryGrabButton; } set { m_primaryGrabButton = value; } }
+
+        public uint secondaryGrabButton { get { return m_secondaryGrabButton; } set { m_secondaryGrabButton = value; } }
+
+        [Obsolete("Use IsSecondaryGrabButtonOn and SetSecondaryGrabButton instead")]
         public ColliderButtonEventData.InputButton grabButton
         {
             get
             {
-                return m_grabButton;
+                for (uint btn = 0u, btns = m_secondaryGrabButton; btns > 0u; btns >>= 1, ++btn)
+                {
+                    if ((btns & 1u) > 0u) { return (ColliderButtonEventData.InputButton)btn; }
+                }
+                return ColliderButtonEventData.InputButton.None;
             }
-            set
-            {
-                m_grabButton = value;
-                MaterialChanger.SetAllChildrenHeighlightButton(gameObject, value);
-            }
+            set { m_secondaryGrabButton = 1u << (int)value; }
         }
 
         private bool moveByVelocity { get { return !unblockableGrab && grabRigidbody != null && !grabRigidbody.isKinematic; } }
+
+        public bool IsPrimeryGrabButtonOn(ControllerButton btn) { return EnumUtils.GetFlag(m_primaryGrabButton, (int)btn); }
+
+        public void SetPrimeryGrabButton(ControllerButton btn, bool isOn = true) { EnumUtils.SetFlag(ref m_primaryGrabButton, (int)btn, isOn); }
+
+        public void ClearPrimeryGrabButton() { m_primaryGrabButton = 0ul; }
+
+        public bool IsSecondaryGrabButtonOn(ColliderButtonEventData.InputButton btn) { return EnumUtils.GetFlag(m_secondaryGrabButton, (int)btn); }
+
+        public void SetSecondaryGrabButton(ColliderButtonEventData.InputButton btn, bool isOn = true) { EnumUtils.SetFlag(ref m_secondaryGrabButton, (int)btn, isOn); }
+
+        public void ClearSecondaryGrabButton() { m_secondaryGrabButton = 0u; }
 
         [Obsolete("Use grabRigidbody instead")]
         public Rigidbody rigid { get { return grabRigidbody; } set { grabRigidbody = value; } }
 
 #if UNITY_EDITOR
-        protected virtual void OnValidate()
-        {
-            MaterialChanger.SetAllChildrenHeighlightButton(gameObject, m_grabButton);
-        }
+        protected virtual void OnValidate() { RestoreObsoleteGrabButton(); }
 #endif
+        private void RestoreObsoleteGrabButton()
+        {
+            if (m_grabButton == ColliderButtonEventData.InputButton.Trigger) { return; }
+            ClearSecondaryGrabButton();
+            SetSecondaryGrabButton(m_grabButton, true);
+            m_grabButton = ColliderButtonEventData.InputButton.Trigger;
+        }
 
         protected override void Awake()
         {
             base.Awake();
-            MaterialChanger.SetAllChildrenHeighlightButton(gameObject, m_grabButton);
+
+            RestoreObsoleteGrabButton();
 
             afterGrabberGrabbed += () => m_afterGrabbed.Invoke(this);
             beforeGrabberReleased += () => m_beforeRelease.Invoke(this);
@@ -162,9 +191,20 @@ namespace HTC.UnityPlugin.Vive
             m_eventGrabberSet.Clear();
         }
 
+        protected bool IsValidGrabButton(ColliderButtonEventData eventData)
+        {
+            if (m_primaryGrabButton > 0ul)
+            {
+                ViveColliderButtonEventData viveEventData;
+                if (eventData.TryGetViveButtonEventData(out viveEventData) && IsPrimeryGrabButtonOn(viveEventData.viveButton)) { return true; }
+            }
+
+            return m_secondaryGrabButton > 0u && IsSecondaryGrabButtonOn(eventData.button);
+        }
+
         public virtual void OnColliderEventPressDown(ColliderButtonEventData eventData)
         {
-            if (eventData.button != m_grabButton) { return; }
+            if (!IsValidGrabButton(eventData)) { return; }
 
             Grabber grabber;
             if (m_eventGrabberSet == null || !m_eventGrabberSet.TryGetValue(eventData, out grabber))

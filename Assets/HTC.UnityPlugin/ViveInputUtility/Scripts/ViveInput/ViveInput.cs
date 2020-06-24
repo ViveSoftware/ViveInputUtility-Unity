@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -105,6 +105,9 @@ namespace HTC.UnityPlugin.Vive
         DPadUpperRightTouch = 33,
         DPadLowerRightTouch = 34,
         DPadLowerLeftTouch = 35,
+
+        DPadCenter = 36,
+        DPadCenterTouch = 37,
     }
 
     public enum ControllerAxis

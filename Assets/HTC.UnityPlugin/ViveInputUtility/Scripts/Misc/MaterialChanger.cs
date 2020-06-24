@@ -1,10 +1,11 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.ColliderEvent;
 using HTC.UnityPlugin.Utility;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 // This component shows the status that interacting with ColliderEventCaster
 public class MaterialChanger : MonoBehaviour
@@ -19,16 +20,23 @@ public class MaterialChanger : MonoBehaviour
     private Material currentMat;
 
     public Material Normal;
-    public Material Heightlight;
+    [FormerlySerializedAs("Heightlight")]
+    public Material Hovered;
     public Material Pressed;
     public Material dragged;
 
+    [Obsolete("Use hovered instead")]
+    public Material Heightlight { get { return Hovered; } set { Hovered = value; } }
+
+    [Obsolete]
+    [HideInInspector]
     public ColliderButtonEventData.InputButton heighlightButton = ColliderButtonEventData.InputButton.Trigger;
 
     private HashSet<ColliderHoverEventData> hovers = new HashSet<ColliderHoverEventData>();
     private HashSet<ColliderButtonEventData> presses = new HashSet<ColliderButtonEventData>();
-    private IndexedSet<ColliderButtonEventData> drags = new IndexedSet<ColliderButtonEventData>();
+    private HashSet<ColliderButtonEventData> drags = new HashSet<ColliderButtonEventData>();
 
+    [Obsolete]
     public static void SetAllChildrenHeighlightButton(GameObject parent, ColliderButtonEventData.InputButton button)
     {
         var matChangers = ListPool<MaterialChanger>.Get();
@@ -58,16 +66,20 @@ public class MaterialChanger : MonoBehaviour
 
     public void OnColliderEventPressEnter(ColliderButtonEventData eventData)
     {
-        if (eventData.button != heighlightButton) { return; }
-
-        presses.Add(eventData);
+        for (int i = eventData.pressedRawObjects.Count - 1; i >= 0; --i)
+        {
+            if (gameObject == eventData.pressedRawObjects[i] || eventData.pressedRawObjects[i].transform.IsChildOf(transform))
+            {
+                presses.Add(eventData);
+            }
+        }
 
         // check if this evenData is dragging me(or ancestry of mine)
         for (int i = eventData.draggingHandlers.Count - 1; i >= 0; --i)
         {
-            if (transform.IsChildOf(eventData.draggingHandlers[i].transform))
+            if (gameObject == eventData.draggingHandlers[i] || transform.IsChildOf(eventData.draggingHandlers[i].transform))
             {
-                drags.AddUnique(eventData);
+                drags.Add(eventData);
                 break;
             }
         }
@@ -78,6 +90,7 @@ public class MaterialChanger : MonoBehaviour
     public void OnColliderEventPressExit(ColliderButtonEventData eventData)
     {
         presses.Remove(eventData);
+        drags.Remove(eventData);
 
         UpdateMaterialState();
     }
@@ -94,14 +107,9 @@ public class MaterialChanger : MonoBehaviour
         drags.Clear();
     }
 
-    private void UpdateMaterialState()
+    public void UpdateMaterialState()
     {
-        var targetMat = default(Material);
-
-        if (drags.Count > 0)
-        {
-            drags.RemoveAll(e => !e.isDragging);
-        }
+        Material targetMat;
 
         if (drags.Count > 0)
         {
@@ -113,7 +121,7 @@ public class MaterialChanger : MonoBehaviour
         }
         else if (hovers.Count > 0)
         {
-            targetMat = Heightlight;
+            targetMat = Hovered;
         }
         else
         {

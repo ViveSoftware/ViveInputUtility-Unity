@@ -1,0 +1,22 @@
+{
+    "name": "HTC.ViveInputUtility.Editor",
+    "references": [
+        "HTC.ViveInputUtility",
+        "Unity.XR.Management",
+        "Unity.XR.Management.Editor",
+        "SteamVR",
+        "SteamVR_Input_Editor",
+        "Oculus.VR"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

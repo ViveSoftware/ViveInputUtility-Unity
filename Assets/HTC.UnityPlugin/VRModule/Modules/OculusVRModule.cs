@@ -1,14 +1,18 @@
-//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 #if VIU_OCULUSVR
 using UnityEngine;
 using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.Vive.OculusVRExtension;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #else
 using XRDevice = UnityEngine.VR.VRDevice;
 using XRSettings = UnityEngine.VR.VRSettings;
+#endif
+#if VIU_XR_GENERAL_SETTINGS
+using UnityEngine.XR.Management;
 #endif
 #endif
 
@@ -34,11 +38,94 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             false;
 #endif
+
+        public static readonly bool isOculusVRAvatarSupported =
+#if VIU_OCULUSVR_AVATAR
+            true;
+#else
+            false;
+#endif
     }
 
     public sealed class OculusVRModule : VRModule.ModuleBase
     {
-        public override int moduleIndex { get { return (int)VRModuleActiveEnum.OculusVR; } }
+        public override int moduleOrder { get { return (int)DefaultModuleOrder.OculusVR; } }
+
+        public override int moduleIndex { get { return (int)VRModuleSelectEnum.OculusVR; } }
+
+        public const string OCULUS_XR_LOADER_NAME = "Oculus Loader";
+        public const string OCULUS_XR_LOADER_CLASS_NAME = "OculusLoader";
+
+#if VIU_OCULUSVR
+        private class CameraCreator : VRCameraHook.CameraCreator
+        {
+            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+
+            public override void CreateCamera(VRCameraHook hook)
+            {
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+                if (hook.GetComponent<TrackedPoseDriver>() == null)
+                {
+                    hook.gameObject.AddComponent<TrackedPoseDriver>();
+                }
+#endif
+            }
+        }
+#endif
+
+#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+        private class RenderModelCreator : RenderModelHook.RenderModelCreator
+        {
+            private uint m_index = INVALID_DEVICE_INDEX;
+            private VIUOculusVRRenderModel m_model;
+
+            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+
+            public override void UpdateRenderModel()
+            {
+                if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
+
+                if (VRModule.IsValidDeviceIndex(m_index))
+                {
+                    // create object for render model
+                    if (m_model == null)
+                    {
+                        var go = new GameObject("Model");
+                        go.transform.SetParent(hook.transform, false);
+                        m_model = go.AddComponent<VIUOculusVRRenderModel>();
+                    }
+
+                    // set render model index
+                    m_model.gameObject.SetActive(true);
+                    m_model.shaderOverride = hook.overrideShader;
+#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER
+                    m_model.gameObject.AddComponent(System.Type.GetType("OvrAvatarTouchController"));
+#endif
+                    m_model.SetDeviceIndex(m_index);
+                }
+                else
+                {
+                    // deacitvate object for render model
+                    if (m_model != null)
+                    {
+                        m_model.gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            public override void CleanUpRenderModel()
+            {
+                if (m_model != null)
+                {
+                    Object.Destroy(m_model.gameObject);
+                    m_model = null;
+                    m_index = INVALID_DEVICE_INDEX;
+                }
+            }
+        }
+
+        private static OculusVRModule s_moduleInstance;
+#endif
 
 #if VIU_OCULUSVR
         public const int VALID_NODE_COUNT = 7;
@@ -81,7 +168,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_node2class[(int)OVRPlugin.Node.TrackerThree] = VRModuleDeviceClass.TrackingReference;
         }
 
-        public override bool ShouldActiveModule() { return VIUSettings.activateOculusVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus"; }
+        public override bool ShouldActiveModule()
+        {
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+            return VIUSettings.activateOculusVRModule && UnityXRModule.HasActiveLoader(OCULUS_XR_LOADER_NAME);
+#else
+            return VIUSettings.activateOculusVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus";
+#endif
+        }
 
         public override void OnActivated()
         {
@@ -89,6 +183,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             UpdateTrackingSpaceType();
 
             EnsureDeviceStateLength(VALID_NODE_COUNT);
+
+#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
+            s_moduleInstance = this;
+#endif
         }
 
         public override void OnDeactivated()
@@ -101,7 +199,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (VRModule.trackingSpaceType)
             {
                 case VRModuleTrackingSpaceType.RoomScale:
-                    OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.FloorLevel);
+                    if (OVRPlugin.GetSystemHeadsetType().Equals(OVRPlugin.SystemHeadset.Oculus_Go))
+                    {
+                        OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.EyeLevel);
+                    }
+                    else
+                    {
+                        OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.FloorLevel);
+                    }
                     break;
                 case VRModuleTrackingSpaceType.Stationary:
                     OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.EyeLevel);

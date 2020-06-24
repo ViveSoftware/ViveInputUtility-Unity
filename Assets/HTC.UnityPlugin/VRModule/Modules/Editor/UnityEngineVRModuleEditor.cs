@@ -1,6 +1,7 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using System;
+using HTC.UnityPlugin.Vive;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public static class UnityVRModuleEditor
     {
-#if UNITY_5_5_OR_NEWER
+#if UNITY_5_5_OR_NEWER && !UNITY_2020_1_OR_NEWER
         [InitializeOnLoadMethod]
         private static void StartCheckEnforceInputManagerBindings()
         {
@@ -100,5 +101,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
             serializedInputSettings.ApplyModifiedProperties();
         }
 #endif
+    }
+
+    public class UnityEngineVRSymbolRequirementCollection : VRModuleManagerEditor.SymbolRequirementCollection
+    {
+        public UnityEngineVRSymbolRequirementCollection()
+        {
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "VIU_XR_GENERAL_SETTINGS",
+                reqTypeNames = new string[] { "UnityEngine.XR.Management.XRGeneralSettings" },
+                reqFileNames = new string[] { "XRGeneralSettings.cs" },
+            });
+
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "VIU_XR_PACKAGE_METADATA_STORE",
+                reqTypeNames = new string[] { "UnityEditor.XR.Management.Metadata.XRPackageMetadataStore" },
+                reqFileNames = new string[] { "XRPackageMetadata.cs" },
+            });
+        }
     }
 }

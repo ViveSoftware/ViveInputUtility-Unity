@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using UnityEngine;
@@ -45,13 +45,18 @@ namespace HTC.UnityPlugin.ColliderEvent
     {
         public enum InputButton
         {
+            None = -1,
             Trigger,
             PadOrStick,
             GripOrHandTrigger,
             FunctionKey,
         }
 
-        public IndexedSet<GameObject> pressEnteredObjects = new IndexedSet<GameObject>();
+        public IndexedSet<GameObject> pressEnteredObjects = new IndexedSet<GameObject>(); // Includes full entered objects hierorchy
+        public IndexedSet<GameObject> pressedRawObjects = new IndexedSet<GameObject>();
+        public IndexedSet<GameObject> lastPressedRawObjects = new IndexedSet<GameObject>();
+        public IndexedSet<GameObject> pressedHandlers = new IndexedSet<GameObject>();
+        public IndexedSet<GameObject> lastPressedHandlers = new IndexedSet<GameObject>();
         public IndexedSet<GameObject> draggingHandlers = new IndexedSet<GameObject>();
         public IndexedSet<GameObject> clickingHandlers = new IndexedSet<GameObject>();
 
@@ -90,7 +95,7 @@ namespace HTC.UnityPlugin.ColliderEvent
             D3,
             D4,
         }
-        
+
         // raw delta values
         private float m_x;
         private float m_y;

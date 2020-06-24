@@ -1,5 +1,6 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+#pragma warning disable 0618
 #if UNITY_2017_1_OR_NEWER
 
 using HTC.UnityPlugin.Utility;
@@ -22,7 +23,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
-#if UNITY_2017_1_OR_NEWER
+#if UNITY_2017_1_OR_NEWER && !UNITY_2020_1_OR_NEWER
         private static readonly VRModuleDeviceClass[] s_nodeType2DeviceClass;
 
         private uint m_leftIndex = INVALID_DEVICE_INDEX;
@@ -80,7 +81,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
                     break;
                 case VRModuleTrackingSpaceType.RoomScale:
+#if UNITY_2019_2_OR_NEWER && !UNITY_2019_3_OR_NEWER
+                    var prev_trackingOrigin = XRDevice.trackingOriginMode;
                     XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale);
+                    if (prev_trackingOrigin == XRDevice.trackingOriginMode)
+                    {
+                        XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
+                    }
+#else
+                    XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale);
+#endif
                     break;
             }
         }

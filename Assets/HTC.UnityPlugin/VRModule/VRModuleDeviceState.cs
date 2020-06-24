@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -32,6 +32,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         DaydreamController,
         ViveFocusHMD,
         ViveFocusFinch,
+        ViveFocusChirp,
         OculusGoController,
         OculusGearVrController,
         WMRHMD,
@@ -46,6 +47,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         IndexHMD,
         IndexControllerLeft,
         IndexControllerRight,
+        MagicLeapHMD,
+        MagicLeapController,
     }
 
     public enum VRModuleRawButton

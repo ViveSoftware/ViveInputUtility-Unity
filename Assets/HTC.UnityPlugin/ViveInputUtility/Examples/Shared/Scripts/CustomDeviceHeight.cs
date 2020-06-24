@@ -1,8 +1,11 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEngine;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -34,6 +37,8 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.onActiveModuleChanged += OnActiveModuleChanged;
             VRModule.Initialize();
+
+            UpdateHeight();
         }
 
         private void OnDisable()
@@ -55,6 +60,27 @@ namespace HTC.UnityPlugin.Vive
                 case VRModuleActiveEnum.DayDream:
                     transform.localPosition = new Vector3(pos.x, m_height, pos.y);
                     break;
+#if VIU_OCULUSVR
+                case VRModuleActiveEnum.OculusVR:
+                    if (OVRPlugin.GetSystemHeadsetType().Equals(OVRPlugin.SystemHeadset.Oculus_Go))
+                    {
+                        transform.localPosition = new Vector3(pos.x, m_height, pos.y);
+                    }
+                    break;
+#endif
+#if UNITY_2019_2_OR_NEWER && !UNITY_2019_3_OR_NEWER
+                case VRModuleActiveEnum.UnityNativeVR:
+                    if (XRDevice.model.Equals("Oculus Go"))
+                    {
+                        transform.localPosition = new Vector3(pos.x, m_height, pos.y);
+                    }
+                    break;
+#endif
+#if UNITY_2019_3_OR_NEWER && UNITY_ANDROID
+                case VRModuleActiveEnum.UnityXR:
+                    transform.localPosition = new Vector3(pos.x, m_height, pos.y);
+                    break;
+#endif
             }
         }
     }

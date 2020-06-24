@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
@@ -11,13 +11,15 @@ public class ControllerManagerSample : MonoBehaviour
     {
         None,
         ActiveOnGripped,
-        ToggleByDoubleGrip,
+        ToggleByDoubleGrip
     }
 
     public enum LaserPointerActiveModeEnum
     {
         None,
         ToggleByMenuClick,
+        ActiveOnPadPressed,
+        ToggleByTriggerClick
     }
 
     public enum CurvePointerActiveModeEnum
@@ -58,6 +60,9 @@ public class ControllerManagerSample : MonoBehaviour
     private bool m_leftCustomModelActive;
     private bool m_leftLaserPointerActive;
     private bool m_leftCurvePointerActive;
+
+    private bool isLeftStickyGrab = false;
+    private bool isRightStickyGrab = false;
 
     private HashSet<GameObject> rightGrabbingSet = new HashSet<GameObject>();
     private HashSet<GameObject> leftGrabbingSet = new HashSet<GameObject>();
@@ -224,6 +229,23 @@ public class ControllerManagerSample : MonoBehaviour
                     needUpdate = true;
                 }
                 break;
+            case LaserPointerActiveModeEnum.ToggleByTriggerClick:
+                if (ViveInput.GetPressUpEx(HandRole.RightHand, ControllerButton.Trigger))
+                {
+                    ToggleRightLaserPointer();
+                    needUpdate = true;
+                }
+
+                if (ViveInput.GetPressUpEx(HandRole.LeftHand, ControllerButton.Trigger))
+                {
+                    ToggleLeftLaserPointer();
+                    needUpdate = true;
+                }
+                break;
+            case LaserPointerActiveModeEnum.ActiveOnPadPressed:
+                needUpdate |= SetRightLaserPointerActive(ViveInput.GetPressEx(HandRole.RightHand, ControllerButton.Pad));
+                needUpdate |= SetLeftLaserPointerActive(ViveInput.GetPressEx(HandRole.LeftHand, ControllerButton.Pad));
+                break;
         }
 
         switch (curvePointerActiveMode)
@@ -304,12 +326,44 @@ public class ControllerManagerSample : MonoBehaviour
                 break;
         }
     }
+    public void OnStickyGrabbed(StickyGrabbable grabbedObj)
+    {
+        ViveColliderButtonEventData viveEventData;
+        if (!grabbedObj.grabbedEvent.TryGetViveButtonEventData(out viveEventData))
+        {
+            return;
+        }
+        UpdateActivity();
+        switch (viveEventData.viveRole.ToRole<HandRole>())
+        {
+            case HandRole.RightHand:
+                if (rightGrabbingSet.Count > 0 || isRightStickyGrab)
+                {
+                    return;
+                }
+                if (rightGrabbingSet.Add(grabbedObj.gameObject) && rightGrabbingSet.Count == 1)
+                {
+                    UpdateActivity();
+                }
+                break;
 
+            case HandRole.LeftHand:
+                if (leftGrabbingSet.Count > 0 || isLeftStickyGrab)
+                {
+                    return;
+                }
+                if (leftGrabbingSet.Add(grabbedObj.gameObject) && leftGrabbingSet.Count == 1)
+                {
+                    UpdateActivity();
+                }
+                break;
+        }
+    }
     public void OnRelease(BasicGrabbable releasedObj)
     {
         ViveColliderButtonEventData viveEventData;
         if (!releasedObj.grabbedEvent.TryGetViveButtonEventData(out viveEventData)) { return; }
-
+        UpdateActivity();
         switch (viveEventData.viveRole.ToRole<HandRole>())
         {
             case HandRole.RightHand:
@@ -327,14 +381,63 @@ public class ControllerManagerSample : MonoBehaviour
                 break;
         }
     }
+    public void OnLetGo(BasicGrabbable releaseObj)
+    {
+        leftGrabbingSet.Clear();
+        rightGrabbingSet.Clear();
+        UpdateActivity();
+    }
 
+    public void OnStickyLetGo(StickyGrabbable releaseObj)
+    {
+        leftGrabbingSet.Clear();
+        rightGrabbingSet.Clear();
+        UpdateActivity();
+    }
+    public void OnStickyRelease(StickyGrabbable releasedObj)
+    {
+        UpdateActivity();
+
+        ViveColliderButtonEventData viveEventData;
+        if (!releasedObj.grabbedEvent.TryGetViveButtonEventData(out viveEventData)) { return; }
+
+        switch (viveEventData.viveRole.ToRole<HandRole>())
+        {
+            case HandRole.RightHand:
+
+                if (rightGrabbingSet.Remove(releasedObj.gameObject) && rightGrabbingSet.Count == 0)
+                {
+                    isRightStickyGrab = false;
+                    UpdateActivity();
+                }
+                break;
+
+            case HandRole.LeftHand:
+
+                if (leftGrabbingSet.Remove(releasedObj.gameObject) && leftGrabbingSet.Count == 0)
+                {
+                    isLeftStickyGrab = false;
+                    UpdateActivity();
+                }
+                break;
+        }
+    }
+    public void OnDropped(BasicGrabbable grabbedObj)
+    {
+        OnRelease(grabbedObj);
+    }
+    public void OnDropped(StickyGrabbable grabbedObj)
+    {
+        OnStickyRelease(grabbedObj);
+    }
     public void UpdateActivity()
     {
-        var rightRenderModelShouldActive = !m_rightCustomModelActive && (!hideRenderModelOnGrab || rightGrabbingSet.Count == 0);
+        //var rightRenderModelShouldActive = !m_rightCustomModelActive && (!hideRenderModelOnGrab || rightGrabbingSet.Count == 0);
+        var rightRenderModelShouldActive = !hideRenderModelOnGrab || rightGrabbingSet.Count == 0;
         var rightCustomModelShouldActive = m_rightCustomModelActive;
         var rightLaserPointerShouldActive = m_rightLaserPointerActive;
         var rightCurvePointerShouldActive = m_rightCurvePointerActive;
-        var rightGraggerShouldActive = !m_rightLaserPointerActive && !m_rightCustomModelActive && !m_rightCurvePointerActive;
+        var rightGrabberShouldActive = !m_rightLaserPointerActive && !m_rightCustomModelActive && !m_rightCurvePointerActive;
 
         if (rightRenderModel != null && rightRenderModel.activeSelf != rightRenderModelShouldActive)
         {
@@ -356,16 +459,17 @@ public class ControllerManagerSample : MonoBehaviour
             rightCurvePointer.SetActive(rightCurvePointerShouldActive);
         }
 
-        if (rightGrabber != null && rightGrabber.activeSelf != rightGraggerShouldActive)
+        if (rightGrabber != null && rightGrabber.activeSelf != rightGrabberShouldActive)
         {
-            rightGrabber.SetActive(rightGraggerShouldActive);
+            rightGrabber.SetActive(rightGrabberShouldActive);
         }
 
-        var leftRenderModelShouldActive = !m_leftCustomModelActive && (!hideRenderModelOnGrab || leftGrabbingSet.Count == 0);
+        //      var leftRenderModelShouldActive = !m_leftCustomModelActive && (!hideRenderModelOnGrab || leftGrabbingSet.Count == 0);
+        var leftRenderModelShouldActive = !hideRenderModelOnGrab || leftGrabbingSet.Count == 0;
         var leftCustomModelShouldActive = m_leftCustomModelActive;
         var leftLaserPointerShouldActive = m_leftLaserPointerActive;
         var leftCurvePointerShouldActive = m_leftCurvePointerActive;
-        var leftGraggerShouldActive = !m_leftLaserPointerActive && !m_leftCustomModelActive && !m_leftCurvePointerActive;
+        var leftGrabberShouldActive = !m_leftLaserPointerActive && !m_leftCustomModelActive && !m_leftCurvePointerActive;
 
         if (leftRenderModel != null && leftRenderModel.activeSelf != leftRenderModelShouldActive)
         {
@@ -387,9 +491,9 @@ public class ControllerManagerSample : MonoBehaviour
             leftCurvePointer.SetActive(leftCurvePointerShouldActive);
         }
 
-        if (leftGrabber != null && leftGrabber.activeSelf != leftGraggerShouldActive)
+        if (leftGrabber != null && leftGrabber.activeSelf != leftGrabberShouldActive)
         {
-            leftGrabber.SetActive(leftGraggerShouldActive);
+            leftGrabber.SetActive(leftGrabberShouldActive);
         }
     }
 }

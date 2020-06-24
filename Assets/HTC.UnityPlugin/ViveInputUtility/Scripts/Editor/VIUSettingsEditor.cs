@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -9,10 +9,12 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+
 #if UNITY_2018_1_OR_NEWER
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 #endif
+
 using GraphicsDeviceType = UnityEngine.Rendering.GraphicsDeviceType;
 
 
@@ -105,6 +107,7 @@ namespace HTC.UnityPlugin.Vive
             public static readonly VRSDK OpenVR = new VRSDK("OpenVR", true);
             public static readonly VRSDK Daydream = new VRSDK("daydream");
             public static readonly VRSDK MockHMD = new VRSDK("MockHMD");
+            public static readonly VRSDK WindowsMR = new VRSDK("WindowsMR");
 
             public static bool vrEnabled
             {
@@ -119,7 +122,11 @@ namespace HTC.UnityPlugin.Vive
                     if (vrEnabled != value)
                     {
                         s_isDirty = true;
+#if UNITY_2018_1_OR_NEWER
+                        s_vrEnabled = value && (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME));
+#else
                         s_vrEnabled = value;
+#endif
                     }
                 }
             }
@@ -323,6 +330,7 @@ namespace HTC.UnityPlugin.Vive
             private static bool m_wasAdded;
             private static ListRequest m_listRequest;
             private static AddRequest m_addRequest;
+            private static string s_fallbackIdentifier;
 
             public static bool isPreparingList
             {
@@ -337,7 +345,7 @@ namespace HTC.UnityPlugin.Vive
                         case StatusCode.Failure:
                             if (!s_wasPreparing)
                             {
-                                Debug.LogError("Something wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
+                                Debug.LogError("Something wrong when adding package to list. error:" + m_listRequest.Error.errorCode + "(" + m_listRequest.Error.message + ")");
                             }
                             break;
                         case StatusCode.Success:
@@ -361,13 +369,26 @@ namespace HTC.UnityPlugin.Vive
                         case StatusCode.Failure:
                             if (!m_wasAdded)
                             {
-                                Debug.LogError("Something wrong when adding package to list. error:" + m_addRequest.Error.errorCode + "(" + m_addRequest.Error.message + ")");
+                                AddRequest request = m_addRequest;
+                                m_addRequest = null;
+                                if (string.IsNullOrEmpty(s_fallbackIdentifier))
+                                {
+                                    Debug.LogError("Something wrong when adding package to list. error:" + request.Error.errorCode + "(" + request.Error.message + ")");
+                                }
+                                else
+                                {
+                                    Debug.Log("Failed to install package: \"" + request.Error.message + "\". Retry with fallback identifier \"" + s_fallbackIdentifier + "\"");
+                                    AddToPackageList(s_fallbackIdentifier);
+                                }
+
+                                s_fallbackIdentifier = null;
                             }
                             break;
                         case StatusCode.Success:
                             if (!m_wasAdded)
                             {
                                 m_addRequest = null;
+                                s_fallbackIdentifier = null;
                                 ResetPackageList();
                             }
                             break;
@@ -380,7 +401,11 @@ namespace HTC.UnityPlugin.Vive
             public static void PreparePackageList()
             {
                 if (m_listRequest != null) { return; }
+#if UNITY_2019_3_OR_NEWER
+                m_listRequest = Client.List(true, true);
+#else
                 m_listRequest = Client.List(true);
+#endif
             }
 
             public static void ResetPackageList()
@@ -396,20 +421,33 @@ namespace HTC.UnityPlugin.Vive
                 return m_listRequest.Result.Any(pkg => pkg.name == name);
             }
 
-            public static void AddToPackageList(string name)
+            public static void AddToPackageList(string identifier, string fallbackIdentifier = null)
             {
                 Debug.Assert(m_addRequest == null);
-                m_addRequest = Client.Add(name);
+
+                m_addRequest = Client.Add(identifier);
+                s_fallbackIdentifier = fallbackIdentifier;
+            }
+
+            public static PackageCollection GetPackageList()
+            {
+                if (m_listRequest == null || m_listRequest.Result == null)
+                {
+                    return null;
+                }
+
+                return m_listRequest.Result;
             }
 #else
             public static bool isPreparingList { get { return false; } }
             public static bool isAddingToList { get { return false; } }
             public static void PreparePackageList() { }
             public static void ResetPackageList() { }
-            public static bool IsPackageInList(string name) { return true; }
-            public static void AddToPackageList(string name) { }
+            public static bool IsPackageInList(string name) { return false; }
+            public static void AddToPackageList(string identifier, string fallbackIdentifier = null) { }
 #endif
         }
+
         private abstract class VRPlatformSetting
         {
             public bool isStandaloneVR { get { return requirdPlatform == BuildTargetGroup.Standalone; } }
@@ -426,11 +464,6 @@ namespace HTC.UnityPlugin.Vive
         private static VRPlatformSetting[] s_platformSettings;
 
         public const string URL_VIU_GITHUB_RELEASE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
-        public const string URL_STEAM_VR_PLUGIN = "https://www.assetstore.unity3d.com/en/#!/content/32647";
-        public const string URL_OCULUS_VR_PLUGIN = "https://www.assetstore.unity3d.com/en/#!/content/82022";
-        public const string URL_GOOGLE_VR_PLUGIN = "https://developers.google.com/vr/develop/unity/download";
-        public const string URL_WAVE_VR_PLUGIN = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
-        public const string URL_WAVE_VR_6DOF_SUMULATOR_USAGE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Wave-VR-6-DoF-Controller-Simulator";
 
         private static Vector2 s_scrollValue = Vector2.zero;
         private static float s_warningHeight;
@@ -456,6 +489,7 @@ namespace HTC.UnityPlugin.Vive
         public static ISupportedSDK OculusSDK { get { return VRSDKSettings.Oculus; } }
         public static ISupportedSDK DaydreamSDK { get { return VRSDKSettings.Daydream; } }
         public static ISupportedSDK MockHMDSDK { get { return VRSDKSettings.MockHMD; } }
+        public static ISupportedSDK WindowsMRSDK { get { return VRSDKSettings.WindowsMR; } }
         public static void ApplySDKChanges() { VRSDKSettings.ApplyChanges(); }
 
         public static BuildTargetGroup activeBuildTargetGroup { get { return BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget); } }
@@ -546,7 +580,9 @@ namespace HTC.UnityPlugin.Vive
             PlayerSettings.SetGraphicsAPIs(buildTarget, types);
         }
 
+#pragma warning disable 0618
         [PreferenceItem("VIU Settings")]
+#pragma warning restore 0618
         private static void OnVIUPreferenceGUI()
         {
 #if UNITY_2017_1_OR_NEWER
@@ -608,12 +644,19 @@ namespace HTC.UnityPlugin.Vive
                 EditorGUI.indentLevel += 2;
 
                 // on Windows, following preferences is stored at HKEY_CURRENT_USER\Software\Unity Technologies\Unity Editor 5.x\
+#if UNITY_2019_1_OR_NEWER
+                if (!EditorPrefs.GetBool("SdkUseEmbedded") && string.IsNullOrEmpty(EditorPrefs.GetString("AndroidSdkRoot")))
+#else
                 if (string.IsNullOrEmpty(EditorPrefs.GetString("AndroidSdkRoot")))
+#endif
                 {
                     EditorGUILayout.HelpBox("AndroidSdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
                 }
-
+#if UNITY_2018_3_OR_NEWER
+                if (!EditorPrefs.GetBool("JdkUseEmbedded") && string.IsNullOrEmpty(EditorPrefs.GetString("JdkPath")))
+#else
                 if (string.IsNullOrEmpty(EditorPrefs.GetString("JdkPath")))
+#endif
                 {
                     EditorGUILayout.HelpBox("JdkPath is empty. Setup at Edit -> Preferences... -> External Tools -> Android JDK", MessageType.Warning);
                 }
@@ -725,11 +768,10 @@ namespace HTC.UnityPlugin.Vive
                 if (GUILayout.Button("Use Default Settings"))
                 {
                     AssetDatabase.DeleteAsset(assetPath);
-                    supportSimulator = canSupportSimulator;
-                    supportOpenVR = canSupportOpenVR;
-                    supportOculus = canSupportOculus;
-                    supportDaydream = canSupportDaydream;
-                    supportWaveVR = canSupportWaveVR;
+                    foreach (var ps in s_platformSettings)
+                    {
+                        ps.support = ps.canSupport;
+                    }
 
                     VRSDKSettings.ApplyChanges();
                 }
@@ -848,11 +890,11 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private static void ShowAddPackageButton(string displayName, string pkgName)
+        private static void ShowAddPackageButton(string displayName, string identifier, string fallbackIdentifier = null)
         {
-            if (GUILayout.Button(new GUIContent("Add " + displayName + " Package", "Add " + pkgName + " to Package Manager"), GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(new GUIContent("Add " + displayName + " Package", "Add " + identifier + " to Package Manager"), GUILayout.ExpandWidth(false)))
             {
-                PackageManagerHelper.AddToPackageList(pkgName);
+                PackageManagerHelper.AddToPackageList(identifier, fallbackIdentifier);
             }
         }
 

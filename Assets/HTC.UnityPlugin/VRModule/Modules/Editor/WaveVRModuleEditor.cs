@@ -1,7 +1,8 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using System;
 using System.Reflection;
+using HTC.UnityPlugin.Vive;
 using SymbolRequirement = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirement;
 using SymbolRequirementCollection = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirementCollection;
 
@@ -22,6 +23,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 symbol = "VIU_WAVEVR",
                 reqTypeNames = new string[] { "WaveVR" },
                 reqFileNames = new string[] { "WaveVR.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_RENDER",
+                reqTypeNames = new string[] { "WaveVR_Render" },
+                reqFileNames = new string[] { "WaveVR_Render.cs" },
             });
 
             Add(new SymbolRequirement()

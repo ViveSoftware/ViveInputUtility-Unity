@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 
@@ -20,6 +20,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusVR = 4,
         DayDream = 5,
         WaveVR = 6,
+        UnityXR = 7,
     }
 
     public enum VRModuleActiveEnum
@@ -32,6 +33,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusVR = VRModuleSelectEnum.OculusVR,
         DayDream = VRModuleSelectEnum.DayDream,
         WaveVR = VRModuleSelectEnum.WaveVR,
+        UnityXR = VRModuleSelectEnum.UnityXR,
     }
 
     public partial class VRModule : SingletonBehaviour<VRModule>

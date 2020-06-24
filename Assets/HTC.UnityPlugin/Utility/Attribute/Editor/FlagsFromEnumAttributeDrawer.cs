@@ -16,8 +16,6 @@ namespace HTC.UnityPlugin.Utility
 
         private bool m_foldoutOpen = false;
 
-        private static GUIContent GetTextContent(string text) { s_tempContent.text = text; return s_tempContent; }
-
         static FlagsFromEnumAttributeDrawer()
         {
             s_popup = new GUIStyle(EditorStyles.popup);
@@ -151,7 +149,7 @@ namespace HTC.UnityPlugin.Utility
                     var halfWidth = position.width * 0.5f;
                     if (GUI.Button(new Rect(position.x, position.y, halfWidth - 1, EditorGUIUtility.singleLineHeight), "All"))
                     {
-                        realMask = ~0ul;
+                        realMask = System.Runtime.InteropServices.Marshal.SizeOf(fieldInfo.FieldType) < sizeof(ulong) ? ~0u : ~0ul;
                         //m_foldoutOpen = false;
                     }
 

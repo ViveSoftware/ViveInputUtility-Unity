@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 
@@ -9,8 +9,9 @@ namespace HTC.UnityPlugin.Vive
         public const string DEFAULT_RESOURCE_PATH = "VIUSettings";
         public const string INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_TOOLTIP = "Set touchpad and joystick value individually for different controller type. For example, Vive Controller will have touchpad value but no thumbstick value, Oculus Touch will have thumbstick value but no touchpad value.";
         public const bool AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE = true;
-        public const float VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE = 0.15f;
+        public const float VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE = 0.25f;
         public const bool INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE = false;
+        public const string VIU_PACKAGE_NAME = "com.htc.upm.explab.vive-input-utility";
 
         [SerializeField]
         private bool m_autoCheckNewVIUVersion = AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE;

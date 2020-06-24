@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2018, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using System.Reflection;
 using SymbolRequirement = HTC.UnityPlugin.VRModuleManagement.VRModuleManagerEditor.SymbolRequirement;
@@ -148,6 +148,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             "System.Boolean",
                         },
                         bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_STEAMVR_2_6_0_OR_NEWER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Valve.VR.CVROverlay",
+                        name = "ShowKeyboard",
+                        argTypeNames = new string[]
+                        {
+                            "System.Int32",
+                            "System.Int32",
+                            "System.UInt32",
+                            "System.String",
+                            "System.UInt32",
+                            "System.String",
+                            "System.UInt64",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Instance,
                     }
                 },
             });

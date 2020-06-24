@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.ColliderEvent;
 using HTC.UnityPlugin.Utility;
@@ -44,18 +44,18 @@ namespace HTC.UnityPlugin.Vive
 #endif
         protected void FilterOutAssignedButton()
         {
-            if (EnumUtils.GetFlag(m_additionalButtons, (int)m_buttonTrigger)) { EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonTrigger, false); }
-            if (EnumUtils.GetFlag(m_additionalButtons, (int)m_buttonPadOrStick)) { EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonPadOrStick, false); }
-            if (EnumUtils.GetFlag(m_additionalButtons, (int)m_buttonFunctionKey)) { EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonFunctionKey, false); }
-            if (EnumUtils.GetFlag(m_additionalButtons, (int)m_buttonGripOrHandTrigger)) { EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonGripOrHandTrigger, false); }
+            EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonTrigger, false);
+            EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonPadOrStick, false);
+            EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonFunctionKey, false);
+            EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonGripOrHandTrigger, false);
         }
 
         protected virtual void Start()
         {
             buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonTrigger, ColliderButtonEventData.InputButton.Trigger));
-            buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonPadOrStick, ColliderButtonEventData.InputButton.PadOrStick));
-            buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonFunctionKey, ColliderButtonEventData.InputButton.FunctionKey));
-            buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonGripOrHandTrigger, ColliderButtonEventData.InputButton.GripOrHandTrigger));
+            if (m_buttonPadOrStick != ControllerButton.None) { buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonPadOrStick, ColliderButtonEventData.InputButton.PadOrStick)); }
+            if (m_buttonPadOrStick != ControllerButton.None) { buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonFunctionKey, ColliderButtonEventData.InputButton.FunctionKey)); }
+            if (m_buttonPadOrStick != ControllerButton.None) { buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonGripOrHandTrigger, ColliderButtonEventData.InputButton.GripOrHandTrigger)); }
 
             FilterOutAssignedButton();
 
