@@ -465,6 +465,8 @@ namespace HTC.UnityPlugin.Vive
 
         public const string URL_VIU_GITHUB_RELEASE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
 
+        private const string DEFAULT_ASSET_PATH = "Assets/VIUSettings/Resources/VIUSettings.asset";
+
         private static Vector2 s_scrollValue = Vector2.zero;
         private static float s_warningHeight;
         private static GUIStyle s_labelStyle;
@@ -500,10 +502,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (s_defaultAssetPath == null)
                 {
-                    var ms = MonoScript.FromScriptableObject(VIUSettings.Instance);
-                    var path = AssetDatabase.GetAssetPath(ms);
-                    path = System.IO.Path.GetDirectoryName(path);
-                    s_defaultAssetPath = path.Substring(0, path.Length - "Scripts".Length) + "Resources/" + VIUSettings.DEFAULT_RESOURCE_PATH + ".asset";
+                    s_defaultAssetPath = DEFAULT_ASSET_PATH;
                 }
 
                 return s_defaultAssetPath;
@@ -745,11 +744,12 @@ namespace HTC.UnityPlugin.Vive
             ApplySDKChanges();
 
             var assetPath = AssetDatabase.GetAssetPath(VIUSettings.Instance);
-
+            
             if (s_guiChanged)
             {
                 if (string.IsNullOrEmpty(assetPath))
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(defaultAssetPath));
                     AssetDatabase.CreateAsset(VIUSettings.Instance, defaultAssetPath);
                 }
 
