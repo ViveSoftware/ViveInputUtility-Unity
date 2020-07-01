@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -472,6 +473,7 @@ namespace HTC.UnityPlugin.Vive
         private static GUIStyle s_labelStyle;
         private static bool s_guiChanged;
         private static string s_defaultAssetPath;
+        private static string s_VIUPackageName = null;
 
         private static Foldouter s_autoBindFoldouter = new Foldouter();
         private static Foldouter s_bindingUIFoldouter = new Foldouter();
@@ -551,6 +553,29 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
                 return false;
+            }
+        }
+
+        public static string VIUPackageName
+        {
+            get
+            {
+                if (s_VIUPackageName == null)
+                {
+                    MonoScript script = MonoScript.FromScriptableObject(VIUSettings.Instance);
+                    string settingsPath = AssetDatabase.GetAssetPath(script);
+                    Match match = Regex.Match(settingsPath, @"^Packages\/([^\/]+)\/");
+                    if (match.Success)
+                    {
+                        s_VIUPackageName = match.Groups[1].Value;
+                    }
+                    else
+                    {
+                        s_VIUPackageName = "";
+                    }
+                }
+
+                return s_VIUPackageName;
             }
         }
 

@@ -9,13 +9,14 @@ namespace HTC.UnityPlugin.Vive
 {
     public class OculusRecommendedSettings : VIUVersionCheck.RecommendedSettingCollection
     {
-        private const string ASMDEFS_PATH = "Packages/" + VIUSettings.VIU_PACKAGE_NAME + "/ViveInputUtility/.asmdefs/Oculus/";
         private const string OCULUS_SDK_PATH = "Assets/Oculus/";
         private const string AVATAR_ASMDEF_FILE_NAME = "Oculus.Avatar.asmdef";
         private const string LIPSYNC_ASMDEF_FILE_NAME = "Oculus.LipSync.asmdef";
         private const string LIPSYNC_EDITOR_ASMDEF_FILE_NAME = "Oculus.LipSync.Editor.asmdef";
         private const string SPATIALIZER_ASMDEF_FILE_NAME = "Oculus.Spatializer.asmdef";
         private const string SPATIALIZER_EDITOR_ASMDEF_FILE_NAME = "Oculus.Spatializer.Editor.asmdef";
+
+        private static readonly string ASMDEFS_PATH = "Packages/" + VIUSettingsEditor.VIUPackageName + "/ViveInputUtility/.asmdefs/Oculus/";
 
         public OculusRecommendedSettings()
         {

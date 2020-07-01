@@ -306,7 +306,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_PACKAGE",
-                validateFunc = (req) => VIUSettingsEditor.PackageManagerHelper.IsPackageInList(VIUSettings.VIU_PACKAGE_NAME),
+                validateFunc = (req) => VIUSettingsEditor.PackageManagerHelper.IsPackageInList(VIUSettingsEditor.VIUPackageName),
             });
 
             s_symbolReqList.Add(new SymbolRequirement()
