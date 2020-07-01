@@ -260,10 +260,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         Type type;
                         if (!s_foundTypes.TryGetValue(method.typeName, out type)) { continue; }
 
-                        var argTypes = new Type[method.argTypeNames == null ? 0 : method.argTypeNames.Length];
+                        if (method.argTypeNames == null)
+                        {
+                            continue;
+                        }
+
+                        bool isAllArgTypesFound = true;
+                        var argTypes = new Type[method.argTypeNames.Length];
                         for (int i = argTypes.Length - 1; i >= 0; --i)
                         {
-                            if (!s_foundTypes.TryGetValue(method.argTypeNames[i], out argTypes[i])) { continue; }
+                            if (!s_foundTypes.TryGetValue(method.argTypeNames[i], out argTypes[i]))
+                            {
+                                isAllArgTypesFound = false;
+                                break;
+                            }
+                        }
+
+                        if (!isAllArgTypesFound)
+                        {
+                            continue;
                         }
 
                         if (type.GetMethod(method.name, method.bindingAttr, null, CallingConventions.Any, argTypes, method.argModifiers ?? new ParameterModifier[0]) == null) { continue; }
