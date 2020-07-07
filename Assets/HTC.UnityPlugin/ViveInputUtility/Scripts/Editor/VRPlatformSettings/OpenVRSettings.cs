@@ -343,7 +343,8 @@ namespace HTC.UnityPlugin.Vive
     {
         public const string URL_STEAM_VR_PLUGIN = "https://assetstore.unity.com/packages/tools/integration/steamvr-plugin-32647";
         private const string OPENVR_PACKAGE_NAME = "com.unity.xr.openvr.standalone";
-        private const string OPENVR_XR_PACKAGE_NAME = "com.valve.openvr";
+        private const string OPENVR_XR_PACKAGE_NAME_OLD = "com.valve.openvr";
+        private const string OPENVR_XR_PACKAGE_NAME = "com.valvesoftware.unity.openvr";
         private const string OPNEVR_XR_PACKAGE_GIT = "https://github.com/ValveSoftware/steamvr_unity_plugin.git#UnityXRPlugin";
 
         public static bool canSupportOpenVR
@@ -375,9 +376,9 @@ namespace HTC.UnityPlugin.Vive
                 {
 
 #if UNITY_2020_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME);
+                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && (PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD));
 #elif UNITY_2018_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && (PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_PACKAGE_NAME));
+                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && ((PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD)) || PackageManagerHelper.IsPackageInList(OPENVR_PACKAGE_NAME));
 #elif UNITY_5_5_OR_NEWER
                     return activeBuildTargetGroup == BuildTargetGroup.Standalone;
 #else
@@ -409,11 +410,11 @@ namespace HTC.UnityPlugin.Vive
                     VIUSettings.activateSteamVRModule = value;
 #if UNITY_2020_1_OR_NEWER
                     XRPluginManagementUtils.SetXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_CLASS_NAME, requirdPlatform, value);
-                    OpenVRSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME);
+                    OpenVRSDK.enabled = value && (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || !PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD));
                     VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
 #elif UNITY_2019_3_OR_NEWER
                     XRPluginManagementUtils.SetXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_CLASS_NAME, requirdPlatform, value);
-                    OpenVRSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME);
+                    OpenVRSDK.enabled = value && (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || !PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD));
                     VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
                     VIUSettings.activateUnityNativeVRModule = value || supportOculus;
 #elif UNITY_5_5_OR_NEWER
@@ -466,6 +467,14 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         ShowAddPackageButton("OpenVR XR Plugin", OPENVR_XR_PACKAGE_NAME, OPNEVR_XR_PACKAGE_GIT);
+                    }
+                    else if (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "OpenVR XR Plugin package required."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowAddPackageButton("OpenVR XR Plugin", OPENVR_XR_PACKAGE_NAME_OLD, OPNEVR_XR_PACKAGE_GIT);
                     }
 #endif
 #if !UNITY_2020_1_OR_NEWER
