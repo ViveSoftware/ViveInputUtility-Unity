@@ -5,7 +5,7 @@ using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.IO;
 using UnityEngine;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
 using Valve.VR;
 #endif
 
@@ -45,7 +45,7 @@ namespace HTC.UnityPlugin.Vive
             set
             {
                 m_configPath = value;
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
                 if (m_externalCamera != null && !string.IsNullOrEmpty(m_configPath) && File.Exists(m_configPath))
                 {
                     m_externalCamera.configPath = m_configPath;
@@ -85,7 +85,7 @@ namespace HTC.UnityPlugin.Vive
         {
             get
             {
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
                 return isActiveAndEnabled && m_externalCamera != null && m_externalCamera.isActiveAndEnabled;
 #else
                 return false;
@@ -128,7 +128,7 @@ namespace HTC.UnityPlugin.Vive
         }
 #endif
 
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
         private SteamVR_ExternalCamera m_externalCamera;
         private RigidPose m_staticExCamPose = RigidPose.identity;
 

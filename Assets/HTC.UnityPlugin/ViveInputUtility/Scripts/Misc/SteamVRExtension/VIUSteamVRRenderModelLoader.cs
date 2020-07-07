@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
 using Valve.VR;
 #endif
 
@@ -87,7 +87,7 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
                 }
             }
 
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
             private static readonly bool s_verbose = false;
             // Should not do job after interrupted
             public void InterruptAndComplete()

@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using System.Text;
@@ -27,7 +27,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public const string OPENVR_XR_LOADER_NAME = "Open VR Loader";
         public const string OPENVR_XR_LOADER_CLASS_NAME = "OpenVRLoader";
 
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
         public class ActionArray<T> where T : struct
         {
             private static readonly EnumUtils.EnumDisplayInfo s_enumInfo;
