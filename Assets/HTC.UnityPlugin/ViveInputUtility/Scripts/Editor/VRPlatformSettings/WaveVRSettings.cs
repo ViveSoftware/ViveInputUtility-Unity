@@ -61,9 +61,9 @@ namespace HTC.UnityPlugin.Vive
     {
         public const string URL_WAVE_VR_PLUGIN = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
         public const string URL_WAVE_VR_6DOF_SUMULATOR_USAGE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Wave-VR-6-DoF-Controller-Simulator";
-        private const string WAVEVR_XR_PACKAGE_NAME = "com.htc.wavevr";
-        private const string WAVEVR_LOADER_NAME = "Wave VR XR Loader";
-        private const string WAVEVR_LOADER_CLASS_NAME = "WaveVR_XRLoader";
+        private const string WAVE_XR_PACKAGE_NAME = "com.htc.wave.xrsdk";
+        private const string WAVE_XR_LOADER_NAME = "Wave XR Loader";
+        private const string WAVE_XR_LOADER_CLASS_NAME = "WaveXRLoader";
 
         public static bool canSupportWaveVR
         {
@@ -112,15 +112,17 @@ namespace HTC.UnityPlugin.Vive
 
             public override bool canSupport
             {
-#if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
                 get
                 {
-                    return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isWaveVRPluginDetected &&
-                           (VRModule.isWaveVRRenderDetected || PackageManagerHelper.IsPackageInList(WAVEVR_XR_PACKAGE_NAME));
-                }
+#if UNITY_2019_3_OR_NEWER
+                    return activeBuildTargetGroup == BuildTargetGroup.Android &&
+                           (VRModule.isWaveVRPluginDetected || PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME));
+#elif UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
+                    return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isWaveVRPluginDetected;
 #else
-                get { return false; }
+                    return false;
 #endif
+                }
             }
 
             public override bool support
@@ -131,13 +133,16 @@ namespace HTC.UnityPlugin.Vive
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateWaveVRModule) { return false; }
 
-#if !VIU_WAVEVR_3_0_0_OR_NEWER
-                    if (virtualRealitySupported) { return false; }
-#else
-                    if (!((VRModule.isWaveVRRenderDetected && MockHMDSDK.enabled) || XRPluginManagementUtils.IsXRLoaderEnabled(WAVEVR_LOADER_NAME, requirdPlatform)))
+#if VIU_XR_GENERAL_SETTINGS
+                    if (!(MockHMDSDK.enabled || XRPluginManagementUtils.IsXRLoaderEnabled(WAVE_XR_LOADER_NAME, requirdPlatform)))
                     {
                         return false;
                     }
+#endif
+#if VIU_WAVEVR_3_0_0_OR_NEWER
+                    if (!virtualRealitySupported) { return false; }
+#else
+                    if (virtualRealitySupported) { return false; }
 #endif
 
                     if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23) { return false; }
@@ -150,12 +155,6 @@ namespace HTC.UnityPlugin.Vive
 
                     if (value)
                     {
-#if VIU_WAVEVR_3_0_0_OR_NEWER
-                        virtualRealitySupported = value;
-#else
-                        virtualRealitySupported = false;
-#endif
-
                         if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel23)
                         {
                             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel23;
@@ -170,15 +169,15 @@ namespace HTC.UnityPlugin.Vive
                         supportOculusGo = false;
                     }
 
-#if VIU_WAVEVR_3_0_0_OR_NEWER
-                    if (virtualRealitySupported)
-                    {
-                        MockHMDSDK.enabled = value;
-                    }
-
-                    XRPluginManagementUtils.SetXRLoaderEnabled(WAVEVR_LOADER_CLASS_NAME, requirdPlatform, value);
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+                    XRPluginManagementUtils.SetXRLoaderEnabled(WAVE_XR_LOADER_CLASS_NAME, requirdPlatform, value);
+                    MockHMDSDK.enabled = value && !PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME);
+                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
+#elif VIU_WAVEVR_3_0_0_OR_NEWER
+                    MockHMDSDK.enabled = value;
+#else
+                    virtualRealitySupported = false;
 #endif
-
                     VIUSettings.activateWaveVRModule = value;
                 }
 #else
@@ -210,6 +209,16 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
                     }
+#if UNITY_2019_3_OR_NEWER
+                    else if (!PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "Wave XRSDK Plugin package required."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowAddPackageButton("Wave XRSDK Package", WAVE_XR_PACKAGE_NAME);
+                    }
+#endif
                     else if (!VRModule.isWaveVRPluginDetected)
                     {
                         GUI.enabled = false;

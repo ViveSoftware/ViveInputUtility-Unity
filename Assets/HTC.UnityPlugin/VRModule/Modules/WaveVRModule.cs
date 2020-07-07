@@ -21,13 +21,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             false;
 #endif
 
-        public static readonly bool isWaveVRRenderDetected =
-#if VIU_WAVEVR_RENDER
-            true;
-#else
-            false;
-#endif
-
         public static readonly bool isWaveVRSupported =
 #if VIU_WAVEVR_SUPPORT
             true;
@@ -42,7 +35,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override int moduleIndex { get { return (int)VRModuleSelectEnum.WaveVR; } }
 
-#if VIU_WAVEVR && VIU_WAVEVR_RENDER && UNITY_ANDROID
+#if VIU_WAVEVR && UNITY_ANDROID
         private class CameraCreator : VRCameraHook.CameraCreator
         {
             public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
@@ -298,10 +291,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool ShouldActiveModule()
         {
-#if UNITY_EDITOR && !VIU_WAVEVR_2_1_0_OR_NEWER
-            return false;
-#elif VIU_WAVEVR_3_1_3_OR_NEWER && UNITY_EDITOR
+#if VIU_WAVEVR_3_1_3_OR_NEWER && UNITY_EDITOR
             return UnityEditor.EditorPrefs.GetBool("WaveVR/DirectPreview/Enable Direct Preview", false);
+#elif !VIU_WAVEVR_2_1_0_OR_NEWER && UNITY_EDITOR
+            return false;
 #else
             return VIUSettings.activateWaveVRModule;
 #endif
