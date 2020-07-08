@@ -16,6 +16,22 @@ namespace HTC.UnityPlugin.Vive
         private static string s_defaultAssetPath;
         private static string s_partialActionDirPath;
 
+        public bool HTCRegistryLicenseAccepted
+        {
+            get
+            {
+                return m_HTCRegistryLicenseAccepted;
+            }
+            set
+            {
+                m_HTCRegistryLicenseAccepted = value;
+                EditorUtility.SetDirty(this);
+            }
+        }
+
+        [SerializeField] 
+        private bool m_HTCRegistryLicenseAccepted;
+
         [SerializeField]
         private List<string> m_ignoreKeys;
 

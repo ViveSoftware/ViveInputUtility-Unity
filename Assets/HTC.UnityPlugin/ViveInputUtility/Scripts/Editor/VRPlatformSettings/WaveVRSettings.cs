@@ -1,6 +1,8 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
+using HTC.UPMRegistryTool.Editor.Configs;
+using HTC.UPMRegistryTool.Editor.Utils;
 using System;
 using System.IO;
 using System.Linq;
@@ -198,6 +200,7 @@ namespace HTC.UnityPlugin.Vive
                 else
                 {
                     const float wvrToggleWidth = 226f;
+                    bool shouldShowRegistryGroup = false;
                     GUILayout.BeginHorizontal();
                     Foldouter.ShowFoldoutBlank();
 #if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
@@ -216,7 +219,24 @@ namespace HTC.UnityPlugin.Vive
                         ShowToggle(new GUIContent(title, "Wave XRSDK Plugin package required."), false, GUILayout.Width(230f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
-                        ShowAddPackageButton("Wave XRSDK Package", WAVE_XR_PACKAGE_NAME);
+
+                        bool hasHTCRegistryAdded = ManifestUtils.CheckRegistryExists();
+                        if (hasHTCRegistryAdded)
+                        {
+                            ShowAddPackageButton("Wave XRSDK", WAVE_XR_PACKAGE_NAME);
+                        }
+                        else
+                        {
+                            bool accepted = VIUProjectSettings.Instance.HTCRegistryLicenseAccepted;
+                            GUI.enabled = !accepted ? false : GUI.enabled;
+                            if (GUILayout.Button(new GUIContent("Add HTC Registry", "Please accept the license before adding HTC registry.")))
+                            {
+                                ManifestUtils.UpdateRegistryToManifest();
+                            }
+                            GUI.enabled = !accepted ? true : GUI.enabled;
+                        }
+
+                        shouldShowRegistryGroup = !hasHTCRegistryAdded;
                     }
 #endif
                     else if (!VRModule.isWaveVRPluginDetected)
@@ -233,6 +253,22 @@ namespace HTC.UnityPlugin.Vive
                     GUI.enabled = true;
 #endif
                     GUILayout.EndHorizontal();
+
+#if UNITY_2019_3_OR_NEWER
+                    if (shouldShowRegistryGroup)
+                    {
+                        GUILayout.BeginHorizontal();
+                        GUILayout.FlexibleSpace();
+                        ShowUrlLinkButton(RegistrySettings.Instance().GetLicenseURL(), "View License");
+                        GUILayout.EndHorizontal();
+
+                        GUILayout.BeginHorizontal();
+                        GUILayout.FlexibleSpace();
+                        bool accepted = VIUProjectSettings.Instance.HTCRegistryLicenseAccepted;
+                        VIUProjectSettings.Instance.HTCRegistryLicenseAccepted = ShowToggle(new GUIContent("I have read and accept the license"), accepted, GUILayout.Width(220.0f));
+                        GUILayout.EndHorizontal();
+                    }
+#endif
                 }
 
                 if (support && m_foldouter.isExpended)
