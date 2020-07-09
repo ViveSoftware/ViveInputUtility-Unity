@@ -1,0 +1,11 @@
+{
+  "ProjectManifestPath": "Packages/manifest.json",
+  "LicenseResourcePath": "LICENSE",
+  "Registry": {
+    "name": "HTC",
+    "url": "https://npm-registry.vive.com",
+    "scopes": [
+      "com.htc.upm"
+    ]
+  }
+}
