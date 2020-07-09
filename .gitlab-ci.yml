@@ -1,0 +1,81 @@
+stages:
+  - editor
+
+variables:
+  UNITY_COMMAND: "xvfb-run --auto-servernum --server-args='-screen 0 640x480x24' /opt/Unity/Editor/Unity -batchmode -nographics -logfile /dev/stdout -quit"
+
+.unity_activate: &unity_activate
+  eval ${UNITY_COMMAND} -username "${UNITY_EMAIL}" -password "${UNITY_PASSWORD}" -serial "${UNITY_SERIAL}"
+
+.unity_return_license: &unity_return_license
+  eval ${UNITY_COMMAND} -returnLicense
+
+.unity_template: &unity_template
+  image: gableroux/unity3d:${IMAGE_TAG}
+  script:
+    - eval ${UNITY_COMMAND} -projectPath .
+
+  after_script:
+    - *unity_return_license
+
+.unity_editor_template: &unity_editor_template
+  <<: *unity_template
+
+  before_script:
+    - *unity_activate
+
+.no_asmdef_unity_editor_template: &no_asmdef_unity_editor_template
+  <<: *unity_template
+
+  before_script:
+    - find './Assets/HTC.UnityPlugin/' -type f -name '*.asmdef*' -delete 
+    - find './Assets/HTC.UnityPlugin/' -type f -name '*.asmref*' -delete
+    - *unity_activate
+
+editor:5.6.3-asset:
+  <<: *no_asmdef_unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '5.6.3f1'
+
+editor:2017.4-asset:
+  <<: *no_asmdef_unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '2017.4.27f1-windows'
+    
+editor:2018.4-asset:
+  <<: *no_asmdef_unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '2018.4.24f1-windows'
+
+editor:2019.1-asset:
+  <<: *no_asmdef_unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '2019.1.14f1-windows'
+
+editor:2019.4-asset:
+  <<: *no_asmdef_unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '2019.4.2f1-windows'
+
+editor:2020.1b-asset:
+  <<: *no_asmdef_unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '2020.1.0b14-windows'
+
+editor:2019.4-package:
+  <<: *unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '2019.4.2f1-windows'
+
+editor:2020.1b-package:
+  <<: *unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '2020.1.0b14-windows'
