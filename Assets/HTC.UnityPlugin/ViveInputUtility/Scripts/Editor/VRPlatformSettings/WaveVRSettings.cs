@@ -226,30 +226,17 @@ namespace HTC.UnityPlugin.Vive
                         }
                         else
                         {
-                            if (GUILayout.Button(new GUIContent("Add HTC Registry", "Please accept the license before adding HTC registry.")))
+                            if (GUILayout.Button(new GUIContent("Add HTC Registry")))
                             {
-                                int result = EditorUtility.DisplayDialogComplex(
+                                bool result = EditorUtility.DisplayDialog(
                                     "Add HTC Registry",
-                                    "Do you want to add HTC registry to your project manifest? By clicking 'Add', you agree with the terms and conditions.",
+                                    "Do you want to add HTC registry to your project? By adding the registry in your 'Packages/manifest.json', VIU can install Wave XRSDK package for you. In addition, you can discover, install, update or remove the packages from HTC in the package manager window later.",
                                     "Add",
-                                    "Cancel",
-                                    "View License");
+                                    "Cancel");
 
-                                switch (result)
+                                if (result)
                                 {
-                                    // Add
-                                    case 0:
-                                        ManifestUtils.UpdateRegistryToManifest();
-                                        break;
-
-                                    // Cancel
-                                    case 1:
-                                        break;
-
-                                    // View License
-                                    case 2:
-                                        Application.OpenURL(RegistrySettings.Instance().GetLicenseURL());
-                                        break;
+                                    ManifestUtils.UpdateRegistryToManifest();
                                 }
                             }
                         }
