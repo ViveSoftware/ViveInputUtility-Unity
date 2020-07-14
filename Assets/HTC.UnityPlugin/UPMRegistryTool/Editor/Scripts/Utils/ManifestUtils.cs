@@ -1,4 +1,5 @@
-﻿using HTC.UPMRegistryTool.Editor.Configs;
+﻿#if UNITY_2018_1_OR_NEWER
+using HTC.UPMRegistryTool.Editor.Configs;
 using HTC.Newtonsoft.Json;
 using HTC.Newtonsoft.Json.Linq;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace HTC.UPMRegistryTool.Editor.Utils
                 return false;
             }
 
-            IList<JToken> registries = (IList<JToken>) manifestJson["scopedRegistries"];
+            IList<JToken> registries = (IList<JToken>)manifestJson["scopedRegistries"];
             foreach (JToken registryToken in registries)
             {
                 RegistrySettings.RegistryInfo registry = JsonConvert.DeserializeObject<RegistrySettings.RegistryInfo>(registryToken.ToString());
@@ -39,10 +40,10 @@ namespace HTC.UPMRegistryTool.Editor.Utils
             }
 
             // Add registry
-            IList<JToken> registries = (IList<JToken>) manifestJson["scopedRegistries"];
+            IList<JToken> registries = (IList<JToken>)manifestJson["scopedRegistries"];
             JToken newToken = JToken.Parse(JsonConvert.SerializeObject(RegistrySettings.Instance().Registry));
             registries.Add(newToken);
-            
+
             SaveProjectManifest(manifestJson.ToString());
         }
 
@@ -60,8 +61,8 @@ namespace HTC.UPMRegistryTool.Editor.Utils
                 return;
             }
 
-            IList<JToken> registries = (IList<JToken>) json["scopedRegistries"];
-            for (int i = registries.Count - 1; i >= 0 ; i--)
+            IList<JToken> registries = (IList<JToken>)json["scopedRegistries"];
+            for (int i = registries.Count - 1; i >= 0; i--)
             {
                 JToken registryToken = registries[i];
                 RegistrySettings.RegistryInfo registry = JsonConvert.DeserializeObject<RegistrySettings.RegistryInfo>(registryToken.ToString());
@@ -85,4 +86,5 @@ namespace HTC.UPMRegistryTool.Editor.Utils
             File.WriteAllText(RegistrySettings.Instance().ProjectManifestPath, content);
         }
     }
-}
+} 
+#endif
