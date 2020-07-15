@@ -12,6 +12,11 @@ variables:
 
 .unity_template: &unity_template
   image: gableroux/unity3d:${IMAGE_TAG}
+  cache:
+    key: "${CI_PROJECT_ID}-${CI_COMMIT_REF_SLUG}-${CI_JOB_NAME}"
+    paths:
+     - "Library/"
+
   script:
     - eval ${UNITY_COMMAND} -projectPath='.'
 
