@@ -13,7 +13,7 @@ variables:
 .unity_template: &unity_template
   image: gableroux/unity3d:${IMAGE_TAG}
   script:
-    - eval ${UNITY_COMMAND} -projectPath .
+    - eval ${UNITY_COMMAND} -projectPath='.'
 
   after_script:
     - *unity_return_license
