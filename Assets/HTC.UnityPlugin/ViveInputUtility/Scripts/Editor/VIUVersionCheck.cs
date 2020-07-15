@@ -358,8 +358,10 @@ namespace HTC.UnityPlugin.Vive
         private static UnityWebRequest GetUnityWebRequestAndSend(string url)
         {
             var webReq = new UnityWebRequest(url);
-#if UNITY_5_4_OR_NEWER
+#if UNITY_2017_2_OR_NEWER
             webReq.SendWebRequest();
+#elif UNITY_5_4_OR_NEWER
+            webReq.Send();
 #endif
             return webReq;
         }
