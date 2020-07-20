@@ -1,6 +1,6 @@
 ﻿#if UNITY_2018_1_OR_NEWER
-using HTC.Newtonsoft.Json;
-using HTC.Newtonsoft.Json.Serialization;
+using HTC.ViveInputUtility.Newtonsoft.Json;
+using HTC.ViveInputUtility.Newtonsoft.Json.Serialization;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;

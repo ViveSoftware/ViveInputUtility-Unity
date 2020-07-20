@@ -1,7 +1,7 @@
 ﻿#if UNITY_2018_1_OR_NEWER
 using HTC.UPMRegistryTool.Editor.Configs;
-using HTC.Newtonsoft.Json;
-using HTC.Newtonsoft.Json.Linq;
+using HTC.ViveInputUtility.Newtonsoft.Json;
+using HTC.ViveInputUtility.Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.IO;
 
