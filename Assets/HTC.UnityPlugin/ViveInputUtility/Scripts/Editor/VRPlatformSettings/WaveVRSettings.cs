@@ -211,26 +211,26 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
                     }
-#if UNITY_2019_3_OR_NEWER
+#if UNITY_2019_4_OR_NEWER
                     else if (!PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "Wave XRSDK Plugin package required."), false, GUILayout.Width(230f));
+                        ShowToggle(new GUIContent(title, "Wave XR Plugin package required."), false, GUILayout.Width(230f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
 
                         bool hasHTCRegistryAdded = ManifestUtils.CheckRegistryExists();
                         if (hasHTCRegistryAdded)
                         {
-                            ShowAddPackageButton("Wave XRSDK", WAVE_XR_PACKAGE_NAME);
+                            ShowAddPackageButton("Wave XR Plugin", WAVE_XR_PACKAGE_NAME);
                         }
                         else
                         {
-                            if (GUILayout.Button(new GUIContent("Add HTC Registry")))
+                            if (GUILayout.Button(new GUIContent("Add HTC VIVE Registry")))
                             {
                                 bool result = EditorUtility.DisplayDialog(
-                                    "Add HTC Registry",
-                                    "Do you want to add HTC registry to your project? By adding the registry in your 'Packages/manifest.json', VIU can install Wave XRSDK package for you. In addition, you can discover, install, update or remove the packages from HTC in the package manager window later.",
+                                    "Add HTC VIVE Registry",
+                                    "Do you want to add HTC VIVE registry to your project?\n\nBy adding the HTC VIVE registry (" + RegistrySettings.Instance().Registry.Url + ") in your 'Packages/manifest.json', VIU can install Wave XR Plugin packages for you.\n\nIn addition, you can discover, install, update or remove the packages from HTC VIVE in the package manager window later.",
                                     "Add",
                                     "Cancel");
 
