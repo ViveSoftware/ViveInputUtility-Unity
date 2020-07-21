@@ -302,6 +302,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public abstract class SymbolRequirementCollection : List<SymbolRequirement> { }
 
         private static List<SymbolRequirement> s_symbolReqList;
+        private static HashSet<string> s_referencedAssemblyNameSet;
 
         static VRModuleManagerEditor()
         {
@@ -499,35 +500,40 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static bool IsReferenced(Assembly assembly)
         {
-            // C# player referenced assemblies
-            foreach (AssemblyName asmName in typeof(VRModule).Assembly.GetReferencedAssemblies())
+            return GetReferencedAssemblyNameSet().Contains(assembly.GetName().Name);
+        }
+
+        private static HashSet<string> GetReferencedAssemblyNameSet()
+        {
+            if (s_referencedAssemblyNameSet != null)
             {
-                if (assembly.GetName().Name == asmName.Name)
-                {
-                    return true;
-                }
+                return s_referencedAssemblyNameSet;
+            }
+
+            s_referencedAssemblyNameSet = new HashSet<string>();
+            Assembly playerAssembly = typeof(VRModule).Assembly;
+            Assembly editorAssembly = typeof(VRModuleManagerEditor).Assembly;
+
+            // C# player referenced assemblies
+            foreach (AssemblyName asmName in playerAssembly.GetReferencedAssemblies())
+            {
+                s_referencedAssemblyNameSet.Add(asmName.Name);
             }
 
             // C# editor referenced assemblies
-            foreach (AssemblyName asmName in typeof(VRModuleManagerEditor).Assembly.GetReferencedAssemblies())
+            foreach (AssemblyName asmName in editorAssembly.GetReferencedAssemblies())
             {
-                if (assembly.GetName().Name == asmName.Name)
-                {
-                    return true;
-                }
+                s_referencedAssemblyNameSet.Add(asmName.Name);
             }
 
 #if UNITY_2018_1_OR_NEWER
             // Unity player referenced assemblies
-            UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(typeof(VRModule).Assembly.GetName().Name, AssembliesType.Player);
+            UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(playerAssembly.GetName().Name, AssembliesType.Player);
             if (playerUnityAsm != null)
             {
                 foreach (UnityEditor.Compilation.Assembly asm in playerUnityAsm.assemblyReferences)
                 {
-                    if (assembly.GetName().Name == asm.name)
-                    {
-                        return true;
-                    }
+                    s_referencedAssemblyNameSet.Add(asm.name);
                 }
             }
             else
@@ -536,15 +542,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // Unity editor referenced assemblies
-            UnityEditor.Compilation.Assembly editorUnityAsm = FindUnityAssembly(typeof(VRModuleManagerEditor).Assembly.GetName().Name, AssembliesType.Editor);
+            UnityEditor.Compilation.Assembly editorUnityAsm = FindUnityAssembly(editorAssembly.GetName().Name, AssembliesType.Editor);
             if (editorUnityAsm != null)
             {
                 foreach (UnityEditor.Compilation.Assembly asm in editorUnityAsm.assemblyReferences)
                 {
-                    if (assembly.GetName().Name == asm.name)
-                    {
-                        return true;
-                    }
+                    s_referencedAssemblyNameSet.Add(asm.name);
                 }
             }
             else
@@ -555,14 +558,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             UnityEditor.Compilation.Assembly[] assemblies = CompilationPipeline.GetAssemblies();
             foreach (UnityEditor.Compilation.Assembly asm in assemblies)
             {
-                if (assembly.GetName().Name == asm.name)
-                {
-                    return true;
-                }
+                asm.name
             }
 #endif
 
-            return false;
+            return s_referencedAssemblyNameSet;
         }
 
 #if UNITY_2018_1_OR_NEWER
