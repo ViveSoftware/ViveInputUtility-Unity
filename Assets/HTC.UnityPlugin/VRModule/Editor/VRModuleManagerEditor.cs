@@ -558,7 +558,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             UnityEditor.Compilation.Assembly[] assemblies = CompilationPipeline.GetAssemblies();
             foreach (UnityEditor.Compilation.Assembly asm in assemblies)
             {
-                asm.name
+                s_referencedAssemblyNameSet.Add(asm.name);
             }
 #endif
 
