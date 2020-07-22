@@ -866,6 +866,9 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 case OVRPlugin.SystemHeadset.Oculus_Go:
                     m_controllerType = ovrAvatarControllerType.Go;
                     break;
+#if VIU_OCULUSVR_16_0_OR_NEWER
+                case OVRPlugin.SystemHeadset.Oculus_Link_Quest:
+#endif
                 case OVRPlugin.SystemHeadset.Oculus_Quest:
 #if VIU_OCULUSVR_1_37_0_OR_NEWER
                 case OVRPlugin.SystemHeadset.Rift_S:
