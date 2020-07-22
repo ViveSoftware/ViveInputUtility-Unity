@@ -48,6 +48,12 @@ editor:2017.4-asset:
   stage: editor
   variables:
     IMAGE_TAG: '2017.4.27f1-windows'
+
+editor:2018.2-asset:
+  <<: *no_asmdef_unity_editor_template
+  stage: editor
+  variables:
+    IMAGE_TAG: '2018.2.21f1-windows'
     
 editor:2018.4-asset:
   <<: *no_asmdef_unity_editor_template
