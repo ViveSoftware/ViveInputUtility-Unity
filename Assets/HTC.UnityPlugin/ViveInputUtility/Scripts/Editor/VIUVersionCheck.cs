@@ -513,7 +513,7 @@ namespace HTC.UnityPlugin.Vive
                     {
                         for (int i = 10; i >= 0 && notifiedSettingsCount > 0; --i)
                         {
-                            foreach (var setting in s_settings) { if (!setting.SkipCheck() && !setting.IsIgnored()) { setting.AcceptRecommendValue(); } }
+                            foreach (var setting in s_settings) { if (!setting.SkipCheck() && !setting.IsIgnored() && !setting.IsUsingRecommendedValue()) { setting.AcceptRecommendValue(); } }
 
                             VIUSettingsEditor.ApplySDKChanges();
 
