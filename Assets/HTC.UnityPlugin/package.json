@@ -24,6 +24,7 @@
     "type": "git",
     "url": "https://github.com/ViveSoftware/ViveInputUtility-Unity.git"
   },
+  "documentationUrl": "https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki",
   "samples": [
     {
       "displayName": "0. Tutorial",
