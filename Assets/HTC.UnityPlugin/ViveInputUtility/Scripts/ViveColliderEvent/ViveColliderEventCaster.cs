@@ -32,7 +32,9 @@ namespace HTC.UnityPlugin.Vive
         private ScrollType m_scrollType = ScrollType.Auto;
         [SerializeField]
         private Vector2 m_scrollDeltaScale = new Vector2(1f, -1f);
-
+        [SerializeField]
+        private bool m_canGrab = true;
+        public bool canGrab { get { return m_canGrab; } set { m_canGrab = value; } }
         public ViveRoleProperty viveRole { get { return m_viveRole; } }
         public ScrollType scrollType { get { return m_scrollType; } set { m_scrollType = value; } }
         public Vector2 scrollDeltaScale { get { return m_scrollDeltaScale; } set { m_scrollDeltaScale = value; } }
