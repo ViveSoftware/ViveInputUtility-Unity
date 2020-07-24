@@ -11,13 +11,16 @@ written consent of HTC.
 
 The use of the Work is permitted provided that the following conditions 
 are met:
+
     * The Work is used in a source code form must retain the above 
       copyright notice, this list of conditions and the following
       disclaimer.
+
     * The Work is used in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in
       the documentation and/or other materials provided with the
       distributions.
+
     * Neither HTC nor the names of its contributors may be used to
       endorse or promote products derived from this software without
       specific prior written permission.
