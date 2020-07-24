@@ -447,12 +447,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private string GetDeviceUID(InputDevice device)
         {
-            if (!string.IsNullOrEmpty(device.serialNumber))
-            {
-                return device.name + " " + device.serialNumber;
-            }
-
-            return device.name;
+            return device.name + " " + device.serialNumber + " " + (int)device.characteristics;
         }
 
         private XRInputSubsystemType DetectCurrentInputSubsystemType()
