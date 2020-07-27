@@ -5,15 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using HTC.UPMRegistryTool.Editor.Configs;
-using HTC.UPMRegistryTool.Editor.Utils;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
+
+#if UNITY_2018_1_OR_NEWER
+using HTC.UPMRegistryTool.Editor.Configs;
+using HTC.UPMRegistryTool.Editor.Utils;
+#endif
+
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #endif
+
 #if VIU_STEAMVR_2_0_0_OR_NEWER
 using Valve.VR;
 using HTC.UnityPlugin.Vive.SteamVRExtension;
@@ -351,6 +356,7 @@ namespace HTC.UnityPlugin.Vive
         private const string OPENVR_XR_PACKAGE_NAME_OLD = "com.valve.openvr";
         private const string OPENVR_XR_PACKAGE_NAME = "com.valvesoftware.unity.openvr";
 
+#if UNITY_2018_1_OR_NEWER
         private static readonly RegistrySettings.RegistryInfo ValveRegistry = new RegistrySettings.RegistryInfo
         {
             Name = "Valve",
@@ -361,6 +367,7 @@ namespace HTC.UnityPlugin.Vive
                 "com.valvesoftware.unity.openvr",
             },
         };
+#endif
 
         public static bool canSupportOpenVR
         {
