@@ -219,7 +219,7 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
 
-                        bool hasHTCRegistryAdded = ManifestUtils.CheckRegistryExists();
+                        bool hasHTCRegistryAdded = ManifestUtils.CheckRegistryExists(RegistrySettings.Instance().Registry);
                         if (hasHTCRegistryAdded)
                         {
                             ShowAddPackageButton("Wave XR Plugin", WAVE_XR_PACKAGE_NAME);
@@ -236,7 +236,7 @@ namespace HTC.UnityPlugin.Vive
 
                                 if (result)
                                 {
-                                    ManifestUtils.UpdateRegistryToManifest();
+                                    ManifestUtils.AddRegistry(RegistrySettings.Instance().Registry);
                                 }
                             }
                         }
