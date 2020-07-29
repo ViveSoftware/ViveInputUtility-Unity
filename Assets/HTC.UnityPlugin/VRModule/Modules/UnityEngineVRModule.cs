@@ -121,6 +121,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     Update_L_OculusTouch(prevState, currState);
                     break;
                 case VRModuleDeviceModel.KnucklesLeft:
+                case VRModuleDeviceModel.IndexControllerLeft:
                     Update_L_Knuckles(prevState, currState);
                     break;
                 case VRModuleDeviceModel.WMRControllerLeft:
@@ -143,6 +144,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     Update_R_OculusTouch(prevState, currState);
                     break;
                 case VRModuleDeviceModel.KnucklesRight:
+                case VRModuleDeviceModel.IndexControllerRight:
                     Update_R_Knuckles(prevState, currState);
                     break;
                 case VRModuleDeviceModel.WMRControllerRight:
