@@ -63,7 +63,7 @@ namespace HTC.UnityPlugin.Vive
     {
         public const string URL_WAVE_VR_PLUGIN = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
         public const string URL_WAVE_VR_6DOF_SUMULATOR_USAGE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Wave-VR-6-DoF-Controller-Simulator";
-        private const string WAVE_XR_PACKAGE_NAME = "com.htc.wave.xrsdk";
+        private const string WAVE_XR_PACKAGE_NAME = "com.htc.upm.wave.xrsdk";
         private const string WAVE_XR_LOADER_NAME = "Wave XR Loader";
         private const string WAVE_XR_LOADER_CLASS_NAME = "WaveXRLoader";
 
