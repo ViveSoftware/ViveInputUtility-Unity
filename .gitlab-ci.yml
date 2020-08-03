@@ -73,11 +73,11 @@ editor:2019.4-asset:
   variables:
     IMAGE_TAG: '2019.4.2f1-windows'
 
-editor:2020.1b-asset:
+editor:2020.1-asset:
   <<: *no_asmdef_unity_editor_template
   stage: editor
   variables:
-    IMAGE_TAG: '2020.1.0b14-windows'
+    IMAGE_TAG: '2020.1.0f1-windows'
 
 editor:2019.4-package:
   <<: *unity_editor_template
@@ -85,8 +85,8 @@ editor:2019.4-package:
   variables:
     IMAGE_TAG: '2019.4.2f1-windows'
 
-editor:2020.1b-package:
+editor:2020.1-package:
   <<: *unity_editor_template
   stage: editor
   variables:
-    IMAGE_TAG: '2020.1.0b14-windows'
+    IMAGE_TAG: '2020.1.0f1-windows'
