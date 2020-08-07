@@ -226,11 +226,11 @@ namespace HTC.UnityPlugin.Vive
                         }
                         else
                         {
-                            if (GUILayout.Button(new GUIContent("Add HTC VIVE Registry")))
+                            if (GUILayout.Button(new GUIContent("Add VIVE Registry")))
                             {
                                 bool result = EditorUtility.DisplayDialog(
-                                    "Add HTC VIVE Registry",
-                                    "Do you want to add HTC VIVE registry to your project?\n\nBy adding the HTC VIVE registry (" + RegistrySettings.Instance().Registry.Url + ") in your 'Packages/manifest.json', VIU can install Wave XR Plugin packages for you.\n\nIn addition, you can discover, install, update or remove the packages from HTC VIVE in the package manager window later.",
+                                    "Add VIVE Registry",
+                                    "Do you want to add VIVE registry to your project?\n\nBy adding the VIVE registry (" + RegistrySettings.Instance().Registry.Url + ") in your 'Packages/manifest.json', VIU can install Wave XR Plugin packages for you.\n\nIn addition, you can discover, install, update or remove the packages from VIVE in the package manager window later.",
                                     "Add",
                                     "Cancel");
 
