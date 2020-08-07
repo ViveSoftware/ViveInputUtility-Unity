@@ -124,6 +124,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 },
                 reqFileNames = new string[] { "OVRPlugin.cs" },
             });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_OCULUSVR_19_0_OR_NEWER",
+                reqTypeNames = new string[] { "OVRPlugin+SystemHeadset" },
+                validateFunc = (req) =>
+                {
+                    Type oculusGo;
+                    if (SymbolRequirement.s_foundTypes.TryGetValue("OVRPlugin+SystemHeadset", out oculusGo) && oculusGo.IsEnum)
+                    {
+                        if (!Enum.IsDefined(oculusGo, "Oculus_Go"))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                reqFileNames = new string[] { "OVRPlugin.cs" },
+            });
         }
     }
 }

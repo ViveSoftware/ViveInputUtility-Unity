@@ -201,11 +201,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (VRModule.trackingSpaceType)
             {
                 case VRModuleTrackingSpaceType.RoomScale:
+#if !VIU_OCULUSVR_19_0_OR_NEWER
                     if (OVRPlugin.GetSystemHeadsetType().Equals(OVRPlugin.SystemHeadset.Oculus_Go))
                     {
                         OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.EyeLevel);
                     }
                     else
+#endif
                     {
                         OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.FloorLevel);
                     }
@@ -294,6 +296,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         case VRModuleDeviceClass.Controller:
                             switch (platform)
                             {
+#if !VIU_OCULUSVR_19_0_OR_NEWER
                                 case OVRPlugin.SystemHeadset.Oculus_Go:
                                     currState.deviceModel = VRModuleDeviceModel.OculusGoController;
                                     currState.input2DType = VRModuleInput2DType.TouchpadOnly;
@@ -308,7 +311,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     currState.deviceModel = VRModuleDeviceModel.OculusGearVrController;
                                     currState.input2DType = VRModuleInput2DType.TouchpadOnly;
                                     break;
-
+#endif
                                 case OVRPlugin.SystemHeadset.Rift_DK1:
                                 case OVRPlugin.SystemHeadset.Rift_DK2:
                                 case OVRPlugin.SystemHeadset.Rift_CV1:
@@ -409,6 +412,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, ctrlState.RHandTrigger);
                             break;
                         }
+#if !VIU_OCULUSVR_19_0_OR_NEWER
                     case VRModuleDeviceModel.OculusGoController:
                     case VRModuleDeviceModel.OculusGearVrController:
                         switch (node)
@@ -452,6 +456,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 break;
                         }
                         break;
+#endif
                 }
             }
 
@@ -460,5 +465,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessDeviceInputChanged();
         }
 #endif
-    }
-}
+                }
+            }
