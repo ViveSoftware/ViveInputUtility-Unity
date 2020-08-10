@@ -64,8 +64,6 @@ namespace HTC.UnityPlugin.Vive
         public const string URL_WAVE_VR_PLUGIN = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
         public const string URL_WAVE_VR_6DOF_SUMULATOR_USAGE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Wave-VR-6-DoF-Controller-Simulator";
         private const string WAVE_XR_PACKAGE_NAME = "com.htc.upm.wave.xrsdk";
-        private const string WAVE_XR_LOADER_NAME = "Wave XR Loader";
-        private const string WAVE_XR_LOADER_CLASS_NAME = "WaveXRLoader";
 
         public static bool canSupportWaveVR
         {
@@ -136,7 +134,7 @@ namespace HTC.UnityPlugin.Vive
                     if (!VIUSettings.activateWaveVRModule) { return false; }
 
 #if VIU_XR_GENERAL_SETTINGS
-                    if (!(MockHMDSDK.enabled || XRPluginManagementUtils.IsXRLoaderEnabled(WAVE_XR_LOADER_NAME, requirdPlatform)))
+                    if (!(MockHMDSDK.enabled || XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_NAME, requirdPlatform)))
                     {
                         return false;
                     }
@@ -172,7 +170,7 @@ namespace HTC.UnityPlugin.Vive
                     }
 
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
-                    XRPluginManagementUtils.SetXRLoaderEnabled(WAVE_XR_LOADER_CLASS_NAME, requirdPlatform, value);
+                    XRPluginManagementUtils.SetXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_CLASS_NAME, requirdPlatform, value);
                     MockHMDSDK.enabled = value && !PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME);
                     VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
 #elif VIU_WAVEVR_3_0_0_OR_NEWER

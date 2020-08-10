@@ -1,5 +1,6 @@
 //========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -12,6 +13,9 @@ using UnityEngine.XR;
 using UnityEngine.XR.Management;
 using UnityEngine.SpatialTracking;
 using System;
+#if VIU_WAVEXR_ESSENCE_RENDERMODEL
+using Wave.Essence;
+#endif
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -31,6 +35,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override int moduleIndex { get { return (int)VRModuleSelectEnum.UnityXR; } }
 
+        public const string WAVE_XR_LOADER_NAME = "Wave XR Loader";
+        public const string WAVE_XR_LOADER_CLASS_NAME = "WaveXRLoader";
+
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
         private class CameraCreator : VRCameraHook.CameraCreator
         {
@@ -41,6 +48,69 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (hook.GetComponent<TrackedPoseDriver>() == null)
                 {
                     hook.gameObject.AddComponent<TrackedPoseDriver>();
+                }
+            }
+        }
+
+        [RenderModelHook.CreatorPriorityAttirbute(0)]
+        private class RenderModelCreator : RenderModelHook.DefaultRenderModelCreator
+        {
+            private uint m_index = INVALID_DEVICE_INDEX;
+
+            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+
+            public override void UpdateRenderModel()
+            {
+#if VIU_WAVEXR_ESSENCE_RENDERMODEL
+                if (HasActiveLoader(WAVE_XR_LOADER_NAME))
+                {
+                    if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
+                    if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetRightControllerDeviceIndex())
+                    {
+                        var go = new GameObject("Model");
+                        go.transform.SetParent(hook.transform, false);
+                        go.AddComponent<Wave.Essence.Controller.RenderModel>();
+                        go.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                        go.AddComponent<Wave.Essence.Controller.ShowIndicator>();
+                    }
+                    else if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetLeftControllerDeviceIndex())
+                    {
+                        var go = new GameObject("Model");
+                        go.transform.SetParent(hook.transform, false);
+                        var rm = go.AddComponent<Wave.Essence.Controller.RenderModel>();
+                        rm.transform.gameObject.SetActive(false);
+                        rm.WhichHand = XR_Hand.NonDominant;
+                        rm.transform.gameObject.SetActive(true);
+                        var be = go.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                        be.transform.gameObject.SetActive(false);
+                        be.HandType = XR_Hand.NonDominant;
+                        be.transform.gameObject.SetActive(true);
+                        go.AddComponent<Wave.Essence.Controller.ShowIndicator>();
+                    }
+                    else
+                    {
+                        // deacitvate object for render model
+                        if (m_model != null)
+                        {
+                            m_model.gameObject.SetActive(false);
+                        }
+                    }
+                }
+                else
+                {
+                    base.UpdateRenderModel();
+                }
+#else
+                base.UpdateRenderModel();
+#endif
+            }
+
+            public override void CleanUpRenderModel()
+            {
+                if (m_model != null)
+                {
+                    UnityEngine.Object.Destroy(m_model);
+                    m_model = null;
                 }
             }
         }
@@ -188,6 +258,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     SetupKnownDeviceModel(currState);
 
+                    if ((device.characteristics & InputDeviceCharacteristics.Left) > 0u)
+                    {
+                        m_leftHandedDeviceIndex = deviceIndex;
+                    }
+                    else if ((device.characteristics & InputDeviceCharacteristics.Right) > 0u)
+                    {
+                        m_rightHandedDeviceIndex = deviceIndex;
+                    }
+
                     Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.name, device.characteristics);
                 }
 
@@ -203,13 +282,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            UpdateHandHeldDeviceIndex();
+            //UpdateHandHeldDeviceIndex();
 
             deviceIndex = 0u;
             // reset all devices that is not connected in this frame
-            while (TryGetValidDeviceState(deviceIndex++, out prevState, out currState))
+            while (TryGetValidDeviceState(deviceIndex, out prevState, out currState))
             {
-                if (!currState.isConnected) { currState.Reset(); }
+                if (!currState.isConnected)
+                {
+                    currState.Reset();
+                    if (deviceIndex == m_leftHandedDeviceIndex) { m_leftHandedDeviceIndex = VRModule.INVALID_DEVICE_INDEX; }
+                    else if (deviceIndex == m_rightHandedDeviceIndex) { m_rightHandedDeviceIndex = VRModule.INVALID_DEVICE_INDEX; }
+                }
+
+                ++deviceIndex;
             }
 
             ProcessConnectedDeviceChanged();

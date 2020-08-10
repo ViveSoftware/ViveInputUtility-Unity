@@ -25,6 +25,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqFileNames = new string[] { "WaveVR.cs" },
             });
 
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "VIU_WAVEXR_ESSENCE_RENDERMODEL",
+                reqTypeNames = new string[] { "Wave.Essence.Controller.RenderModel", "Wave.Essence.Controller.ButtonEffect", "Wave.Essence.Controller.ShowIndicator" },
+                reqFileNames = new string[] { "RenderModel.cs", "ButtonEffect.cs", "ShowIndicator.cs" },
+            });
+
             Add(new SymbolRequirement()
             {
                 symbol = "VIU_WAVEVR_2_0_32_OR_NEWER",
