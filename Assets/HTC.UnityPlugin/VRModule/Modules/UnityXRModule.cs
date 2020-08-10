@@ -67,7 +67,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private XRInputSubsystemType m_currentInputSubsystemType = XRInputSubsystemType.Unknown;
         private uint m_rightHandedDeviceIndex = INVALID_DEVICE_INDEX;
         private uint m_leftHandedDeviceIndex = INVALID_DEVICE_INDEX;
-        private Dictionary<string, uint> m_deviceUidToIndex = new Dictionary<string, uint>();
+        private Dictionary<int, uint> m_deviceUidToIndex = new Dictionary<int, uint>();
         private List<InputDevice> m_indexToDevices = new List<InputDevice>();
         private List<InputDevice> m_connectedDevices = new List<InputDevice>();
         private List<HapticVibrationState> m_activeHapticVibrationStates = new List<HapticVibrationState>();
@@ -182,7 +182,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!prevState.isConnected)
                 {
                     currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
-                    currState.serialNumber = GetDeviceUID(device);
+                    currState.serialNumber = device.name + " " + device.serialNumber + " " + (int)device.characteristics;
                     currState.modelNumber = device.name;
                     currState.renderModelName = device.name;
 
@@ -367,7 +367,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_rightHandedDeviceIndex = rightHandedDeviceIndex;
         }
 
-        private uint GetDeviceIndex(string uid)
+        private uint GetDeviceIndex(int uid)
         {
             uint index = 0;
             if (m_deviceUidToIndex.TryGetValue(uid, out index))
@@ -393,7 +393,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint GetOrCreateDeviceIndex(InputDevice device)
         {
             uint index = 0;
-            string uid = GetDeviceUID(device);
+            int uid = GetDeviceUID(device);
             if (m_deviceUidToIndex.TryGetValue(uid, out index))
             {
                 return index;
@@ -445,9 +445,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private string GetDeviceUID(InputDevice device)
+        private int GetDeviceUID(InputDevice device)
         {
-            return device.name + " " + device.serialNumber + " " + (int)device.characteristics;
+#if CSHARP_7_OR_LATER
+            return (device.name, device.serialNumber, device.characteristics).GetHashCode();
+#else
+            return new { device.name, device.serialNumber, device.characteristics }.GetHashCode();
+#endif
         }
 
         private XRInputSubsystemType DetectCurrentInputSubsystemType()
@@ -955,6 +959,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 Debug.Log(device.name + " feature usages:\n\n" + strUsages);
             }
+        }
+
+        private static string CharacteristicsToString(InputDeviceCharacteristics ch)
+        {
+            if (ch == 0u) { return " No Characteristic"; }
+            var chu = (uint)ch;
+            var str = string.Empty;
+            for (var i = 1u; chu > 0u; i <<= 1)
+            {
+                if ((chu & i) == 0u) { continue; }
+                str += " " + (InputDeviceCharacteristics)i;
+                chu &= ~i;
+            }
+            return str;
         }
 #endif
     }
