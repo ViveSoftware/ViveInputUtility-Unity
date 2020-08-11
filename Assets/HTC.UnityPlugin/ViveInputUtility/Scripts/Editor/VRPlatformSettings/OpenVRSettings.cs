@@ -11,8 +11,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 #if UNITY_2018_1_OR_NEWER
-using HTC.UPMRegistryTool.Editor.Configs;
-using HTC.UPMRegistryTool.Editor.Utils;
+using HTC.UnityPlugin.UPMRegistryTool;
 #endif
 
 #if UNITY_2017_2_OR_NEWER
@@ -357,11 +356,11 @@ namespace HTC.UnityPlugin.Vive
         private const string OPENVR_XR_PACKAGE_NAME = "com.valvesoftware.unity.openvr";
 
 #if UNITY_2018_1_OR_NEWER
-        private static readonly RegistrySettings.RegistryInfo ValveRegistry = new RegistrySettings.RegistryInfo
+        private static readonly RegistryToolSettings.ScopedRegistry ValveRegistry = new RegistryToolSettings.ScopedRegistry
         {
-            Name = "Valve",
-            Url = "https://registry.npmjs.org/",
-            Scopes = new List<string>
+            name = "Valve",
+            url = "https://registry.npmjs.org/",
+            scopes = new List<string>
             {
                 "com.valvesoftware",
                 "com.valvesoftware.unity.openvr",
@@ -489,7 +488,7 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         
-                        bool hasValveRegistryAdded = ManifestUtils.CheckRegistryExists(ValveRegistry);
+                        bool hasValveRegistryAdded = RegistryToolSettings.IsRegistryExists(ValveRegistry);
                         if (hasValveRegistryAdded)
                         {
                             ShowAddPackageButton("OpenVR XR Plugin", OPENVR_XR_PACKAGE_NAME);
@@ -500,13 +499,13 @@ namespace HTC.UnityPlugin.Vive
                             {
                                 bool result = EditorUtility.DisplayDialog(
                                     "Add Valve Registry",
-                                    "Do you want to add Valve registry to your project?\n\nBy adding the Valve registry (" + ValveRegistry.Url + ") in your 'Packages/manifest.json', VIU can install OpenVR XR Plugin for you.\n\nIn addition, you can discover, install, update or remove the packages from Valve in the package manager window later.",
+                                    "Do you want to add Valve registry to your project?\n\nBy adding the Valve registry (" + ValveRegistry.url + ") in your 'Packages/manifest.json', VIU can install OpenVR XR Plugin for you.\n\nIn addition, you can discover, install, update or remove the packages from Valve in the package manager window later.",
                                     "Add",
                                     "Cancel");
 
                                 if (result)
                                 {
-                                    ManifestUtils.AddRegistry(ValveRegistry);
+                                    RegistryToolSettings.AddRegistry(ValveRegistry);
                                 }
                             }
                         }

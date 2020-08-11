@@ -9,8 +9,7 @@ using UnityEditor;
 using UnityEditor.Build;
 #endif
 #if UNITY_2018_1_OR_NEWER
-using HTC.UPMRegistryTool.Editor.Configs;
-using HTC.UPMRegistryTool.Editor.Utils;
+using HTC.UnityPlugin.UPMRegistryTool;
 using UnityEditor.Build.Reporting;
 #endif
 using UnityEditor.Callbacks;
@@ -217,7 +216,7 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
 
-                        bool hasHTCRegistryAdded = ManifestUtils.CheckRegistryExists(RegistrySettings.Instance().Registry);
+                        bool hasHTCRegistryAdded = RegistryToolSettings.IsRegistryExists(RegistryToolSettings.Instance.ViveRegistry);
                         if (hasHTCRegistryAdded)
                         {
                             ShowAddPackageButton("Wave XR Plugin", WAVE_XR_PACKAGE_NAME);
@@ -228,13 +227,13 @@ namespace HTC.UnityPlugin.Vive
                             {
                                 bool result = EditorUtility.DisplayDialog(
                                     "Add VIVE Registry",
-                                    "Do you want to add VIVE registry to your project?\n\nBy adding the VIVE registry (" + RegistrySettings.Instance().Registry.Url + ") in your 'Packages/manifest.json', VIU can install Wave XR Plugin packages for you.\n\nIn addition, you can discover, install, update or remove the packages from VIVE in the package manager window later.",
+                                    "Do you want to add VIVE registry to your project?\n\nBy adding the VIVE registry (" + RegistryToolSettings.Instance.ViveRegistry.url + ") in your 'Packages/manifest.json', VIU can install Wave XR Plugin packages for you.\n\nIn addition, you can discover, install, update or remove the packages from VIVE in the package manager window later.",
                                     "Add",
                                     "Cancel");
 
                                 if (result)
                                 {
-                                    ManifestUtils.AddRegistry(RegistrySettings.Instance().Registry);
+                                    RegistryToolSettings.AddRegistry(RegistryToolSettings.Instance.ViveRegistry);
                                 }
                             }
                         }
