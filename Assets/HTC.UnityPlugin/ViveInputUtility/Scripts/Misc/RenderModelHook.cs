@@ -238,6 +238,7 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.onActiveModuleChanged += OnActiveModuleChanged;
             m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
+            m_viveRole.onRoleChanged += UpdateModel;
 
             UpdateModel();
         }
@@ -246,6 +247,7 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.onActiveModuleChanged -= OnActiveModuleChanged;
             m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
+            m_viveRole.onRoleChanged -= UpdateModel;
 
             UpdateModel();
         }

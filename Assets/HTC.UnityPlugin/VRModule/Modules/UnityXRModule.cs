@@ -55,8 +55,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [RenderModelHook.CreatorPriorityAttirbute(0)]
         private class RenderModelCreator : RenderModelHook.DefaultRenderModelCreator
         {
-            private uint m_index = INVALID_DEVICE_INDEX;
-
             public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
 
             public override void UpdateRenderModel()
@@ -97,20 +95,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
                 else
+#endif
                 {
                     base.UpdateRenderModel();
-                }
-#else
-                base.UpdateRenderModel();
-#endif
-            }
-
-            public override void CleanUpRenderModel()
-            {
-                if (m_model != null)
-                {
-                    UnityEngine.Object.Destroy(m_model);
-                    m_model = null;
                 }
             }
         }
@@ -243,6 +230,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState.isConnected = false;
             }
 
+            bool roleChanged = false;
             InputDevices.GetDevices(m_connectedDevices);
             foreach (InputDevice device in m_connectedDevices)
             {
@@ -261,10 +249,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if ((device.characteristics & InputDeviceCharacteristics.Left) > 0u)
                     {
                         m_leftHandedDeviceIndex = deviceIndex;
+                        roleChanged = true;
                     }
                     else if ((device.characteristics & InputDeviceCharacteristics.Right) > 0u)
                     {
                         m_rightHandedDeviceIndex = deviceIndex;
+                        roleChanged = true;
                     }
 
                     Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.name, device.characteristics);
@@ -291,12 +281,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!currState.isConnected)
                 {
                     currState.Reset();
-                    if (deviceIndex == m_leftHandedDeviceIndex) { m_leftHandedDeviceIndex = VRModule.INVALID_DEVICE_INDEX; }
-                    else if (deviceIndex == m_rightHandedDeviceIndex) { m_rightHandedDeviceIndex = VRModule.INVALID_DEVICE_INDEX; }
+
+                    if (deviceIndex == m_leftHandedDeviceIndex)
+                    {
+                        m_leftHandedDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
+                        roleChanged = true;
+                    }
+                    else if (deviceIndex == m_rightHandedDeviceIndex)
+                    {
+                        m_rightHandedDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
+                        roleChanged = true;
+                    }
                 }
 
                 ++deviceIndex;
             }
+
+            if (roleChanged) { InvokeControllerRoleChangedEvent(); }
 
             ProcessConnectedDeviceChanged();
             ProcessDevicePoseChanged();
@@ -426,42 +427,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     UpdateViveFocusFinchControllerState(state, device);
                     break;
             }
-        }
-
-        private void UpdateHandHeldDeviceIndex()
-        {
-            uint leftHandedDeviceIndex = INVALID_DEVICE_INDEX;
-            InputDevice leftHandedDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-            if (leftHandedDevice.isValid)
-            {
-                leftHandedDeviceIndex = GetDeviceIndex(GetDeviceUID(leftHandedDevice));
-            }
-
-            uint rightHandedDeviceIndex = INVALID_DEVICE_INDEX;
-            InputDevice rightHandedDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-            if (rightHandedDevice.isValid)
-            {
-                rightHandedDeviceIndex = GetDeviceIndex(GetDeviceUID(rightHandedDevice));
-            }
-
-            if (m_rightHandedDeviceIndex != rightHandedDeviceIndex || m_leftHandedDeviceIndex != leftHandedDeviceIndex)
-            {
-                InvokeControllerRoleChangedEvent();
-            }
-
-            m_leftHandedDeviceIndex = leftHandedDeviceIndex;
-            m_rightHandedDeviceIndex = rightHandedDeviceIndex;
-        }
-
-        private uint GetDeviceIndex(int uid)
-        {
-            uint index = 0;
-            if (m_deviceUidToIndex.TryGetValue(uid, out index))
-            {
-                return index;
-            }
-
-            return INVALID_DEVICE_INDEX;
         }
 
         private bool TryGetDevice(uint index, out InputDevice deviceOut)
