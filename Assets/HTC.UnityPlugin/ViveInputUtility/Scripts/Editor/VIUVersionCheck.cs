@@ -358,8 +358,10 @@ namespace HTC.UnityPlugin.Vive
         private static UnityWebRequest GetUnityWebRequestAndSend(string url)
         {
             var webReq = new UnityWebRequest(url);
-#if UNITY_5_4_OR_NEWER
+#if UNITY_2017_2_OR_NEWER
             webReq.SendWebRequest();
+#elif UNITY_5_4_OR_NEWER
+            webReq.Send();
 #endif
             return webReq;
         }
@@ -511,7 +513,7 @@ namespace HTC.UnityPlugin.Vive
                     {
                         for (int i = 10; i >= 0 && notifiedSettingsCount > 0; --i)
                         {
-                            foreach (var setting in s_settings) { if (!setting.SkipCheck() && !setting.IsIgnored()) { setting.AcceptRecommendValue(); } }
+                            foreach (var setting in s_settings) { if (!setting.SkipCheck() && !setting.IsIgnored() && !setting.IsUsingRecommendedValue()) { setting.AcceptRecommendValue(); } }
 
                             VIUSettingsEditor.ApplySDKChanges();
 

@@ -855,6 +855,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             var headsetType = OVRPlugin.GetSystemHeadsetType();
             switch (headsetType)
             {
+#if !VIU_OCULUSVR_19_0_OR_NEWER
                 case OVRPlugin.SystemHeadset.GearVR_R320:
                 case OVRPlugin.SystemHeadset.GearVR_R321:
                 case OVRPlugin.SystemHeadset.GearVR_R322:
@@ -866,6 +867,10 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 case OVRPlugin.SystemHeadset.Oculus_Go:
                     m_controllerType = ovrAvatarControllerType.Go;
                     break;
+#endif
+#if VIU_OCULUSVR_16_0_OR_NEWER
+                case OVRPlugin.SystemHeadset.Oculus_Link_Quest:
+#endif
                 case OVRPlugin.SystemHeadset.Oculus_Quest:
 #if VIU_OCULUSVR_1_37_0_OR_NEWER
                 case OVRPlugin.SystemHeadset.Rift_S:

@@ -260,10 +260,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         Type type;
                         if (!s_foundTypes.TryGetValue(method.typeName, out type)) { continue; }
 
-                        var argTypes = new Type[method.argTypeNames == null ? 0 : method.argTypeNames.Length];
+                        if (method.argTypeNames == null)
+                        {
+                            continue;
+                        }
+
+                        bool isAllArgTypesFound = true;
+                        var argTypes = new Type[method.argTypeNames.Length];
                         for (int i = argTypes.Length - 1; i >= 0; --i)
                         {
-                            if (!s_foundTypes.TryGetValue(method.argTypeNames[i], out argTypes[i])) { continue; }
+                            if (!s_foundTypes.TryGetValue(method.argTypeNames[i], out argTypes[i]))
+                            {
+                                isAllArgTypesFound = false;
+                                break;
+                            }
+                        }
+
+                        if (!isAllArgTypesFound)
+                        {
+                            continue;
                         }
 
                         if (type.GetMethod(method.name, method.bindingAttr, null, CallingConventions.Any, argTypes, method.argModifiers ?? new ParameterModifier[0]) == null) { continue; }
@@ -287,6 +302,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public abstract class SymbolRequirementCollection : List<SymbolRequirement> { }
 
         private static List<SymbolRequirement> s_symbolReqList;
+        private static HashSet<string> s_referencedAssemblyNameSet;
 
         static VRModuleManagerEditor()
         {
@@ -306,7 +322,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_symbolReqList.Add(new SymbolRequirement()
             {
                 symbol = "VIU_PACKAGE",
-                validateFunc = (req) => VIUSettingsEditor.PackageManagerHelper.IsPackageInList(VIUSettings.VIU_PACKAGE_NAME),
+                validateFunc = (req) => VIUSettingsEditor.PackageManagerHelper.IsPackageInList(VIUSettingsEditor.VIUPackageName),
             });
 
             s_symbolReqList.Add(new SymbolRequirement()
@@ -392,6 +408,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static bool s_isUpdatingScriptingDefineSymbols = false;
         private static void DoUpdateScriptingDefineSymbols()
         {
+            if (EditorApplication.isPlaying) { EditorApplication.update -= DoUpdateScriptingDefineSymbols; return; }
+
             // some symbolRequirement depends on installed packages (only works when UNITY_2018_1_OR_NEWER)
             Vive.VIUSettingsEditor.PackageManagerHelper.PreparePackageList();
 
@@ -484,35 +502,40 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static bool IsReferenced(Assembly assembly)
         {
-            // C# player referenced assemblies
-            foreach (AssemblyName asmName in typeof(VRModule).Assembly.GetReferencedAssemblies())
+            return GetReferencedAssemblyNameSet().Contains(assembly.GetName().Name);
+        }
+
+        private static HashSet<string> GetReferencedAssemblyNameSet()
+        {
+            if (s_referencedAssemblyNameSet != null)
             {
-                if (assembly.GetName().Name == asmName.Name)
-                {
-                    return true;
-                }
+                return s_referencedAssemblyNameSet;
+            }
+
+            s_referencedAssemblyNameSet = new HashSet<string>();
+            Assembly playerAssembly = typeof(VRModule).Assembly;
+            Assembly editorAssembly = typeof(VRModuleManagerEditor).Assembly;
+
+            // C# player referenced assemblies
+            foreach (AssemblyName asmName in playerAssembly.GetReferencedAssemblies())
+            {
+                s_referencedAssemblyNameSet.Add(asmName.Name);
             }
 
             // C# editor referenced assemblies
-            foreach (AssemblyName asmName in typeof(VRModuleManagerEditor).Assembly.GetReferencedAssemblies())
+            foreach (AssemblyName asmName in editorAssembly.GetReferencedAssemblies())
             {
-                if (assembly.GetName().Name == asmName.Name)
-                {
-                    return true;
-                }
+                s_referencedAssemblyNameSet.Add(asmName.Name);
             }
 
 #if UNITY_2018_1_OR_NEWER
             // Unity player referenced assemblies
-            UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(typeof(VRModule).Assembly.GetName().Name, AssembliesType.Player);
+            UnityEditor.Compilation.Assembly playerUnityAsm = FindUnityAssembly(playerAssembly.GetName().Name, AssembliesType.Player);
             if (playerUnityAsm != null)
             {
                 foreach (UnityEditor.Compilation.Assembly asm in playerUnityAsm.assemblyReferences)
                 {
-                    if (assembly.GetName().Name == asm.name)
-                    {
-                        return true;
-                    }
+                    s_referencedAssemblyNameSet.Add(asm.name);
                 }
             }
             else
@@ -521,15 +544,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             // Unity editor referenced assemblies
-            UnityEditor.Compilation.Assembly editorUnityAsm = FindUnityAssembly(typeof(VRModuleManagerEditor).Assembly.GetName().Name, AssembliesType.Editor);
+            UnityEditor.Compilation.Assembly editorUnityAsm = FindUnityAssembly(editorAssembly.GetName().Name, AssembliesType.Editor);
             if (editorUnityAsm != null)
             {
                 foreach (UnityEditor.Compilation.Assembly asm in editorUnityAsm.assemblyReferences)
                 {
-                    if (assembly.GetName().Name == asm.name)
-                    {
-                        return true;
-                    }
+                    s_referencedAssemblyNameSet.Add(asm.name);
                 }
             }
             else
@@ -540,14 +560,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             UnityEditor.Compilation.Assembly[] assemblies = CompilationPipeline.GetAssemblies();
             foreach (UnityEditor.Compilation.Assembly asm in assemblies)
             {
-                if (assembly.GetName().Name == asm.name)
-                {
-                    return true;
-                }
+                s_referencedAssemblyNameSet.Add(asm.name);
             }
 #endif
 
-            return false;
+            return s_referencedAssemblyNameSet;
         }
 
 #if UNITY_2018_1_OR_NEWER

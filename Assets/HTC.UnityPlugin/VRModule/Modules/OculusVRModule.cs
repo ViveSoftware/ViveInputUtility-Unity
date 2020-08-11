@@ -13,6 +13,7 @@ using XRSettings = UnityEngine.VR.VRSettings;
 #endif
 #if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
+using UnityEngine.SpatialTracking;
 #endif
 #endif
 
@@ -171,7 +172,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override bool ShouldActiveModule()
         {
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
-            return VIUSettings.activateOculusVRModule && UnityXRModule.HasActiveLoader(OCULUS_XR_LOADER_NAME);
+            return VIUSettings.activateOculusVRModule && (UnityXRModule.HasActiveLoader(OCULUS_XR_LOADER_NAME) ||
+                XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus");
 #else
             return VIUSettings.activateOculusVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus";
 #endif
@@ -199,11 +201,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (VRModule.trackingSpaceType)
             {
                 case VRModuleTrackingSpaceType.RoomScale:
+#if !VIU_OCULUSVR_19_0_OR_NEWER
                     if (OVRPlugin.GetSystemHeadsetType().Equals(OVRPlugin.SystemHeadset.Oculus_Go))
                     {
                         OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.EyeLevel);
                     }
                     else
+#endif
                     {
                         OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.FloorLevel);
                     }
@@ -292,6 +296,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         case VRModuleDeviceClass.Controller:
                             switch (platform)
                             {
+#if !VIU_OCULUSVR_19_0_OR_NEWER
                                 case OVRPlugin.SystemHeadset.Oculus_Go:
                                     currState.deviceModel = VRModuleDeviceModel.OculusGoController;
                                     currState.input2DType = VRModuleInput2DType.TouchpadOnly;
@@ -306,7 +311,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     currState.deviceModel = VRModuleDeviceModel.OculusGearVrController;
                                     currState.input2DType = VRModuleInput2DType.TouchpadOnly;
                                     break;
-
+#endif
                                 case OVRPlugin.SystemHeadset.Rift_DK1:
                                 case OVRPlugin.SystemHeadset.Rift_DK2:
                                 case OVRPlugin.SystemHeadset.Rift_CV1:
@@ -322,6 +327,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     }
                                     currState.input2DType = VRModuleInput2DType.JoystickOnly;
                                     break;
+#if VIU_OCULUSVR_16_0_OR_NEWER
+                                case OVRPlugin.SystemHeadset.Oculus_Link_Quest:
+#endif
 #if VIU_OCULUSVR_1_37_0_OR_NEWER
                                 case OVRPlugin.SystemHeadset.Oculus_Quest:
                                 case OVRPlugin.SystemHeadset.Rift_S:
@@ -404,6 +412,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, ctrlState.RHandTrigger);
                             break;
                         }
+#if !VIU_OCULUSVR_19_0_OR_NEWER
                     case VRModuleDeviceModel.OculusGoController:
                     case VRModuleDeviceModel.OculusGearVrController:
                         switch (node)
@@ -447,6 +456,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 break;
                         }
                         break;
+#endif
                 }
             }
 
@@ -455,5 +465,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessDeviceInputChanged();
         }
 #endif
-    }
-}
+                }
+            }

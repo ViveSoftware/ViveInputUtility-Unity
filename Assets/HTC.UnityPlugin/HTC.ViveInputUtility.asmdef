@@ -6,7 +6,8 @@
         "Oculus.Avatar",
         "Oculus.VR",
         "Oculus.Platform",
-        "UnityEngine.SpatialTracking"
+        "UnityEngine.SpatialTracking",
+        "Unity.XR.OpenVR"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,5 +1,6 @@
 //========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -12,6 +13,9 @@ using UnityEngine.XR;
 using UnityEngine.XR.Management;
 using UnityEngine.SpatialTracking;
 using System;
+#if VIU_WAVEXR_ESSENCE_RENDERMODEL
+using Wave.Essence;
+#endif
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -31,6 +35,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override int moduleIndex { get { return (int)VRModuleSelectEnum.UnityXR; } }
 
+        public const string WAVE_XR_LOADER_NAME = "Wave XR Loader";
+        public const string WAVE_XR_LOADER_CLASS_NAME = "WaveXRLoader";
+
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
         private class CameraCreator : VRCameraHook.CameraCreator
         {
@@ -41,6 +48,56 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (hook.GetComponent<TrackedPoseDriver>() == null)
                 {
                     hook.gameObject.AddComponent<TrackedPoseDriver>();
+                }
+            }
+        }
+
+        [RenderModelHook.CreatorPriorityAttirbute(0)]
+        private class RenderModelCreator : RenderModelHook.DefaultRenderModelCreator
+        {
+            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+
+            public override void UpdateRenderModel()
+            {
+#if VIU_WAVEXR_ESSENCE_RENDERMODEL
+                if (HasActiveLoader(WAVE_XR_LOADER_NAME))
+                {
+                    if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
+                    if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetRightControllerDeviceIndex())
+                    {
+                        var go = new GameObject("Model");
+                        go.transform.SetParent(hook.transform, false);
+                        go.AddComponent<Wave.Essence.Controller.RenderModel>();
+                        go.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                        go.AddComponent<Wave.Essence.Controller.ShowIndicator>();
+                    }
+                    else if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetLeftControllerDeviceIndex())
+                    {
+                        var go = new GameObject("Model");
+                        go.transform.SetParent(hook.transform, false);
+                        var rm = go.AddComponent<Wave.Essence.Controller.RenderModel>();
+                        rm.transform.gameObject.SetActive(false);
+                        rm.WhichHand = XR_Hand.NonDominant;
+                        rm.transform.gameObject.SetActive(true);
+                        var be = go.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                        be.transform.gameObject.SetActive(false);
+                        be.HandType = XR_Hand.NonDominant;
+                        be.transform.gameObject.SetActive(true);
+                        go.AddComponent<Wave.Essence.Controller.ShowIndicator>();
+                    }
+                    else
+                    {
+                        // deacitvate object for render model
+                        if (m_model != null)
+                        {
+                            m_model.gameObject.SetActive(false);
+                        }
+                    }
+                }
+                else
+#endif
+                {
+                    base.UpdateRenderModel();
                 }
             }
         }
@@ -67,7 +124,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private XRInputSubsystemType m_currentInputSubsystemType = XRInputSubsystemType.Unknown;
         private uint m_rightHandedDeviceIndex = INVALID_DEVICE_INDEX;
         private uint m_leftHandedDeviceIndex = INVALID_DEVICE_INDEX;
-        private Dictionary<string, uint> m_deviceUidToIndex = new Dictionary<string, uint>();
+        private Dictionary<int, uint> m_deviceUidToIndex = new Dictionary<int, uint>();
         private List<InputDevice> m_indexToDevices = new List<InputDevice>();
         private List<InputDevice> m_connectedDevices = new List<InputDevice>();
         private List<HapticVibrationState> m_activeHapticVibrationStates = new List<HapticVibrationState>();
@@ -173,6 +230,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState.isConnected = false;
             }
 
+            bool roleChanged = false;
             InputDevices.GetDevices(m_connectedDevices);
             foreach (InputDevice device in m_connectedDevices)
             {
@@ -182,11 +240,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!prevState.isConnected)
                 {
                     currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
-                    currState.serialNumber = GetDeviceUID(device);
+                    currState.serialNumber = device.name + " " + device.serialNumber + " " + (int)device.characteristics;
                     currState.modelNumber = device.name;
                     currState.renderModelName = device.name;
 
                     SetupKnownDeviceModel(currState);
+
+                    if ((device.characteristics & InputDeviceCharacteristics.Left) > 0u)
+                    {
+                        m_leftHandedDeviceIndex = deviceIndex;
+                        roleChanged = true;
+                    }
+                    else if ((device.characteristics & InputDeviceCharacteristics.Right) > 0u)
+                    {
+                        m_rightHandedDeviceIndex = deviceIndex;
+                        roleChanged = true;
+                    }
 
                     Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})", deviceIndex, currState.deviceClass, currState.deviceModel, currState.modelNumber, currState.serialNumber, device.name, device.characteristics);
                 }
@@ -203,14 +272,32 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            UpdateHandHeldDeviceIndex();
+            //UpdateHandHeldDeviceIndex();
 
             deviceIndex = 0u;
             // reset all devices that is not connected in this frame
-            while (TryGetValidDeviceState(deviceIndex++, out prevState, out currState))
+            while (TryGetValidDeviceState(deviceIndex, out prevState, out currState))
             {
-                if (!currState.isConnected) { currState.Reset(); }
+                if (!currState.isConnected)
+                {
+                    currState.Reset();
+
+                    if (deviceIndex == m_leftHandedDeviceIndex)
+                    {
+                        m_leftHandedDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
+                        roleChanged = true;
+                    }
+                    else if (deviceIndex == m_rightHandedDeviceIndex)
+                    {
+                        m_rightHandedDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
+                        roleChanged = true;
+                    }
+                }
+
+                ++deviceIndex;
             }
+
+            if (roleChanged) { InvokeControllerRoleChangedEvent(); }
 
             ProcessConnectedDeviceChanged();
             ProcessDevicePoseChanged();
@@ -342,42 +429,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private void UpdateHandHeldDeviceIndex()
-        {
-            uint leftHandedDeviceIndex = INVALID_DEVICE_INDEX;
-            InputDevice leftHandedDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-            if (leftHandedDevice.isValid)
-            {
-                leftHandedDeviceIndex = GetDeviceIndex(GetDeviceUID(leftHandedDevice));
-            }
-
-            uint rightHandedDeviceIndex = INVALID_DEVICE_INDEX;
-            InputDevice rightHandedDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-            if (rightHandedDevice.isValid)
-            {
-                rightHandedDeviceIndex = GetDeviceIndex(GetDeviceUID(rightHandedDevice));
-            }
-
-            if (m_rightHandedDeviceIndex != rightHandedDeviceIndex || m_leftHandedDeviceIndex != leftHandedDeviceIndex)
-            {
-                InvokeControllerRoleChangedEvent();
-            }
-
-            m_leftHandedDeviceIndex = leftHandedDeviceIndex;
-            m_rightHandedDeviceIndex = rightHandedDeviceIndex;
-        }
-
-        private uint GetDeviceIndex(string uid)
-        {
-            uint index = 0;
-            if (m_deviceUidToIndex.TryGetValue(uid, out index))
-            {
-                return index;
-            }
-
-            return INVALID_DEVICE_INDEX;
-        }
-
         private bool TryGetDevice(uint index, out InputDevice deviceOut)
         {
             deviceOut = default;
@@ -393,7 +444,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint GetOrCreateDeviceIndex(InputDevice device)
         {
             uint index = 0;
-            string uid = GetDeviceUID(device);
+            int uid = GetDeviceUID(device);
             if (m_deviceUidToIndex.TryGetValue(uid, out index))
             {
                 return index;
@@ -445,14 +496,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private string GetDeviceUID(InputDevice device)
+        private int GetDeviceUID(InputDevice device)
         {
-            if (!string.IsNullOrEmpty(device.serialNumber))
-            {
-                return device.name + " " + device.serialNumber;
-            }
-
-            return device.name;
+#if CSHARP_7_OR_LATER
+            return (device.name, device.serialNumber, device.characteristics).GetHashCode();
+#else
+            return new { device.name, device.serialNumber, device.characteristics }.GetHashCode();
+#endif
         }
 
         private XRInputSubsystemType DetectCurrentInputSubsystemType()
@@ -960,6 +1010,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 Debug.Log(device.name + " feature usages:\n\n" + strUsages);
             }
+        }
+
+        private static string CharacteristicsToString(InputDeviceCharacteristics ch)
+        {
+            if (ch == 0u) { return " No Characteristic"; }
+            var chu = (uint)ch;
+            var str = string.Empty;
+            for (var i = 1u; chu > 0u; i <<= 1)
+            {
+                if ((chu & i) == 0u) { continue; }
+                str += " " + (InputDeviceCharacteristics)i;
+                chu &= ~i;
+            }
+            return str;
         }
 #endif
     }
