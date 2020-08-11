@@ -31,23 +31,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqFileNames = new string[] { "OVRInput.cs" },
             });
 
-            Add(new SymbolRequirement()
+            Add(new SymbolRequirement
             {
-                symbol = "VIU_OCULUSVR_1_37_0_OR_NEWER",
-                reqTypeNames = new string[] { "OVRPlugin+SystemHeadset" },
-                validateFunc = (req) =>
-                {
-                    Type oculusQuest;
-                    if (SymbolRequirement.s_foundTypes.TryGetValue("OVRPlugin+SystemHeadset", out oculusQuest) && oculusQuest.IsEnum)
-                    {
-                        if (Enum.IsDefined(oculusQuest, "Oculus_Quest") && Enum.IsDefined(oculusQuest, "Rift_S"))
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-                reqFileNames = new string[] { "OVRPlugin.cs" },
+                symbol = "VIU_OCULUSVR_AVATAR",
+                reqTypeNames = new string[] { "OvrAvatar" },
+                reqFileNames = new string[] { "OvrAvatar.cs" },
             });
 
             Add(new SymbolRequirement()
@@ -99,11 +87,61 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqFileNames = new string[] { "OvrAvatarSDKManager.cs" },
             });
 
-            Add(new SymbolRequirement
+            Add(new SymbolRequirement()
             {
-                symbol = "VIU_OCULUSVR_AVATAR",
-                reqTypeNames = new string[] { "OvrAvatar" },
-                reqFileNames = new string[] { "OvrAvatar.cs" },
+                symbol = "VIU_OCULUSVR_1_37_0_OR_NEWER",
+                reqTypeNames = new string[] { "OVRPlugin+SystemHeadset" },
+                validateFunc = (req) =>
+                {
+                    Type oculusQuest;
+                    if (SymbolRequirement.s_foundTypes.TryGetValue("OVRPlugin+SystemHeadset", out oculusQuest) && oculusQuest.IsEnum)
+                    {
+                        if (Enum.IsDefined(oculusQuest, "Oculus_Quest") && Enum.IsDefined(oculusQuest, "Rift_S"))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                reqFileNames = new string[] { "OVRPlugin.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_OCULUSVR_16_0_OR_NEWER",
+                reqTypeNames = new string[] { "OVRPlugin+SystemHeadset" },
+                validateFunc = (req) =>
+                {
+                    Type oculusQuest;
+                    if (SymbolRequirement.s_foundTypes.TryGetValue("OVRPlugin+SystemHeadset", out oculusQuest) && oculusQuest.IsEnum)
+                    {
+                        if (Enum.IsDefined(oculusQuest, "Oculus_Link_Quest"))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                reqFileNames = new string[] { "OVRPlugin.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_OCULUSVR_19_0_OR_NEWER",
+                reqTypeNames = new string[] { "OVRPlugin+SystemHeadset" },
+                validateFunc = (req) =>
+                {
+                    Type oculusGo;
+                    if (SymbolRequirement.s_foundTypes.TryGetValue("OVRPlugin+SystemHeadset", out oculusGo) && oculusGo.IsEnum)
+                    {
+                        if (!Enum.IsDefined(oculusGo, "Oculus_Go"))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                reqFileNames = new string[] { "OVRPlugin.cs" },
             });
         }
     }

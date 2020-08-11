@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
 using Valve.VR;
 #endif
 
@@ -270,7 +270,7 @@ namespace HTC.UnityPlugin.Vive
 
             return secondaryTeleportButton > 0u && IsSecondaryTeleportButtonOn((TeleportButton)eventData.button);
         }
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
         private bool m_steamVRFadeInitialized;
         private bool m_isSteamVRFading;
 

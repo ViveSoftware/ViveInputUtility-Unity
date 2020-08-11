@@ -9,9 +9,28 @@ namespace HTC.UnityPlugin.Vive
 {
     public class VIUProjectSettings : ScriptableObject, ISerializationCallbackReceiver
     {
+        private const string DEFAULT_ASSET_PATH = "Assets/VIUSettings/Editor/Resources/VIUProjectSettings.asset";
+        private const string DEFAULT_RESOURCES_PATH = "VIUProjectSettings";
+
         private static VIUProjectSettings s_instance = null;
         private static string s_defaultAssetPath;
         private static string s_partialActionDirPath;
+
+        public bool HTCRegistryLicenseAccepted
+        {
+            get
+            {
+                return m_HTCRegistryLicenseAccepted;
+            }
+            set
+            {
+                m_HTCRegistryLicenseAccepted = value;
+                EditorUtility.SetDirty(this);
+            }
+        }
+
+        [SerializeField] 
+        private bool m_HTCRegistryLicenseAccepted;
 
         [SerializeField]
         private List<string> m_ignoreKeys;
@@ -38,9 +57,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (s_defaultAssetPath == null)
                 {
-                    var ms = MonoScript.FromScriptableObject(CreateInstance<VIUProjectSettings>());
-                    var msPath = AssetDatabase.GetAssetPath(ms);
-                    s_defaultAssetPath = System.IO.Path.ChangeExtension(msPath, "asset");
+                    s_defaultAssetPath = DEFAULT_ASSET_PATH;
                 }
 
                 return s_defaultAssetPath;
@@ -53,7 +70,9 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (string.IsNullOrEmpty(s_partialActionDirPath))
                 {
-                    s_partialActionDirPath = Path.GetFullPath(Path.GetDirectoryName(defaultAssetPath) + "/../Misc/SteamVRExtension/PartialInputBindings");
+                    MonoScript script = MonoScript.FromScriptableObject(Instance);
+                    string path = AssetDatabase.GetAssetPath(script);
+                    s_partialActionDirPath = Path.GetFullPath(Path.GetDirectoryName(path) + "/../Misc/SteamVRExtension/PartialInputBindings");
                 }
 
                 return s_partialActionDirPath;
@@ -110,10 +129,10 @@ namespace HTC.UnityPlugin.Vive
         {
             if (path == null)
             {
-                path = defaultAssetPath;
+                path = DEFAULT_RESOURCES_PATH;
             }
 
-            if ((s_instance = AssetDatabase.LoadAssetAtPath<VIUProjectSettings>(path)) == null)
+            if ((s_instance = Resources.Load<VIUProjectSettings>(DEFAULT_RESOURCES_PATH)) == null)
             {
                 s_instance = CreateInstance<VIUProjectSettings>();
             }
@@ -123,20 +142,17 @@ namespace HTC.UnityPlugin.Vive
         {
             if (path == null)
             {
-                path = defaultAssetPath;
+                path = AssetDatabase.GetAssetPath(Instance);
             }
 
-            if (s_instance == null)
-            {
-                Load(path);
-            }
-
-            if (!string.IsNullOrEmpty(AssetDatabase.GetAssetPath(s_instance)))
+            if (!string.IsNullOrEmpty(path))
             {
                 return;
             }
 
-            AssetDatabase.CreateAsset(s_instance, path);
+            path = defaultAssetPath;
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            AssetDatabase.CreateAsset(Instance, path);
         }
 
         public static bool AddIgnoreKey(string key)

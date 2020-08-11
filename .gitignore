@@ -23,7 +23,6 @@ Assets/HTC.UnityPlugin/ViveInputUtility/Scripts/Editor/VIUProjectSettings.asset.
 
 *.cfg
 *.log
-*.json
 *.vrmanifest
 
 !package.json

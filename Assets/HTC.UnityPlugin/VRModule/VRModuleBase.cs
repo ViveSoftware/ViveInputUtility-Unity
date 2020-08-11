@@ -195,17 +195,35 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             }
                             else
                             {
-                                if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                                if (deviceState.modelNumber.Contains("Rift S"))
                                 {
-                                    deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
-                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                    return;
+                                    if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                                    {
+                                        deviceState.deviceModel = VRModuleDeviceModel.OculusQuestControllerLeft;
+                                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                        return;
+                                    }
+                                    else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                                    {
+                                        deviceState.deviceModel = VRModuleDeviceModel.OculusQuestControllerRight;
+                                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                        return;
+                                    }
                                 }
-                                else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                                else
                                 {
-                                    deviceState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
-                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                    return;
+                                    if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                                    {
+                                        deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
+                                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                        return;
+                                    }
+                                    else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                                    {
+                                        deviceState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
+                                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                        return;
+                                    }
                                 }
                             }
                             break;

@@ -3,7 +3,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
 using Valve.VR;
 #endif
 
@@ -24,7 +24,7 @@ public class OverlayKeyboardSample : MonoBehaviour
         HideKeyboard();
     }
 
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
 
     private static OverlayKeyboardSample activeKeyboard;
     private static System.Text.StringBuilder strBuilder;

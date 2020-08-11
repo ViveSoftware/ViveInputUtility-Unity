@@ -6,7 +6,9 @@
         "Unity.XR.Management.Editor",
         "SteamVR",
         "SteamVR_Input_Editor",
-        "Oculus.VR"
+        "Oculus.VR",
+        "Unity.XR.OpenVR",
+        "HTC.ViveInputUtility.UPMRegistryTool.Editor"
     ],
     "includePlatforms": [
         "Editor"

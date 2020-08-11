@@ -6,7 +6,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
 using Valve.VR;
 #endif
 
@@ -57,7 +57,7 @@ namespace HTC.UnityPlugin.Vive.ExCamConfigInterface
         [SerializeField]
         private Toggle m_diableStandardAssets;
 
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
         public float posX
         {
             get

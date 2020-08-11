@@ -33,10 +33,10 @@ namespace HTC.UnityPlugin.Vive
         }
 
         [CreatorPriorityAttirbute(1)]
-        private class DefaultRenderModelCreator : RenderModelCreator
+        public class DefaultRenderModelCreator : RenderModelCreator
         {
             private VRModuleDeviceModel m_loadedModelEnum = (VRModuleDeviceModel)(-1);
-            private GameObject m_model;
+            protected GameObject m_model;
 
             public override bool shouldActive { get { return true; } }
 
@@ -238,6 +238,7 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.onActiveModuleChanged += OnActiveModuleChanged;
             m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
+            m_viveRole.onRoleChanged += UpdateModel;
 
             UpdateModel();
         }
@@ -246,6 +247,7 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.onActiveModuleChanged -= OnActiveModuleChanged;
             m_viveRole.onDeviceIndexChanged -= OnDeviceIndexChanged;
+            m_viveRole.onRoleChanged -= UpdateModel;
 
             UpdateModel();
         }

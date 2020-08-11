@@ -4,7 +4,7 @@ using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System.Collections.Generic;
 using UnityEngine;
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
 using Valve.VR;
 #endif
 
@@ -301,7 +301,7 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
 
         private void UpdateComponents()
         {
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
             if (!isModelLoaded) { return; }
 
             if (m_chilTransforms.Count == 0) { return; }
@@ -338,14 +338,14 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
 #endif
         }
 
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
         private bool TryGetComponentState(CVRSystem vrSystem, CVRRenderModels vrRenderModels, string componentName, out RenderModel_ComponentState_t componentState)
         {
             componentState = default(RenderModel_ComponentState_t);
             var modeState = default(RenderModel_ControllerMode_State_t);
             return vrRenderModels.GetComponentStateForDevicePath(loadedModelName, componentName, SteamVRModule.GetInputSourceHandleForDevice(m_deviceIndex), ref modeState, ref componentState);
         }
-#elif VIU_STEAMVR
+#elif VIU_STEAMVR && UNITY_STANDALONE
         private static readonly uint s_sizeOfControllerStats = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t));
         private bool TryGetComponentState(CVRSystem vrSystem, CVRRenderModels vrRenderModels, string componentName, out RenderModel_ComponentState_t componentState)
         {

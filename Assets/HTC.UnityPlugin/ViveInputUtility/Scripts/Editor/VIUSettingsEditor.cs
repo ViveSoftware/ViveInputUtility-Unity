@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -465,11 +466,14 @@ namespace HTC.UnityPlugin.Vive
 
         public const string URL_VIU_GITHUB_RELEASE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
 
+        private const string DEFAULT_ASSET_PATH = "Assets/VIUSettings/Resources/VIUSettings.asset";
+
         private static Vector2 s_scrollValue = Vector2.zero;
         private static float s_warningHeight;
         private static GUIStyle s_labelStyle;
         private static bool s_guiChanged;
         private static string s_defaultAssetPath;
+        private static string s_VIUPackageName = null;
 
         private static Foldouter s_autoBindFoldouter = new Foldouter();
         private static Foldouter s_bindingUIFoldouter = new Foldouter();
@@ -500,10 +504,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 if (s_defaultAssetPath == null)
                 {
-                    var ms = MonoScript.FromScriptableObject(VIUSettings.Instance);
-                    var path = AssetDatabase.GetAssetPath(ms);
-                    path = System.IO.Path.GetDirectoryName(path);
-                    s_defaultAssetPath = path.Substring(0, path.Length - "Scripts".Length) + "Resources/" + VIUSettings.DEFAULT_RESOURCE_PATH + ".asset";
+                    s_defaultAssetPath = DEFAULT_ASSET_PATH;
                 }
 
                 return s_defaultAssetPath;
@@ -552,6 +553,29 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
                 return false;
+            }
+        }
+
+        public static string VIUPackageName
+        {
+            get
+            {
+                if (s_VIUPackageName == null)
+                {
+                    MonoScript script = MonoScript.FromScriptableObject(VIUSettings.Instance);
+                    string settingsPath = AssetDatabase.GetAssetPath(script);
+                    Match match = Regex.Match(settingsPath, @"^Packages\/([^\/]+)\/");
+                    if (match.Success)
+                    {
+                        s_VIUPackageName = match.Groups[1].Value;
+                    }
+                    else
+                    {
+                        s_VIUPackageName = "";
+                    }
+                }
+
+                return s_VIUPackageName;
             }
         }
 
@@ -745,11 +769,12 @@ namespace HTC.UnityPlugin.Vive
             ApplySDKChanges();
 
             var assetPath = AssetDatabase.GetAssetPath(VIUSettings.Instance);
-
+            
             if (s_guiChanged)
             {
                 if (string.IsNullOrEmpty(assetPath))
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(defaultAssetPath));
                     AssetDatabase.CreateAsset(VIUSettings.Instance, defaultAssetPath);
                 }
 

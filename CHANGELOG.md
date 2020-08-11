@@ -1,5 +1,29 @@
-﻿# Vive Input Utility for Unity - v1.11.0
+﻿# Vive Input Utility for Unity - v1.12.0
 Copyright (c) 2016-2020, HTC Corporation. All rights reserved.
+
+
+## Changes for v1.12.0:
+
+* New Features
+  - Add support for Wave XR Plugin
+  - Add support for OpenVR XR Plugin preview4 and above
+  - Add support for Oculus Link Quest
+
+* Changes
+  - Move VIUSettings.asset default path to folder under Assets\VIUSettings\Resources
+
+* Bug Fixes
+  - Optimize performance updating define symbols #186
+  - Fix recommended settings did not skip check for values that are already using recommended value
+  - Fix compile error when using Oculus Integration Unity Plugin v19 and above
+  - Fix losing materials in example scenes when Universal Render Pipeline is applied
+  - Fix GetReferencedAssemblyNameSet() for Unity 2017.3 and 2017.4
+  - Fix SymbolRequirement.reqAnyMethods validation throwing exception when any argument type not found
+  - Fix UnityWebRequest.SendWebRequest() in early Unity version (5.4 - 2017.1)
+
+* Known Issue
+  - Importing Oculus Integration v19 before upgrading VIU to v1.12.0 will cause compile error and brake VIUSettings.
+    - Workaround: manually clear the "Scripting Define Symbols" in Player Settings should solve it
 
 
 ## Changes for v1.11.0:

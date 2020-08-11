@@ -1,6 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
-#if VIU_STEAMVR
+#if VIU_STEAMVR && UNITY_STANDALONE
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using System.Text;
@@ -27,7 +27,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public const string OPENVR_XR_LOADER_NAME = "Open VR Loader";
         public const string OPENVR_XR_LOADER_CLASS_NAME = "OpenVRLoader";
 
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
         public class ActionArray<T> where T : struct
         {
             private static readonly EnumUtils.EnumDisplayInfo s_enumInfo;
@@ -364,7 +364,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override bool ShouldActiveModule()
         {
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
-            return VIUSettings.activateSteamVRModule && UnityXRModule.HasActiveLoader(OPENVR_XR_LOADER_NAME);
+            return VIUSettings.activateSteamVRModule && (UnityXRModule.HasActiveLoader(OPENVR_XR_LOADER_NAME) ||
+                (XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR"));
 #elif UNITY_5_4_OR_NEWER
             return VIUSettings.activateSteamVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR";
 #else
