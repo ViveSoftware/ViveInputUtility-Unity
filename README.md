@@ -11,8 +11,7 @@ The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity
 
 ## Requirements
 
-- Unity 5.6 or newer
-    - For Unity 5.3.6 to 5.4: Change API compatibility level to .NET 2.0
+- Unity 5.3.6 or newer
 
 ## Features
 
