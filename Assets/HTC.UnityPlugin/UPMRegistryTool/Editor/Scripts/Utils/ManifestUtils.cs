@@ -1,4 +1,5 @@
-﻿using HTC.UnityPlugin.UPMRegistryTool.Editor.Configs;
+﻿#if UNITY_2018_1_OR_NEWER
+using HTC.UnityPlugin.UPMRegistryTool.Editor.Configs;
 using HTC.UnityPlugin.UPMRegistryTool.Editor.Utils.SimpleJSON;
 using System.IO;
 
@@ -81,4 +82,5 @@ namespace HTC.UnityPlugin.UPMRegistryTool.Editor.Utils
             File.WriteAllText(RegistryToolSettings.Instance().ProjectManifestPath, jsonString);
         }
     }
-}
+} 
+#endif

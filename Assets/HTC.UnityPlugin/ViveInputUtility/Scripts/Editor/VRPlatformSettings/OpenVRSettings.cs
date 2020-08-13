@@ -355,7 +355,7 @@ namespace HTC.UnityPlugin.Vive
         private const string OPENVR_XR_PACKAGE_NAME_OLD = "com.valve.openvr";
         private const string OPENVR_XR_PACKAGE_NAME = "com.valvesoftware.unity.openvr";
 
-#if UNITY_2018_1_OR_NEWER
+#if UNITY_2019_3_OR_NEWER
         private static readonly RegistryInfo ValveRegistry = new RegistryInfo
         {
             Name = "Valve",

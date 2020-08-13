@@ -1,7 +1,9 @@
-﻿using System;
+﻿#if UNITY_2018_1_OR_NEWER
+using System;
 using HTC.UnityPlugin.UPMRegistryTool.Editor.Utils.SimpleJSON;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 
 namespace HTC.UnityPlugin.UPMRegistryTool.Editor.Utils
 {
@@ -62,7 +64,18 @@ namespace HTC.UnityPlugin.UPMRegistryTool.Editor.Utils
 
         public override bool Equals(object obj)
         {
-            return obj is RegistryInfo other && Equals(other);
+            if (!(obj is RegistryInfo))
+            {
+                return false;
+            }
+
+            RegistryInfo other = (RegistryInfo) obj;
+            if (!Equals(other))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public override int GetHashCode()
@@ -76,4 +89,5 @@ namespace HTC.UnityPlugin.UPMRegistryTool.Editor.Utils
             }
         }
     }
-}
+} 
+#endif
