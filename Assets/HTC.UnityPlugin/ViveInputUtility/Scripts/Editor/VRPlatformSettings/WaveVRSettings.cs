@@ -217,26 +217,15 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
 
-                        bool hasHTCRegistryAdded = ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry);
-                        if (hasHTCRegistryAdded)
+                        if (GUILayout.Button(new GUIContent("Add Wave XR Plugin Package", "Add " + WAVE_XR_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
                         {
-                            ShowAddPackageButton("Wave XR Plugin", WAVE_XR_PACKAGE_NAME);
-                        }
-                        else
-                        {
-                            if (GUILayout.Button(new GUIContent("Add VIVE Registry")))
+                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
                             {
-                                bool result = EditorUtility.DisplayDialog(
-                                    "Add VIVE Registry",
-                                    "Do you want to add VIVE registry to your project?\n\nBy adding the VIVE registry (" + RegistryToolSettings.Instance().Registry.Url + ") in your 'Packages/manifest.json', VIU can install Wave XR Plugin packages for you.\n\nIn addition, you can discover, install, update or remove the packages from VIVE in the package manager window later.",
-                                    "Add",
-                                    "Cancel");
-
-                                if (result)
-                                {
-                                    ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
-                                }
+                                ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }
+
+                            PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NAME);
+                            VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
                         }
                     }
 #endif
@@ -340,6 +329,19 @@ namespace HTC.UnityPlugin.Vive
 
                     EditorGUI.indentLevel -= 2;
                 }
+
+#if UNITY_2019_4_OR_NEWER
+                if (VIUProjectSettings.Instance.isInstallingWaveXRPlugin)
+                {
+                    bool isPackageInstalled = PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME);
+                    bool isLoaderEnabled = XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_NAME, BuildTargetGroup.Android);
+                    if (isPackageInstalled && !isLoaderEnabled)
+                    {
+                        XRPluginManagementUtils.SetXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_CLASS_NAME, BuildTargetGroup.Android, true);
+                        VIUProjectSettings.Instance.isInstallingWaveXRPlugin = false;
+                    }
+                }
+#endif
             }
 
             public void OnPreprocessBuild(BuildTarget target, string path)
