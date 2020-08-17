@@ -30,6 +30,8 @@ namespace HTC.UnityPlugin.Vive
             Vector2 GetPadPressVector();
             Vector2 GetPadTouchVector();
             Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY);
+            ulong PreviousButtonPressed { get; }
+            ulong CurrentButtonPressed { get; }
         }
 
         private class CtrlState : ICtrlState
@@ -49,6 +51,8 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadPressVector() { return Vector2.zero; }
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
+            public virtual ulong PreviousButtonPressed { get { return 0ul; } }
+            public virtual ulong CurrentButtonPressed { get { return 0ul; } }
         }
 
         private sealed class RCtrlState : CtrlState
@@ -78,6 +82,10 @@ namespace HTC.UnityPlugin.Vive
 
             private const float hairDelta = 0.1f; // amount trigger must be pulled or released to change state
             private float hairTriggerLimit;
+
+            public override ulong PreviousButtonPressed { get { return prevButtonPressed; } }
+
+            public override ulong CurrentButtonPressed { get { return currButtonPressed; } }
 
             public RCtrlState(Type roleEnumType, int roleValue)
             {
@@ -537,6 +545,8 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadPressVector() { return Vector2.zero; }
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
+            public virtual ulong PreviousButtonPressed { get { return 0ul; } }
+            public virtual ulong CurrentButtonPressed { get { return 0ul; } }
 
             public virtual void AddListener(ControllerButton button, RoleEventListener<TRole> listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void RemoveListener(ControllerButton button, RoleEventListener<TRole> listener, ButtonEventType type = ButtonEventType.Click) { }
@@ -554,6 +564,10 @@ namespace HTC.UnityPlugin.Vive
             private readonly TRole m_role;
 
             private RoleEventListener<TRole>[][] listeners;
+
+            public override ulong PreviousButtonPressed { get { return m_state.PreviousButtonPressed; } }
+
+            public override ulong CurrentButtonPressed { get { return m_state.CurrentButtonPressed; } }
 
             public RGCtrolState(TRole role)
             {
