@@ -186,7 +186,7 @@ namespace HTC.UnityPlugin.Vive
 #endif
             }
 
-            public int callbackOrder { get { return 0; } }
+            public int callbackOrder { get { return 10; } }
 
             public override void OnPreferenceGUI()
             {
