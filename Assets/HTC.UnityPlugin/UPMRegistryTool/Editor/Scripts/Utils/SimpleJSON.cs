@@ -1,4 +1,4 @@
-﻿/* * * * *
+/* * * * *
  * A simple JSON Parser / builder
  * ------------------------------
  * 
@@ -40,7 +40,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace HTC.UnityPlugin.UPMRegistryTool.SimpleJSON
+namespace HTC.UnityPlugin.UPMRegistryTool.Editor.Utils.SimpleJSON
 {
     public enum JSONNodeType
     {
@@ -642,7 +642,7 @@ namespace HTC.UnityPlugin.UPMRegistryTool.SimpleJSON
                                         string s = aJSON.Substring(i + 1, 4);
                                         Token.Append((char)int.Parse(
                                             s,
-                                            System.Globalization.NumberStyles.AllowHexSpecifier));
+                                            NumberStyles.AllowHexSpecifier));
                                         i += 4;
                                         break;
                                     }
@@ -756,7 +756,7 @@ namespace HTC.UnityPlugin.UPMRegistryTool.SimpleJSON
         {
             var node = new JSONArray();
             node.m_List.Capacity = m_List.Capacity;
-            foreach (var n in m_List)
+            foreach(var n in m_List)
             {
                 if (n != null)
                     node.Add(n.Clone());
@@ -1263,7 +1263,7 @@ namespace HTC.UnityPlugin.UPMRegistryTool.SimpleJSON
         {
             if (b == null)
                 return true;
-            return System.Object.ReferenceEquals(a, b);
+            return ReferenceEquals(a, b);
         }
 
         public static bool operator !=(JSONLazyCreator a, object b)
@@ -1275,7 +1275,7 @@ namespace HTC.UnityPlugin.UPMRegistryTool.SimpleJSON
         {
             if (obj == null)
                 return true;
-            return System.Object.ReferenceEquals(this, obj);
+            return ReferenceEquals(this, obj);
         }
 
         public override int GetHashCode()
