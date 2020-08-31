@@ -281,7 +281,10 @@ namespace HTC.UnityPlugin.Vive
             	if (isGrabbed)
             	{
                 	caster.canGrab = true;
-                	m_onDrop?.Invoke(this);
+                    if (m_onDrop != null)
+                    {
+                        m_onDrop.Invoke(this);
+                    }
             	}
             	caster.canGrab = true;
         	}
