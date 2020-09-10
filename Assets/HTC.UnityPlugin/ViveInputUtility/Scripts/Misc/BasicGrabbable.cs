@@ -16,7 +16,7 @@ namespace HTC.UnityPlugin.Vive
         , IColliderEventDragFixedUpdateHandler
         , IColliderEventDragUpdateHandler
         , IColliderEventDragEndHandler
-		, IColliderEventPressUpHandler
+        , IColliderEventPressUpHandler
     {
         [Serializable]
         public class UnityEventGrabbable : UnityEvent<BasicGrabbable> { }

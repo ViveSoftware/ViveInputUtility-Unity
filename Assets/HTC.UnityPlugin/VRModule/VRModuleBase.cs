@@ -333,8 +333,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.ViveFocusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
-                            deviceState.deviceModel = VRModuleDeviceModel.ViveFocusChirp;
+                            if (deviceState.renderModelName.Equals("WVR_CONTROLLER_FINCH3DOF_2_0"))
+                            {
+                                deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                                deviceState.deviceModel = VRModuleDeviceModel.ViveFocusFinch;
+                            }
+                            else if (deviceState.renderModelName.Equals("WVR_CONTROLLER_ASPEN_MI6_1"))
+                            {
+                                deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
+                                deviceState.deviceModel = VRModuleDeviceModel.ViveFocusChirp;
+                            }
                             return;
                     }
                 }

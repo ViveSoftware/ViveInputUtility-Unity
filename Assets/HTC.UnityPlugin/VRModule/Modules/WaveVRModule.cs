@@ -247,6 +247,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private IVRModuleDeviceStateRW m_rightState;
         private IVRModuleDeviceStateRW m_leftState;
         private WaveVR_ControllerLoader.ControllerHand[] m_deviceHands = new WaveVR_ControllerLoader.ControllerHand[DEVICE_COUNT];
+        private static Dictionary<string, VRModuleDeviceModel> m_models = new Dictionary<string, VRModuleDeviceModel>
+        {
+            {"WVR_CONTROLLER_FINCH3DOF_2_0", VRModuleDeviceModel.ViveFocusFinch},
+            {"WVR_CONTROLLER_ASPEN_MI6_1", VRModuleDeviceModel.ViveFocusChirp}
+        };
 
         #region 6Dof Controller Simulation
 
@@ -279,12 +284,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_type2class[(int)WVR_DeviceType.WVR_DeviceType_HMD] = VRModuleDeviceClass.HMD;
             s_type2class[(int)WVR_DeviceType.WVR_DeviceType_Controller_Right] = VRModuleDeviceClass.Controller;
             s_type2class[(int)WVR_DeviceType.WVR_DeviceType_Controller_Left] = VRModuleDeviceClass.Controller;
-
-            s_type2model = new VRModuleDeviceModel[s_type2index.Length];
-            for (int i = 0; i < s_type2model.Length; ++i) { s_type2model[i] = VRModuleDeviceModel.Unknown; }
-            s_type2model[(int)WVR_DeviceType.WVR_DeviceType_HMD] = VRModuleDeviceModel.ViveFocusHMD;
-            s_type2model[(int)WVR_DeviceType.WVR_DeviceType_Controller_Right] = VRModuleDeviceModel.ViveFocusFinch;
-            s_type2model[(int)WVR_DeviceType.WVR_DeviceType_Controller_Left] = VRModuleDeviceModel.ViveFocusFinch;
 
             s_simulatedCtrlPosArray = new Vector3[s_type2index.Length];
         }
@@ -544,7 +543,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     currState.isConnected = true;
                     currState.deviceClass = s_type2class[(int)content.type];
-                    currState.deviceModel = s_type2model[(int)content.type];
+                    currState.deviceModel = QueryDeviceModel(s_type2class[(int)content.type]);
                     currState.serialNumber = content.type.ToString();
                     currState.modelNumber = content.type.ToString();
                     currState.renderModelName = content.type.ToString();
@@ -796,6 +795,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (deviceInput != null)
             {
                 deviceInput.TriggerHapticPulse(durationMicroSec);
+            }
+        }
+
+        private VRModuleDeviceModel QueryDeviceModel(VRModuleDeviceClass device)
+        {
+            if (device.Equals(VRModuleDeviceClass.HMD))
+            {
+                return VRModuleDeviceModel.ViveFocusHMD;
+            }
+            else if (device.Equals(VRModuleDeviceClass.Controller))
+            {
+                VRModuleDeviceModel model;
+                if (m_models.TryGetValue(WaveVR_Utils.GetControllerName(WaveVR_Controller.EDeviceType.Dominant), out model))
+                {
+                    return model;
+                }
+                else
+                {
+                    return VRModuleDeviceModel.Unknown;
+                }
+            }
+            else
+            {
+                return VRModuleDeviceModel.Unknown;
             }
         }
 
