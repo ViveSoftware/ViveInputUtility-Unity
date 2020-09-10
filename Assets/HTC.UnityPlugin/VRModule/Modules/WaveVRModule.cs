@@ -4,6 +4,7 @@ using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 #if VIU_WAVEVR && UNITY_ANDROID
 using wvr;
@@ -543,7 +544,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     currState.isConnected = true;
                     currState.deviceClass = s_type2class[(int)content.type];
-                    currState.deviceModel = QueryDeviceModel(s_type2class[(int)content.type]);
+                    currState.deviceModel = QueryDeviceModel(s_index2type[(int)deviceIndex]);
                     currState.serialNumber = content.type.ToString();
                     currState.modelNumber = content.type.ToString();
                     currState.renderModelName = content.type.ToString();
@@ -798,27 +799,38 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private VRModuleDeviceModel QueryDeviceModel(VRModuleDeviceClass device)
+        private VRModuleDeviceModel QueryDeviceModel(WVR_DeviceType device)
         {
-            if (device.Equals(VRModuleDeviceClass.HMD))
+            switch (device)
             {
-                return VRModuleDeviceModel.ViveFocusHMD;
-            }
-            else if (device.Equals(VRModuleDeviceClass.Controller))
-            {
-                VRModuleDeviceModel model;
-                if (m_models.TryGetValue(WaveVR_Utils.GetControllerName(WaveVR_Controller.EDeviceType.Dominant), out model))
-                {
-                    return model;
-                }
-                else
-                {
+                case WVR_DeviceType.WVR_DeviceType_HMD:
+                    return VRModuleDeviceModel.ViveFocusHMD;
+                case WVR_DeviceType.WVR_DeviceType_Controller_Right:
+                case WVR_DeviceType.WVR_DeviceType_Controller_Left:
+                    int buffer = 128;
+                    uint resultLength = 128;
+                    string parameterName = "GetRenderModelName";
+                    IntPtr ptrParameterName = Marshal.StringToHGlobalAnsi(parameterName);
+                    IntPtr ptrResult = Marshal.AllocHGlobal(buffer);
+                    uint ret = Interop.WVR_GetParameters(device, ptrParameterName, ptrResult, resultLength);
+                    if (ret > 0)
+                    {
+                        VRModuleDeviceModel model;
+                        if (m_models.TryGetValue(Marshal.PtrToStringAnsi(ptrResult), out model))
+                        {
+                            return model;
+                        }
+                        else
+                        {
+                            return VRModuleDeviceModel.Unknown;
+                        }
+                    }
+                    else
+                    {
+                        return VRModuleDeviceModel.Unknown;
+                    }
+                default:
                     return VRModuleDeviceModel.Unknown;
-                }
-            }
-            else
-            {
-                return VRModuleDeviceModel.Unknown;
             }
         }
 
