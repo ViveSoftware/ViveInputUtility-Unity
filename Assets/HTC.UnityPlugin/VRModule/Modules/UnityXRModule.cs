@@ -154,6 +154,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             s_moduleInstance = this;
             m_currentInputSubsystemType = DetectCurrentInputSubsystemType();
             EnsureDeviceStateLength(DEVICE_STATE_LENGTH);
+            UpdateTrackingSpaceType();
             Debug.Log("Activated XRLoader Name: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
         }
 

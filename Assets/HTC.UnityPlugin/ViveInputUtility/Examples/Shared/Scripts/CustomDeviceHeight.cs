@@ -76,11 +76,6 @@ namespace HTC.UnityPlugin.Vive
                     }
                     break;
 #endif
-#if UNITY_2019_3_OR_NEWER && UNITY_ANDROID
-                case VRModuleActiveEnum.UnityXR:
-                    transform.localPosition = new Vector3(pos.x, m_height, pos.y);
-                    break;
-#endif
             }
         }
     }
