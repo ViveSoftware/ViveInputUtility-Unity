@@ -74,6 +74,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Axis2 = 34,
         Axis3 = 35,
         Axis4 = 36,
+
+        // Gestures
+        IndexPinch,
+        MiddlePinch,
+        RingPinch,
+        PinkyPinch,
+        Fist,
+        Five,
+        Ok,
+        ThumbUp,
+        IndexUp,
     }
 
     public enum VRModuleRawAxis
@@ -101,6 +112,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Axis3Y,
         Axis4X,
         Axis4Y,
+
+        // Gestures
+        IndexPinch,
+        MiddlePinch,
+        RingPinch,
+        PinkyPinch,
     }
 
     public enum VRModuleInput2DType

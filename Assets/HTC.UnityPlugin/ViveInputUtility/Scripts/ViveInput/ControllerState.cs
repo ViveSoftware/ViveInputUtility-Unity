@@ -15,7 +15,7 @@ namespace HTC.UnityPlugin.Vive
 
         private interface ICtrlState
         {
-            bool Update(); // return true if  frame skipped
+            bool Update(); // return true if frame skipped
             void AddListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click);
             void RemoveListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click);
             void AddListener(ControllerButton button, RoleValueEventListener listener, ButtonEventType type = ButtonEventType.Click);
@@ -30,6 +30,9 @@ namespace HTC.UnityPlugin.Vive
             Vector2 GetPadPressVector();
             Vector2 GetPadTouchVector();
             Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY);
+            bool IsPinching();
+            bool IsPinching(FingerType fingerType);
+            float GetPinchStrength(FingerType fingerType = FingerType.Index);
             ulong PreviousButtonPressed { get; }
             ulong CurrentButtonPressed { get; }
         }
@@ -51,6 +54,9 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadPressVector() { return Vector2.zero; }
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
+            public virtual bool IsPinching() { return false; }
+            public virtual bool IsPinching(FingerType fingerType) { return false; }
+            public virtual float GetPinchStrength(FingerType fingerType = FingerType.Index) { return 0.0f; }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
         }
@@ -142,6 +148,16 @@ namespace HTC.UnityPlugin.Vive
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4, currState.GetButtonPress(VRModuleRawButton.Axis4));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4Touch, currState.GetButtonTouch(VRModuleRawButton.Axis4));
 
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.IndexPinch, currState.GetButtonTouch(VRModuleRawButton.IndexPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.MiddlePinch, currState.GetButtonTouch(VRModuleRawButton.MiddlePinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.RingPinch, currState.GetButtonTouch(VRModuleRawButton.RingPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.PinkyPinch, currState.GetButtonTouch(VRModuleRawButton.PinkyPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Fist, currState.GetButtonTouch(VRModuleRawButton.Fist));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Five, currState.GetButtonTouch(VRModuleRawButton.Five));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Ok, currState.GetButtonTouch(VRModuleRawButton.Ok));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.ThumbUp, currState.GetButtonTouch(VRModuleRawButton.ThumbUp));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.IndexUp, currState.GetButtonTouch(VRModuleRawButton.IndexUp));
+
                 // update axis values
                 float currTriggerValue;
                 currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
@@ -152,6 +168,10 @@ namespace HTC.UnityPlugin.Vive
                 currAxisValue[(int)ControllerAxis.MiddleCurl] = currState.GetAxisValue(VRModuleRawAxis.MiddleCurl);
                 currAxisValue[(int)ControllerAxis.RingCurl] = currState.GetAxisValue(VRModuleRawAxis.RingCurl);
                 currAxisValue[(int)ControllerAxis.PinkyCurl] = currState.GetAxisValue(VRModuleRawAxis.PinkyCurl);
+                currAxisValue[(int)ControllerAxis.IndexPinch] = currState.GetAxisValue(VRModuleRawAxis.IndexPinch);
+                currAxisValue[(int)ControllerAxis.MiddlePinch] = currState.GetAxisValue(VRModuleRawAxis.MiddlePinch);
+                currAxisValue[(int)ControllerAxis.RingPinch] = currState.GetAxisValue(VRModuleRawAxis.RingPinch);
+                currAxisValue[(int)ControllerAxis.PinkyPinch] = currState.GetAxisValue(VRModuleRawAxis.PinkyPinch);
 
                 switch (currentInput2DType)
                 {
@@ -520,6 +540,65 @@ namespace HTC.UnityPlugin.Vive
 
                 return Vector2.Scale(scrollDelta, scale);
             }
+
+            public override bool IsPinching()
+            {
+                if (GetPress(ControllerButton.IndexPinch))
+                {
+                    return true;
+                }
+
+                if (GetPress(ControllerButton.MiddlePinch))
+                {
+                    return true;
+                }
+
+                if (GetPress(ControllerButton.RingPinch))
+                {
+                    return true;
+                }
+
+                if (GetPress(ControllerButton.PinkyPinch))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            public override bool IsPinching(FingerType fingerType)
+            {
+                switch (fingerType)
+                {
+                    case FingerType.Index:
+                        return GetPress(ControllerButton.IndexPinch);
+                    case FingerType.Middle:
+                        return GetPress(ControllerButton.MiddlePinch);
+                    case FingerType.Ring:
+                        return GetPress(ControllerButton.RingPinch);
+                    case FingerType.Pinky:
+                        return GetPress(ControllerButton.PinkyPinch);
+                }
+
+                return false;
+            }
+
+            public override float GetPinchStrength(FingerType fingerType = FingerType.Index)
+            {
+                switch (fingerType)
+                {
+                    case FingerType.Index:
+                        return GetAxis(ControllerAxis.IndexPinch);
+                    case FingerType.Middle:
+                        return GetAxis(ControllerAxis.MiddlePinch);
+                    case FingerType.Ring:
+                        return GetAxis(ControllerAxis.RingPinch);
+                    case FingerType.Pinky:
+                        return GetAxis(ControllerAxis.PinkyPinch);
+                }
+
+                return 0.0f;
+            }
         }
 
         private interface ICtrlState<TRole> : ICtrlState
@@ -545,6 +624,9 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadPressVector() { return Vector2.zero; }
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
+            public virtual bool IsPinching() { return false; }
+            public virtual bool IsPinching(FingerType fingerType) { return false; }
+            public virtual float GetPinchStrength(FingerType fingerType = FingerType.Index) { return 0.0f; }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
 
@@ -576,7 +658,7 @@ namespace HTC.UnityPlugin.Vive
                 m_role = role;
             }
 
-            // return true if  frame skipped
+            // return true if frame skipped
             public override bool Update()
             {
                 if (m_state.Update()) { return true; }
@@ -625,6 +707,9 @@ namespace HTC.UnityPlugin.Vive
             public override Vector2 GetPadPressVector() { return m_state.GetPadPressVector(); }
             public override Vector2 GetPadTouchVector() { return m_state.GetPadTouchVector(); }
             public override Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return m_state.GetScrollDelta(scrollType, scale, xAxis, yAxis); }
+            public override bool IsPinching() { return m_state.IsPinching(); }
+            public override bool IsPinching(FingerType fingerType) { return m_state.IsPinching(fingerType); }
+            public override float GetPinchStrength(FingerType fingerType = FingerType.Index) { return m_state.GetPinchStrength(fingerType); }
 
             protected override void TryInvokeListener(ControllerButton button, ButtonEventType type)
             {
