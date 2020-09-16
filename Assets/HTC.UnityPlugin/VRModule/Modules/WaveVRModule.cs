@@ -240,19 +240,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static readonly WVR_DeviceType[] s_index2type;
         private static readonly uint[] s_type2index;
         private static readonly VRModuleDeviceClass[] s_type2class;
-        private static readonly VRModuleDeviceModel[] s_type2model;
 
-        //private bool m_hasInputFocus;
-        private readonly bool[] m_index2deviceTouched = new bool[DEVICE_COUNT];
         private IVRModuleDeviceStateRW m_headState;
         private IVRModuleDeviceStateRW m_rightState;
         private IVRModuleDeviceStateRW m_leftState;
         private WaveVR_ControllerLoader.ControllerHand[] m_deviceHands = new WaveVR_ControllerLoader.ControllerHand[DEVICE_COUNT];
-        private static Dictionary<string, VRModuleDeviceModel> m_models = new Dictionary<string, VRModuleDeviceModel>
-        {
-            {"WVR_CONTROLLER_FINCH3DOF_2_0", VRModuleDeviceModel.ViveFocusFinch},
-            {"WVR_CONTROLLER_ASPEN_MI6_1", VRModuleDeviceModel.ViveFocusChirp}
-        };
 
         #region 6Dof Controller Simulation
 
@@ -381,7 +373,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_headState = null;
             m_rightState = null;
             m_leftState = null;
-            ResetTouchState();
 
             s_moduleInstance = null;
         }
@@ -542,13 +533,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (!prevState.isConnected)
                 {
+                    string renderModelName;
+                    if (!TryGetWVRStringParameter(s_index2type[(int)deviceIndex], "GetRenderModelName", out renderModelName))
+                    {
+                        renderModelName = "wvr_unknown_device";
+                    }
+
                     currState.isConnected = true;
                     currState.deviceClass = s_type2class[(int)content.type];
-                    currState.deviceModel = QueryDeviceModel(s_index2type[(int)deviceIndex]);
                     currState.serialNumber = content.type.ToString();
-                    currState.modelNumber = content.type.ToString();
-                    currState.renderModelName = content.type.ToString();
+                    currState.modelNumber = renderModelName;
+                    currState.renderModelName = renderModelName;
                     currState.input2DType = VRModuleInput2DType.TouchpadOnly;
+
+                    SetupKnownDeviceModel(currState);
                 }
 
                 // update pose
@@ -592,7 +590,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 #endif
 
-
             if (m_rightState != null && !rightDevice.pose.pose.Is6DoFPose)
             {
                 ApplyVirtualArmAndSimulateInput(m_rightState, m_headState, RIGHT_ARM_MULTIPLIER);
@@ -616,61 +613,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override uint GetRightControllerDeviceIndex() { return RIGHT_INDEX; }
 
         public override uint GetLeftControllerDeviceIndex() { return LEFT_INDEX; }
-
-        private bool TryGetAndTouchDeviceIndexByType(WVR_DeviceType type, out uint deviceIndex)
-        {
-            if (type < 0 || (int)type >= s_type2index.Length)
-            {
-                deviceIndex = INVALID_DEVICE_INDEX;
-                return false;
-            }
-
-            deviceIndex = s_type2index[(int)type];
-            if (VRModule.IsValidDeviceIndex(deviceIndex))
-            {
-                m_index2deviceTouched[deviceIndex] = true;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private int ResetAndDisconnectUntouchedDevices()
-        {
-            var disconnectedCout = 0;
-            for (uint i = 0u, imax = (uint)m_index2deviceTouched.Length; i < imax; ++i)
-            {
-                IVRModuleDeviceState prevState;
-                IVRModuleDeviceStateRW currState;
-                if (!TryGetValidDeviceState(i, out prevState, out currState))
-                {
-                    Debug.Assert(!m_index2deviceTouched[i]);
-                    continue;
-                }
-
-                if (!m_index2deviceTouched[i])
-                {
-                    if (currState.isConnected)
-                    {
-                        currState.Reset();
-                        ++disconnectedCout;
-                    }
-                }
-                else
-                {
-                    m_index2deviceTouched[i] = false;
-                }
-            }
-
-            return disconnectedCout;
-        }
-
-        private void ResetTouchState()
-        {
-            Array.Clear(m_index2deviceTouched, 0, m_index2deviceTouched.Length);
-        }
 
         private void ApplyVirtualArmAndSimulateInput(IVRModuleDeviceStateRW ctrlState, IVRModuleDeviceStateRW headState, Vector3 handSideMultiplier)
         {
@@ -799,68 +741,60 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private VRModuleDeviceModel QueryDeviceModel(WVR_DeviceType device)
+        private bool TryGetWVRStringParameter(WVR_DeviceType device, string paramName, out string result)
         {
-            switch (device)
+            result = default(string);
+            var resultLen = 0u;
+            try
             {
-                case WVR_DeviceType.WVR_DeviceType_HMD:
-                    return VRModuleDeviceModel.ViveFocusHMD;
-                case WVR_DeviceType.WVR_DeviceType_Controller_Right:
-                case WVR_DeviceType.WVR_DeviceType_Controller_Left:
-                    int buffer = 128;
-                    uint resultLength = 128;
-                    string parameterName = "GetRenderModelName";
-                    IntPtr ptrParameterName = Marshal.StringToHGlobalAnsi(parameterName);
-                    IntPtr ptrResult = Marshal.AllocHGlobal(buffer);
-                    uint ret = Interop.WVR_GetParameters(device, ptrParameterName, ptrResult, resultLength);
-                    if (ret > 0)
-                    {
-                        VRModuleDeviceModel model;
-                        if (m_models.TryGetValue(Marshal.PtrToStringAnsi(ptrResult), out model))
-                        {
-                            return model;
-                        }
-                        else
-                        {
-                            return VRModuleDeviceModel.Unknown;
-                        }
-                    }
-                    else
-                    {
-                        return VRModuleDeviceModel.Unknown;
-                    }
-                default:
-                    return VRModuleDeviceModel.Unknown;
+                const int resultMaxLen = 128;
+                var resultBuffer = resultMaxLen;
+                var resultPtr = Marshal.AllocHGlobal(resultBuffer);
+                var paramNamePtr = Marshal.StringToHGlobalAnsi(paramName);
+                resultLen = Interop.WVR_GetParameters(device, paramNamePtr, resultPtr, resultMaxLen);
+
+                if (resultLen > 0u)
+                {
+                    result = Marshal.PtrToStringAnsi(resultPtr);
+                }
             }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            return resultLen > 0u;
         }
 
 #if VIU_WAVEVR_3_1_0_OR_NEWER
         public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85, float amplitude = 0.125f, float startSecondsFromNow = 0)
         {
             var deviceInput = WaveVR_Controller.Input(s_index2type[deviceIndex]);
+            var intensity = default(WVR_Intensity);
             if (deviceInput != null)
             {
                 if (0 <= amplitude || amplitude <= 0.2)
                 {
-                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Weak);
+                    intensity = WVR_Intensity.WVR_Intensity_Weak;
                 }
                 else if (0.2 < amplitude || amplitude <= 0.4)
                 {
-                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Light);
+                    intensity = WVR_Intensity.WVR_Intensity_Light;
                 }
                 else if (0.4 < amplitude || amplitude <= 0.6)
                 {
-                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Normal);
+                    intensity = WVR_Intensity.WVR_Intensity_Normal;
                 }
                 else if (0.6 < amplitude || amplitude <= 0.8)
                 {
-                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Strong);
+                    intensity = WVR_Intensity.WVR_Intensity_Strong;
                 }
                 else if (0.8 < amplitude || amplitude <= 1)
                 {
-                    Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, WVR_Intensity.WVR_Intensity_Severe);
+                    intensity = WVR_Intensity.WVR_Intensity_Severe;
                 }
             }
+            Interop.WVR_TriggerVibration(deviceInput.DeviceType, WVR_InputId.WVR_InputId_Alias1_Touchpad, (uint)(durationSeconds * 1000000), (uint)frequency, intensity);
         }
 #endif
 #endif
