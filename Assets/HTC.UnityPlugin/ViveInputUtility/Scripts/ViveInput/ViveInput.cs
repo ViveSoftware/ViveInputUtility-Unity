@@ -153,15 +153,6 @@ namespace HTC.UnityPlugin.Vive
         Thumbstick,
     }
 
-    public enum FingerType
-    {
-        Thumb,
-        Index,
-        Middle,
-        Ring,
-        Pinky,
-    }
-
     public class RawControllerState
     {
         public readonly bool[] buttonPress = new bool[ViveInput.CONTROLLER_BUTTON_COUNT];
