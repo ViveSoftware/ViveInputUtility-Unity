@@ -199,6 +199,32 @@ namespace HTC.UnityPlugin.Vive
         {
             TriggerHapticVibrationEx(role, durationSeconds, frequency, amplitude, startSecondsFromNow);
         }
+
+        public static bool IsPinching(HandRole role)
+        {
+            return IsPinchingEx(role);
+        }
+
+        public static bool IsPinching(HandRole role, FingerType fingerType)
+        {
+            return IsPinchingEx(role, fingerType);
+        }
+
+        public static float GetPinchStrength(HandRole role, FingerType fingerType = FingerType.Index)
+        {
+            return GetPinchStrengthEx(role, fingerType);
+        }
+
+        public static HandBone[] GetAllHandBones(HandRole role)
+        {
+            return GetAllHandBonesEx(role);
+        }
+
+        public virtual HandBone GetHandBone(HandRole role, HandBoneType handBoneType)
+        {
+            return GetHandBoneEx(role, handBoneType);
+        }
+
         #endregion origin
 
         #region general role property
@@ -341,6 +367,31 @@ namespace HTC.UnityPlugin.Vive
         public static void TriggerHapticVibration(ViveRoleProperty role, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
         {
             TriggerHapticVibrationEx(role.roleType, role.roleValue, durationSeconds, frequency, amplitude, startSecondsFromNow);
+        }
+
+        public static bool IsPinching(ViveRoleProperty role)
+        {
+            return IsPinchingEx(role.roleType, role.roleValue);
+        }
+
+        public static bool IsPinching(ViveRoleProperty role, FingerType fingerType)
+        {
+            return IsPinchingEx(role.roleType, role.roleValue, fingerType);
+        }
+
+        public static float GetPinchStrength(ViveRoleProperty role, FingerType fingerType = FingerType.Index)
+        {
+            return GetPinchStrengthEx(role.roleType, role.roleValue, fingerType);
+        }
+
+        public static HandBone[] GetAllHandBones(ViveRoleProperty role)
+        {
+            return GetAllHandBonesEx(role.roleType, role.roleValue);
+        }
+
+        public virtual HandBone GetHandBone(ViveRoleProperty role, HandBoneType handBoneType)
+        {
+            return GetHandBoneEx(role.roleType, role.roleValue, handBoneType);
         }
         #endregion
 
@@ -647,6 +698,31 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.TriggerHapticVibration(ViveRole.GetDeviceIndexEx(role), durationSeconds, frequency, amplitude, startSecondsFromNow);
         }
+
+        public static bool IsPinchingEx<TRole>(TRole role)
+        {
+            return GetState(role).IsPinching();
+        }
+
+        public static bool IsPinchingEx<TRole>(TRole role, FingerType fingerType)
+        {
+            return GetState(role).IsPinching(fingerType);
+        }
+
+        public static float GetPinchStrengthEx<TRole>(TRole role, FingerType fingerType = FingerType.Index)
+        {
+            return GetState(role).GetPinchStrength(fingerType);
+        }
+
+        public static HandBone[] GetAllHandBonesEx<TRole>(TRole role)
+        {
+            return GetState(role).GetAllHandBones();
+        }
+
+        public virtual HandBone GetHandBoneEx<TRole>(TRole role, HandBoneType handBoneType)
+        {
+            return GetState(role).GetHandBone(handBoneType);
+        }
         #endregion extend generic
 
         #region extend property role type & value
@@ -841,6 +917,31 @@ namespace HTC.UnityPlugin.Vive
         public static void TriggerHapticVibrationEx(Type roleType, int roleValue, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
         {
             VRModule.TriggerHapticVibration(ViveRole.GetDeviceIndexEx(roleType, roleValue), durationSeconds, frequency, amplitude, startSecondsFromNow);
+        }
+
+        public static bool IsPinchingEx(Type roleType, int roleValue)
+        {
+            return GetState(roleType, roleValue).IsPinching();
+        }
+
+        public static bool IsPinchingEx(Type roleType, int roleValue, FingerType fingerType)
+        {
+            return GetState(roleType, roleValue).IsPinching(fingerType);
+        }
+
+        public static float GetPinchStrengthEx(Type roleType, int roleValue, FingerType fingerType = FingerType.Index)
+        {
+            return GetState(roleType, roleValue).GetPinchStrength(fingerType);
+        }
+
+        public static HandBone[] GetAllHandBonesEx(Type roleType, int roleValue)
+        {
+            return GetState(roleType, roleValue).GetAllHandBones();
+        }
+
+        public virtual HandBone GetHandBoneEx(Type roleType, int roleValue, HandBoneType handBoneType)
+        {
+            return GetState(roleType, roleValue).GetHandBone(handBoneType);
         }
         #endregion extend general
     }

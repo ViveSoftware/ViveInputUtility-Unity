@@ -41,7 +41,7 @@ namespace HTC.UnityPlugin.Vive
 
         private class CtrlState : ICtrlState
         {
-            public virtual bool Update() { return true; } // return true if  frame skipped
+            public virtual bool Update() { return true; } // return true if frame skipped
             public virtual void AddListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void RemoveListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void AddListener(ControllerButton button, RoleValueEventListener listener, ButtonEventType type = ButtonEventType.Click) { }
@@ -628,7 +628,7 @@ namespace HTC.UnityPlugin.Vive
 
         private class GCtrlState<TRole> : ICtrlState<TRole>
         {
-            public virtual bool Update() { return true; } // return true if  frame skipped
+            public virtual bool Update() { return true; } // return true if frame skipped
             public virtual void AddListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void RemoveListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void AddListener(ControllerButton button, RoleValueEventListener listener, ButtonEventType type = ButtonEventType.Click) { }
