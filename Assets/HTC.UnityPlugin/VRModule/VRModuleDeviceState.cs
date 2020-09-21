@@ -312,4 +312,39 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
     }
+
+    public static class VRModuleDeviceModelExtension
+    {
+        public static bool IsRight(this VRModuleDeviceModel deviceModel)
+        {
+            switch(deviceModel)
+            {
+                case VRModuleDeviceModel.OculusTouchRight:
+                case VRModuleDeviceModel.KnucklesRight:
+                case VRModuleDeviceModel.WMRControllerRight:
+                case VRModuleDeviceModel.ViveCosmosControllerRight:
+                case VRModuleDeviceModel.OculusQuestControllerRight:
+                case VRModuleDeviceModel.IndexControllerRight:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsLeft(this VRModuleDeviceModel deviceModel)
+        {
+            switch (deviceModel)
+            {
+                case VRModuleDeviceModel.OculusTouchLeft:
+                case VRModuleDeviceModel.KnucklesLeft:
+                case VRModuleDeviceModel.WMRControllerLeft:
+                case VRModuleDeviceModel.ViveCosmosControllerLeft:
+                case VRModuleDeviceModel.OculusQuestControllerLeft:
+                case VRModuleDeviceModel.IndexControllerLeft:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+    }
 }

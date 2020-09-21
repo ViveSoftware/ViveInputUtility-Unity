@@ -86,7 +86,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [Obsolete]
             public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState) { }
 
-            public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { }
+            public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { TriggerHapticVibration(deviceIndex, 1000000f * (float)durationMicroSec); }
 
             public virtual void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f) { }
 
