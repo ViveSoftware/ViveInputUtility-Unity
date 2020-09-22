@@ -61,7 +61,7 @@ namespace HTC.UnityPlugin.Vive
             public virtual bool IsPinching(Finger finger) { return false; }
             public virtual float GetPinchStrength(Finger finger = Finger.Index) { return 0.0f; }
             public virtual void GetAllHandJoints(IList<HandJoint> outHandJoints) {}
-            public virtual HandJoint GetHandJoint(HandJointName handJointName) { return default; }
+            public virtual HandJoint GetHandJoint(HandJointName handJointName) { return new HandJoint(); }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
         }
@@ -657,7 +657,7 @@ namespace HTC.UnityPlugin.Vive
             public virtual bool IsPinching(Finger finger) { return false; }
             public virtual float GetPinchStrength(Finger finger = Finger.Index) { return 0.0f; }
             public virtual void GetAllHandJoints(IList<HandJoint> outHandJoints) {}
-            public virtual HandJoint GetHandJoint(HandJointName handJointName) { return default; }
+            public virtual HandJoint GetHandJoint(HandJointName handJointName) { return new HandJoint(); }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
 
