@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
@@ -31,10 +32,10 @@ namespace HTC.UnityPlugin.Vive
             Vector2 GetPadTouchVector();
             Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY);
             bool IsPinching();
-            bool IsPinching(FingerType fingerType);
-            float GetPinchStrength(FingerType fingerType = FingerType.Index);
-            HandBone[] GetAllHandBones();
-            HandBone GetHandBone(HandBoneType handBoneType);
+            bool IsPinching(Finger finger);
+            float GetPinchStrength(Finger finger = Finger.Index);
+            void GetAllHandJoints(IList<HandJoint> outHandJoints);
+            HandJoint GetHandJoint(HandJointName handJointName);
             ulong PreviousButtonPressed { get; }
             ulong CurrentButtonPressed { get; }
         }
@@ -57,10 +58,10 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
             public virtual bool IsPinching() { return false; }
-            public virtual bool IsPinching(FingerType fingerType) { return false; }
-            public virtual float GetPinchStrength(FingerType fingerType = FingerType.Index) { return 0.0f; }
-            public virtual HandBone[] GetAllHandBones() { return new HandBone[HandBone.GetMaxCount()]; }
-            public virtual HandBone GetHandBone(HandBoneType handBoneType) { return null; }
+            public virtual bool IsPinching(Finger finger) { return false; }
+            public virtual float GetPinchStrength(Finger finger = Finger.Index) { return 0.0f; }
+            public virtual void GetAllHandJoints(IList<HandJoint> outHandJoints) {}
+            public virtual HandJoint GetHandJoint(HandJointName handJointName) { return default; }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
         }
@@ -93,7 +94,7 @@ namespace HTC.UnityPlugin.Vive
             private const float hairDelta = 0.1f; // amount trigger must be pulled or released to change state
             private float hairTriggerLimit;
 
-            private HandBone[] m_handBones = new HandBone[EnumUtils.GetMaxValue(typeof(HandBoneType)) + 1];
+            private HandJoint[] m_handJoints = new HandJoint[EnumUtils.GetMaxValue(typeof(HandJointName)) + 1];
 
             public override ulong PreviousButtonPressed { get { return prevButtonPressed; } }
 
@@ -133,7 +134,7 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 // Update hand bones
-                currState.handBones.CopyTo(m_handBones, 0);
+                currState.handBones.CopyTo(m_handJoints, 0);
 
                 // update button states
                 bool padPress, padTouch;
@@ -575,48 +576,57 @@ namespace HTC.UnityPlugin.Vive
                 return false;
             }
 
-            public override bool IsPinching(FingerType fingerType)
+            public override bool IsPinching(Finger finger)
             {
-                switch (fingerType)
+                switch (finger)
                 {
-                    case FingerType.Index:
+                    case Finger.Index:
                         return GetPress(ControllerButton.IndexPinch);
-                    case FingerType.Middle:
+                    case Finger.Middle:
                         return GetPress(ControllerButton.MiddlePinch);
-                    case FingerType.Ring:
+                    case Finger.Ring:
                         return GetPress(ControllerButton.RingPinch);
-                    case FingerType.Pinky:
+                    case Finger.Pinky:
                         return GetPress(ControllerButton.PinkyPinch);
                 }
 
                 return false;
             }
 
-            public override float GetPinchStrength(FingerType fingerType = FingerType.Index)
+            public override float GetPinchStrength(Finger finger = Finger.Index)
             {
-                switch (fingerType)
+                switch (finger)
                 {
-                    case FingerType.Index:
+                    case Finger.Index:
                         return GetAxis(ControllerAxis.IndexPinch);
-                    case FingerType.Middle:
+                    case Finger.Middle:
                         return GetAxis(ControllerAxis.MiddlePinch);
-                    case FingerType.Ring:
+                    case Finger.Ring:
                         return GetAxis(ControllerAxis.RingPinch);
-                    case FingerType.Pinky:
+                    case Finger.Pinky:
                         return GetAxis(ControllerAxis.PinkyPinch);
                 }
 
                 return 0.0f;
             }
 
-            public override HandBone[] GetAllHandBones()
+            public override void GetAllHandJoints(IList<HandJoint> outHandJoints)
             {
-                return m_handBones;
+                if (outHandJoints == null)
+                {
+                    outHandJoints = new List<HandJoint>();
+                }
+
+                outHandJoints.Clear();
+                foreach (HandJoint joint in m_handJoints)
+                {
+                    outHandJoints.Add(joint);
+                }
             }
 
-            public override HandBone GetHandBone(HandBoneType handBoneType)
+            public override HandJoint GetHandJoint(HandJointName handJointName)
             {
-                return m_handBones[(int) handBoneType];
+                return m_handJoints[(int) handJointName];
             }
         }
 
@@ -644,10 +654,10 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
             public virtual bool IsPinching() { return false; }
-            public virtual bool IsPinching(FingerType fingerType) { return false; }
-            public virtual float GetPinchStrength(FingerType fingerType = FingerType.Index) { return 0.0f; }
-            public virtual HandBone[] GetAllHandBones() { return new HandBone[HandBone.GetMaxCount()]; }
-            public virtual HandBone GetHandBone(HandBoneType handBoneType) { return null; }
+            public virtual bool IsPinching(Finger finger) { return false; }
+            public virtual float GetPinchStrength(Finger finger = Finger.Index) { return 0.0f; }
+            public virtual void GetAllHandJoints(IList<HandJoint> outHandJoints) {}
+            public virtual HandJoint GetHandJoint(HandJointName handJointName) { return default; }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
 
@@ -729,10 +739,10 @@ namespace HTC.UnityPlugin.Vive
             public override Vector2 GetPadTouchVector() { return m_state.GetPadTouchVector(); }
             public override Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return m_state.GetScrollDelta(scrollType, scale, xAxis, yAxis); }
             public override bool IsPinching() { return m_state.IsPinching(); }
-            public override bool IsPinching(FingerType fingerType) { return m_state.IsPinching(fingerType); }
-            public override float GetPinchStrength(FingerType fingerType = FingerType.Index) { return m_state.GetPinchStrength(fingerType); }
-            public override HandBone[] GetAllHandBones() { return m_state.GetAllHandBones(); }
-            public override HandBone GetHandBone(HandBoneType handBoneType) { return m_state.GetHandBone(handBoneType); }
+            public override bool IsPinching(Finger finger) { return m_state.IsPinching(finger); }
+            public override float GetPinchStrength(Finger finger = Finger.Index) { return m_state.GetPinchStrength(finger); }
+            public override void GetAllHandJoints(IList<HandJoint> outHandJoints) { m_state.GetAllHandJoints(outHandJoints); }
+            public override HandJoint GetHandJoint(HandJointName handJointName) { return m_state.GetHandJoint(handJointName); }
 
             protected override void TryInvokeListener(ControllerButton button, ButtonEventType type)
             {

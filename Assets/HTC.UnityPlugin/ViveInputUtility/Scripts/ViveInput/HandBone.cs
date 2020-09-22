@@ -1,10 +1,12 @@
-﻿using System;
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+
+using System;
 using HTC.UnityPlugin.Utility;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
-    public enum FingerType
+    public enum Finger
     {
         Thumb,
         Index,
@@ -13,7 +15,7 @@ namespace HTC.UnityPlugin.Vive
         Pinky,
     }
 
-    public enum HandBoneType
+    public enum HandJointName
     {
         Palm,
         Wrist,
@@ -41,25 +43,31 @@ namespace HTC.UnityPlugin.Vive
         PinkyIntermediate,
         PinkyDistal,
         PinkyTip,
+        None,
     }
 
     [Serializable]
-    public class HandBone
+    public struct HandJoint
     {
-        public HandBoneType type;
+        public HandJointName name;
         public Vector3 position;
         public Quaternion rotation;
 
-        public HandBone(HandBoneType type, Vector3 position, Quaternion rotation)
+        public HandJoint(HandJointName name, Vector3 position, Quaternion rotation)
         {
-            this.type = type;
+            this.name = name;
             this.position = position;
             this.rotation = rotation;
         }
 
+        public bool IsValid()
+        {
+            return name != HandJointName.None;
+        }
+
         public static int GetMaxCount()
         {
-            return EnumUtils.GetMaxValue(typeof(HandBoneType)) + 1;
+            return EnumUtils.GetMaxValue(typeof(HandJointName)); // Exclude HandJointName.None
         }
     }
 }

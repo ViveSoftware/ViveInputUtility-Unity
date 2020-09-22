@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
@@ -205,24 +206,24 @@ namespace HTC.UnityPlugin.Vive
             return IsPinchingEx(role);
         }
 
-        public static bool IsPinching(HandRole role, FingerType fingerType)
+        public static bool IsPinching(HandRole role, Finger finger)
         {
-            return IsPinchingEx(role, fingerType);
+            return IsPinchingEx(role, finger);
         }
 
-        public static float GetPinchStrength(HandRole role, FingerType fingerType = FingerType.Index)
+        public static float GetPinchStrength(HandRole role, Finger finger = Finger.Index)
         {
-            return GetPinchStrengthEx(role, fingerType);
+            return GetPinchStrengthEx(role, finger);
         }
 
-        public static HandBone[] GetAllHandBones(HandRole role)
+        public static void GetAllHandJoints(HandRole role, IList<HandJoint> outHandJoints)
         {
-            return GetAllHandBonesEx(role);
+            GetAllHandJointsEx(role, outHandJoints);
         }
 
-        public virtual HandBone GetHandBone(HandRole role, HandBoneType handBoneType)
+        public virtual HandJoint GetHandJoint(HandRole role, HandJointName handJointName)
         {
-            return GetHandBoneEx(role, handBoneType);
+            return GetHandJointEx(role, handJointName);
         }
 
         #endregion origin
@@ -374,24 +375,24 @@ namespace HTC.UnityPlugin.Vive
             return IsPinchingEx(role.roleType, role.roleValue);
         }
 
-        public static bool IsPinching(ViveRoleProperty role, FingerType fingerType)
+        public static bool IsPinching(ViveRoleProperty role, Finger finger)
         {
-            return IsPinchingEx(role.roleType, role.roleValue, fingerType);
+            return IsPinchingEx(role.roleType, role.roleValue, finger);
         }
 
-        public static float GetPinchStrength(ViveRoleProperty role, FingerType fingerType = FingerType.Index)
+        public static float GetPinchStrength(ViveRoleProperty role, Finger finger = Finger.Index)
         {
-            return GetPinchStrengthEx(role.roleType, role.roleValue, fingerType);
+            return GetPinchStrengthEx(role.roleType, role.roleValue, finger);
         }
 
-        public static HandBone[] GetAllHandBones(ViveRoleProperty role)
+        public static void GetAllHandJoints(ViveRoleProperty role, IList<HandJoint> outHandJoints)
         {
-            return GetAllHandBonesEx(role.roleType, role.roleValue);
+            GetAllHandJointsEx(role.roleType, role.roleValue, outHandJoints);
         }
 
-        public virtual HandBone GetHandBone(ViveRoleProperty role, HandBoneType handBoneType)
+        public virtual HandJoint GetHandJoint(ViveRoleProperty role, HandJointName handJointName)
         {
-            return GetHandBoneEx(role.roleType, role.roleValue, handBoneType);
+            return GetHandJointEx(role.roleType, role.roleValue, handJointName);
         }
         #endregion
 
@@ -704,24 +705,24 @@ namespace HTC.UnityPlugin.Vive
             return GetState(role).IsPinching();
         }
 
-        public static bool IsPinchingEx<TRole>(TRole role, FingerType fingerType)
+        public static bool IsPinchingEx<TRole>(TRole role, Finger finger)
         {
-            return GetState(role).IsPinching(fingerType);
+            return GetState(role).IsPinching(finger);
         }
 
-        public static float GetPinchStrengthEx<TRole>(TRole role, FingerType fingerType = FingerType.Index)
+        public static float GetPinchStrengthEx<TRole>(TRole role, Finger finger = Finger.Index)
         {
-            return GetState(role).GetPinchStrength(fingerType);
+            return GetState(role).GetPinchStrength(finger);
         }
 
-        public static HandBone[] GetAllHandBonesEx<TRole>(TRole role)
+        public static void GetAllHandJointsEx<TRole>(TRole role, IList<HandJoint> outHandJoints)
         {
-            return GetState(role).GetAllHandBones();
+            GetState(role).GetAllHandJoints(outHandJoints);
         }
 
-        public virtual HandBone GetHandBoneEx<TRole>(TRole role, HandBoneType handBoneType)
+        public virtual HandJoint GetHandJointEx<TRole>(TRole role, HandJointName handJointName)
         {
-            return GetState(role).GetHandBone(handBoneType);
+            return GetState(role).GetHandJoint(handJointName);
         }
         #endregion extend generic
 
@@ -924,24 +925,24 @@ namespace HTC.UnityPlugin.Vive
             return GetState(roleType, roleValue).IsPinching();
         }
 
-        public static bool IsPinchingEx(Type roleType, int roleValue, FingerType fingerType)
+        public static bool IsPinchingEx(Type roleType, int roleValue, Finger finger)
         {
-            return GetState(roleType, roleValue).IsPinching(fingerType);
+            return GetState(roleType, roleValue).IsPinching(finger);
         }
 
-        public static float GetPinchStrengthEx(Type roleType, int roleValue, FingerType fingerType = FingerType.Index)
+        public static float GetPinchStrengthEx(Type roleType, int roleValue, Finger finger = Finger.Index)
         {
-            return GetState(roleType, roleValue).GetPinchStrength(fingerType);
+            return GetState(roleType, roleValue).GetPinchStrength(finger);
         }
 
-        public static HandBone[] GetAllHandBonesEx(Type roleType, int roleValue)
+        public static void GetAllHandJointsEx(Type roleType, int roleValue, IList<HandJoint> outHandJoints)
         {
-            return GetState(roleType, roleValue).GetAllHandBones();
+            GetState(roleType, roleValue).GetAllHandJoints(outHandJoints);
         }
 
-        public virtual HandBone GetHandBoneEx(Type roleType, int roleValue, HandBoneType handBoneType)
+        public virtual HandJoint GetHandJointEx(Type roleType, int roleValue, HandJointName handJointName)
         {
-            return GetState(roleType, roleValue).GetHandBone(handBoneType);
+            return GetState(roleType, roleValue).GetHandJoint(handJointName);
         }
         #endregion extend general
     }

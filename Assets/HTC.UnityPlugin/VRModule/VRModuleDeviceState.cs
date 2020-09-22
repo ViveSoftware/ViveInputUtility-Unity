@@ -153,7 +153,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Vector3 position { get; set; }
         Quaternion rotation { get; set; }
         RigidPose pose { get; set; }
-        HandBone[] handBones { get; set; }
+        HandJoint[] handBones { get; set; }
 
         ulong buttonPressed { get; set; }
         ulong buttonTouched { get; set; }
@@ -190,7 +190,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Vector3 position { get; }
         Quaternion rotation { get; }
         RigidPose pose { get; }
-        HandBone[] handBones { get; set; }
+        HandJoint[] handBones { get; set; }
 
         ulong buttonPressed { get; }
         ulong buttonTouched { get; }
@@ -237,7 +237,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [SerializeField]
             private Quaternion m_rotation;
             [SerializeField]
-            private HandBone[] m_handBones = new HandBone[HandBone.GetMaxCount()];
+            private HandJoint[] m_handBones = new HandJoint[HandJoint.GetMaxCount()];
 
             // device property, changed only when connected or disconnected
             public uint deviceIndex { get; private set; }
@@ -258,7 +258,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public Vector3 position { get { return m_position; } set { m_position = value; } }
             public Quaternion rotation { get { return m_rotation; } set { m_rotation = value; } }
             public RigidPose pose { get { return new RigidPose(m_position, m_rotation); } set { m_position = value.pos; m_rotation = value.rot; } }
-            public HandBone[] handBones { get { return m_handBones; } set { m_handBones = value; } } 
+            public HandJoint[] handBones { get { return m_handBones; } set { m_handBones = value; } } 
 
             // device input state
             [SerializeField]
