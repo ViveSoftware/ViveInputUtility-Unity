@@ -216,9 +216,9 @@ namespace HTC.UnityPlugin.Vive
             return GetPinchStrengthEx(role, finger);
         }
 
-        public static void GetAllHandJoints(HandRole role, IList<HandJoint> outHandJoints)
+        public static void GetAllHandJoints(HandRole role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
         {
-            GetAllHandJointsEx(role, outHandJoints);
+            GetAllHandJointsEx(role, outHandJoints, trimInvalidBone);
         }
 
         public virtual HandJoint GetHandJoint(HandRole role, HandJointName handJointName)
@@ -385,9 +385,9 @@ namespace HTC.UnityPlugin.Vive
             return GetPinchStrengthEx(role.roleType, role.roleValue, finger);
         }
 
-        public static void GetAllHandJoints(ViveRoleProperty role, IList<HandJoint> outHandJoints)
+        public static void GetAllHandJoints(ViveRoleProperty role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
         {
-            GetAllHandJointsEx(role.roleType, role.roleValue, outHandJoints);
+            GetAllHandJointsEx(role.roleType, role.roleValue, outHandJoints, trimInvalidBone);
         }
 
         public virtual HandJoint GetHandJoint(ViveRoleProperty role, HandJointName handJointName)
@@ -715,9 +715,9 @@ namespace HTC.UnityPlugin.Vive
             return GetState(role).GetPinchStrength(finger);
         }
 
-        public static void GetAllHandJointsEx<TRole>(TRole role, IList<HandJoint> outHandJoints)
+        public static void GetAllHandJointsEx<TRole>(TRole role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
         {
-            GetState(role).GetAllHandJoints(outHandJoints);
+            GetState(role).GetAllHandJoints(outHandJoints, trimInvalidBone);
         }
 
         public virtual HandJoint GetHandJointEx<TRole>(TRole role, HandJointName handJointName)
@@ -935,9 +935,9 @@ namespace HTC.UnityPlugin.Vive
             return GetState(roleType, roleValue).GetPinchStrength(finger);
         }
 
-        public static void GetAllHandJointsEx(Type roleType, int roleValue, IList<HandJoint> outHandJoints)
+        public static void GetAllHandJointsEx(Type roleType, int roleValue, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
         {
-            GetState(roleType, roleValue).GetAllHandJoints(outHandJoints);
+            GetState(roleType, roleValue).GetAllHandJoints(outHandJoints, trimInvalidBone);
         }
 
         public virtual HandJoint GetHandJointEx(Type roleType, int roleValue, HandJointName handJointName)

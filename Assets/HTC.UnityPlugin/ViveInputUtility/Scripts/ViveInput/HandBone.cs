@@ -17,6 +17,7 @@ namespace HTC.UnityPlugin.Vive
 
     public enum HandJointName
     {
+        None,
         Palm,
         Wrist,
         ThumbMetacarpal,
@@ -43,7 +44,6 @@ namespace HTC.UnityPlugin.Vive
         PinkyIntermediate,
         PinkyDistal,
         PinkyTip,
-        None,
     }
 
     [Serializable]
@@ -68,6 +68,11 @@ namespace HTC.UnityPlugin.Vive
         public static int GetMaxCount()
         {
             return EnumUtils.GetMaxValue(typeof(HandJointName)); // Exclude HandJointName.None
+        }
+
+        public static int NameToIndex(HandJointName joint)
+        {
+            return (int) joint - 1; // Since HandJointName.None = 0
         }
     }
 }
