@@ -1,9 +1,7 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
-using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using UnityEngine;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
@@ -11,7 +9,6 @@ using UnityEngine.XR;
 
 #if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
-using UnityEngine.SpatialTracking;
 using System;
 #endif
 
@@ -125,48 +122,39 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+#if UNITY_EDITOR
         public static bool GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<bool> feature, bool defaultValue = default(bool))
         {
             bool value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
         public static uint GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<uint> feature, uint defaultValue = default(uint))
         {
             uint value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
         public static float GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<float> feature, float defaultValue = default(float))
         {
             float value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
         public static Vector2 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector2> feature, Vector2 defaultValue = default(Vector2))
         {
             Vector2 value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
         public static Vector3 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector3> feature, Vector3 defaultValue = default(Vector3))
         {
             Vector3 value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
@@ -174,40 +162,31 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, Quaternion defaultValue)
         {
             Quaternion value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
         public static Hand GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Hand> feature, Hand defaultValue = default(Hand))
         {
             Hand value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
         public static Bone GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Bone> feature, Bone defaultValue = default(Bone))
         {
             Bone value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
         public static Eyes GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Eyes> feature, Eyes defaultValue = default(Eyes))
         {
             Eyes value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
-#if UNITY_EDITOR
             LogWarningFeatureNotFound(device, feature);
-#endif
             return defaultValue;
         }
 
-#if UNITY_EDITOR
         private static HashSet<int> warnedFeatures = new HashSet<int>();
         private static void LogWarningFeatureNotFound<T>(InputDevice device, InputFeatureUsage<T> feature)
         {
@@ -221,26 +200,79 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Debug.LogWarningFormat("Device {0} doesn't have {1} feature {2}.", device.name, typeof(T).Name, feature.name);
             }
         }
-#endif
-
 #else
+        public static bool GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<bool> feature, bool defaultValue = default(bool))
+        {
+            bool value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static uint GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<uint> feature, uint defaultValue = default(uint))
+        {
+            uint value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static float GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<float> feature, float defaultValue = default(float))
+        {
+            float value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static Vector2 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector2> feature, Vector2 defaultValue = default(Vector2))
+        {
+            Vector2 value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static Vector3 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector3> feature, Vector3 defaultValue = default(Vector3))
+        {
+            Vector3 value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature) { return GetDeviceFeatureValueOrDefault(device, feature, Quaternion.identity); }
+        public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, Quaternion defaultValue)
+        {
+            Quaternion value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static Hand GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Hand> feature, Hand defaultValue = default(Hand))
+        {
+            Hand value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static Bone GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Bone> feature, Bone defaultValue = default(Bone))
+        {
+            Bone value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static Eyes GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Eyes> feature, Eyes defaultValue = default(Eyes))
+        {
+            Eyes value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+#endif
+        
+#else
+
         public static bool HasActiveLoader() { return false; }
+
         public static bool HasActiveLoader(string loaderName) { return false; }
+
         public static bool HasActiveLoader(VRModuleKnownXRLoader knownLoader) { return false; }
-        public static VRModuleKnownXRLoader GetKnownActiveLoader() { return default(VRModuleKnownXRLoader); }
-        public static VRModuleKnownXRLoader ToKnownXRLoader(string loaderName) { return default(VRModuleKnownXRLoader); }
+
+        public static VRModuleKnownXRLoader GetKnownActiveLoader() { return VRModuleKnownXRLoader.Unknown; }
+
+        public static VRModuleKnownXRLoader ToKnownXRLoader(string loaderName) { return VRModuleKnownXRLoader.Unknown; }
+
         public static bool TryGetActiveLoaderName(out string loaderName) { loaderName = default(string); return false; }
-        public static VRModuleKnownXRInputSubsystem GetKnownActiveInputSubsystem() { return default(VRModuleKnownXRInputSubsystem); }
-        public static bool GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<bool> feature, bool defaultValue = default(bool)) { return defaultValue; }
-        public static uint GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<uint> feature, uint defaultValue = default(uint)) { return defaultValue; }
-        public static float GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<float> feature, float defaultValue = default(float)) { return defaultValue; }
-        public static Vector2 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector2> feature, Vector2 defaultValue = default(Vector2)) { return defaultValue; }
-        public static Vector3 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector3> feature, Vector3 defaultValue = default(Vector3)) { return defaultValue; }
-        public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature) { return Quaternion.identity; }
-        public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, Quaternion defaultValue) { return defaultValue; }
-        public static Hand GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Hand> feature, Hand defaultValue = default(Hand)) { return defaultValue; }
-        public static Bone GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Bone> feature, Bone defaultValue = default(Bone)) { return defaultValue; }
-        public static Eyes GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Eyes> feature, Eyes defaultValue = default(Eyes)) { return defaultValue; }
+
+        public static VRModuleKnownXRInputSubsystem GetKnownActiveInputSubsystem() { return VRModuleKnownXRInputSubsystem.Unknown; }
+
 #endif
     }
 }

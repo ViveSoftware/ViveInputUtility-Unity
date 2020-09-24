@@ -13,6 +13,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Controller,
         GenericTracker,
         TrackingReference,
+        TrackedHand,
     }
 
     public enum VRModuleDeviceModel
@@ -49,6 +50,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         IndexControllerRight,
         MagicLeapHMD,
         MagicLeapController,
+        WaveXRTrackedHandLeft,
+        WaveXRTrackedHandRight,
+        OculusTrackedHandLeft,
+        OculusTrackedHandRight,
+        WMRTrackedHandLeft,
+        WMRTrackedHandRight,
     }
 
     public enum VRModuleRawButton
@@ -325,6 +332,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveCosmosControllerRight:
                 case VRModuleDeviceModel.OculusQuestControllerRight:
                 case VRModuleDeviceModel.IndexControllerRight:
+                case VRModuleDeviceModel.WaveXRTrackedHandRight:
+                case VRModuleDeviceModel.OculusTrackedHandRight:
+                case VRModuleDeviceModel.WMRTrackedHandRight:
                     return true;
                 default:
                     return false;
@@ -341,6 +351,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveCosmosControllerLeft:
                 case VRModuleDeviceModel.OculusQuestControllerLeft:
                 case VRModuleDeviceModel.IndexControllerLeft:
+                case VRModuleDeviceModel.WaveXRTrackedHandLeft:
+                case VRModuleDeviceModel.OculusTrackedHandLeft:
+                case VRModuleDeviceModel.WMRTrackedHandLeft:
                     return true;
                 default:
                     return false;
