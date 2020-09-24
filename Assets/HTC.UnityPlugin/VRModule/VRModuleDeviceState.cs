@@ -77,15 +77,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Axis4 = 36,
 
         // Gestures
-        IndexPinch,
-        MiddlePinch,
-        RingPinch,
-        PinkyPinch,
-        Fist,
-        Five,
-        Ok,
-        ThumbUp,
-        IndexUp,
+        GestureIndexPinch,
+        GestureMiddlePinch,
+        GestureRingPinch,
+        GesturePinkyPinch,
+        GestureFist,
+        GestureFive,
+        GestureOk,
+        GestureThumbUp,
+        GestureIndexUp,
     }
 
     public enum VRModuleRawAxis
