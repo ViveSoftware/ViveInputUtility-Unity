@@ -201,21 +201,6 @@ namespace HTC.UnityPlugin.Vive
             TriggerHapticVibrationEx(role, durationSeconds, frequency, amplitude, startSecondsFromNow);
         }
 
-        public static bool IsPinching(HandRole role)
-        {
-            return IsPinchingEx(role);
-        }
-
-        public static bool IsPinching(HandRole role, Finger finger)
-        {
-            return IsPinchingEx(role, finger);
-        }
-
-        public static float GetPinchStrength(HandRole role, Finger finger = Finger.Index)
-        {
-            return GetPinchStrengthEx(role, finger);
-        }
-
         public static void GetAllHandJoints(HandRole role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
         {
             GetAllHandJointsEx(role, outHandJoints, trimInvalidBone);
@@ -368,21 +353,6 @@ namespace HTC.UnityPlugin.Vive
         public static void TriggerHapticVibration(ViveRoleProperty role, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
         {
             TriggerHapticVibrationEx(role.roleType, role.roleValue, durationSeconds, frequency, amplitude, startSecondsFromNow);
-        }
-
-        public static bool IsPinching(ViveRoleProperty role)
-        {
-            return IsPinchingEx(role.roleType, role.roleValue);
-        }
-
-        public static bool IsPinching(ViveRoleProperty role, Finger finger)
-        {
-            return IsPinchingEx(role.roleType, role.roleValue, finger);
-        }
-
-        public static float GetPinchStrength(ViveRoleProperty role, Finger finger = Finger.Index)
-        {
-            return GetPinchStrengthEx(role.roleType, role.roleValue, finger);
         }
 
         public static void GetAllHandJoints(ViveRoleProperty role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
@@ -700,21 +670,6 @@ namespace HTC.UnityPlugin.Vive
             VRModule.TriggerHapticVibration(ViveRole.GetDeviceIndexEx(role), durationSeconds, frequency, amplitude, startSecondsFromNow);
         }
 
-        public static bool IsPinchingEx<TRole>(TRole role)
-        {
-            return GetState(role).IsPinching();
-        }
-
-        public static bool IsPinchingEx<TRole>(TRole role, Finger finger)
-        {
-            return GetState(role).IsPinching(finger);
-        }
-
-        public static float GetPinchStrengthEx<TRole>(TRole role, Finger finger = Finger.Index)
-        {
-            return GetState(role).GetPinchStrength(finger);
-        }
-
         public static void GetAllHandJointsEx<TRole>(TRole role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
         {
             GetState(role).GetAllHandJoints(outHandJoints, trimInvalidBone);
@@ -918,21 +873,6 @@ namespace HTC.UnityPlugin.Vive
         public static void TriggerHapticVibrationEx(Type roleType, int roleValue, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
         {
             VRModule.TriggerHapticVibration(ViveRole.GetDeviceIndexEx(roleType, roleValue), durationSeconds, frequency, amplitude, startSecondsFromNow);
-        }
-
-        public static bool IsPinchingEx(Type roleType, int roleValue)
-        {
-            return GetState(roleType, roleValue).IsPinching();
-        }
-
-        public static bool IsPinchingEx(Type roleType, int roleValue, Finger finger)
-        {
-            return GetState(roleType, roleValue).IsPinching(finger);
-        }
-
-        public static float GetPinchStrengthEx(Type roleType, int roleValue, Finger finger = Finger.Index)
-        {
-            return GetState(roleType, roleValue).GetPinchStrength(finger);
         }
 
         public static void GetAllHandJointsEx(Type roleType, int roleValue, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
