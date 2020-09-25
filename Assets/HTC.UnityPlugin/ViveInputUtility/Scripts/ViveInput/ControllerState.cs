@@ -31,8 +31,6 @@ namespace HTC.UnityPlugin.Vive
             Vector2 GetPadPressVector();
             Vector2 GetPadTouchVector();
             Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY);
-            void GetAllHandJoints(IList<HandJoint> outHandJoints, bool trimInvalidBone = true);
-            HandJoint GetHandJoint(HandJointName handJointName);
             ulong PreviousButtonPressed { get; }
             ulong CurrentButtonPressed { get; }
         }
@@ -54,8 +52,6 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadPressVector() { return Vector2.zero; }
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
-            public virtual void GetAllHandJoints(IList<HandJoint> outHandJoints, bool trimInvalidBone = true) {}
-            public virtual HandJoint GetHandJoint(HandJointName handJointName) { return new HandJoint(); }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
         }
@@ -87,8 +83,6 @@ namespace HTC.UnityPlugin.Vive
 
             private const float hairDelta = 0.1f; // amount trigger must be pulled or released to change state
             private float hairTriggerLimit;
-
-            private HandJoint[] m_handJoints = new HandJoint[HandJoint.GetMaxCount()];
 
             public override ulong PreviousButtonPressed { get { return prevButtonPressed; } }
 
@@ -126,9 +120,6 @@ namespace HTC.UnityPlugin.Vive
                     prevAxisValue[i] = currAxisValue[i];
                     currAxisValue[i] = 0f;
                 }
-
-                // Update hand bones
-                currState.handJoints.CopyTo(m_handJoints, 0);
 
                 // update button states
                 bool padPress, padTouch;
@@ -544,30 +535,6 @@ namespace HTC.UnityPlugin.Vive
 
                 return Vector2.Scale(scrollDelta, scale);
             }
-
-            public override void GetAllHandJoints(IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
-            {
-                if (outHandJoints == null)
-                {
-                    outHandJoints = new List<HandJoint>();
-                }
-
-                outHandJoints.Clear();
-                foreach (HandJoint joint in m_handJoints)
-                {
-                    if (trimInvalidBone && !joint.IsValid())
-                    {
-                        continue;
-                    }
-
-                    outHandJoints.Add(joint);
-                }
-            }
-
-            public override HandJoint GetHandJoint(HandJointName handJointName)
-            {
-                return m_handJoints[HandJoint.NameToIndex(handJointName)];
-            }
         }
 
         private interface ICtrlState<TRole> : ICtrlState
@@ -594,10 +561,10 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
             public virtual bool IsPinching() { return false; }
-            public virtual bool IsPinching(Finger finger) { return false; }
-            public virtual float GetPinchStrength(Finger finger = Finger.Index) { return 0.0f; }
-            public virtual void GetAllHandJoints(IList<HandJoint> outHandJoints, bool trimInvalidBone = true) {}
-            public virtual HandJoint GetHandJoint(HandJointName handJointName) { return new HandJoint(); }
+            public virtual bool IsPinching(FingerName fingerName) { return false; }
+            public virtual float GetPinchStrength(FingerName fingerName = FingerName.Index) { return 0.0f; }
+            public virtual void GetAllHandJoints(IList<HandJointPose> outHandJoints, bool trimInvalidBone = true) {}
+            public virtual HandJointPose GetHandJoint(HandJointName handJointName) { return new HandJointPose(); }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
 
@@ -678,8 +645,6 @@ namespace HTC.UnityPlugin.Vive
             public override Vector2 GetPadPressVector() { return m_state.GetPadPressVector(); }
             public override Vector2 GetPadTouchVector() { return m_state.GetPadTouchVector(); }
             public override Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return m_state.GetScrollDelta(scrollType, scale, xAxis, yAxis); }
-            public override void GetAllHandJoints(IList<HandJoint> outHandJoints, bool trimInvalidBone = true) { m_state.GetAllHandJoints(outHandJoints, trimInvalidBone); }
-            public override HandJoint GetHandJoint(HandJointName handJointName) { return m_state.GetHandJoint(handJointName); }
 
             protected override void TryInvokeListener(ControllerButton button, ButtonEventType type)
             {

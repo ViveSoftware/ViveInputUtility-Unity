@@ -200,17 +200,6 @@ namespace HTC.UnityPlugin.Vive
         {
             TriggerHapticVibrationEx(role, durationSeconds, frequency, amplitude, startSecondsFromNow);
         }
-
-        public static void GetAllHandJoints(HandRole role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
-        {
-            GetAllHandJointsEx(role, outHandJoints, trimInvalidBone);
-        }
-
-        public virtual HandJoint GetHandJoint(HandRole role, HandJointName handJointName)
-        {
-            return GetHandJointEx(role, handJointName);
-        }
-
         #endregion origin
 
         #region general role property
@@ -353,16 +342,6 @@ namespace HTC.UnityPlugin.Vive
         public static void TriggerHapticVibration(ViveRoleProperty role, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
         {
             TriggerHapticVibrationEx(role.roleType, role.roleValue, durationSeconds, frequency, amplitude, startSecondsFromNow);
-        }
-
-        public static void GetAllHandJoints(ViveRoleProperty role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
-        {
-            GetAllHandJointsEx(role.roleType, role.roleValue, outHandJoints, trimInvalidBone);
-        }
-
-        public virtual HandJoint GetHandJoint(ViveRoleProperty role, HandJointName handJointName)
-        {
-            return GetHandJointEx(role.roleType, role.roleValue, handJointName);
         }
         #endregion
 
@@ -669,16 +648,6 @@ namespace HTC.UnityPlugin.Vive
         {
             VRModule.TriggerHapticVibration(ViveRole.GetDeviceIndexEx(role), durationSeconds, frequency, amplitude, startSecondsFromNow);
         }
-
-        public static void GetAllHandJointsEx<TRole>(TRole role, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
-        {
-            GetState(role).GetAllHandJoints(outHandJoints, trimInvalidBone);
-        }
-
-        public virtual HandJoint GetHandJointEx<TRole>(TRole role, HandJointName handJointName)
-        {
-            return GetState(role).GetHandJoint(handJointName);
-        }
         #endregion extend generic
 
         #region extend property role type & value
@@ -873,16 +842,6 @@ namespace HTC.UnityPlugin.Vive
         public static void TriggerHapticVibrationEx(Type roleType, int roleValue, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
         {
             VRModule.TriggerHapticVibration(ViveRole.GetDeviceIndexEx(roleType, roleValue), durationSeconds, frequency, amplitude, startSecondsFromNow);
-        }
-
-        public static void GetAllHandJointsEx(Type roleType, int roleValue, IList<HandJoint> outHandJoints, bool trimInvalidBone = true)
-        {
-            GetState(roleType, roleValue).GetAllHandJoints(outHandJoints, trimInvalidBone);
-        }
-
-        public virtual HandJoint GetHandJointEx(Type roleType, int roleValue, HandJointName handJointName)
-        {
-            return GetState(roleType, roleValue).GetHandJoint(handJointName);
         }
         #endregion extend general
     }

@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -153,7 +154,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Vector3 position { get; set; }
         Quaternion rotation { get; set; }
         RigidPose pose { get; set; }
-        HandJoint[] handJoints { get; set; }
+        HandJointPose[] handJoints { get; set; }
 
         ulong buttonPressed { get; set; }
         ulong buttonTouched { get; set; }
@@ -190,7 +191,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Vector3 position { get; }
         Quaternion rotation { get; }
         RigidPose pose { get; }
-        HandJoint[] handJoints { get; set; }
 
         ulong buttonPressed { get; }
         ulong buttonTouched { get; }
@@ -198,6 +198,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         bool GetButtonPress(VRModuleRawButton button);
         bool GetButtonTouch(VRModuleRawButton button);
         float GetAxisValue(VRModuleRawAxis axis);
+        bool TryGetHandJointPose(HandJointName jointName, out RigidPose pose);
+        void GetAllHandJoints(IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true);
+        int GetHandJointCount();
     }
 
     public partial class VRModule : SingletonBehaviour<VRModule>
@@ -237,7 +240,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [SerializeField]
             private Quaternion m_rotation;
             [SerializeField]
-            private HandJoint[] m_handJoints = new HandJoint[HandJoint.GetMaxCount()];
+            private HandJointPose[] m_handJoints = new HandJointPose[HandJointPose.GetMaxCount()];
 
             // device property, changed only when connected or disconnected
             public uint deviceIndex { get; private set; }
@@ -258,7 +261,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public Vector3 position { get { return m_position; } set { m_position = value; } }
             public Quaternion rotation { get { return m_rotation; } set { m_rotation = value; } }
             public RigidPose pose { get { return new RigidPose(m_position, m_rotation); } set { m_position = value.pos; m_rotation = value.rot; } }
-            public HandJoint[] handJoints { get { return m_handJoints; } set { m_handJoints = value; } } 
+            public HandJointPose[] handJoints { get { return m_handJoints; } set { m_handJoints = value; } } 
 
             // device input state
             [SerializeField]
@@ -275,6 +278,46 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public bool GetButtonPress(VRModuleRawButton button) { return EnumUtils.GetFlag(m_buttonPressed, (int)button); }
             public bool GetButtonTouch(VRModuleRawButton button) { return EnumUtils.GetFlag(m_buttonTouched, (int)button); }
             public float GetAxisValue(VRModuleRawAxis axis) { return m_axisValue[(int)axis]; }
+
+            public bool TryGetHandJointPose(HandJointName jointName, out RigidPose pose)
+            {
+                HandJointPose joint = m_handJoints[HandJointPose.NameToIndex(jointName)];
+                pose = joint.pose;
+
+                return joint.IsValid();
+            }
+
+            public void GetAllHandJoints(IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+            {
+                if (outHandJoints == null)
+                {
+                    return;
+                }
+
+                foreach (HandJointPose joint in m_handJoints)
+                {
+                    if (trimInvalidJoint && !joint.IsValid())
+                    {
+                        continue;
+                    }
+
+                    outHandJoints.Add(joint);
+                }
+            }
+
+            public int GetHandJointCount()
+            {
+                int count = 0;
+                foreach (HandJointPose joint in m_handJoints)
+                {
+                    if (joint.IsValid())
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
 
             public void SetButtonPress(VRModuleRawButton button, bool value) { m_buttonPressed = value ? EnumUtils.SetFlag(m_buttonPressed, (int)button) : EnumUtils.UnsetFlag(m_buttonPressed, (int)button); }
             public void SetButtonTouch(VRModuleRawButton button, bool value) { m_buttonTouched = value ? EnumUtils.SetFlag(m_buttonTouched, (int)button) : EnumUtils.UnsetFlag(m_buttonTouched, (int)button); }
@@ -310,6 +353,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonPressed = state.m_buttonPressed;
                 m_buttonTouched = state.m_buttonTouched;
                 Array.Copy(state.m_axisValue, m_axisValue, m_axisValue.Length);
+
+                Array.Copy(state.m_handJoints, m_handJoints, state.m_handJoints.Length);
             }
 
             public void Reset()
