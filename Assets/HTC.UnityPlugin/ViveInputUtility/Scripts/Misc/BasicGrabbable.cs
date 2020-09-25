@@ -287,7 +287,10 @@ namespace HTC.UnityPlugin.Vive
             	ViveColliderEventCaster caster = eventData.eventCaster as ViveColliderEventCaster;
             	if (isGrabbed)
             	{
-                	m_onDrop?.Invoke(this);
+                    if (m_onDrop != null)
+                    {
+                        m_onDrop.Invoke(this);
+                    }
             	}
             	caster.canGrab = true;
         	}
