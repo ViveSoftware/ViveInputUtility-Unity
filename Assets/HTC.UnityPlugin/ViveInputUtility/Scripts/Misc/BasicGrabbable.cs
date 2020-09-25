@@ -39,6 +39,12 @@ namespace HTC.UnityPlugin.Vive
 
             public static void Release(Grabber grabber)
             {
+                ViveColliderEventCaster caster = grabber.eventData.eventCaster as ViveColliderEventCaster;
+                if (caster != null && !caster.canGrab) {
+                    caster.canGrab = true;
+                    return; 
+                }
+
                 grabber.eventData = null;
                 m_pool.Release(grabber);
             }
@@ -205,8 +211,10 @@ namespace HTC.UnityPlugin.Vive
             if (!IsValidGrabButton(eventData)) { return; }
             if(singleItemGrab) {
             	ViveColliderEventCaster caster = eventData.eventCaster as ViveColliderEventCaster;
-            	if (!caster.canGrab) { return; }
-        	}
+            	if (caster!=null&&!caster.canGrab) {
+                    return; 
+                }
+            } 
             if (!m_allowMultipleGrabbers)
             {
                 ClearGrabbers(false);
@@ -276,11 +284,9 @@ namespace HTC.UnityPlugin.Vive
                 ForceRelease();
             }
             if(singleItemGrab) {
-            	if (!IsValidGrabButton(eventData)) { return; }
             	ViveColliderEventCaster caster = eventData.eventCaster as ViveColliderEventCaster;
             	if (isGrabbed)
             	{
-                	caster.canGrab = true;
                 	m_onDrop?.Invoke(this);
             	}
             	caster.canGrab = true;
