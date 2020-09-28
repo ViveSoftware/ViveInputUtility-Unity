@@ -102,10 +102,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SetAllXRInputSubsystemTrackingOriginMode(originFlag);
         }
 
-        protected uint FindOrAllocateUnusedIndex()
+        // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+        protected uint FindOrAllocateUnusedNotHMDIndex()
         {
             uint index;
-            if (!FindFirstUnusedIndex(out index))
+            if (!FindFirstUnusedNotHMDIndex(out index))
             {
                 index = GetDeviceStateLength();
                 EnsureDeviceStateLength(index + 1u);
@@ -113,20 +114,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return index;
         }
 
-        protected bool FindFirstUnusedIndex(out uint index)
+        // will skip preserved index for HMD
+        protected bool FindFirstUnusedNotHMDIndex(out uint index)
         {
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
-            var i = 0u;
-            while (TryGetValidDeviceState(i, out prevState, out currState))
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
-                if (!prevState.isConnected && !currState.isConnected)
+                if (i == VRModule.HMD_DEVICE_INDEX) { continue; }
+                if (TryGetValidDeviceState(i, out prevState, out currState))
                 {
-                    index = i;
-                    return true;
+                    if (prevState.isConnected) { continue; }
+                    if (currState.isConnected) { continue; }
                 }
-                ++i;
+
+                index = i;
+                return true;
             }
+
             index = default(uint);
             return false;
         }
@@ -304,7 +309,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var deviceID = GetInputDeviceInternalID(connectedDevice);
                 if (!indexForInputDevices.TryGetValue(deviceID, out deviceIndex))
                 {
-                    deviceIndex = FindOrAllocateUnusedIndex();
+                    if ((connectedDevice.characteristics | InputDeviceCharacteristics.HeadMounted) > 0u)
+                    {
+                        Debug.Assert(!indexedInputDevices[(int)VRModule.HMD_DEVICE_INDEX].isValid);
+                        deviceIndex = VRModule.HMD_DEVICE_INDEX;
+                    }
+                    else
+                    {
+                        // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+                        deviceIndex = FindOrAllocateUnusedNotHMDIndex();
+                    }
                     // assign the index to the new connected device
                     indexForInputDevices.Add(deviceID, deviceIndex);
                     while (deviceIndex >= indexedInputDevices.Count) { indexedInputDevices.Add(default(InputDevice)); }

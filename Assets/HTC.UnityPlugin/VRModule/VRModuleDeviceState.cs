@@ -50,8 +50,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         IndexControllerRight,
         MagicLeapHMD,
         MagicLeapController,
-        WaveXRTrackedHandLeft,
-        WaveXRTrackedHandRight,
+        WaveTrackedHandLeft,
+        WaveTrackedHandRight,
         OculusTrackedHandLeft,
         OculusTrackedHandRight,
         WMRTrackedHandLeft,
@@ -332,7 +332,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveCosmosControllerRight:
                 case VRModuleDeviceModel.OculusQuestControllerRight:
                 case VRModuleDeviceModel.IndexControllerRight:
-                case VRModuleDeviceModel.WaveXRTrackedHandRight:
+                case VRModuleDeviceModel.WaveTrackedHandRight:
                 case VRModuleDeviceModel.OculusTrackedHandRight:
                 case VRModuleDeviceModel.WMRTrackedHandRight:
                     return true;
@@ -351,7 +351,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveCosmosControllerLeft:
                 case VRModuleDeviceModel.OculusQuestControllerLeft:
                 case VRModuleDeviceModel.IndexControllerLeft:
-                case VRModuleDeviceModel.WaveXRTrackedHandLeft:
+                case VRModuleDeviceModel.WaveTrackedHandLeft:
                 case VRModuleDeviceModel.OculusTrackedHandLeft:
                 case VRModuleDeviceModel.WMRTrackedHandLeft:
                     return true;
