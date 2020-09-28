@@ -20,7 +20,7 @@ public class ReticlePoser : MonoBehaviour
     public GameObject hitTarget;
     public float hitDistance;
     public Material defaultReticleMaterial;
-    public MeshRenderer[] reticleRenderer;
+    public Renderer[] reticleRenderer;
 
     public bool autoScaleReticle = false;
     public int sizeInPixels = 50;
@@ -34,9 +34,10 @@ public class ReticlePoser : MonoBehaviour
             raycaster = tr.GetComponentInChildren<Pointer3DRaycaster>(true);
         }
 
-        reticleRenderer = GetComponentsInChildren<MeshRenderer>(true);
+        reticleRenderer = GetComponentsInChildren<Renderer>(true);
     }
 #endif
+    public Renderer rendererToDisable;
     protected virtual void LateUpdate()
     {
         var points = raycaster.BreakPoints;
@@ -47,13 +48,21 @@ public class ReticlePoser : MonoBehaviour
         {
             reticleForDefaultRay.gameObject.SetActive(false);
             reticleForCurvedRay.gameObject.SetActive(false);
+            if(rendererToDisable!=null)
+            {
+                rendererToDisable.enabled = false;
+            }
             return;
         }
 
         var isCurvedRay = raycaster.CurrentSegmentGenerator() != null;
 
         if (reticleForDefaultRay != null) { reticleForDefaultRay.gameObject.SetActive(!isCurvedRay); }
-        if (reticleForCurvedRay != null) { reticleForCurvedRay.gameObject.SetActive(isCurvedRay); }
+        if (reticleForCurvedRay != null) { 
+            reticleForCurvedRay.gameObject.SetActive(isCurvedRay);
+            if(rendererToDisable!=null)
+                rendererToDisable.enabled = isCurvedRay;
+        }
 
         var targetReticle = isCurvedRay ? reticleForCurvedRay : reticleForDefaultRay;
         if (result.isValid)
@@ -111,7 +120,7 @@ public class ReticlePoser : MonoBehaviour
     {
         if (reticleRenderer == null || reticleRenderer.Length == 0) { return; }
 
-        foreach (MeshRenderer mr in reticleRenderer)
+        foreach (Renderer mr in reticleRenderer)
         {
             mr.material = mat;
         }
