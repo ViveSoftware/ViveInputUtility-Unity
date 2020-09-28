@@ -15,6 +15,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Controller,
         GenericTracker,
         TrackingReference,
+        TrackedHand,
     }
 
     public enum VRModuleDeviceModel
@@ -51,6 +52,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         IndexControllerRight,
         MagicLeapHMD,
         MagicLeapController,
+        WaveTrackedHandLeft,
+        WaveTrackedHandRight,
+        OculusTrackedHandLeft,
+        OculusTrackedHandRight,
+        WMRTrackedHandLeft,
+        WMRTrackedHandRight,
     }
 
     public enum VRModuleRawButton
@@ -377,6 +384,47 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonPressed = 0ul;
                 m_buttonTouched = 0ul;
                 ResetAxisValues();
+            }
+        }
+    }
+
+    public static class VRModuleDeviceModelExtension
+    {
+        public static bool IsRight(this VRModuleDeviceModel deviceModel)
+        {
+            switch(deviceModel)
+            {
+                case VRModuleDeviceModel.OculusTouchRight:
+                case VRModuleDeviceModel.KnucklesRight:
+                case VRModuleDeviceModel.WMRControllerRight:
+                case VRModuleDeviceModel.ViveCosmosControllerRight:
+                case VRModuleDeviceModel.OculusQuestControllerRight:
+                case VRModuleDeviceModel.IndexControllerRight:
+                case VRModuleDeviceModel.WaveTrackedHandRight:
+                case VRModuleDeviceModel.OculusTrackedHandRight:
+                case VRModuleDeviceModel.WMRTrackedHandRight:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsLeft(this VRModuleDeviceModel deviceModel)
+        {
+            switch (deviceModel)
+            {
+                case VRModuleDeviceModel.OculusTouchLeft:
+                case VRModuleDeviceModel.KnucklesLeft:
+                case VRModuleDeviceModel.WMRControllerLeft:
+                case VRModuleDeviceModel.ViveCosmosControllerLeft:
+                case VRModuleDeviceModel.OculusQuestControllerLeft:
+                case VRModuleDeviceModel.IndexControllerLeft:
+                case VRModuleDeviceModel.WaveTrackedHandLeft:
+                case VRModuleDeviceModel.OculusTrackedHandLeft:
+                case VRModuleDeviceModel.WMRTrackedHandLeft:
+                    return true;
+                default:
+                    return false;
             }
         }
     }

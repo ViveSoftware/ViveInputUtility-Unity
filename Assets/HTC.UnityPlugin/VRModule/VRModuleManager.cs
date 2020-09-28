@@ -138,8 +138,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var cap = Mathf.Min((int)capacity, (int)MAX_DEVICE_COUNT);
             if (GetDeviceStateLength() < cap)
             {
+                var oldPrevStates = m_prevStates;
+                var oldCurrStates = m_currStates;
                 m_prevStates = new DeviceState[cap];
                 m_currStates = new DeviceState[cap];
+                if (oldCurrStates != null && oldCurrStates.Length > 0)
+                {
+                    Array.Copy(oldPrevStates, 0, m_prevStates, 0, oldPrevStates.Length);
+                    Array.Copy(oldCurrStates, 0, m_currStates, 0, oldCurrStates.Length);
+                }
             }
         }
 
