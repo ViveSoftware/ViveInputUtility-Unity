@@ -105,7 +105,7 @@ public class ControllerManagerSample : MonoBehaviour
     public bool leftCurvePointerActive
     {
         get { return m_leftCurvePointerActive; }
-        set { SetLeftLaserPointerActive(value); }
+        set { SetLeftCurvePointerActive(value); }
     }
 
     public bool leftCustomModelActive
