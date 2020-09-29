@@ -121,6 +121,11 @@ namespace HTC.UnityPlugin.Vive
             GetAllHandJoints(ViveRole.GetDeviceIndexEx(role), outHandJoints, trimInvalidJoint);
         }
 
+        public static void GetFingerJoints(HandRole role, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        {
+            GetFingerJoints(ViveRole.GetDeviceIndexEx(role), fingerName, outHandJoints, trimInvalidJoint);
+        }
+
         public static int GetHandJointCount(HandRole role)
         {
             return GetHandJointCount(ViveRole.GetDeviceIndexEx(role));
@@ -182,6 +187,11 @@ namespace HTC.UnityPlugin.Vive
         public static void GetAllHandJoints(ViveRoleProperty role, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
         {
             GetAllHandJoints(role.GetDeviceIndex(), outHandJoints, trimInvalidJoint);
+        }
+
+        public static void GetFingerJoints(ViveRoleProperty role, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        {
+            GetFingerJoints(role.GetDeviceIndex(), fingerName, outHandJoints, trimInvalidJoint);
         }
 
         public static int GetHandJointCount(ViveRoleProperty role)
@@ -331,6 +341,11 @@ namespace HTC.UnityPlugin.Vive
             GetAllHandJoints(ViveRole.GetDeviceIndexEx(role), outHandJoints, trimInvalidJoint);
         }
 
+        public static void GetFingerJointsEx<TRole>(TRole role, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        {
+            GetFingerJoints(ViveRole.GetDeviceIndexEx(role), fingerName, outHandJoints, trimInvalidJoint);
+        }
+
         public static int GetHandJointCountEx<TRole>(TRole role)
         {
             return GetHandJointCount(ViveRole.GetDeviceIndexEx(role));
@@ -438,6 +453,11 @@ namespace HTC.UnityPlugin.Vive
             GetAllHandJoints(ViveRole.GetDeviceIndexEx(roleType, roleValue), outHandJoints, trimInvalidJoint);
         }
 
+        public static void GetFingerJointsEx(Type roleType, int roleValue, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        {
+            GetFingerJoints(ViveRole.GetDeviceIndexEx(roleType, roleValue), fingerName, outHandJoints, trimInvalidJoint);
+        }
+
         public static int GetHandJointCountEx(Type roleType, int roleValue)
         {
             return GetHandJointCount(ViveRole.GetDeviceIndexEx(roleType, roleValue));
@@ -536,6 +556,11 @@ namespace HTC.UnityPlugin.Vive
         public static void GetAllHandJoints(uint deviceIndex, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
         {
             VRModule.GetCurrentDeviceState(deviceIndex).GetAllHandJoints(outHandJoints, trimInvalidJoint);
+        }
+
+        public static void GetFingerJoints(uint deviceIndex, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        {
+            VRModule.GetCurrentDeviceState(deviceIndex).GetFingerJoints(fingerName, outHandJoints, trimInvalidJoint);
         }
 
         public static int GetHandJointCount(uint deviceIndex)

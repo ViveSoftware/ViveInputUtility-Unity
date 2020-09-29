@@ -207,6 +207,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         float GetAxisValue(VRModuleRawAxis axis);
         bool TryGetHandJointPose(HandJointName jointName, out RigidPose pose);
         void GetAllHandJoints(IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true);
+        void GetFingerJoints(FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true);
         int GetHandJointCount();
     }
 
@@ -312,6 +313,33 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+            public void GetFingerJoints(FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+            {
+                if (outHandJoints == null)
+                {
+                    return;
+                }
+
+                switch (fingerName)
+                {
+                    case FingerName.Thumb:
+                        GetRangeHandJoints(HandJointName.ThumbMetacarpal, HandJointName.ThumbTip, outHandJoints, trimInvalidJoint);
+                        break;
+                    case FingerName.Index:
+                        GetRangeHandJoints(HandJointName.IndexMetacarpal, HandJointName.IndexTip, outHandJoints, trimInvalidJoint);
+                        break;
+                    case FingerName.Middle:
+                        GetRangeHandJoints(HandJointName.MiddleMetacarpal, HandJointName.MiddleTip, outHandJoints, trimInvalidJoint);
+                        break;
+                    case FingerName.Ring:
+                        GetRangeHandJoints(HandJointName.RingMetacarpal, HandJointName.RingTip, outHandJoints, trimInvalidJoint);
+                        break;
+                    case FingerName.Pinky:
+                        GetRangeHandJoints(HandJointName.PinkyMetacarpal, HandJointName.PinkyTip, outHandJoints, trimInvalidJoint);
+                        break;
+                }
+            }
+
             public int GetHandJointCount()
             {
                 int count = 0;
@@ -384,6 +412,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonPressed = 0ul;
                 m_buttonTouched = 0ul;
                 ResetAxisValues();
+            }
+
+            private void GetRangeHandJoints(HandJointName start, HandJointName end, IList<HandJointPose> outHandJoints, bool trimInvalidJoint)
+            {
+                if (outHandJoints == null)
+                {
+                    return;
+                }
+
+                for (int i = (int) start; i <= (int) end; i++)
+                {
+                    HandJointPose joint = m_handJoints[i];
+                    if (trimInvalidJoint && !joint.IsValid())
+                    {
+                        continue;
+                    }
+
+                    outHandJoints.Add(joint);
+                }
             }
         }
     }
