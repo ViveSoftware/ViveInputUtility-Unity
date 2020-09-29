@@ -560,11 +560,6 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetPadPressVector() { return Vector2.zero; }
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
-            public virtual bool IsPinching() { return false; }
-            public virtual bool IsPinching(FingerName fingerName) { return false; }
-            public virtual float GetPinchStrength(FingerName fingerName = FingerName.Index) { return 0.0f; }
-            public virtual void GetAllHandJoints(IList<HandJointPose> outHandJoints, bool trimInvalidBone = true) {}
-            public virtual HandJointPose GetHandJoint(HandJointName handJointName) { return new HandJointPose(); }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
 
