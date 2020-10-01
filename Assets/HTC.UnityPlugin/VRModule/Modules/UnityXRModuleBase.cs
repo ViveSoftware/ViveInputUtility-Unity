@@ -309,7 +309,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var deviceID = GetInputDeviceInternalID(connectedDevice);
                 if (!indexForInputDevices.TryGetValue(deviceID, out deviceIndex))
                 {
-                    if ((connectedDevice.characteristics | InputDeviceCharacteristics.HeadMounted) > 0u)
+                    if ((connectedDevice.characteristics & InputDeviceCharacteristics.HeadMounted) > 0u)
                     {
                         Debug.Assert(!indexedInputDevices[(int)VRModule.HMD_DEVICE_INDEX].isValid);
                         deviceIndex = VRModule.HMD_DEVICE_INDEX;
