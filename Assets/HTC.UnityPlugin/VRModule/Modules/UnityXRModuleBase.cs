@@ -158,6 +158,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             UpdateCustomDevices();
 
+            // preserve last hand role index
+            var pRightIndex = PrioritizedRightHandIndex;
+            var pLeftIndex = PrioritizedLeftHandIndex;
             // process all disconnected devices
             deviceIndex = 0u;
             while (TryGetValidDeviceState(deviceIndex, out prevState, out currState))
@@ -192,10 +195,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 ++deviceIndex;
             }
 
-            if (IsHandRoleIndexDirty())
+            if (pRightIndex != PrioritizedRightHandIndex || pLeftIndex != PrioritizedLeftHandIndex)
             {
                 BeforeHandRoleChanged();
-                ResetHandRoleIndexDirty();
                 InvokeControllerRoleChangedEvent();
             }
 
@@ -204,15 +206,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessDeviceInputChanged();
         }
 
-        private bool handRoleIndexDirty;
-        private uint uxrRightHandIndex;
-        private uint uxrLeftHandIndex;
-        private uint ctrlRightHandIndex;
-        private uint ctrlLeftHandIndex;
-        private uint trackedRightHandIndex;
-        private uint trackedLeftHandIndex;
-        private bool IsHandRoleIndexDirty() { return handRoleIndexDirty; }
-        private void ResetHandRoleIndexDirty() { handRoleIndexDirty = false; }
+        private uint uxrRightHandIndex = VRModule.INVALID_DEVICE_INDEX;
+        private uint uxrLeftHandIndex = VRModule.INVALID_DEVICE_INDEX;
+        private uint ctrlRightHandIndex = VRModule.INVALID_DEVICE_INDEX;
+        private uint ctrlLeftHandIndex = VRModule.INVALID_DEVICE_INDEX;
+        private uint trackedRightHandIndex = VRModule.INVALID_DEVICE_INDEX;
+        private uint trackedLeftHandIndex = VRModule.INVALID_DEVICE_INDEX;
+        protected uint PrioritizedRightHandIndex { get { var len = GetDeviceStateLength(); return uxrRightHandIndex < len ? uxrRightHandIndex : ctrlRightHandIndex < len ? ctrlRightHandIndex : trackedRightHandIndex; } }
+        protected uint PrioritizedLeftHandIndex { get { var len = GetDeviceStateLength(); return uxrLeftHandIndex < len ? uxrLeftHandIndex : ctrlLeftHandIndex < len ? ctrlLeftHandIndex : trackedLeftHandIndex; } }
 
         private void UpdateHandRoleForNewConnectedDevice(uint index, IVRModuleDeviceStateRW state)
         {
@@ -230,35 +231,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     uxrLeftHandIndex = index;
                 }
-                handRoleIndexDirty = true;
             }
             else
             {
                 switch (state.deviceClass)
                 {
                     case VRModuleDeviceClass.Controller:
-                        if (state.deviceModel.IsRight())
-                        {
-                            ctrlRightHandIndex = index;
-                            handRoleIndexDirty = true;
-                        }
-                        else if (state.deviceModel.IsLeft())
-                        {
-                            ctrlLeftHandIndex = index;
-                            handRoleIndexDirty = true;
-                        }
+                        if (state.deviceModel.IsRight()) { ctrlRightHandIndex = index; }
+                        else if (state.deviceModel.IsLeft()) { ctrlLeftHandIndex = index; }
                         break;
                     case VRModuleDeviceClass.TrackedHand:
-                        if (state.deviceModel.IsRight())
-                        {
-                            trackedRightHandIndex = index;
-                            handRoleIndexDirty = true;
-                        }
-                        else if (state.deviceModel.IsLeft())
-                        {
-                            trackedLeftHandIndex = index;
-                            handRoleIndexDirty = true;
-                        }
+                        if (state.deviceModel.IsRight()) { trackedRightHandIndex = index; }
+                        else if (state.deviceModel.IsLeft()) { trackedLeftHandIndex = index; }
                         break;
                 }
             }
@@ -276,12 +260,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override uint GetRightControllerDeviceIndex()
         {
-            return VRModule.IsValidDeviceIndex(uxrRightHandIndex) ? uxrRightHandIndex : VRModule.IsValidDeviceIndex(ctrlRightHandIndex) ? ctrlRightHandIndex : trackedRightHandIndex;
+            return PrioritizedRightHandIndex;
         }
 
         public override uint GetLeftControllerDeviceIndex()
         {
-            return VRModule.IsValidDeviceIndex(uxrLeftHandIndex) ? uxrLeftHandIndex : VRModule.IsValidDeviceIndex(ctrlLeftHandIndex) ? ctrlLeftHandIndex : trackedLeftHandIndex;
+            return PrioritizedLeftHandIndex;
         }
 
         protected InputDevice GetInputDeviceByIndex(uint index)
