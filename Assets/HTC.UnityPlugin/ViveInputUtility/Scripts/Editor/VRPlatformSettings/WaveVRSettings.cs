@@ -172,7 +172,7 @@ namespace HTC.UnityPlugin.Vive
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
                     XRPluginManagementUtils.SetXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_CLASS_NAME, requirdPlatform, value);
                     MockHMDSDK.enabled = value && !PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME);
-                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
+                    VIUSettings.activateWaveUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
 #elif VIU_WAVEVR_3_0_0_OR_NEWER
                     MockHMDSDK.enabled = value;
 #else
