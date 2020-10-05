@@ -11,36 +11,23 @@ namespace HTC.UnityPlugin.Vive
     /// <summary>
     /// Defines roles for those devices that have buttons
     /// </summary>
-    [ViveRoleEnum((int)HandRole.Invalid)]
+    [ViveRoleEnum((int)TrackedHandRole.Invalid)]
     public enum TrackedHandRole
     {
         Invalid = -1,
-        TrackedHandRight,
-        TrackedHandLeft,
+        RightHand,
+        LeftHand,
     }
 
     public class TrackedHandRoleHandler : ViveRole.MapHandler<TrackedHandRole>
     {
-        private List<uint> m_sortedDeviceList = new List<uint>();
-
-        // HandRole only tracks tracked hands
-        private bool IsTrackedHand(uint deviceIndex)
-        {
-            return IsTrackedHand(VRModule.GetCurrentDeviceState(deviceIndex).deviceClass);
-        }
-
-        private bool IsTrackedHand(VRModuleDeviceClass deviceClass)
-        {
-            return deviceClass == VRModuleDeviceClass.TrackedHand;
-        }
-
         public override void OnAssignedAsCurrentMapHandler() { Refresh(); }
 
         public override void OnTrackedDeviceRoleChanged() { Refresh(); }
 
         public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
         {
-            if (!RoleMap.IsDeviceBound(deviceSN) && !IsTrackedHand(deviceClass)) { return; }
+            if (!RoleMap.IsDeviceBound(deviceSN) && deviceClass != VRModuleDeviceClass.TrackedHand) { return; }
             Refresh();
         }
 
@@ -54,33 +41,62 @@ namespace HTC.UnityPlugin.Vive
 
         public void Refresh()
         {
-            MappingTrackedHands();
-        }
+            // find tracked right/left hand index
+            var deviceCount = VRModule.GetDeviceStateCount();
+            var rightIndex = VRModule.INVALID_DEVICE_INDEX;
+            var leftIndex = VRModule.INVALID_DEVICE_INDEX;
 
-        private void MappingTrackedHands()
-        {
-            var deviceIndex = 0u;
-            for (var role = RoleInfo.MinValidRole; role <= RoleInfo.MaxValidRole; ++role)
+            for (uint deviceIndex = 0u; deviceIndex < deviceCount; ++deviceIndex)
             {
-                if (!RoleInfo.IsValidRole(role)) { continue; }
-                if (RoleMap.IsRoleBound(role)) { continue; }
-
-                // find next valid device
-                if (VRModule.IsValidDeviceIndex(deviceIndex))
+                var deviceState = VRModule.GetDeviceState(deviceIndex);
+                if (deviceState.isConnected && deviceState.deviceClass == VRModuleDeviceClass.TrackedHand)
                 {
-                    while (!IsTrackedHand(deviceIndex) || RoleMap.IsDeviceConnectedAndBound(deviceIndex))
+                    if (deviceState.deviceModel.IsRight())
                     {
-                        if (!VRModule.IsValidDeviceIndex(++deviceIndex)) { break; }
+                        rightIndex = deviceIndex;
+                    }
+                    else if (deviceState.deviceModel.IsLeft())
+                    {
+                        leftIndex = deviceIndex;
                     }
                 }
+            }
 
-                if (VRModule.IsValidDeviceIndex(deviceIndex))
+            if (!RoleMap.IsRoleMapped(TrackedHandRole.RightHand))
+            {
+                if (rightIndex < deviceCount)
                 {
-                    MappingRole(role, deviceIndex++);
+                    MappingRoleIfUnbound(TrackedHandRole.RightHand, rightIndex);
+                }
+            }
+            else if (!RoleMap.IsRoleBound(TrackedHandRole.RightHand))
+            {
+                if (rightIndex < deviceCount)
+                {
+                    MappingRoleIfUnbound(TrackedHandRole.RightHand, rightIndex);
                 }
                 else
                 {
-                    UnmappingRole(role);
+                    UnmappingRole(TrackedHandRole.RightHand);
+                }
+            }
+
+            if (!RoleMap.IsRoleMapped(TrackedHandRole.LeftHand))
+            {
+                if (leftIndex < deviceCount)
+                {
+                    MappingRoleIfUnbound(TrackedHandRole.LeftHand, leftIndex);
+                }
+            }
+            else if (!RoleMap.IsRoleBound(TrackedHandRole.LeftHand))
+            {
+                if (leftIndex < deviceCount)
+                {
+                    MappingRoleIfUnbound(TrackedHandRole.LeftHand, leftIndex);
+                }
+                else
+                {
+                    UnmappingRole(TrackedHandRole.LeftHand);
                 }
             }
         }
