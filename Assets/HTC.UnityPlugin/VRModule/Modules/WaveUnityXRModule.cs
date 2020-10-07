@@ -220,8 +220,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool ShouldActiveModule()
         {
-            //Debug.Log("WaveUnityXRModule ShouldActiveModule " + (VIUSettings.activateWaveUnityXRModule && HasActiveLoader()));
-            
             return VIUSettings.activateWaveUnityXRModule && HasActiveLoader();
         }
 
@@ -245,6 +243,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_deviceUidToIndex.Clear();
             m_indexToDevices.Clear();
             m_connectedDevices.Clear();
+        }
+
+        public override void UpdateTrackingSpaceType()
+        {
+            base.UpdateTrackingSpaceType();
+            switch (VRModule.trackingSpaceType)
+            {
+                case VRModuleTrackingSpaceType.Stationary: originFlag = WVR_PoseOriginModel.WVR_PoseOriginModel_OriginOnHead; break;
+                case VRModuleTrackingSpaceType.RoomScale: originFlag = WVR_PoseOriginModel.WVR_PoseOriginModel_OriginOnGround; break;
+                default: return;
+            }
         }
 
         // NOTE: Frequency not supported
@@ -291,191 +300,146 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 
 #if VIU_WAVEXR_ESSENCE_HAND
-        private WVR_HandSkeletonData_t handSkeletonData = new WVR_HandSkeletonData_t();
-        private WVR_HandPoseData_t handPoseData = new WVR_HandPoseData_t();
-        private WVR_PoseOriginModel originModel = WVR_PoseOriginModel.WVR_PoseOriginModel_OriginOnHead;
-        private Dictionary<HandManager.HandType, uint> indexForInputDevices = new Dictionary<HandManager.HandType, uint>();
-        private List<HandManager.HandType> indexedInputDevices = new List<HandManager.HandType>();
+        private WVR_HandSkeletonData_t handJointData = new WVR_HandSkeletonData_t();
+        private WVR_HandPoseData_t handPinchData = new WVR_HandPoseData_t();
+        private WVR_PoseOriginModel originFlag = WVR_PoseOriginModel.WVR_PoseOriginModel_OriginOnHead;
 #endif
 
+        private uint rightTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
+        private uint leftTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
         protected override void UpdateCustomDevices()
         {
-            //Debug.Log("WaveUnityXRModule UpdateCustomDevices");
 #if VIU_WAVEXR_ESSENCE_HAND
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
-            uint deviceIndex;
 
-            foreach (var connectedDevice in Enum.GetValues(typeof(HandManager.HandType)))
+            if (!(Interop.WVR_GetHandTrackingData(ref handJointData, ref handPinchData, originFlag) == WVR_Result.WVR_Success)) return;
+
+            if (handJointData.right.confidence > 0.1f)
             {
-                //Debug.Log("WaveUnityXRModule UpdateCustomDevices1 " + connectedDevice.ToString());
-                if (!IBonePose.Instance.IsHandPoseValid((HandManager.HandType)connectedDevice)) continue;
-
-                if (!indexForInputDevices.TryGetValue((HandManager.HandType)connectedDevice, out deviceIndex))
+                if (!VRModule.IsValidDeviceIndex(rightTrackedHandIndex))
                 {
-                    deviceIndex = FindOrAllocateUnusedNotHMDIndex();
-                    Debug.Log("New Hand connected: " + connectedDevice.ToString() + " index: " + deviceIndex);
-                    // assign the index to the new connected device
-                    indexForInputDevices.Add((HandManager.HandType)connectedDevice, deviceIndex);
-                    while (deviceIndex >= indexedInputDevices.Count) { indexedInputDevices.Add(default(HandManager.HandType)); }
-                    indexedInputDevices[(int)deviceIndex] = (HandManager.HandType)connectedDevice;
-
-                    EnsureValidDeviceState(deviceIndex, out prevState, out currState); Debug.Assert(!prevState.isConnected);
-                    currState.isConnected = true;
+                    rightTrackedHandIndex = FindOrAllocateUnusedNotHMDIndex();
+                    EnsureValidDeviceState(rightTrackedHandIndex, out prevState, out currState);
 
                     currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.serialNumber = connectedDevice.ToString() + deviceIndex;
-                    currState.modelNumber = "WVR_" + connectedDevice.ToString();
-                    currState.renderModelName = "WVR_" + connectedDevice.ToString();
+                    currState.serialNumber = "RIGHT" + rightTrackedHandIndex;
+                    currState.modelNumber = "WVR_RIGHT";
+                    currState.renderModelName = "WVR_RIGHT";
 
-                    //UpdateNewConnectedInputDevice(currState, connectedDevice);
-                    SetupKnownDeviceModel(currState);
+                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+                    currState.deviceModel = VRModuleDeviceModel.WaveTrackedHandRight;
+                    currState.input2DType = VRModuleInput2DType.None;
                 }
                 else
                 {
-                    EnsureValidDeviceState(deviceIndex, out prevState, out currState);
+                    EnsureValidDeviceState(rightTrackedHandIndex, out prevState, out currState);
                     currState.isConnected = true;
                 }
 
-                int point = 0;
-                //m_handJointPose.Clear();
-                foreach (var joint in Enum.GetValues(typeof(HandJointName)))
-                {
-                    if (joint.ToString().Equals("None") || joint.ToString().Equals("Palm") ||  joint.ToString().Equals("IndexIntermediate")
-                        || joint.ToString().Equals("MiddleIntermediate") || joint.ToString().Equals("RingIntermediate")
-                        || joint.ToString().Equals("PinkyIntermediate"))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        //Debug.Log("joint index: " + (int)joint + " joint name: " + joint.ToString());
-                        bool isLeft = ((HandManager.HandType)connectedDevice == HandManager.HandType.LEFT ? true : false);
-                        //m_handJointPose.Add(new HandJointPose((HandJointName)joint, IBonePose.Instance.GetBoneTransform(point, isLeft).pos, IBonePose.Instance.GetBoneTransform(point, isLeft).rot));
-                        //Debug.Log("point: " + point);
-                        currState.handJoints[HandJointPose.NameToIndex((HandJointName)joint)] = new HandJointPose((HandJointName)joint, IBonePose.Instance.GetBoneTransform(point, isLeft).pos, IBonePose.Instance.GetBoneTransform(point, isLeft).rot);
-                        point++;
-                    }
-                }
+                currState.isPoseValid = true;
+
+                UpdateTrackedHandJointState(currState, false);
+                //UpdateTrackedHandGestureState(currState, false);
             }
 
-            //Debug.Log("UpdateCustomDevices: " + HandManager.Instance.GetHandTrackingStatus().ToString());
-            
-            //bool isHandTrackingEnabled = HandManager.Instance.GetHandTrackingStatus() == HandManager.HandTrackingStatus.AVAILABLE;
-            //if (!isHandTrackingEnabled) return;
+            if (handJointData.left.confidence > 0.1f)
+            {
+                if (!VRModule.IsValidDeviceIndex(leftTrackedHandIndex))
+                {
+                    leftTrackedHandIndex = FindOrAllocateUnusedNotHMDIndex();
+                    EnsureValidDeviceState(leftTrackedHandIndex, out prevState, out currState);
 
-            ////Debug.Log("isHandTrackingEnabled: " + isHandTrackingEnabled);
-            //var hasHandTracking = Interop.WVR_GetHandTrackingData(ref handSkeletonData, ref handPoseData, originModel) == WVR_Result.WVR_Success ? true : false;
-            //Debug.Log("hasHandTracking: " + hasHandTracking);
-            //Debug.Log("handSkeletonData left: " + handSkeletonData.left.confidence);
-            //Debug.Log("handSkeletonData right: " + handSkeletonData.right.confidence);
+                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+                    currState.serialNumber = "LEFT" + leftTrackedHandIndex;
+                    currState.modelNumber = "WVR_LEFT";
+                    currState.renderModelName = "WVR_LEFT";
+
+                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+                    currState.deviceModel = VRModuleDeviceModel.WaveTrackedHandLeft;
+                    currState.input2DType = VRModuleInput2DType.None;
+                }
+                else
+                {
+                    EnsureValidDeviceState(leftTrackedHandIndex, out prevState, out currState);
+                    currState.isConnected = true;
+                }
+
+                currState.isPoseValid = true;
+
+                UpdateTrackedHandJointState(currState, true);
+                //UpdateTrackedHandGestureState(currState, true);
+            }
 #endif
+        }
+
+        private void UpdateTrackedHandJointState(IVRModuleDeviceStateRW state, bool isLeft)
+        {
+            var skeleton = isLeft ? handJointData.left : handJointData.right;
+
+            RigidTransform rigidTransform = RigidTransform.identity;
+            rigidTransform.update(skeleton.wrist.PoseMatrix);
+
+            WVR_Vector3f_t wrist_pos;
+            wrist_pos.v0 = rigidTransform.pos.x;
+            wrist_pos.v1 = rigidTransform.pos.y;
+            wrist_pos.v2 = rigidTransform.pos.z;
+
+            SetWrist(state, HandJointName.Wrist, rigidTransform);
+            SetJoint(state, HandJointName.ThumbMetacarpal, skeleton.thumb.joint1, wrist_pos, rigidTransform.rot);
+            SetJoint(state, HandJointName.ThumbProximal, skeleton.thumb.joint2, skeleton.thumb.joint1, rigidTransform.rot);
+            SetJoint(state, HandJointName.ThumbDistal, skeleton.thumb.joint3, skeleton.thumb.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.ThumbTip, skeleton.thumb.tip, skeleton.thumb.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.IndexMetacarpal, skeleton.index.joint1, wrist_pos, rigidTransform.rot);
+            SetJoint(state, HandJointName.IndexProximal, skeleton.index.joint2, skeleton.index.joint1, rigidTransform.rot);
+            SetJoint(state, HandJointName.IndexDistal, skeleton.index.joint3, skeleton.index.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.IndexTip, skeleton.index.tip, skeleton.index.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.MiddleMetacarpal, skeleton.middle.joint1, wrist_pos, rigidTransform.rot);
+            SetJoint(state, HandJointName.MiddleProximal, skeleton.middle.joint2, skeleton.middle.joint1, rigidTransform.rot);
+            SetJoint(state, HandJointName.MiddleDistal, skeleton.middle.joint3, skeleton.middle.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.MiddleTip, skeleton.middle.tip, skeleton.middle.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.RingMetacarpal, skeleton.ring.joint1, wrist_pos, rigidTransform.rot);
+            SetJoint(state, HandJointName.RingProximal, skeleton.ring.joint2, skeleton.ring.joint1, rigidTransform.rot);
+            SetJoint(state, HandJointName.RingDistal, skeleton.ring.joint3, skeleton.ring.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.RingTip, skeleton.ring.tip, skeleton.ring.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.PinkyMetacarpal, skeleton.pinky.joint1, wrist_pos, rigidTransform.rot);
+            SetJoint(state, HandJointName.PinkyProximal, skeleton.pinky.joint2, skeleton.pinky.joint1, rigidTransform.rot);
+            SetJoint(state, HandJointName.PinkyDistal, skeleton.pinky.joint3, skeleton.pinky.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.PinkyTip, skeleton.pinky.tip, skeleton.pinky.joint3, rigidTransform.rot);
+        }
+
+        private static void SetWrist(IVRModuleDeviceStateRW state, HandJointName joint, RigidTransform pose)
+        {
+            var pos = pose.pos;
+            var rot = pose.rot * Quaternion.Euler(90, 0, 180);
+            state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, pos, rot);
+            state.position = pos;
+            state.rotation = rot;
+        }
+
+        private static void SetJoint(IVRModuleDeviceStateRW state, HandJointName joint, WVR_Vector3f_t currPose, WVR_Vector3f_t prevPose, Quaternion wrist_rot)
+        {
+            var currPos = new Vector3(currPose.v0, currPose.v1, -currPose.v2);
+            var prevPos = new Vector3(prevPose.v0, prevPose.v1, -prevPose.v2);
+            var normalized_pos = (currPos - prevPos).normalized * -1;
+            var up = Vector3.Cross(normalized_pos, wrist_rot * Quaternion.Euler(90, 0, 180) * Vector3.right);
+            var rot = Quaternion.LookRotation(normalized_pos, up);
+            state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, currPos, rot);
         }
 
         protected override void OnCustomDeviceDisconnected(uint index)
         {
 #if VIU_WAVEXR_ESSENCE_HAND
-            if (indexedInputDevices.Count <= 0) return;
-
-            HandManager.HandType found = HandManager.HandType.LEFT;
-            foreach (KeyValuePair<HandManager.HandType, uint> kvp in indexForInputDevices)
+            if (rightTrackedHandIndex == index)
             {
-                if (index == kvp.Value)
-                {
-                    found = kvp.Key;
-                    break;
-                }
+                rightTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
             }
-            indexForInputDevices.Remove(found);
-            indexedInputDevices.Remove(found);
+
+            if (leftTrackedHandIndex == index)
+            {
+                leftTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
+            }
 #endif
-        }
-
-        protected override void BeforeHandRoleChanged()
-        {
-
-        }
-
-        private void UpdateLockPhysicsUpdateRate()
-        {
-            if (VRModule.lockPhysicsUpdateRateToRenderFrequency && Time.timeScale > 0.0f)
-            {
-                List<XRDisplaySubsystem> displaySystems = new List<XRDisplaySubsystem>();
-                SubsystemManager.GetInstances<XRDisplaySubsystem>(displaySystems);
-
-                float minRefreshRate = float.MaxValue;
-                foreach (XRDisplaySubsystem system in displaySystems)
-                {
-                    float rate = 60.0f;
-                    if (system.TryGetDisplayRefreshRate(out rate))
-                    {
-                        if (rate < minRefreshRate)
-                        {
-                            minRefreshRate = rate;
-                        }
-                    }
-                }
-
-                if (minRefreshRate > 0 && minRefreshRate < float.MaxValue)
-                {
-                    Time.fixedDeltaTime = 1.0f / minRefreshRate;
-                }
-            }
-        }
-
-        private void UpdateHapticVibration()
-        {
-            for (int i = m_activeHapticVibrationStates.Count - 1; i >= 0; i--)
-            {
-                HapticVibrationState state = m_activeHapticVibrationStates[i];
-                if (state.remainingDelay > 0.0f)
-                {
-                    state.remainingDelay -= Time.deltaTime;
-                    continue;
-                }
-
-                InputDevice device;
-                if (TryGetDevice(state.deviceIndex, out device))
-                {
-                    if (device.isValid)
-                    {
-                        device.SendHapticImpulse(0, state.amplitude);
-                    }
-                }
-
-                state.remainingDuration -= Time.deltaTime;
-                if (state.remainingDuration <= 0)
-                {
-                    m_activeHapticVibrationStates.RemoveAt(i);
-                }
-            }
-        }
-
-        private void UpdateTrackingState(IVRModuleDeviceStateRW state, InputDevice device)
-        {
-            Vector3 position = Vector3.zero;
-            if (device.TryGetFeatureValue(CommonUsages.devicePosition, out position))
-            {
-                state.position = position;
-            }
-
-            Quaternion rotation = Quaternion.identity;
-            if (device.TryGetFeatureValue(CommonUsages.deviceRotation, out rotation))
-            {
-                state.rotation = rotation;
-            }
-
-            Vector3 velocity = Vector3.zero;
-            if (device.TryGetFeatureValue(CommonUsages.deviceVelocity, out velocity))
-            {
-                state.velocity = velocity;
-            }
-
-            Vector3 angularVelocity = Vector3.zero;
-            if (device.TryGetFeatureValue(CommonUsages.deviceAngularVelocity, out angularVelocity))
-            {
-                state.angularVelocity = angularVelocity;
-            }
         }
 
         private bool TryGetDevice(uint index, out InputDevice deviceOut)
@@ -490,19 +454,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return false;
         }
 
-        private void SetAllXRInputSubsystemTrackingOriginMode(TrackingOriginModeFlags mode)
-        {
-            List<XRInputSubsystem> systems = new List<XRInputSubsystem>();
-            SubsystemManager.GetInstances(systems);
-            foreach (XRInputSubsystem system in systems)
-            {
-                if (!system.TrySetTrackingOriginMode(mode))
-                {
-                    Debug.LogWarning("Failed to set TrackingOriginModeFlags to XRInputSubsystem: " + system.SubsystemDescriptor.id);
-                }
-            }
-        }
-
         private int GetDeviceUID(InputDevice device)
         {
 #if CSHARP_7_OR_LATER
@@ -510,39 +461,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #else
             return new { device.name, device.serialNumber, device.characteristics }.GetHashCode();
 #endif
-        }
-
-        private XRInputSubsystemType DetectCurrentInputSubsystemType()
-        {
-            List<XRInputSubsystem> systems = new List<XRInputSubsystem>();
-            SubsystemManager.GetInstances(systems);
-            if (systems.Count == 0)
-            {
-                Debug.LogWarning("No XRInputSubsystem detected.");
-                return XRInputSubsystemType.Unknown;
-            }
-
-            string id = systems[0].SubsystemDescriptor.id;
-            Debug.Log("Activated XRInputSubsystem Name: " + id);
-
-            if (Regex.IsMatch(id, @"openvr", RegexOptions.IgnoreCase))
-            {
-                return XRInputSubsystemType.OpenVR;
-            }
-            else if (Regex.IsMatch(id, @"oculus", RegexOptions.IgnoreCase))
-            {
-                return XRInputSubsystemType.Oculus;
-            }
-            else if (Regex.IsMatch(id, @"windows mixed reality", RegexOptions.IgnoreCase))
-            {
-                return XRInputSubsystemType.WMR;
-            }
-            else if (Regex.IsMatch(id, @"magicleap", RegexOptions.IgnoreCase))
-            {
-                return XRInputSubsystemType.MagicLeap;
-            }
-
-            return XRInputSubsystemType.Unknown;
         }
 
         private void UpdateViveFocusChirpControllerState(IVRModuleDeviceStateRW state, InputDevice device)
@@ -601,6 +519,35 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
             state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
+        }
+
+        private void UpdateTrackedHandGestureState(IVRModuleDeviceStateRW state, bool isLeft)
+        {
+            WVR_HandGestureData_t handGestureData = new WVR_HandGestureData_t();
+            if (Interop.WVR_GetHandGestureData(ref handGestureData) == WVR_Result.WVR_Success)
+            {
+                var gesture = isLeft ? handGestureData.left : handGestureData.right;
+                switch (gesture)
+                {
+                    case WVR_HandGestureType.WVR_HandGestureType_Fist:
+                        break;
+                    case WVR_HandGestureType.WVR_HandGestureType_Five:
+                        break;
+                    case WVR_HandGestureType.WVR_HandGestureType_IndexUp:
+                        state.SetButtonPress(VRModuleRawButton.Trigger, true);
+                        state.SetAxisValue(VRModuleRawAxis.Trigger, 1f);
+                        break;
+                    case WVR_HandGestureType.WVR_HandGestureType_OK:
+                        break;
+                    case WVR_HandGestureType.WVR_HandGestureType_ThumbUp:
+                        break;
+                    case WVR_HandGestureType.WVR_HandGestureType_Invalid:
+                    case WVR_HandGestureType.WVR_HandGestureType_Unknown:
+                        state.SetButtonPress(VRModuleRawButton.Trigger, false);
+                        state.SetAxisValue(VRModuleRawAxis.Trigger, 0f);
+                        break;
+                }
+            }
         }
 #endif
     }
