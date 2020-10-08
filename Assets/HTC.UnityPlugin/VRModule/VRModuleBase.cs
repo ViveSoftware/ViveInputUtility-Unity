@@ -17,11 +17,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Simulator = 1,
                 UnityNativeVR,
                 UnityXR,
+                WaveUnityXR,
                 SteamVR,
                 OculusVR,
                 DayDream,
                 WaveVR,
-                WaveUnityXR,
             }
 
             [Obsolete("Module should set their own MAX_DEVICE_COUNT, use EnsureDeviceStateLength to set, VRModule.GetDeviceStateCount() to get")]

@@ -1,7 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
-using HTC.UnityPlugin.Vive;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -248,7 +247,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [SerializeField]
             private Quaternion m_rotation;
             [SerializeField]
-            private HandJointPose[] m_handJoints = new HandJointPose[HandJointPose.GetMaxCount()];
+            private HandJointPose[] m_handJoints;
 
             // device property, changed only when connected or disconnected
             public uint deviceIndex { get; private set; }
@@ -269,7 +268,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public Vector3 position { get { return m_position; } set { m_position = value; } }
             public Quaternion rotation { get { return m_rotation; } set { m_rotation = value; } }
             public RigidPose pose { get { return new RigidPose(m_position, m_rotation); } set { m_position = value.pos; m_rotation = value.rot; } }
-            public HandJointPose[] handJoints { get { return m_handJoints; } set { m_handJoints = value; } } 
+
+            public HandJointPose[] handJoints
+            {
+                get
+                {
+                    if (m_handJoints == null)
+                    {
+                        m_handJoints = new HandJointPose[HandJointPose.GetMaxCount()];
+                    }
+
+                    return m_handJoints;
+                }
+                set
+                {
+                    m_handJoints = value;
+                }
+            }
 
             // device input state
             [SerializeField]
@@ -289,7 +304,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public bool TryGetHandJointPose(HandJointName jointName, out RigidPose pose)
             {
-                HandJointPose joint = m_handJoints[HandJointPose.NameToIndex(jointName)];
+                HandJointPose joint = handJoints[HandJointPose.NameToIndex(jointName)];
                 pose = joint.pose;
 
                 return joint.IsValid();
@@ -302,7 +317,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     return;
                 }
 
-                foreach (HandJointPose joint in m_handJoints)
+                outHandJoints.Clear();
+                foreach (HandJointPose joint in handJoints)
                 {
                     if (trimInvalidJoint && !joint.IsValid())
                     {
@@ -343,7 +359,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public int GetHandJointCount()
             {
                 int count = 0;
-                foreach (HandJointPose joint in m_handJoints)
+                foreach (HandJointPose joint in handJoints)
                 {
                     if (joint.IsValid())
                     {
@@ -388,8 +404,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonPressed = state.m_buttonPressed;
                 m_buttonTouched = state.m_buttonTouched;
                 Array.Copy(state.m_axisValue, m_axisValue, m_axisValue.Length);
-
-                Array.Copy(state.m_handJoints, m_handJoints, state.m_handJoints.Length);
+                Array.Copy(state.handJoints, handJoints, state.handJoints.Length);
             }
 
             public void Reset()
@@ -412,6 +427,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonPressed = 0ul;
                 m_buttonTouched = 0ul;
                 ResetAxisValues();
+                Array.Clear(handJoints, 0, HandJointPose.GetMaxCount());
             }
 
             private void GetRangeHandJoints(HandJointName start, HandJointName end, IList<HandJointPose> outHandJoints, bool trimInvalidJoint)
@@ -421,9 +437,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     return;
                 }
 
+                outHandJoints.Clear();
                 for (int i = (int) start; i <= (int) end; i++)
                 {
-                    HandJointPose joint = m_handJoints[i];
+                    HandJointPose joint = handJoints[i];
                     if (trimInvalidJoint && !joint.IsValid())
                     {
                         continue;

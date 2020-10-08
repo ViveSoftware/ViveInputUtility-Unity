@@ -438,6 +438,23 @@ namespace HTC.UnityPlugin.Vive
         {
             private Foldouter m_foldouter = new Foldouter();
 
+#if VIU_OCULUSVR
+            private OVRProjectConfig m_oculusProjectConfig;
+
+            private OVRProjectConfig oculusProjectConfig
+            {
+                get
+                {
+                    if (m_oculusProjectConfig == null)
+                    {
+                        m_oculusProjectConfig = OVRProjectConfig.GetProjectConfig();
+                    }
+
+                    return m_oculusProjectConfig;
+                }
+            }
+#endif
+
             public static OculusGoSettings instance { get; private set; }
 
             public OculusGoSettings() { instance = this; }
@@ -600,12 +617,24 @@ namespace HTC.UnityPlugin.Vive
                     if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
                     {
                         EditorGUI.indentLevel += 2;
+
+                        // Hand tracking support
+                        EditorGUILayout.BeginHorizontal();
+                        OVRProjectConfig.HandTrackingSupport originalHandTrackingSupport = oculusProjectConfig.handTrackingSupport;
+                        oculusProjectConfig.handTrackingSupport = (OVRProjectConfig.HandTrackingSupport) EditorGUILayout.EnumPopup("Hand Tracking Support: ", originalHandTrackingSupport);
+                        
+                        if (oculusProjectConfig.handTrackingSupport != originalHandTrackingSupport)
+                        {
+                            EditorUtility.SetDirty(oculusProjectConfig);
+                        }
+                        EditorGUILayout.EndHorizontal();
+
+                        // Custom Android manifest
                         EditorGUILayout.BeginHorizontal();
 
                         EditorGUIUtility.labelWidth = 230;
                         var style = new GUIStyle(GUI.skin.textField) { alignment = TextAnchor.MiddleLeft };
-                        VIUSettings.oculusVRAndroidManifestPath = EditorGUILayout.DelayedTextField(new GUIContent("Customized AndroidManifest Path:", "Default path: " + defaultAndroidManifestPath),
-                                                VIUSettings.oculusVRAndroidManifestPath, style);
+                        VIUSettings.oculusVRAndroidManifestPath = EditorGUILayout.DelayedTextField(new GUIContent("Customized AndroidManifest Path:", "Default path: " + defaultAndroidManifestPath), VIUSettings.oculusVRAndroidManifestPath, style);
                         if (GUILayout.Button("Open", new GUILayoutOption[] { GUILayout.Width(44), GUILayout.Height(18) }))
                         {
                             var path = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
@@ -622,6 +651,7 @@ namespace HTC.UnityPlugin.Vive
 
                         EditorGUILayout.EndHorizontal();
 
+                        // Custom Android manifest warnings
                         EditorGUILayout.BeginHorizontal();
 
                         if (!File.Exists(VIUSettings.oculusVRAndroidManifestPath) && (string.IsNullOrEmpty(defaultAndroidManifestPath) || !File.Exists(defaultAndroidManifestPath)))
@@ -634,6 +664,7 @@ namespace HTC.UnityPlugin.Vive
                         }
 
                         EditorGUILayout.EndHorizontal();
+
                         EditorGUI.indentLevel -= 2;
                     }
                     if (support) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }

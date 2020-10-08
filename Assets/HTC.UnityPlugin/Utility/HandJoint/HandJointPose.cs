@@ -31,5 +31,25 @@ namespace HTC.UnityPlugin.Utility
         {
             return (int) joint - 1; // Since HandJointName.None = 0
         }
+
+        public static void AssignToArray(HandJointPose[] joints, HandJointName jointName, Vector3 position, Quaternion rotation)
+        {
+            if (joints == null)
+            {
+                return;
+            }
+
+            if (joints.Length < GetMaxCount())
+            {
+                return;
+            }
+
+            if (jointName == HandJointName.None)
+            {
+                return;
+            }
+
+            joints[NameToIndex(jointName)] = new HandJointPose(jointName, position, rotation);
+        }
     }
 }

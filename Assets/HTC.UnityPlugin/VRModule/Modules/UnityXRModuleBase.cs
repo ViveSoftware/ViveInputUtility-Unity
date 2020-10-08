@@ -136,7 +136,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return false;
         }
 
-        private List<InputDevice> conntectedDevices = new List<InputDevice>();
+        private List<InputDevice> connectedDevices = new List<InputDevice>();
         public sealed override void BeforeRenderUpdate()
         {
             IVRModuleDeviceState prevState;
@@ -287,8 +287,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             IVRModuleDeviceStateRW currState;
             uint deviceIndex;
 
-            InputDevices.GetDevices(conntectedDevices);
-            foreach (var connectedDevice in conntectedDevices)
+            InputDevices.GetDevices(connectedDevices);
+            foreach (var connectedDevice in connectedDevices)
             {
                 var deviceID = GetInputDeviceInternalID(connectedDevice);
                 if (!indexForInputDevices.TryGetValue(deviceID, out deviceIndex))

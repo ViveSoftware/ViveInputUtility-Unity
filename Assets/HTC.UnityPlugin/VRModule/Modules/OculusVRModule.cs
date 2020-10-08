@@ -1,6 +1,8 @@
 //========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using System;
 using HTC.UnityPlugin.Utility;
+using Object = UnityEngine.Object;
 #if VIU_OCULUSVR
 using UnityEngine;
 using HTC.UnityPlugin.Vive;
@@ -50,6 +52,86 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class OculusVRModule : VRModule.ModuleBase
     {
+        private class Skeleton
+        {
+            private const string LeftHandSkeletonName = "LeftHandSkeleton";
+            private const string RightHandSkeletonName = "RightHandSkeleton";
+
+            private static readonly Quaternion WristFixupRotation = new Quaternion(0.0f, 1.0f, 0.0f, 0.0f);
+            private static readonly Quaternion LeftHandOpenXRFixRotation = Quaternion.Euler(0.0f, 90.0f, 180.0f);
+            private static readonly Quaternion RightHandOpenXRFixRotation = Quaternion.Euler(0.0f, -90.0f, 0.0f);
+
+            public readonly OVRPlugin.SkeletonType Handness;
+            public readonly Transform Root;
+            public readonly Transform[] Bones = new Transform[(int) OVRPlugin.BoneId.Max];
+
+            public Skeleton(OVRPlugin.SkeletonType handness)
+            {
+                Handness = handness;
+
+                string name = Handness == OVRPlugin.SkeletonType.HandLeft ? LeftHandSkeletonName : RightHandSkeletonName;
+                Root = new GameObject(name).transform;
+                OVRPlugin.Skeleton ovrSkeleton;
+                if (OVRPlugin.GetSkeleton(Handness, out ovrSkeleton))
+                {
+                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Max; i++)
+                    {
+                        OVRSkeleton.BoneId id = (OVRSkeleton.BoneId) ovrSkeleton.Bones[i].Id;
+                        GameObject boneObj = new GameObject(id.ToString());
+                        Bones[i] = boneObj.transform;
+
+                        Vector3 pos = ovrSkeleton.Bones[i].Pose.Position.FromFlippedXVector3f();
+                        Quaternion rot = ovrSkeleton.Bones[i].Pose.Orientation.FromFlippedXQuatf();
+                        Bones[i].localPosition = pos;
+                        Bones[i].localRotation = rot;
+                    }
+
+                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Max; i++)
+                    {
+                        int parentIndex = ovrSkeleton.Bones[i].ParentBoneIndex;
+                        if (parentIndex == (int) OVRPlugin.BoneId.Invalid)
+                        {
+                            Bones[i].SetParent(Root);
+                        }
+                        else
+                        {
+                            Bones[i].SetParent(Bones[parentIndex]);
+                        }
+                    }
+                }
+            }
+
+            public void Update(OVRPlugin.HandState handState)
+            {
+                Root.localPosition = handState.RootPose.Position.FromFlippedZVector3f();
+                Root.localRotation = handState.RootPose.Orientation.FromFlippedZQuatf();
+                Root.localScale = new Vector3(handState.HandScale, handState.HandScale, handState.HandScale);
+
+                OVRPlugin.Skeleton ovrSkeleton;
+                if (OVRPlugin.GetSkeleton(Handness, out ovrSkeleton))
+                {
+                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Max; i++)
+                    {
+                        Vector3 pos = ovrSkeleton.Bones[i].Pose.Position.FromFlippedXVector3f();
+                        Quaternion rot = handState.BoneRotations[i].FromFlippedXQuatf();
+                        Bones[i].localPosition = pos;
+                        Bones[i].localRotation = rot;
+
+                        if (i == (int) OVRSkeleton.BoneId.Hand_WristRoot)
+                        {
+                            Bones[i].localRotation *= WristFixupRotation;
+                        }
+                    }
+                }
+            }
+
+            public Quaternion GetOpenXRRotation(OVRPlugin.BoneId boneId)
+            {
+                Quaternion fixQuat = Handness == OVRPlugin.SkeletonType.HandLeft ? LeftHandOpenXRFixRotation : RightHandOpenXRFixRotation;
+                return Bones[(int) boneId].rotation * fixQuat;
+            }
+        }
+
         public override int moduleOrder { get { return (int)DefaultModuleOrder.OculusVR; } }
 
         public override int moduleIndex { get { return (int)VRModuleSelectEnum.OculusVR; } }
@@ -130,11 +212,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
 #if VIU_OCULUSVR
         public const int VALID_NODE_COUNT = 7;
+
         private static readonly OVRPlugin.Node[] s_index2node;
         private static readonly uint[] s_node2index;
         private static readonly VRModuleDeviceClass[] s_node2class;
-
+        
         private OVRPlugin.TrackingOrigin m_prevTrackingSpace;
+        private Skeleton LeftHandSkeleton;
+        private Skeleton RightHandSkeleton;
 
         static OculusVRModule()
         {
@@ -185,6 +270,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             UpdateTrackingSpaceType();
 
             EnsureDeviceStateLength(VALID_NODE_COUNT);
+
+            LeftHandSkeleton = new Skeleton(OVRPlugin.SkeletonType.HandLeft);
+            RightHandSkeleton = new Skeleton(OVRPlugin.SkeletonType.HandRight);
 
 #if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
             s_moduleInstance = this;
@@ -270,7 +358,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     continue;
                 }
-
+                
                 // update device connected state
                 if (!prevState.isConnected)
                 {
@@ -351,6 +439,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
 
+                // Hand
+                OVRPlugin.HandState handState = new OVRPlugin.HandState();
+                if (node == OVRPlugin.Node.HandLeft)
+                {
+                    OVRPlugin.GetHandState(OVRPlugin.Step.Render, OVRPlugin.Hand.HandLeft, ref handState);
+                }
+                else if (node == OVRPlugin.Node.HandRight)
+                {
+                    OVRPlugin.GetHandState(OVRPlugin.Step.Render, OVRPlugin.Hand.HandRight, ref handState);
+                }
+
+                if (currState.deviceClass == VRModuleDeviceClass.Controller && (handState.Status & OVRPlugin.HandStatus.HandTracked) != 0)
+                {
+                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+                    currState.deviceModel = node == OVRPlugin.Node.HandLeft ? VRModuleDeviceModel.OculusTrackedHandLeft : VRModuleDeviceModel.OculusTrackedHandRight;
+                }
+
                 // update device pose
                 currState.pose = ToPose(OVRPlugin.GetNodePose(node, OVRPlugin.Step.Render));
                 currState.velocity = OVRPlugin.GetNodeVelocity(node, OVRPlugin.Step.Render).FromFlippedZVector3f();
@@ -412,6 +517,93 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, ctrlState.RHandTrigger);
                             break;
                         }
+                    case VRModuleDeviceModel.OculusTrackedHandLeft:
+                    case VRModuleDeviceModel.OculusTrackedHandRight:
+                        if ((handState.Status & OVRPlugin.HandStatus.InputStateValid) != 0)
+                        {
+                            currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, (handState.Pinches & OVRPlugin.HandFingerPinch.Index) == OVRPlugin.HandFingerPinch.Index);
+                            currState.SetButtonPress(VRModuleRawButton.GestureMiddlePinch, (handState.Pinches & OVRPlugin.HandFingerPinch.Middle) == OVRPlugin.HandFingerPinch.Middle);
+                            currState.SetButtonPress(VRModuleRawButton.GestureRingPinch, (handState.Pinches & OVRPlugin.HandFingerPinch.Ring) == OVRPlugin.HandFingerPinch.Ring);
+                            currState.SetButtonPress(VRModuleRawButton.GesturePinkyPinch, (handState.Pinches & OVRPlugin.HandFingerPinch.Pinky) == OVRPlugin.HandFingerPinch.Pinky);
+
+                            currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, (handState.Pinches & OVRPlugin.HandFingerPinch.Index) == OVRPlugin.HandFingerPinch.Index);
+                            currState.SetButtonTouch(VRModuleRawButton.GestureMiddlePinch, (handState.Pinches & OVRPlugin.HandFingerPinch.Middle) == OVRPlugin.HandFingerPinch.Middle);
+                            currState.SetButtonTouch(VRModuleRawButton.GestureRingPinch, (handState.Pinches & OVRPlugin.HandFingerPinch.Ring) == OVRPlugin.HandFingerPinch.Ring);
+                            currState.SetButtonTouch(VRModuleRawButton.GesturePinkyPinch, (handState.Pinches & OVRPlugin.HandFingerPinch.Pinky) == OVRPlugin.HandFingerPinch.Pinky);
+
+                            currState.SetAxisValue(VRModuleRawAxis.IndexPinch, handState.PinchStrength[(int) HandFinger.Index]);
+                            currState.SetAxisValue(VRModuleRawAxis.MiddlePinch, handState.PinchStrength[(int) HandFinger.Middle]);
+                            currState.SetAxisValue(VRModuleRawAxis.RingPinch, handState.PinchStrength[(int) HandFinger.Ring]);
+                            currState.SetAxisValue(VRModuleRawAxis.PinkyPinch, handState.PinchStrength[(int) HandFinger.Pinky]);
+                        }
+
+                        if ((handState.Status & OVRPlugin.HandStatus.HandTracked) != 0)
+                        {
+                            Skeleton skeleton = node == OVRPlugin.Node.HandLeft ? LeftHandSkeleton : RightHandSkeleton;
+                            skeleton.Update(handState);
+
+                            Transform wrist = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_WristRoot];
+
+                            Transform thumbTrapezium = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Thumb0];
+                            Transform thumbMetacarpal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Thumb1];
+                            Transform thumbProximal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Thumb2];
+                            Transform thumbDistal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Thumb3];
+                            Transform thumbTip = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_ThumbTip];
+
+                            Transform indexProximal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Index1];
+                            Transform indexIntermediate = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Index2];
+                            Transform indexDistal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Index3];
+                            Transform indexTip = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_IndexTip];
+
+                            Transform middleProximal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Middle1];
+                            Transform middleIntermediate = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Middle2];
+                            Transform middleDistal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Middle3];
+                            Transform middleTip = skeleton.Bones[(int)OVRPlugin.BoneId.Hand_MiddleTip];
+                            
+                            Transform ringProximal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Ring1];
+                            Transform ringIntermediate = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Ring2];
+                            Transform ringDistal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Ring3];
+                            Transform ringTip = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_RingTip];
+
+                            Transform pinkyMetacarpal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Pinky0];
+                            Transform pinkyProximal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Pinky1];
+                            Transform pinkyIntermediate = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Pinky2];
+                            Transform pinkyDistal = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_Pinky3];
+                            Transform pinkyTip = skeleton.Bones[(int) OVRPlugin.BoneId.Hand_PinkyTip];
+
+                            HandJointPose[] joints = currState.handJoints;
+
+                            HandJointPose.AssignToArray(joints, HandJointName.Wrist, wrist.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_WristRoot));
+
+                            HandJointPose.AssignToArray(joints, HandJointName.ThumbTrapezium, thumbTrapezium.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Thumb0));
+                            HandJointPose.AssignToArray(joints, HandJointName.ThumbMetacarpal, thumbMetacarpal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Thumb1));
+                            HandJointPose.AssignToArray(joints, HandJointName.ThumbProximal, thumbProximal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Thumb2));
+                            HandJointPose.AssignToArray(joints, HandJointName.ThumbDistal, thumbDistal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Thumb3));
+                            HandJointPose.AssignToArray(joints, HandJointName.ThumbTip, thumbTip.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_ThumbTip));
+
+                            HandJointPose.AssignToArray(joints, HandJointName.IndexProximal, indexProximal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Index1));
+                            HandJointPose.AssignToArray(joints, HandJointName.IndexIntermediate, indexIntermediate.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Index2));
+                            HandJointPose.AssignToArray(joints, HandJointName.IndexDistal, indexDistal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Index3));
+                            HandJointPose.AssignToArray(joints, HandJointName.IndexTip, indexTip.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_IndexTip));
+
+                            HandJointPose.AssignToArray(joints, HandJointName.MiddleProximal, middleProximal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Middle1));
+                            HandJointPose.AssignToArray(joints, HandJointName.MiddleIntermediate, middleIntermediate.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Middle2));
+                            HandJointPose.AssignToArray(joints, HandJointName.MiddleDistal, middleDistal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Middle3));
+                            HandJointPose.AssignToArray(joints, HandJointName.MiddleTip, middleTip.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_MiddleTip));
+
+                            HandJointPose.AssignToArray(joints, HandJointName.RingProximal, ringProximal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Ring1));
+                            HandJointPose.AssignToArray(joints, HandJointName.RingIntermediate, ringIntermediate.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Ring2));
+                            HandJointPose.AssignToArray(joints, HandJointName.RingDistal, ringDistal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Ring3));
+                            HandJointPose.AssignToArray(joints, HandJointName.RingTip, ringTip.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_RingTip));
+
+                            HandJointPose.AssignToArray(joints, HandJointName.PinkyMetacarpal, pinkyMetacarpal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Pinky0));
+                            HandJointPose.AssignToArray(joints, HandJointName.PinkyProximal, pinkyProximal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Pinky1));
+                            HandJointPose.AssignToArray(joints, HandJointName.PinkyIntermediate, pinkyIntermediate.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Pinky2));
+                            HandJointPose.AssignToArray(joints, HandJointName.PinkyDistal, pinkyDistal.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_Pinky3));
+                            HandJointPose.AssignToArray(joints, HandJointName.PinkyTip, pinkyTip.position, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_PinkyTip));
+                        }
+
+                        break;
 #if !VIU_OCULUSVR_19_0_OR_NEWER
                     case VRModuleDeviceModel.OculusGoController:
                     case VRModuleDeviceModel.OculusGearVrController:
@@ -465,5 +657,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessDeviceInputChanged();
         }
 #endif
-                }
-            }
+    }
+}
