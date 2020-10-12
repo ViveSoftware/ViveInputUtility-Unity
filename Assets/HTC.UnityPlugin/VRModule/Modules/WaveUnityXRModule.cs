@@ -250,8 +250,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             base.UpdateTrackingSpaceType();
             switch (VRModule.trackingSpaceType)
             {
+#if VIU_WAVEXR_ESSENCE_HAND
                 case VRModuleTrackingSpaceType.Stationary: originFlag = WVR_PoseOriginModel.WVR_PoseOriginModel_OriginOnHead; break;
                 case VRModuleTrackingSpaceType.RoomScale: originFlag = WVR_PoseOriginModel.WVR_PoseOriginModel_OriginOnGround; break;
+#endif
                 default: return;
             }
         }
@@ -375,6 +377,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateTrackedHandJointState(IVRModuleDeviceStateRW state, bool isLeft)
         {
+#if VIU_WAVEXR_ESSENCE_HAND
             var skeleton = isLeft ? handJointData.left : handJointData.right;
 
             RigidTransform rigidTransform = RigidTransform.identity;
@@ -406,8 +409,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SetJoint(state, HandJointName.PinkyIntermediate, skeleton.pinky.joint2, skeleton.pinky.joint3, rigidTransform.rot);
             SetJoint(state, HandJointName.PinkyDistal, skeleton.pinky.joint3, skeleton.pinky.tip, rigidTransform.rot);
             SetJoint(state, HandJointName.PinkyTip, skeleton.pinky.tip, null, rigidTransform.rot);
+#endif
         }
 
+#if VIU_WAVEXR_ESSENCE_HAND
         private static void SetWrist(IVRModuleDeviceStateRW state, HandJointName joint, RigidTransform pose)
         {
             var pos = pose.pos;
@@ -457,6 +462,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, currPos, rot);
             }
         }
+#endif
 
         protected override void OnCustomDeviceDisconnected(uint index)
         {
@@ -554,6 +560,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateTrackedHandGestureState(IVRModuleDeviceStateRW state, bool isLeft)
         {
+#if VIU_WAVEXR_ESSENCE_HAND
             WVR_HandGestureData_t handGestureData = new WVR_HandGestureData_t();
             if (Interop.WVR_GetHandGestureData(ref handGestureData) == WVR_Result.WVR_Success)
             {
@@ -579,6 +586,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         break;
                 }
             }
+#endif
         }
 #endif
     }
