@@ -386,26 +386,26 @@ namespace HTC.UnityPlugin.VRModuleManagement
             wrist_pos.v2 = rigidTransform.pos.z;
 
             SetWrist(state, HandJointName.Wrist, rigidTransform);
-            SetJoint(state, HandJointName.ThumbMetacarpal, skeleton.thumb.joint1, wrist_pos, rigidTransform.rot);
-            SetJoint(state, HandJointName.ThumbProximal, skeleton.thumb.joint2, skeleton.thumb.joint1, rigidTransform.rot);
-            SetJoint(state, HandJointName.ThumbDistal, skeleton.thumb.joint3, skeleton.thumb.joint2, rigidTransform.rot);
-            SetJoint(state, HandJointName.ThumbTip, skeleton.thumb.tip, skeleton.thumb.joint3, rigidTransform.rot);
-            SetJoint(state, HandJointName.IndexMetacarpal, skeleton.index.joint1, wrist_pos, rigidTransform.rot);
-            SetJoint(state, HandJointName.IndexProximal, skeleton.index.joint2, skeleton.index.joint1, rigidTransform.rot);
-            SetJoint(state, HandJointName.IndexDistal, skeleton.index.joint3, skeleton.index.joint2, rigidTransform.rot);
-            SetJoint(state, HandJointName.IndexTip, skeleton.index.tip, skeleton.index.joint3, rigidTransform.rot);
-            SetJoint(state, HandJointName.MiddleMetacarpal, skeleton.middle.joint1, wrist_pos, rigidTransform.rot);
-            SetJoint(state, HandJointName.MiddleProximal, skeleton.middle.joint2, skeleton.middle.joint1, rigidTransform.rot);
-            SetJoint(state, HandJointName.MiddleDistal, skeleton.middle.joint3, skeleton.middle.joint2, rigidTransform.rot);
-            SetJoint(state, HandJointName.MiddleTip, skeleton.middle.tip, skeleton.middle.joint3, rigidTransform.rot);
-            SetJoint(state, HandJointName.RingMetacarpal, skeleton.ring.joint1, wrist_pos, rigidTransform.rot);
-            SetJoint(state, HandJointName.RingProximal, skeleton.ring.joint2, skeleton.ring.joint1, rigidTransform.rot);
-            SetJoint(state, HandJointName.RingDistal, skeleton.ring.joint3, skeleton.ring.joint2, rigidTransform.rot);
-            SetJoint(state, HandJointName.RingTip, skeleton.ring.tip, skeleton.ring.joint3, rigidTransform.rot);
-            SetJoint(state, HandJointName.PinkyMetacarpal, skeleton.pinky.joint1, wrist_pos, rigidTransform.rot);
-            SetJoint(state, HandJointName.PinkyProximal, skeleton.pinky.joint2, skeleton.pinky.joint1, rigidTransform.rot);
-            SetJoint(state, HandJointName.PinkyDistal, skeleton.pinky.joint3, skeleton.pinky.joint2, rigidTransform.rot);
-            SetJoint(state, HandJointName.PinkyTip, skeleton.pinky.tip, skeleton.pinky.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.ThumbMetacarpal, skeleton.thumb.joint1, skeleton.thumb.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.ThumbProximal, skeleton.thumb.joint2, skeleton.thumb.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.ThumbDistal, skeleton.thumb.joint3, skeleton.thumb.tip, rigidTransform.rot);
+            SetJoint(state, HandJointName.ThumbTip, skeleton.thumb.tip, null, rigidTransform.rot);
+            SetJoint(state, HandJointName.IndexProximal, skeleton.index.joint1, skeleton.index.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.IndexIntermediate, skeleton.index.joint2, skeleton.index.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.IndexDistal, skeleton.index.joint3, skeleton.index.tip, rigidTransform.rot);
+            SetJoint(state, HandJointName.IndexTip, skeleton.index.tip, null, rigidTransform.rot);
+            SetJoint(state, HandJointName.MiddleProximal, skeleton.middle.joint1, skeleton.middle.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.MiddleIntermediate, skeleton.middle.joint2, skeleton.middle.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.MiddleDistal, skeleton.middle.joint3, skeleton.middle.tip, rigidTransform.rot);
+            SetJoint(state, HandJointName.MiddleTip, skeleton.middle.tip, null, rigidTransform.rot);
+            SetJoint(state, HandJointName.RingProximal, skeleton.ring.joint1, skeleton.ring.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.RingIntermediate, skeleton.ring.joint2, skeleton.ring.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.RingDistal, skeleton.ring.joint3, skeleton.ring.tip, rigidTransform.rot);
+            SetJoint(state, HandJointName.RingTip, skeleton.ring.tip, null, rigidTransform.rot);
+            SetJoint(state, HandJointName.PinkyProximal, skeleton.pinky.joint1, skeleton.pinky.joint2, rigidTransform.rot);
+            SetJoint(state, HandJointName.PinkyIntermediate, skeleton.pinky.joint2, skeleton.pinky.joint3, rigidTransform.rot);
+            SetJoint(state, HandJointName.PinkyDistal, skeleton.pinky.joint3, skeleton.pinky.tip, rigidTransform.rot);
+            SetJoint(state, HandJointName.PinkyTip, skeleton.pinky.tip, null, rigidTransform.rot);
         }
 
         private static void SetWrist(IVRModuleDeviceStateRW state, HandJointName joint, RigidTransform pose)
@@ -417,14 +417,45 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.rotation = rot;
         }
 
-        private static void SetJoint(IVRModuleDeviceStateRW state, HandJointName joint, WVR_Vector3f_t currPose, WVR_Vector3f_t prevPose, Quaternion wrist_rot)
+        private static void SetJoint(IVRModuleDeviceStateRW state, HandJointName joint, WVR_Vector3f_t currPose, WVR_Vector3f_t? nextPose, Quaternion wrist_rot)
         {
-            var currPos = new Vector3(currPose.v0, currPose.v1, -currPose.v2);
-            var prevPos = new Vector3(prevPose.v0, prevPose.v1, -prevPose.v2);
-            var normalized_pos = (currPos - prevPos).normalized * -1;
-            var up = Vector3.Cross(normalized_pos, wrist_rot * Quaternion.Euler(90, 0, 180) * Vector3.right);
-            var rot = Quaternion.LookRotation(normalized_pos, up);
-            state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, currPos, rot);
+            if (nextPose != null)
+            {
+                var currPos = new Vector3(currPose.v0, currPose.v1, -currPose.v2);
+                var nextPos = new Vector3(nextPose.Value.v0, nextPose.Value.v1, -nextPose.Value.v2);
+                var normalized_pos = (nextPos - currPos).normalized * -1;
+                var up = Vector3.Cross(normalized_pos, wrist_rot * Quaternion.Euler(90, 0, 180) * Vector3.right);
+                if (joint.Equals(HandJointName.ThumbMetacarpal) || joint.Equals(HandJointName.ThumbProximal)
+                    || joint.Equals(HandJointName.ThumbDistal))
+                {
+                    switch (state.deviceModel)
+                    {
+                        case VRModuleDeviceModel.WaveTrackedHandLeft:
+                            {
+                                var rot = Quaternion.LookRotation(normalized_pos, up) * Quaternion.Euler(0, 0, 50);
+                                state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, currPos, rot);
+                            }
+                            break;
+                        case VRModuleDeviceModel.WaveTrackedHandRight:
+                            {
+                                var rot = Quaternion.LookRotation(normalized_pos, up) * Quaternion.Euler(0, 0, -50);
+                                state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, currPos, rot);
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    var rot = Quaternion.LookRotation(normalized_pos, up);
+                    state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, currPos, rot);
+                }
+            }
+            else
+            {
+                var currPos = new Vector3(currPose.v0, currPose.v1, -currPose.v2);
+                var rot = Quaternion.identity;
+                state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, currPos, rot);
+            }
         }
 
         protected override void OnCustomDeviceDisconnected(uint index)

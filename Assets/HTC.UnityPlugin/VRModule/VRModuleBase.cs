@@ -355,18 +355,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 }
                             }
                             break;
-                        case VRModuleDeviceClass.TrackedHand:
-                            {
-                                if (s_leftRgx.IsMatch(deviceState.modelNumber))
-                                {
-                                    deviceState.deviceModel = VRModuleDeviceModel.WaveTrackedHandLeft;
-                                }
-                                else if (s_rightRgx.IsMatch(deviceState.modelNumber))
-                                {
-                                    deviceState.deviceModel = VRModuleDeviceModel.WaveTrackedHandRight;
-                                }
-                                return;
-                            }
                     }
                 }
 
