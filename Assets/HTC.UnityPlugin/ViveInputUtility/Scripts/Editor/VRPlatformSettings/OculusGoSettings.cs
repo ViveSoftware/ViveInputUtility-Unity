@@ -618,6 +618,7 @@ namespace HTC.UnityPlugin.Vive
                     {
                         EditorGUI.indentLevel += 2;
 
+#if VIU_OCULUSVR
                         // Hand tracking support
                         EditorGUILayout.BeginHorizontal();
                         OVRProjectConfig.HandTrackingSupport originalHandTrackingSupport = oculusProjectConfig.handTrackingSupport;
@@ -628,6 +629,7 @@ namespace HTC.UnityPlugin.Vive
                             EditorUtility.SetDirty(oculusProjectConfig);
                         }
                         EditorGUILayout.EndHorizontal();
+#endif
 
                         // Custom Android manifest
                         EditorGUILayout.BeginHorizontal();

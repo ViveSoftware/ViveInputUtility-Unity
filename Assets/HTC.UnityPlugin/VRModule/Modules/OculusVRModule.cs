@@ -1,10 +1,10 @@
 //========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using System;
+using UnityEngine;
 using HTC.UnityPlugin.Utility;
 using Object = UnityEngine.Object;
 #if VIU_OCULUSVR
-using UnityEngine;
 using HTC.UnityPlugin.Vive;
 using HTC.UnityPlugin.Vive.OculusVRExtension;
 #if UNITY_2017_2_OR_NEWER
@@ -52,6 +52,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class OculusVRModule : VRModule.ModuleBase
     {
+#if VIU_OCULUSVR
         private class Skeleton
         {
             private const string LeftHandSkeletonName = "LeftHandSkeleton";
@@ -131,6 +132,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return Bones[(int) boneId].rotation * fixQuat;
             }
         }
+#endif
 
         public override int moduleOrder { get { return (int)DefaultModuleOrder.OculusVR; } }
 
