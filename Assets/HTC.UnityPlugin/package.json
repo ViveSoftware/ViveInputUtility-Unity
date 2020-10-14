@@ -37,12 +37,12 @@
       "path": "ViveInputUtility/Examples/1.UGUI"
     },
     {
-      "displayName": "2. 2DDragDrop",
+      "displayName": "2. 2D DragDrop",
       "description": "This example introduces drag and drop action with scripts. Developers can use Vive Controllers to drag and drop game objects in this scene.",
       "path": "ViveInputUtility/Examples/2.2DDragDrop"
     },
     {
-      "displayName": "3. 3DDrag",
+      "displayName": "3. 3D Drag",
       "description": "",
       "path": "ViveInputUtility/Examples/3.3DDrag"
     },
@@ -52,19 +52,24 @@
       "path": "ViveInputUtility/Examples/4.Teleport"
     },
     {
-      "displayName": "5. ColliderEvent",
+      "displayName": "5. Collider Event",
       "description": "This example introduces various types of collider events and using Rigidbody script to allow developers to apply forces to the object and control it in a physically realistic way.",
       "path": "ViveInputUtility/Examples/5.ColliderEvent"
     },
     {
-      "displayName": "6. ControllerManagerSample",
+      "displayName": "6. Controller Manager Sample",
       "description": "This example introduces various ways of controller interactions.",
       "path": "ViveInputUtility/Examples/6.ControllerManagerSample"
     },
     {
-      "displayName": "7. RoleBindingExample",
+      "displayName": "7. Role Binding Example",
       "description": "",
       "path": "ViveInputUtility/Examples/7.RoleBindingExample"
+    },
+    {
+      "displayName": "8. Near-Field Hand Interaction",
+      "description": "Demonstration of near-field hand interaction.",
+      "path": "ViveInputUtility/Examples/8.NearFieldHandInteraction"
     }
   ],
   "unity": "2019.3",
