@@ -5,6 +5,7 @@
 
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 #if UNITY_2017_2_OR_NEWER
@@ -24,7 +25,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
 #if UNITY_2017_1_OR_NEWER && !UNITY_2020_1_OR_NEWER
-        private static readonly VRModuleDeviceClass[] s_nodeType2DeviceClass;
+        private static readonly Regex m_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
+        private static readonly Regex m_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
+        private static readonly EnumArray<XRNode, VRModuleDeviceClass> s_nodeType2DeviceClass;
 
         private uint m_leftIndex = INVALID_DEVICE_INDEX;
         private uint m_rightIndex = INVALID_DEVICE_INDEX;
@@ -39,14 +42,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         static UnityEngineVRModule()
         {
-            s_nodeType2DeviceClass = new VRModuleDeviceClass[EnumUtils.GetMaxValue(typeof(XRNode)) + 1];
-            for (int i = 0; i < s_nodeType2DeviceClass.Length; ++i) { s_nodeType2DeviceClass[i] = VRModuleDeviceClass.Invalid; }
-            s_nodeType2DeviceClass[(int)XRNode.Head] = VRModuleDeviceClass.HMD;
-            s_nodeType2DeviceClass[(int)XRNode.RightHand] = VRModuleDeviceClass.Controller;
-            s_nodeType2DeviceClass[(int)XRNode.LeftHand] = VRModuleDeviceClass.Controller;
-            s_nodeType2DeviceClass[(int)XRNode.GameController] = VRModuleDeviceClass.Controller;
-            s_nodeType2DeviceClass[(int)XRNode.HardwareTracker] = VRModuleDeviceClass.GenericTracker;
-            s_nodeType2DeviceClass[(int)XRNode.TrackingReference] = VRModuleDeviceClass.TrackingReference;
+            s_nodeType2DeviceClass = new EnumArray<XRNode, VRModuleDeviceClass>(VRModuleDeviceClass.Invalid);
+            s_nodeType2DeviceClass[XRNode.Head] = VRModuleDeviceClass.HMD;
+            s_nodeType2DeviceClass[XRNode.RightHand] = VRModuleDeviceClass.Controller;
+            s_nodeType2DeviceClass[XRNode.LeftHand] = VRModuleDeviceClass.Controller;
+            s_nodeType2DeviceClass[XRNode.GameController] = VRModuleDeviceClass.Controller;
+            s_nodeType2DeviceClass[XRNode.HardwareTracker] = VRModuleDeviceClass.GenericTracker;
+            s_nodeType2DeviceClass[XRNode.TrackingReference] = VRModuleDeviceClass.TrackingReference;
         }
 
         public override void OnActivated()
@@ -244,7 +246,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (!prevState.isConnected)
                 {
                     currState.isConnected = true;
-                    currState.deviceClass = s_nodeType2DeviceClass[(int)m_nodeStateList[i].nodeType];
+                    currState.deviceClass = s_nodeType2DeviceClass[m_nodeStateList[i].nodeType];
                     // FIXME: getting wrong name in Unity 2017.1f1
                     //currDeviceState.serialNumber = InputTracking.GetNodeName(m_nodeStateList[i].uniqueID) ?? string.Empty;
                     //Debug.Log("connected " + InputTracking.GetNodeName(m_nodeStateList[i].uniqueID));
@@ -260,6 +262,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         currState.serialNumber = XRSettings.loadedDeviceName + " " + m_nodeStateList[i].uniqueID.ToString("X8");
                         currState.modelNumber = XRSettings.loadedDeviceName + " " + m_nodeStateList[i].nodeType;
                         currState.renderModelName = XRSettings.loadedDeviceName + " " + m_nodeStateList[i].nodeType;
+                    }
+
+                    // Try fetch controller name from UnityEngine.Input.GetJoystickNames
+                    if (currState.deviceClass == VRModuleDeviceClass.Controller)
+                    {
+                        var joystickNames = Input.GetJoystickNames();
+                        if (joystickNames != null)
+                        {
+                            var foundName = string.Empty;
+                            switch (m_nodeStateList[i].nodeType)
+                            {
+                                case XRNode.RightHand:
+                                    foreach (var jName in joystickNames) { foundName = jName; if (m_rightRgx.IsMatch(jName)) { break; } }
+                                    break;
+                                case XRNode.LeftHand:
+                                    foreach (var jName in joystickNames) { foundName = jName; if (m_leftRgx.IsMatch(jName)) { break; } }
+                                    break;
+                            }
+                            if (!string.IsNullOrEmpty(foundName))
+                            {
+                                currState.modelNumber = foundName;
+                                currState.renderModelName = foundName;
+                            }
+                        }
                     }
 
                     SetupKnownDeviceModel(currState);
