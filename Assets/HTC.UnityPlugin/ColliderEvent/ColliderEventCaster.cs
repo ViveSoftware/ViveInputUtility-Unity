@@ -31,6 +31,7 @@ namespace HTC.UnityPlugin.ColliderEvent
 
         private Rigidbody m_rigid;
         private ColliderHoverEventData hoverEventData;
+        private Predicate<GameObject> cachedCannotHandlDragAnymore = null;
 
         protected readonly List<ColliderButtonEventData> buttonEventDataList = new List<ColliderButtonEventData>();
         protected readonly List<ColliderAxisEventData> axisEventDataList = new List<ColliderAxisEventData>();
@@ -80,6 +81,19 @@ namespace HTC.UnityPlugin.ColliderEvent
             get { return hoverEventData ?? (hoverEventData = new ColliderHoverEventData(this)); }
             protected set { hoverEventData = value; }
         }
+        
+        private Predicate<GameObject> CannotHandlDragAnyMorePredicate
+		{
+			get
+			{
+				if (cachedCannotHandlDragAnymore == null)
+				{
+					cachedCannotHandlDragAnymore = CannotHandlDragAnymore;
+				}
+
+				return cachedCannotHandlDragAnymore;
+			}
+		}
 
         private bool CannotHandlDragAnymore(GameObject handler)
         {
@@ -101,7 +115,7 @@ namespace HTC.UnityPlugin.ColliderEvent
                 var eventData = buttonEventDataList[i];
                 var handlers = GetButtonHandlers(i);
 
-                eventData.draggingHandlers.RemoveAll(CannotHandlDragAnymore);
+                eventData.draggingHandlers.RemoveAll(CannotHandlDragAnyMorePredicate);
 
                 if (!eventData.isPressed) { continue; }
 
@@ -169,7 +183,7 @@ namespace HTC.UnityPlugin.ColliderEvent
                 var eventData = buttonEventDataList[i];
                 var handlers = GetButtonHandlers(i);
 
-                eventData.draggingHandlers.RemoveAll(CannotHandlDragAnymore);
+                eventData.draggingHandlers.RemoveAll(CannotHandlDragAnyMorePredicate);
 
                 // process button press
                 if (!eventData.isPressed)
