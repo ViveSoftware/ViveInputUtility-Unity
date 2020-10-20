@@ -188,10 +188,31 @@ class VIUHandRenderer : MonoBehaviour
                 int countNode = 0;
                 for (int a = 0; a < fingerConnection.Length; a += 2)
                 {
-                    Nodes[nodeIndex + countNode].rotation = _convertWorlPoses[fingerConnection[a]].rot;
-                    //if(positionFix)
-                    //    Nodes[nodeIndex + countNode].position = _convertWorlPoses[fingerConnection[a]].position;
-                    //if (scaleFix) { }
+                    Transform curJoint = Nodes[nodeIndex + countNode];
+                    Transform nextJoint = Nodes[nodeIndex + countNode + 1];
+                    RigidPose pose = _convertWorlPoses[fingerConnection[a]];
+                    if (a == 0)
+                    {
+                        curJoint.position = pose.pos;
+                    }
+
+                    //Calculate the joint rotation offset between joint axis dir and actual bone dir.
+                    //1. Set rotation and get new dir with next joint.
+                    curJoint.rotation = pose.rot;
+                    Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
+
+                    //2. Calculate offset
+                    //*.Global rotation way
+                    //dir = Quaternion.Inverse(cameraRigRot) * dir;
+                    //Quaternion rot = Quaternion.FromToRotation(dir, pose.rot * Vector3.forward);
+                    //curJoint.rotation = rot * pose.rot;
+
+                    //*.Local rotation can record at initialize step, no need compute at update().
+                    //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);
+                    Vector3 localSkinNext = curJoint.InverseTransformPoint(nextJoint.position);
+                    Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
+                    curJoint.localRotation *= Quaternion.Inverse(Quaternion.LookRotation(localSkinDir));
+
                     countNode++;
                 }
                 nodeIndex += 4;//skip finger tip
@@ -204,22 +225,26 @@ class VIUHandRenderer : MonoBehaviour
             if (oldRenderAxis != renderAxis)
             {
                 oldRenderAxis = renderAxis;
-                if (points != null)
-                    foreach (GameObject o in points)
-                        Destroy(o);
-                if (links != null)
-                    foreach (GameObject o in links)
-                        Destroy(o);
-                if (axisList != null)
-                    foreach (GameObject o in axisList)
-                        Destroy(o);
-                points = links = axisList = null;
+                _destroyRenderBone();
             }
             _initRenderBone(wristNode);
             _updateRenderBone();
         }
     }
 
+    void _destroyRenderBone()
+    {
+        if (points != null)
+            foreach (GameObject o in points)
+                Destroy(o);
+        if (links != null)
+            foreach (GameObject o in links)
+                Destroy(o);
+        if (axisList != null)
+            foreach (GameObject o in axisList)
+                Destroy(o);
+        points = links = axisList = null;
+    }
 
     void _initRenderBone(Transform wristNode)
     {
@@ -242,9 +267,8 @@ class VIUHandRenderer : MonoBehaviour
             go.transform.parent = wristNode;
             go.transform.localScale = Vector3.one * 0.006f;
             go.SetActive(false);
+            Destroy(go.GetComponent<Collider>());
             points.Add(go);
-
-            //Debug.LogError("[VIUHandRenderer] create joint : " + considerJoint[i] + ", obj : "+ points[i].name);
 
             // handle layer
             go.layer = wristNode.gameObject.layer;
@@ -262,17 +286,12 @@ class VIUHandRenderer : MonoBehaviour
 
             if (renderAxis)
             {
-                //GameObject axisPrefab = Resources.Load("HandJointAxis/AxisPrefab") as GameObject;
-                //if (axisPrefab != null)
-                {
-                    GameObject axisObj = //Instantiate(axisPrefab);
-                        _createAxisPrefab();
-                    axisObj.name = "axis" + i;
-                    axisObj.transform.parent = wristNode;
-                    axisObj.transform.localScale = Vector3.one * 0.006f;
-                    axisObj.SetActive(false);
-                    axisList.Add(axisObj);
-                }
+                GameObject axisObj = _createAxisPrefab();
+                axisObj.name = "axis" + i;
+                axisObj.transform.parent = wristNode;
+                axisObj.transform.localScale = Vector3.one * 0.006f;
+                axisObj.SetActive(false);
+                axisList.Add(axisObj);
             }
         }
         Debug.Log("[VIUHandRenderer] consider joint points : " + points.Count);
@@ -285,6 +304,7 @@ class VIUHandRenderer : MonoBehaviour
             go.transform.parent = wristNode;
             go.transform.localScale = Vector3.one * 0.004f;
             go.SetActive(false);
+            Destroy(go.GetComponent<Collider>());
             links.Add(go);
 
             // handle layer
