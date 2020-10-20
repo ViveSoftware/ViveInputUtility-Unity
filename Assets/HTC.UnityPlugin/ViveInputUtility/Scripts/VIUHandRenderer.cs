@@ -136,23 +136,14 @@ class VIUHandRenderer : MonoBehaviour
             RigidPose pos;
             if (VivePose.TryGetHandJointPose(role, jointName, out pos))
             {
-                const bool considerCameraRigTeleport = true;
                 if (count == 0)
                 {
-                    if (considerCameraRigTeleport)
-                    {
-                        Quaternion worldRigSpaceRot = transform.rotation;
-                        Quaternion localRigSpaceRot = wristPose.rot;
-                        cameraRigRot = worldRigSpaceRot * Quaternion.Inverse(localRigSpaceRot);
-                        //Wrist must use Tracker hand's position, that also consider the CameraRig's transform
-                        wristNode.position = transform.position;
-                        wristNode.rotation = worldRigSpaceRot;
-                    }
-                    else
-                    {
-                        wristNode.position = pos.pos;
-                        wristNode.rotation = pos.rot;
-                    }
+                    Quaternion worldRigSpaceRot = transform.rotation;
+                    Quaternion localRigSpaceRot = wristPose.rot;
+                    cameraRigRot = worldRigSpaceRot * Quaternion.Inverse(localRigSpaceRot);
+                    //Wrist must use Tracker hand's position, that also consider the CameraRig's transform
+                    wristNode.position = transform.position;
+                    wristNode.rotation = worldRigSpaceRot;
 
                     RigidPose pose = new RigidPose(wristNode.position, wristNode.rotation);
                     _convertWorlPoses[jointName] = pose;
@@ -199,10 +190,10 @@ class VIUHandRenderer : MonoBehaviour
                     //Calculate the joint rotation offset between joint axis dir and actual bone dir.
                     //1. Set rotation and get new dir with next joint.
                     curJoint.rotation = pose.rot;
-                    Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
 
                     //2. Calculate offset
                     //*.Global rotation way
+                    //Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
                     //dir = Quaternion.Inverse(cameraRigRot) * dir;
                     //Quaternion rot = Quaternion.FromToRotation(dir, pose.rot * Vector3.forward);
                     //curJoint.rotation = rot * pose.rot;
