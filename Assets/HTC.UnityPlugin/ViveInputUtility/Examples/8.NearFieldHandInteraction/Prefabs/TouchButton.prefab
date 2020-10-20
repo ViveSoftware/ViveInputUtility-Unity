@@ -141,7 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db37736e19fad4c46910ece46a00bab0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hovered:
+  hoverEntered:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 8837947302930016351}
@@ -156,6 +156,12 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  hoverStaying:
+    m_PersistentCalls:
+      m_Calls: []
+  hoverExited:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &8837947302930016351
 MonoBehaviour:
   m_ObjectHideFlags: 0
