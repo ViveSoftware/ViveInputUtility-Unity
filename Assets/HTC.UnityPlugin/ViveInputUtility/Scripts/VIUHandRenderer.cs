@@ -24,10 +24,10 @@ class VIUHandRenderer : MonoBehaviour
 
     [Tooltip("Root object of skinned mesh")]
     public SkinnedMeshRenderer skinRenderer;
-    [SerializeField]
+    //[SerializeField]
     bool rotationFix = true;
-    [SerializeField]
-    bool positionFix = false;
+    //[SerializeField]
+    bool positionFix = true;
     [SerializeField]
     bool scaleFix = false;
     [Tooltip("Nodes of skinned mesh, must be size of 21 in same order as skeleton definition")]
@@ -184,14 +184,16 @@ class VIUHandRenderer : MonoBehaviour
                     Transform curJoint = Nodes[nodeIndex + countNode];
                     Transform nextJoint = Nodes[nodeIndex + countNode + 1];
                     RigidPose pose = _convertWorlPoses[fingerConnection[a]];
-                    if (a == 0)
+
+                    if (positionFix)
                     {
-                        curJoint.position = pose.pos;
-                    }
-                    else
-                    {
-                        if (positionFix)
+                        RigidPose poseNext = _convertWorlPoses[fingerConnection[a + 1]];
+                        if (a == 0)
                             curJoint.position = pose.pos;
+
+                        float nextBoneLength = (poseNext.pos - pose.pos).magnitude;
+                        Vector3 dir = (nextJoint.position - curJoint.position).normalized;
+                        nextJoint.position = curJoint.position + dir * nextBoneLength;
                     }
 
                     //1. Set rotation and get new dir with next joint.
