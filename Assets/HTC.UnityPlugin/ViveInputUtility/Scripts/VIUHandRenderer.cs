@@ -25,6 +25,8 @@ class VIUHandRenderer : MonoBehaviour
     [Tooltip("Root object of skinned mesh")]
     public SkinnedMeshRenderer skinRenderer;
     [SerializeField]
+    bool rotationFix = true;
+    [SerializeField]
     bool positionFix = false;
     [SerializeField]
     bool scaleFix = false;
@@ -41,29 +43,29 @@ class VIUHandRenderer : MonoBehaviour
             HandJointName.PinkyProximal, HandJointName.PinkyIntermediate, HandJointName.PinkyDistal, HandJointName.PinkyTip, // pinky
     };
 
-    HandJointName[] ConnectionsVIU
+    HandJointName[] BoneRenderConnections
     {
         get
         {
-            if (_connectionsVIU == null)
+            if (_boneRenderConnections == null)
             {
                 List<HandJointName> connection = new List<HandJointName>();
-                connection.AddRange(new HandJointName[]
-                {
-                    HandJointName.Wrist, HandJointName.ThumbMetacarpal, HandJointName.Wrist, HandJointName.IndexProximal, HandJointName.Wrist, HandJointName.MiddleProximal, HandJointName.Wrist, HandJointName.RingProximal, HandJointName.Wrist, HandJointName.PinkyProximal, // palm and finger starts
-                    HandJointName.ThumbProximal, HandJointName.IndexProximal, HandJointName.IndexProximal, HandJointName.MiddleProximal, HandJointName.MiddleProximal, HandJointName.RingProximal, HandJointName.RingProximal, HandJointName.PinkyProximal, // finger starts          
-                });
+                //connection.AddRange(new HandJointName[]
+                //{
+                //    HandJointName.Wrist, HandJointName.ThumbMetacarpal, HandJointName.Wrist, HandJointName.IndexProximal, HandJointName.Wrist, HandJointName.MiddleProximal, HandJointName.Wrist, HandJointName.RingProximal, HandJointName.Wrist, HandJointName.PinkyProximal, // palm and finger starts
+                //    HandJointName.ThumbProximal, HandJointName.IndexProximal, HandJointName.IndexProximal, HandJointName.MiddleProximal, HandJointName.MiddleProximal, HandJointName.RingProximal, HandJointName.RingProximal, HandJointName.PinkyProximal, // finger starts          
+                //});
                 connection.AddRange(GetFingerConnection(FingerName.Thumb));
                 connection.AddRange(GetFingerConnection(FingerName.Index));
                 connection.AddRange(GetFingerConnection(FingerName.Middle));
                 connection.AddRange(GetFingerConnection(FingerName.Ring));
                 connection.AddRange(GetFingerConnection(FingerName.Pinky));
-                _connectionsVIU = connection.ToArray();
+                _boneRenderConnections = connection.ToArray();
             }
-            return _connectionsVIU;
+            return _boneRenderConnections;
         }
     }
-    private static HandJointName[] _connectionsVIU = null;
+    private static HandJointName[] _boneRenderConnections = null;
 
     public static HandJointName[] GetFingerConnection(FingerName finger)
     {
@@ -186,23 +188,31 @@ class VIUHandRenderer : MonoBehaviour
                     {
                         curJoint.position = pose.pos;
                     }
+                    else
+                    {
+                        if (positionFix)
+                            curJoint.position = pose.pos;
+                    }
 
-                    //Calculate the joint rotation offset between joint axis dir and actual bone dir.
                     //1. Set rotation and get new dir with next joint.
                     curJoint.rotation = pose.rot;
+                    if (rotationFix)
+                    {
+                        //Calculate the joint rotation offset between joint axis dir and actual bone dir.
 
-                    //2. Calculate offset
-                    //*.Global rotation way
-                    //Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
-                    //dir = Quaternion.Inverse(cameraRigRot) * dir;
-                    //Quaternion rot = Quaternion.FromToRotation(dir, pose.rot * Vector3.forward);
-                    //curJoint.rotation = rot * pose.rot;
+                        //2. Calculate offset
+                        //*.Global rotation way
+                        //Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
+                        //dir = Quaternion.Inverse(cameraRigRot) * dir;
+                        //Quaternion rot = Quaternion.FromToRotation(dir, pose.rot * Vector3.forward);
+                        //curJoint.rotation = rot * pose.rot;
 
-                    //*.Local rotation can record at initialize step, no need compute at update().
-                    //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);
-                    Vector3 localSkinNext = curJoint.InverseTransformPoint(nextJoint.position);
-                    Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
-                    curJoint.localRotation *= Quaternion.Inverse(Quaternion.LookRotation(localSkinDir));
+                        //*.Local rotation can record at initialize step, no need compute at update().
+                        //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);
+                        Vector3 localSkinNext = curJoint.InverseTransformPoint(nextJoint.position);
+                        Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
+                        curJoint.localRotation *= Quaternion.Inverse(Quaternion.LookRotation(localSkinDir));
+                    }
 
                     countNode++;
                 }
@@ -288,7 +298,7 @@ class VIUHandRenderer : MonoBehaviour
         Debug.Log("[VIUHandRenderer] consider joint points : " + points.Count);
 
         // create game objects for links between keypoints, only used in skeleton mode         
-        for (int i = 0; i < ConnectionsVIU.Length; i += 2)
+        for (int i = 0; i < BoneRenderConnections.Length; i += 2)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = "link" + i;
@@ -332,8 +342,8 @@ class VIUHandRenderer : MonoBehaviour
             var link = links[i];
             link.SetActive(false);
 
-            HandJointName startIndex = ConnectionsVIU[i * 2];
-            HandJointName endIndex = ConnectionsVIU[i * 2 + 1];
+            HandJointName startIndex = BoneRenderConnections[i * 2];
+            HandJointName endIndex = BoneRenderConnections[i * 2 + 1];
 
             Vector3 pose1 = _convertWorlPoses[startIndex].pos;
             Vector3 pose2 = _convertWorlPoses[endIndex].pos;
@@ -345,10 +355,10 @@ class VIUHandRenderer : MonoBehaviour
             float len = direction.magnitude;
             direction /= len;
             link.transform.rotation = Quaternion.FromToRotation(Vector3.forward,
-                _convertWorlPoses[startIndex].rot * Vector3.forward
-                //direction
+                //_convertWorlPoses[startIndex].rot * Vector3.forward
+                direction
                 );
-            link.transform.localScale = new Vector3(0.004f, 0.004f, len / 2f - 0.0051f);
+            link.transform.localScale = new Vector3(0.0005f, 0.0005f, len / 2f - 0.0051f);
         }
     }
 
