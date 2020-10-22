@@ -40,11 +40,9 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-#if UNITY_EDITOR
         protected virtual void OnValidate()
         {
             Init();
         }
-#endif
     }
 }

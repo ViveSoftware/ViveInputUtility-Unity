@@ -6,7 +6,7 @@ using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
-    public class TouchSlider : MonoBehaviour
+    public class CubeSlider : MonoBehaviour
     {
         public UnityEvent<float> valueChanged;
 
@@ -92,12 +92,10 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-#if UNITY_EDITOR
         private void OnValidate()
         {
             UpdateBarTransform();
             InvokeValueChangeEvent();
         }
-#endif
     }
 }
