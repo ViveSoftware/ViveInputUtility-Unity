@@ -32,72 +32,81 @@ namespace HTC.UnityPlugin.Vive
             public abstract void CleanUpRenderModel();
         }
 
-        [CreatorPriorityAttirbute(1)]
+        [CreatorPriorityAttirbute(10)]
         public class DefaultRenderModelCreator : RenderModelCreator
         {
-            private VRModuleDeviceModel m_loadedModelEnum = (VRModuleDeviceModel)(-1);
+            private bool m_isModelActivated;
+            private EnumArray<VRModuleDeviceModel, GameObject> m_modelObjs = new EnumArray<VRModuleDeviceModel, GameObject>();
+            private VRModuleDeviceModel m_activeModel;
+
+            [Obsolete]
             protected GameObject m_model;
 
             public override bool shouldActive { get { return true; } }
 
             public override void UpdateRenderModel()
             {
-                var index = hook.GetModelDeviceIndex();
+                var deviceState = VRModule.GetDeviceState(hook.GetModelDeviceIndex());
 
-                if (!VRModule.IsValidDeviceIndex(index))
+                var lastActiveCustomModelNum = m_activeModel;
+                var lastActiveCustomModelObj = m_modelObjs[m_activeModel];
+                var lastCustomModelActive = m_isModelActivated;
+                var shouldActiveCustomModelNum = deviceState.deviceModel;
+                var shouldActiveCustomModelPrefab = VIUSettings.GetDefaultDeviceModel(shouldActiveCustomModelNum);
+                var shouldActiveCustomModel = deviceState.isConnected && shouldActiveCustomModelPrefab != null;
+
+                if (lastCustomModelActive)
                 {
-                    if (m_model != null)
+                    if (!shouldActiveCustomModel || lastActiveCustomModelNum != shouldActiveCustomModelNum)
                     {
-                        m_model.SetActive(false);
+                        // deactivate custom override model
+                        if (lastActiveCustomModelObj != null && SendBeforeModelDeactivatedMessage(lastActiveCustomModelObj, hook))
+                        {
+                            lastActiveCustomModelObj.gameObject.SetActive(false);
+                        }
+                        m_isModelActivated = false;
                     }
                 }
-                else
+
+                if (shouldActiveCustomModel)
                 {
-                    var loadModelEnum = VRModuleDeviceModel.Unknown;
-                    if (hook.m_overrideModel != OverrideModelEnum.DontOverride)
+                    var shouldActiveCustomModelObj = m_modelObjs[shouldActiveCustomModelNum];
+                    if (shouldActiveCustomModelObj == null)
                     {
-                        loadModelEnum = (VRModuleDeviceModel)hook.m_overrideModel;
-                    }
-                    else
-                    {
-                        loadModelEnum = VRModule.GetCurrentDeviceState(index).deviceModel;
+                        // instantiate custom override model
+                        shouldActiveCustomModelObj = Instantiate(shouldActiveCustomModelPrefab);
+                        shouldActiveCustomModelObj.transform.position = Vector3.zero;
+                        shouldActiveCustomModelObj.transform.rotation = Quaternion.identity;
+                        shouldActiveCustomModelObj.transform.SetParent(hook.transform, false);
+                        m_activeModel = shouldActiveCustomModelNum;
+                        m_modelObjs[shouldActiveCustomModelNum] = shouldActiveCustomModelObj;
+                        m_isModelActivated = false;
+                        SendAfterModelCreatedMessage(shouldActiveCustomModelObj, hook);
                     }
 
-                    if (ChangeProp.Set(ref m_loadedModelEnum, loadModelEnum))
+                    if (!m_isModelActivated)
                     {
-                        CleanUpRenderModel();
-
-                        var prefab = Resources.Load<GameObject>("Models/VIUModel" + m_loadedModelEnum.ToString());
-                        if (prefab != null)
+                        // active custom override model
+                        if (SendBeforeModelActivatedMessage(shouldActiveCustomModelObj, hook))
                         {
-                            m_model = Instantiate(prefab);
-                            m_model.transform.SetParent(hook.transform, false);
-                            m_model.gameObject.name = "VIUModel" + m_loadedModelEnum.ToString();
-
-                            if (hook.m_overrideShader != null)
-                            {
-                                var renderer = m_model.GetComponentInChildren<Renderer>();
-                                if (renderer != null)
-                                {
-                                    renderer.material.shader = hook.m_overrideShader;
-                                }
-                            }
+                            shouldActiveCustomModelObj.gameObject.SetActive(true);
                         }
-                    }
-
-                    if (m_model != null)
-                    {
-                        m_model.SetActive(true);
+                        m_isModelActivated = true;
                     }
                 }
             }
 
             public override void CleanUpRenderModel()
             {
-                if (m_model != null)
+                if (!m_isModelActivated)
                 {
-                    Destroy(m_model);
-                    m_model = null;
+                    var activatedModelObj = m_modelObjs[m_activeModel];
+                    // active custom override model
+                    if (activatedModelObj != null && SendBeforeModelActivatedMessage(activatedModelObj, hook))
+                    {
+                        activatedModelObj.gameObject.SetActive(true);
+                    }
+                    m_isModelActivated = true;
                 }
             }
         }
@@ -161,13 +170,13 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
         [SerializeField]
-        private Transform m_origin;
-        [SerializeField]
         private Index m_deviceIndex = Index.Hmd;
         [SerializeField]
         private OverrideModelEnum m_overrideModel = OverrideModelEnum.DontOverride;
         [SerializeField]
         private Shader m_overrideShader = null;
+        [SerializeField]
+        private Material m_overrideMaterial = null;
 
         private static readonly Type[] s_creatorTypes;
         private RenderModelCreator[] m_creators;
@@ -176,14 +185,16 @@ namespace HTC.UnityPlugin.Vive
         private bool m_isQuiting;
 
         public ViveRoleProperty viveRole { get { return m_viveRole; } }
-
-        public Transform origin { get { return m_origin; } set { m_origin = value; } }
-
+        [Obsolete]
+        public Transform origin { get; set; }
+        [Obsolete]
         public bool applyTracking { get; set; }
 
         public OverrideModelEnum overrideModel { get { return m_overrideModel; } set { m_overrideModel = value; } }
 
         public Shader overrideShader { get { return m_overrideShader; } set { m_overrideShader = value; } }
+
+        public Material overrideMaterial { get { return m_overrideMaterial; } set { m_overrideMaterial = value; } }
 
         static RenderModelHook()
         {
@@ -205,7 +216,7 @@ namespace HTC.UnityPlugin.Vive
             }
             catch (Exception e)
             {
-                s_creatorTypes = new Type[0];
+                s_creatorTypes = new Type[] { typeof(DefaultRenderModelCreator) };
                 Debug.LogError(e);
             }
         }
@@ -279,42 +290,159 @@ namespace HTC.UnityPlugin.Vive
             return result;
         }
 
+        public interface ICustomModel
+        {
+            void OnAfterModelCreated(RenderModelHook hook);
+            /// <summary>
+            /// If from all components return true, hook will perform SetActive(true) on this model after this message
+            /// </summary>
+            bool OnBeforeModelActivated(RenderModelHook hook);
+            /// <summary>
+            /// If from all components return true, hook will perform SetActive(false) on this model after this message
+            /// </summary>
+            bool OnBeforeModelDeactivated(RenderModelHook hook);
+        }
+
+        private bool m_isCustomModelActivated;
+        private EnumArray<VRModuleDeviceModel, GameObject> m_customModelObjs = new EnumArray<VRModuleDeviceModel, GameObject>();
+        private IReadOnlyEnumArray<VRModuleDeviceModel, GameObject> m_customModelObjs_r;
+        private VRModuleDeviceModel m_activeCustomModel;
+
+        public IReadOnlyEnumArray<VRModuleDeviceModel, GameObject> loadedCuustomModels { get { return m_customModelObjs_r != null ? m_customModelObjs_r : (m_customModelObjs_r = m_customModelObjs.ReadOnly); } }
+
+        private static void SendAfterModelCreatedMessage(GameObject rootObj, RenderModelHook hook)
+        {
+            var iList = ListPool<ICustomModel>.Get(); try
+            {
+                rootObj.GetComponentsInChildren(true, iList);
+                for (int i = 0, imax = iList.Count; i < imax; ++i)
+                {
+                    iList[i].OnAfterModelCreated(hook);
+                }
+            }
+            finally { ListPool<ICustomModel>.Release(iList); }
+        }
+
+        private static bool SendBeforeModelActivatedMessage(GameObject rootObj, RenderModelHook hook)
+        {
+            var result = true;
+            var iList = ListPool<ICustomModel>.Get(); try
+            {
+                rootObj.GetComponentsInChildren(true, iList);
+                for (int i = 0, imax = iList.Count; i < imax; ++i)
+                {
+                    result &= iList[i].OnBeforeModelActivated(hook);
+                }
+            }
+            finally { ListPool<ICustomModel>.Release(iList); }
+            return result;
+        }
+
+        private static bool SendBeforeModelDeactivatedMessage(GameObject rootObj, RenderModelHook hook)
+        {
+            var result = true;
+            var iList = ListPool<ICustomModel>.Get(); try
+            {
+                rootObj.GetComponentsInChildren(true, iList);
+                for (int i = 0, imax = iList.Count; i < imax; ++i)
+                {
+                    result &= iList[i].OnBeforeModelDeactivated(hook);
+                }
+            }
+            finally { ListPool<ICustomModel>.Release(iList); }
+            return result;
+        }
+
         private void UpdateModel()
         {
             if (m_isQuiting) { return; }
 
-            var activeCreatorIndex = -1;
-            if (enabled)
+            var deviceState = VRModule.GetDeviceState(GetModelDeviceIndex());
+
+            var lastActiveCustomModelNum = m_activeCustomModel;
+            var lastActiveCustomModelObj = m_customModelObjs[m_activeCustomModel];
+            var lastCustomModelActive = m_isCustomModelActivated;
+            var shouldActiveCustomModelNum = deviceState.deviceModel;
+            var shouldActiveCustomModelPrefab = VIUSettings.GetOverrideDeviceModel(shouldActiveCustomModelNum);
+            var shouldActiveCustomModel = deviceState.isConnected && shouldActiveCustomModelPrefab != null;
+
+            var lastCreatorActive = m_activeCreatorIndex >= 0;
+            var shouldActiveCreator = !shouldActiveCustomModel;
+            var shouldActiveCreatorIndex = -1;
+            if (shouldActiveCreator)
             {
+                // determin which creator should be activated
                 if (m_overrideModel == OverrideModelEnum.DontOverride)
                 {
                     for (int i = 0, imax = m_creators.Length; i < imax; ++i)
                     {
                         if (m_creators[i].shouldActive)
                         {
-                            activeCreatorIndex = i;
+                            shouldActiveCreatorIndex = i;
                             break;
                         }
                     }
                 }
                 else
                 {
-                    activeCreatorIndex = m_defaultCreatorIndex;
+                    shouldActiveCreatorIndex = m_defaultCreatorIndex;
                 }
             }
 
-            if (m_activeCreatorIndex != activeCreatorIndex)
+            if (lastCustomModelActive)
             {
-                // clean up model created from previous active creator
-                if (m_activeCreatorIndex >= 0)
+                if (!shouldActiveCustomModel || lastActiveCustomModelNum != shouldActiveCustomModelNum)
                 {
-                    m_creators[m_activeCreatorIndex].CleanUpRenderModel();
+                    // deactivate custom override model
+                    if (lastActiveCustomModelObj != null && SendBeforeModelDeactivatedMessage(lastActiveCustomModelObj, this))
+                    {
+                        lastActiveCustomModelObj.gameObject.SetActive(false);
+                    }
+                    m_isCustomModelActivated = false;
                 }
-                m_activeCreatorIndex = activeCreatorIndex;
             }
 
-            if (m_activeCreatorIndex >= 0)
+            if (lastCreatorActive)
             {
+                if (!shouldActiveCreator || m_activeCreatorIndex != shouldActiveCreatorIndex)
+                {
+                    // clean up old creator
+                    m_creators[m_activeCreatorIndex].CleanUpRenderModel();
+                    m_activeCreatorIndex = -1;
+                }
+            }
+
+            if (shouldActiveCustomModel)
+            {
+                var shouldActiveCustomModelObj = m_customModelObjs[shouldActiveCustomModelNum];
+                if (shouldActiveCustomModelObj == null)
+                {
+                    // instantiate custom override model
+                    shouldActiveCustomModelObj = Instantiate(shouldActiveCustomModelPrefab);
+                    shouldActiveCustomModelObj.transform.position = Vector3.zero;
+                    shouldActiveCustomModelObj.transform.rotation = Quaternion.identity;
+                    shouldActiveCustomModelObj.transform.SetParent(transform, false);
+                    m_activeCustomModel = shouldActiveCustomModelNum;
+                    m_customModelObjs[shouldActiveCustomModelNum] = shouldActiveCustomModelObj;
+                    m_isCustomModelActivated = false;
+                    SendAfterModelCreatedMessage(shouldActiveCustomModelObj, this);
+                }
+
+                if (!m_isCustomModelActivated)
+                {
+                    // active custom override model
+                    if (SendBeforeModelActivatedMessage(shouldActiveCustomModelObj, this))
+                    {
+                        shouldActiveCustomModelObj.gameObject.SetActive(true);
+                    }
+                    m_isCustomModelActivated = true;
+                }
+            }
+
+            if (shouldActiveCreator)
+            {
+                m_activeCreatorIndex = shouldActiveCreatorIndex;
+                // update active creator
                 m_creators[m_activeCreatorIndex].UpdateRenderModel();
             }
         }
