@@ -14,12 +14,21 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField] private float m_maxHeight;
 
         [Range(0.01f, 1.0f)]
-        [SerializeField] private float m_triggerThreshold = 0.8f;
+        [SerializeField] private float m_triggerThresholdHeight = 0.2f;
+
+        [Range(0.0f, 1.0f)]
+        [SerializeField] private float m_triggeredHeight = 0.0f;
 
         [SerializeField] private float m_recoverSpeed = 0.05f;
 
         private Rigidbody m_rigidbody;
-        private bool m_isTriggered;
+        private bool m_isRecovering;
+        private bool m_isTriggerd;
+
+        private bool hasTriggeredAlternativeHeight
+        {
+            get { return m_triggeredHeight > 0.0f; }
+        }
 
         protected virtual void Start()
         {
@@ -31,15 +40,16 @@ namespace HTC.UnityPlugin.Vive
         {
             // Check if triggered
             float percentage = Mathf.Clamp01((transform.localPosition.y - m_minHeight) / (m_maxHeight - m_minHeight));
-            if (!m_isTriggered && percentage <= (1 - m_triggerThreshold))
+            if (!m_isRecovering && percentage <= m_triggerThresholdHeight)
             {
                 InvokeTriggerEvent();
-                m_isTriggered = true;
+                m_isRecovering = true;
+                m_isTriggerd = !m_isTriggerd;
             }
 
-            if (m_isTriggered && percentage > (1 - m_triggerThreshold))
+            if (m_isRecovering && percentage > m_triggerThresholdHeight)
             {
-                m_isTriggered = false;
+                m_isRecovering = false;
             }
 
             // Recover
@@ -51,7 +61,8 @@ namespace HTC.UnityPlugin.Vive
         protected virtual void LateUpdate()
         {
             // Lock position in local space except for clamped y
-            float clampedY = Mathf.Clamp(transform.localPosition.y, m_minHeight, m_maxHeight);
+            float maxHeight = m_isTriggerd && hasTriggeredAlternativeHeight ? m_maxHeight * m_triggeredHeight : m_maxHeight;
+            float clampedY = Mathf.Clamp(transform.localPosition.y, m_minHeight, maxHeight);
             transform.localPosition = new Vector3(0.0f, clampedY, 0.0f);
 
             // Lock velocity
