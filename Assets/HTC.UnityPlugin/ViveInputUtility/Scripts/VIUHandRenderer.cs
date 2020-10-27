@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-class VIUHandRenderer : MonoBehaviour
+class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
 {
-    public ViveRoleProperty role = ViveRoleProperty.New();
+    [SerializeField]
+    private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
+    public ViveRoleProperty viveRole { get { return m_viveRole; } }
 
     [SerializeField]
     bool renderAxis;
@@ -104,7 +106,7 @@ class VIUHandRenderer : MonoBehaviour
     Dictionary<HandJointName, RigidPose> _convertWorlPoses = new Dictionary<HandJointName, RigidPose>();
     void LateUpdate()
     {
-        var deviceState = VRModule.GetCurrentDeviceState(role.GetDeviceIndex());
+        var deviceState = VRModule.GetCurrentDeviceState(viveRole.GetDeviceIndex());
         if (!deviceState.isPoseValid)
         {
             if (renderTrackedBone)
@@ -126,7 +128,7 @@ class VIUHandRenderer : MonoBehaviour
 
         //Transform joint consider the cameraRig's teleport position.
         RigidPose wristPose;
-        if (!VivePose.TryGetHandJointPose(role, HandJointName.Wrist, out wristPose))
+        if (!VivePose.TryGetHandJointPose(viveRole, HandJointName.Wrist, out wristPose))
             Debug.LogError("[VIUHandRenderer] Cannot find wrist in hand engine");
 
         Quaternion cameraRigRot = Quaternion.identity;
@@ -136,7 +138,7 @@ class VIUHandRenderer : MonoBehaviour
         foreach (HandJointName jointName in considerJoint)
         {
             RigidPose pos;
-            if (VivePose.TryGetHandJointPose(role, jointName, out pos))
+            if (VivePose.TryGetHandJointPose(viveRole, jointName, out pos))
             {
                 if (count == 0)
                 {
@@ -266,6 +268,7 @@ class VIUHandRenderer : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Destroy(go.GetComponent<Collider>());
             go.name = "point" + i;
             go.transform.parent = wristNode;
             go.transform.localScale = Vector3.one * 0.006f;
@@ -303,6 +306,7 @@ class VIUHandRenderer : MonoBehaviour
         for (int i = 0; i < BoneRenderConnections.Length; i += 2)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Destroy(go.GetComponent<Collider>());
             go.name = "link" + i;
             go.transform.parent = wristNode;
             go.transform.localScale = Vector3.one * 0.004f;
