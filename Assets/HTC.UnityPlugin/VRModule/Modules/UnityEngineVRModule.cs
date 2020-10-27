@@ -155,6 +155,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static void Update_L_Vive(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
         {
+            var primaryButtonPress = GetUnityButton(3);
             var menuPress = GetUnityButton(2);
             var padPress = GetUnityButton(8);
             var triggerTouch = GetUnityButton(14);
@@ -165,6 +166,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var trigger = GetUnityAxis(9);
             var grip = GetUnityAxis(11);
 
+            currState.SetButtonPress(VRModuleRawButton.A, primaryButtonPress);
             currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPress);
             currState.SetButtonPress(VRModuleRawButton.Grip, grip >= 1.0f);
             currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
@@ -180,6 +182,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static void Update_R_Vive(IVRModuleDeviceState prevState, IVRModuleDeviceStateRW currState)
         {
+            var primaryButtonPress = GetUnityButton(1);
             var menuPress = GetUnityButton(0);
             var padPress = GetUnityButton(9);
             var triggerTouch = GetUnityButton(15);
@@ -190,6 +193,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var trigger = GetUnityAxis(10);
             var grip = GetUnityAxis(12);
 
+            currState.SetButtonPress(VRModuleRawButton.A, primaryButtonPress);
             currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPress);
             currState.SetButtonPress(VRModuleRawButton.Touchpad, padPress);
             currState.SetButtonPress(VRModuleRawButton.Trigger, AxisToPress(prevState.GetButtonPress(VRModuleRawButton.Trigger), trigger, 0.55f, 0.45f));
