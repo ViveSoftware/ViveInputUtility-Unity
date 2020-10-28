@@ -100,6 +100,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         }
                     }
                 }
+                else
+                {
+                    Debug.LogWarning("OvrSkeleton not found: " + Handness);
+                }
             }
 
             public void Update(OVRPlugin.HandState handState)
@@ -221,8 +225,35 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static readonly HandJointName[] s_ovrBoneIdToHandJointName;
 
         private OVRPlugin.TrackingOrigin m_prevTrackingSpace;
-        private Skeleton LeftHandSkeleton;
-        private Skeleton RightHandSkeleton;
+
+        private Skeleton m_leftHandSkeleton;
+        private Skeleton m_rightHandSkeleton;
+
+        private Skeleton leftHandSkeleton
+        {
+            get
+            {
+                if (m_leftHandSkeleton == null)
+                {
+                    m_leftHandSkeleton = new Skeleton(OVRPlugin.SkeletonType.HandLeft);
+                }
+
+                return m_leftHandSkeleton;
+            }
+        }
+
+        private Skeleton rightHandSkeleton
+        {
+            get
+            {
+                if (m_rightHandSkeleton == null)
+                {
+                    m_rightHandSkeleton = new Skeleton(OVRPlugin.SkeletonType.HandRight);
+                }
+
+                return m_rightHandSkeleton;
+            }
+        }
 
         static OculusVRModule()
         {
@@ -296,13 +327,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void OnActivated()
         {
+            Debug.Log("OculusVRModule activated.");
+
             m_prevTrackingSpace = OVRPlugin.GetTrackingOriginType();
             UpdateTrackingSpaceType();
 
             EnsureDeviceStateLength((uint) s_index2node.Length);
-
-            LeftHandSkeleton = new Skeleton(OVRPlugin.SkeletonType.HandLeft);
-            RightHandSkeleton = new Skeleton(OVRPlugin.SkeletonType.HandRight);
 
 #if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER
             s_moduleInstance = this;
@@ -575,7 +605,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         
                         if (isHandTracked)
                         {
-                            Skeleton skeleton = node == OVRPlugin.Node.HandLeft ? LeftHandSkeleton : RightHandSkeleton;
+                            Skeleton skeleton = node == OVRPlugin.Node.HandLeft ? leftHandSkeleton : rightHandSkeleton;
                             skeleton.Update(handState);
 
                             HandJointPose[] joints = currState.handJoints;
