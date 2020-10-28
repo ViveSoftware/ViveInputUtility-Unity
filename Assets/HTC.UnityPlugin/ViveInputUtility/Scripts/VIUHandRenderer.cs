@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
 {
     [SerializeField]
-    private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
+    private ViveRoleProperty m_viveRole = ViveRoleProperty.New(TrackedHandRole.RightHand);
     public ViveRoleProperty viveRole { get { return m_viveRole; } }
 
     [SerializeField]

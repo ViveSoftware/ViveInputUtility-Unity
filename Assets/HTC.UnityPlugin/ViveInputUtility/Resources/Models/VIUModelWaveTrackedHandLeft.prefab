@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfe2db6fd9b32a743b7c8d068c4b7d74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  role:
+  m_viveRole:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.TrackedHandRole
     m_roleValueName: LeftHand
     m_roleValueInt: 1
@@ -53,7 +53,6 @@ MonoBehaviour:
   pointColor: {r: 0, g: 0, b: 1, a: 1}
   linkColor: {r: 1, g: 1, b: 1, a: 1}
   skinRenderer: {fileID: 1597023005791576685}
-  positionFix: 0
   scaleFix: 0
   Nodes:
   - {fileID: 245563215777896755}
