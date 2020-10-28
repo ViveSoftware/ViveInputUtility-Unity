@@ -6,6 +6,8 @@ namespace HTC.UnityPlugin.Vive
 {
     public class Ball : MonoBehaviour
     {
+        [SerializeField] private float Lifetime = 10.0f;
+
         public void OnGrabbed()
         {
             Detach();
@@ -14,6 +16,7 @@ namespace HTC.UnityPlugin.Vive
         private void Detach()
         {
             transform.parent = null;
+            Destroy(gameObject, Lifetime);
         }
     }
 }

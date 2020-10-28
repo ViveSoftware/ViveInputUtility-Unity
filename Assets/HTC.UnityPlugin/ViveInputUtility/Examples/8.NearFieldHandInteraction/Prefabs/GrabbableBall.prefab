@@ -167,7 +167,7 @@ MonoBehaviour:
   m_followingDuration: 0.04
   m_overrideMaxAngularVelocity: 1
   m_unblockableGrab: 1
-  m_singleItemGrab: 0
+  m_singleItemGrab: 1
   m_primaryGrabButton: 4123168604160
   m_secondaryGrabButton: 1
   m_grabButton: 0
@@ -205,3 +205,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8345bcafc720093489fb5e1618ef27dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Lifetime: 20
