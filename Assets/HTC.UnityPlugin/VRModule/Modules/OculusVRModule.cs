@@ -217,14 +217,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #endif
 
 #if VIU_OCULUSVR
-        private const uint s_leftHandControllerIndex = 1;
-        private const uint s_rightHandControllerIndex = 2;
+        private const uint s_leftControllerIndex = 1;
+        private const uint s_rightControllerIndex = 2;
+        private const uint s_leftHandIndex = 7;
+        private const uint s_rightHandIndex = 8;
 
         private static readonly OVRPlugin.Node[] s_index2node;
         private static readonly VRModuleDeviceClass[] s_index2class;
         private static readonly HandJointName[] s_ovrBoneIdToHandJointName;
 
         private OVRPlugin.TrackingOrigin m_prevTrackingSpace;
+
+        private bool m_isLeftHandTracked;
+        private bool m_isRightHandTracked;
 
         private Skeleton m_leftHandSkeleton;
         private Skeleton m_rightHandSkeleton;
@@ -382,12 +387,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override uint GetLeftControllerDeviceIndex()
         {
-            return s_leftHandControllerIndex;
+            return m_isLeftHandTracked ? s_leftHandIndex : s_leftControllerIndex;
         }
 
         public override uint GetRightControllerDeviceIndex()
         {
-            return s_rightHandControllerIndex;
+            return m_isRightHandTracked ? s_rightHandIndex : s_rightControllerIndex;
         }
 
         private static RigidPose ToPose(OVRPlugin.Posef value)
@@ -413,11 +418,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (!OVRPlugin.GetNodePresent(node))
                 {
-                    if (prevState.isConnected)
-                    {
-                        currState.Reset();
-                    }
-
+                    currState.Reset();
                     continue;
                 }
 
@@ -438,6 +439,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     currState.Reset();
                     continue;
+                }
+
+                if (node == OVRPlugin.Node.HandLeft)
+                {
+                    m_isLeftHandTracked = isHandTracked;
+                }
+                else if (node == OVRPlugin.Node.HandRight)
+                {
+                    m_isRightHandTracked = isHandTracked;
                 }
 
                 // update device connected state
@@ -614,6 +624,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 Transform joint = skeleton.Bones[j];
                                 HandJointPose.AssignToArray(joints, s_ovrBoneIdToHandJointName[j], joint.position, skeleton.GetOpenXRRotation((OVRPlugin.BoneId) j));
                             }
+
+                            currState.pose = new RigidPose(currState.pose.pos, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_WristRoot));
                         }
 
                         break;

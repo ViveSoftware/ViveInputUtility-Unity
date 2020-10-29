@@ -67,7 +67,8 @@ namespace HTC.UnityPlugin.Vive
                     {
                         CleanUpRenderModel();
 
-                        var prefab = Resources.Load<GameObject>("Models/VIUModel" + m_loadedModelEnum.ToString());
+                        string modelPathName = "Models/VIUModel" + m_loadedModelEnum;
+                        var prefab = Resources.Load<GameObject>(modelPathName);
                         if (prefab != null)
                         {
                             m_model = Instantiate(prefab);
@@ -82,6 +83,10 @@ namespace HTC.UnityPlugin.Vive
                                     renderer.material.shader = hook.m_overrideShader;
                                 }
                             }
+                        }
+                        else
+                        {
+                            Debug.LogWarning("Render model not found in Resources: " + modelPathName);
                         }
                     }
 
