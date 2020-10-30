@@ -19,7 +19,7 @@ namespace HTC.UnityPlugin.Utility
             // prefab override logic works on the entire property.
             EditorGUI.BeginProperty(position, label, property);
 
-            var arrayProp = property.FindPropertyRelative("m_array");
+            var arrayProp = property.FindPropertyRelative("elements");
             var arrayLen = arrayProp != null && arrayProp.isArray ? arrayProp.arraySize : 0;
 
             var newExpanded = false;
@@ -53,7 +53,7 @@ namespace HTC.UnityPlugin.Utility
                 if (arrayLen > target.Length)
                 {
                     btnRect.width = (btnRect.width - LINE_SPACE - btnPadding * 2f) * 0.5f;
-                    if (GUI.Button(btnRect, "Trim"))
+                    if (GUI.Button(btnRect, "Trim(+" + (arrayLen - target.Length) + ")"))
                     {
                         Undo.RecordObject(property.serializedObject.targetObject, "EnumArray.Trim");
                         arrayProp.arraySize = arrayLen = target.Length;
@@ -75,15 +75,18 @@ namespace HTC.UnityPlugin.Utility
                 EditorGUI.indentLevel += 1;
                 {
                     // suppose arrayLen == target.Length
-                    target.EnsureLength();
-                    for (int i = 0, imax = arrayLen, e = target.MinInt, emax = target.Length; i < imax; ++i, ++e)
+                    target.FillCapacityToLength();
+                    for (int i = 0, imax = arrayLen, ev = target.MinInt; i < imax; ++i, ++ev)
                     {
-                        var element = arrayProp.GetArrayElementAtIndex(i);
-                        var enumName = e < emax ? target.EnumName(e) : (target.EnumType.Name + "(" + e.ToString() + ")");
+                        if (target.IsEnumIntDefined(ev))
+                        {
+                            var element = arrayProp.GetArrayElementAtIndex(i);
+                            var enumName = target.EnumIntName(ev);
 
-                        position.height = EditorGUI.GetPropertyHeight(element, true);
-                        EditorGUI.PropertyField(position, element, new GUIContent(enumName), true);
-                        position.y += position.height + LINE_SPACE;
+                            position.height = EditorGUI.GetPropertyHeight(element, new GUIContent(), true);
+                            EditorGUI.PropertyField(position, element, new GUIContent(enumName), true);
+                            position.y += position.height + LINE_SPACE;
+                        }
                     }
                 }
                 EditorGUI.indentLevel -= 1;
@@ -100,14 +103,18 @@ namespace HTC.UnityPlugin.Utility
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             var result = EditorGUIUtility.singleLineHeight;
-            var arrayProp = property.FindPropertyRelative("m_array");
+            var arrayProp = property.FindPropertyRelative("elements");
             var arrayLen = arrayProp != null && arrayProp.isArray ? arrayProp.arraySize : 0;
 
             if (property.isExpanded && arrayLen > 0)
             {
-                for (int i = 0, imax = arrayLen; i < imax; ++i)
+                var target = GetTargetObjectOfProperty(property) as EnumArrayBase;
+                for (int i = 0, imax = Mathf.Min(arrayLen, target.Length); i < imax; ++i)
                 {
-                    result += LINE_SPACE + EditorGUI.GetPropertyHeight(arrayProp.GetArrayElementAtIndex(i), true);
+                    if (target.IsEnumIntDefined(i + target.MinInt))
+                    {
+                        result += LINE_SPACE + EditorGUI.GetPropertyHeight(arrayProp.GetArrayElementAtIndex(i), new GUIContent(), true);
+                    }
                 }
             }
 
@@ -150,7 +157,7 @@ namespace HTC.UnityPlugin.Utility
             return enm.Current;
         }
 
-        private static Regex s_regArray = new Regex(@"^(\w+)\[(\d+)\]$");
+        private static Regex s_regArray = new Regex(@"^(\w+)\[(\d+)\]$", RegexOptions.Compiled | RegexOptions.Singleline);
         public static object GetTargetObjectOfProperty(SerializedProperty prop)
         {
             var path = prop.propertyPath.Replace(".Array.data[", "[");

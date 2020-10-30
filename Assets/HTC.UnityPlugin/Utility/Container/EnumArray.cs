@@ -3,6 +3,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace HTC.UnityPlugin.Utility
 {
@@ -14,23 +16,12 @@ namespace HTC.UnityPlugin.Utility
         public abstract int MinInt { get; }
         public abstract int MaxInt { get; }
         public abstract int Length { get; }
-        public abstract string EnumName(int enumInt);
+        public abstract int Capacity { get; }
+        public abstract string EnumIntName(int enumInt);
+        public abstract bool IsEnumIntDefined(int enumInt);
         public abstract void Clear();
-        public abstract void EnsureLength();
-    }
-
-    public interface IReadOnlyEnumArray<TEnum, TElement> : IEnumerable<TElement>
-    {
-        Type EnumType { get; }
-        Type ElementType { get; }
-        TEnum Min { get; }
-        TEnum Max { get; }
-        int MinInt { get; }
-        int MaxInt { get; }
-        int Length { get; }
-        TElement this[TEnum e] { get; }
-        TElement this[int ev] { get; }
-        string EnumName(int enumInt);
+        public abstract void FillCapacityToLength();
+        public abstract void TrimCapacityToLength();
     }
 
     [Serializable]
@@ -39,44 +30,40 @@ namespace HTC.UnityPlugin.Utility
         where TEnum : Enum
 #endif
     {
-        public struct DefinedEnumEnumerator : IEnumerable<TEnum>, IEnumerator<TEnum>, IEnumerator, IDisposable
+        public struct EnumKeyEnumerator : IEnumerator<TEnum>, IEnumerable<TEnum>
         {
             private int i;
 
-            public TEnum Current { get; private set; }
-
             object IEnumerator.Current { get { return Current; } }
+            public TEnum Current { get { return enums[i - 1]; } }
 
             void IDisposable.Dispose() { }
+            public void Reset() { i = 0; }
+            public EnumKeyEnumerator GetEnumerator() { return this; }
+            IEnumerator<TEnum> IEnumerable<TEnum>.GetEnumerator() { return this; }
+            IEnumerator IEnumerable.GetEnumerator() { return this; }
 
-            void IEnumerator.Reset() { i = 0; }
-
-            bool IEnumerator.MoveNext()
+            public bool MoveNext()
             {
-                while (++i <= EnumLength)
+                while (i < DefinedLength)
                 {
-                    if (keyIsValid[i - 1])
+                    var index = i++;
+                    if (enumIsDefined[index])
                     {
-                        Current = keys[i - 1];
                         return true;
                     }
                 }
-
                 return false;
             }
-
-            IEnumerator<TEnum> IEnumerable<TEnum>.GetEnumerator() { return this; }
-
-            IEnumerator IEnumerable.GetEnumerator() { return this; }
         }
 
-        private static readonly bool[] keyIsValid;
-        private static readonly TEnum[] keys;
-        public static readonly int EnumMinInt;
-        public static readonly TEnum EnumMin;
-        public static readonly int EnumMaxInt;
-        public static readonly TEnum EnumMax;
-        public static readonly int EnumLength;
+        private static readonly bool[] enumIsDefined;
+        private static readonly TEnum[] enums;
+        public static readonly int DefinedMinInt;
+        public static readonly TEnum DefinedMin;
+        public static readonly int DefinedMaxInt;
+        public static readonly TEnum DefinedMax;
+        public static readonly int DefinedLength;
 
         static EnumArrayBase()
         {
@@ -84,67 +71,65 @@ namespace HTC.UnityPlugin.Utility
             if (!typeof(TEnum).IsEnum) { throw new Exception(typeof(TEnum).Name + " is not enum type!"); }
 #endif
             // find out min/max/length value in defined enum values
-            EnumMinInt = int.MaxValue;
-            EnumMaxInt = int.MinValue;
+            DefinedMinInt = int.MaxValue;
+            DefinedMaxInt = int.MinValue;
             var enums = Enum.GetValues(typeof(TEnum)) as TEnum[];
             foreach (var e in enums)
             {
                 var i = E2I(e);
 
-                if (i < EnumMinInt)
+                if (i < DefinedMinInt)
                 {
-                    EnumMinInt = i;
-                    EnumMin = e;
+                    DefinedMinInt = i;
+                    DefinedMin = e;
                 }
 
-                if (i > EnumMaxInt)
+                if (i > DefinedMaxInt)
                 {
-                    EnumMaxInt = i;
-                    EnumMax = e;
+                    DefinedMaxInt = i;
+                    DefinedMax = e;
                 }
             }
-            EnumLength = EnumMaxInt - EnumMinInt + 1;
+
+            DefinedLength = DefinedMaxInt - DefinedMinInt + 1;
 
             // create an int array with invalid enum values
-            keys = new TEnum[EnumLength];
-            keyIsValid = new bool[EnumLength];
+            EnumArrayBase<TEnum>.enums = new TEnum[DefinedLength];
+            enumIsDefined = new bool[DefinedLength];
             foreach (var e in enums)
             {
-                var i = E2I(e) - EnumMinInt;
-                keys[i] = e;
-                keyIsValid[i] = true;
+                var i = E2I(e) - DefinedMinInt;
+                EnumArrayBase<TEnum>.enums[i] = e;
+                enumIsDefined[i] = true;
             }
         }
 
-        public override Type EnumType { get { return typeof(TEnum); } }
+        public override Type EnumType { get { return BaseEnumType; } }
 
-        public override int MinInt { get { return EnumMinInt; } }
+        public override string EnumIntName(int enumInt) { return BaseEnumIntName(enumInt); }
 
-        public override int MaxInt { get { return EnumMaxInt; } }
+        public override bool IsEnumIntDefined(int enumInt) { return BaseIsEnumIntDefined(enumInt); }
 
-        public TEnum Min { get { return EnumMin; } }
+        public bool IsDefined(TEnum e) { return BaseIsDefined(e); }
 
-        public TEnum Max { get { return EnumMax; } }
+        public EnumKeyEnumerator EnumKeys { get { return BaseEnumKeys; } }
 
-        public override string EnumName(int enumInt) { return I2E(enumInt).ToString(); }
+        public static Type BaseEnumType { get { return typeof(TEnum); } }
 
-        public override int Length { get { return EnumLength; } }
+        public static string BaseEnumIntName(int enumInt) { return I2E(enumInt).ToString(); }
 
-        public static IEnumerable<TEnum> AllDefinedEnums
+        public static bool BaseIsEnumIntDefined(int enumInt)
         {
-            get { return new DefinedEnumEnumerator(); }
+            var i = enumInt - DefinedMinInt;
+            return i >= 0 && i < DefinedLength && enumIsDefined[i];
         }
 
-        public static bool IsDefined(TEnum e)
+        public static bool BaseIsDefined(TEnum e)
         {
-            return IsDefined(E2I(e));
+            return BaseIsEnumIntDefined(E2I(e));
         }
 
-        public static bool IsDefined(int ev)
-        {
-            var i = ev - EnumMinInt;
-            return i >= 0 && i < EnumLength && keyIsValid[i];
-        }
+        public static EnumKeyEnumerator BaseEnumKeys { get { return new EnumKeyEnumerator(); } }
 
         public static int E2I(TEnum e)
         {
@@ -153,22 +138,108 @@ namespace HTC.UnityPlugin.Utility
 
         public static TEnum I2E(int ev)
         {
-            return keys[ev - EnumMinInt];
+            return enums[ev - DefinedMinInt];
         }
     }
 
     [Serializable]
-    public class EnumArray<TEnum, TElement> : EnumArrayBase<TEnum>, IEnumerable<TElement>
+    public class EnumArray<TEnum, TElement> : EnumArrayBase<TEnum>, IEnumerable<KeyValuePair<TEnum, TElement>>
 #if CSHARP_7_OR_LATER
         where TEnum : Enum
 #endif
     {
-        private class ReadOnlyEnumArray : IReadOnlyEnumArray<TEnum, TElement>
+        public interface IReadOnly : IEnumerable<KeyValuePair<TEnum, TElement>>
+        {
+            Type EnumType { get; }
+            Type ElementType { get; }
+            TEnum Min { get; }
+            TEnum Max { get; }
+            int MinInt { get; }
+            int MaxInt { get; }
+            int Length { get; }
+            int Capacity { get; }
+            TElement this[TEnum e] { get; }
+            TElement this[int ev] { get; }
+            string EnumName(int enumInt);
+            EnumKeyEnumerator EnumKeys { get; }
+            ElementEnumerator Elements { get; }
+            new Enumerator GetEnumerator();
+        }
+
+        public struct ElementEnumerator : IEnumerator<TElement>, IEnumerable<TElement>
+        {
+            private readonly TElement[] elements;
+            private int i;
+
+            object IEnumerator.Current { get { return Current; } }
+            public TElement Current { get { return elements[i - 1]; } }
+
+            public ElementEnumerator(TElement[] elements)
+            {
+                i = 0;
+                this.elements = elements;
+            }
+
+            void IDisposable.Dispose() { }
+            public void Reset() { i = 0; }
+            public ElementEnumerator GetEnumerator() { return this; }
+            IEnumerator<TElement> IEnumerable<TElement>.GetEnumerator() { return this; }
+            IEnumerator IEnumerable.GetEnumerator() { return this; }
+
+            public bool MoveNext()
+            {
+                while (i < DefinedLength)
+                {
+                    var index = i++;
+                    var enumInt = index + DefinedMinInt;
+                    if (BaseIsEnumIntDefined(enumInt))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        public struct Enumerator : IEnumerator<KeyValuePair<TEnum, TElement>>, IEnumerable<KeyValuePair<TEnum, TElement>>
+        {
+            private readonly TElement[] elements;
+            private int i;
+
+            object IEnumerator.Current { get { return Current; } }
+            public KeyValuePair<TEnum, TElement> Current { get { return new KeyValuePair<TEnum, TElement>(I2E(i + DefinedMinInt - 1), elements[i - 1]); } }
+
+            public Enumerator(TElement[] elements)
+            {
+                i = 0;
+                this.elements = elements;
+            }
+
+            void IDisposable.Dispose() { }
+            public void Reset() { i = 0; }
+            public Enumerator GetEnumerator() { return this; }
+            IEnumerator<KeyValuePair<TEnum, TElement>> IEnumerable<KeyValuePair<TEnum, TElement>>.GetEnumerator() { return this; }
+            IEnumerator IEnumerable.GetEnumerator() { return this; }
+
+            public bool MoveNext()
+            {
+                while (i < DefinedLength)
+                {
+                    var index = i++;
+                    var enumInt = index + DefinedMinInt;
+                    if (BaseIsEnumIntDefined(enumInt))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        private class ReadOnlyEnumArray : IReadOnly
         {
             private readonly EnumArray<TEnum, TElement> source;
             public ReadOnlyEnumArray(EnumArray<TEnum, TElement> source) { this.source = source; }
-            public TElement this[TEnum e] { get { return source[e]; } }
-            public TElement this[int ev] { get { return source[ev]; } }
             public Type EnumType { get { return source.EnumType; } }
             public Type ElementType { get { return source.ElementType; } }
             public TEnum Min { get { return source.Min; } }
@@ -176,28 +247,49 @@ namespace HTC.UnityPlugin.Utility
             public int MinInt { get { return source.MinInt; } }
             public int MaxInt { get { return source.MaxInt; } }
             public int Length { get { return source.Length; } }
-            public string EnumName(int enumInt) { return source.EnumName(enumInt); }
-            public IEnumerator<TElement> GetEnumerator() { return source.GetEnumerator(); }
+            public int Capacity { get { return source.Capacity; } }
+            public TElement this[TEnum e] { get { return source[e]; } }
+            public TElement this[int ev] { get { return source[ev]; } }
+            public string EnumName(int enumInt) { return source.EnumIntName(enumInt); }
+            public EnumKeyEnumerator EnumKeys { get { return source.EnumKeys; } }
+            public ElementEnumerator Elements { get { return source.Elements; } }
+            public Enumerator GetEnumerator() { return source.GetEnumerator(); }
+            IEnumerator<KeyValuePair<TEnum, TElement>> IEnumerable<KeyValuePair<TEnum, TElement>>.GetEnumerator() { return source.GetEnumerator(); }
             IEnumerator IEnumerable.GetEnumerator() { return source.GetEnumerator(); }
         }
 
-        [UnityEngine.SerializeField]
-        private TElement[] m_array;
-        private ReadOnlyEnumArray m_readOnly;
+        [SerializeField]
+        [FormerlySerializedAs("m_array")]
+        private TElement[] elements;
+        private ReadOnlyEnumArray readOnly;
 
-        public EnumArray()
-        {
-            m_array = new TElement[EnumLength];
-        }
+        public EnumArray() { elements = new TElement[Length]; }
 
-        public EnumArray(TElement initValue) : this()
-        {
-            Clear(initValue);
-        }
+        public EnumArray(TElement initValue) : this() { Clear(initValue); }
 
         public override Type ElementType { get { return typeof(TElement); } }
 
-        public IReadOnlyEnumArray<TEnum, TElement> ReadOnly { get { return m_readOnly != null ? m_readOnly : (m_readOnly = new ReadOnlyEnumArray(this)); } }
+        public override int MinInt { get { return DefinedMinInt; } }
+
+        public override int MaxInt { get { return DefinedMaxInt; } }
+
+        public TEnum Min { get { return DefinedMin; } }
+
+        public TEnum Max { get { return DefinedMax; } }
+
+        public override int Length { get { return DefinedLength; } }
+
+        public override int Capacity { get { return elements == null ? 0 : elements.Length; } }
+
+        public IReadOnly ReadOnly { get { return readOnly != null ? readOnly : (readOnly = new ReadOnlyEnumArray(this)); } }
+
+        public ElementEnumerator Elements { get { FillCapacityToLength(); return new ElementEnumerator(elements); } }
+
+        public Enumerator GetEnumerator() { FillCapacityToLength(); return new Enumerator(elements); }
+
+        IEnumerator<KeyValuePair<TEnum, TElement>> IEnumerable<KeyValuePair<TEnum, TElement>>.GetEnumerator() { return GetEnumerator(); }
+
+        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
         public TElement this[TEnum e]
         {
@@ -207,51 +299,51 @@ namespace HTC.UnityPlugin.Utility
 
         public TElement this[int ev]
         {
-            get
-            {
-                var i = ev - EnumMinInt;
-                return i >= 0 && i < m_array.Length ? m_array[i] : default(TElement);
-            }
-            set
-            {
-                var i = ev - EnumMinInt;
-                if (i >= 0 && i < EnumLength)
-                {
-                    EnsureLength();
-                    m_array[i] = value;
-                }
-            }
+            get { FillCapacityToLength(); return elements[ev - MinInt]; }
+            set { FillCapacityToLength(); elements[ev - MinInt] = value; }
         }
 
         public override void Clear()
         {
-            Array.Clear(m_array, 0, m_array.Length);
+            if (elements != null && elements.Length > 0)
+            {
+                Array.Clear(elements, 0, elements.Length);
+            }
         }
 
         public void Clear(TElement clearWith)
         {
-            for (int i = m_array.Length - 1; i >= 0; --i) { m_array[i] = clearWith; }
+            FillCapacityToLength();
+            for (int i = elements.Length - 1; i >= 0; --i) { elements[i] = clearWith; }
         }
 
-        public override void EnsureLength()
+        public override void FillCapacityToLength()
         {
-            if (m_array == null) { m_array = new TElement[EnumLength]; }
-            else if (m_array.Length < EnumLength)
+            if (elements == null)
             {
-                var oldArray = m_array;
-                m_array = new TElement[EnumLength];
-                Array.Copy(oldArray, 0, m_array, 0, oldArray.Length);
+                elements = new TElement[Length];
+                return;
+            }
+
+            var len = Length;
+            if (elements.Length < len)
+            {
+                Array.Resize(ref elements, len);
             }
         }
 
-        public IEnumerator<TElement> GetEnumerator()
+        public override void TrimCapacityToLength()
         {
-            return ((IEnumerable<TElement>)m_array).GetEnumerator();
-        }
+            if (elements == null)
+            {
+                return;
+            }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return m_array.GetEnumerator();
+            var len = Length;
+            if (elements.Length > len)
+            {
+                Array.Resize(ref elements, len);
+            }
         }
     }
 }
