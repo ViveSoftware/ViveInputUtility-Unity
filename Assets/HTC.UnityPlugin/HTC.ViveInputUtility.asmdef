@@ -11,7 +11,8 @@
         "Wave.Essence",
         "Wave.Native",
         "Controller",
-        "Hand"
+        "Hand",
+        "ViveHandTracking"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

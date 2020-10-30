@@ -22,6 +22,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         WaveVR = 6,
         UnityXR = 7,
         WaveUnityXR = 8,
+        OpenVRUnityXR = 9,
     }
 
     public enum VRModuleActiveEnum
@@ -36,6 +37,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         WaveVR = VRModuleSelectEnum.WaveVR,
         UnityXR = VRModuleSelectEnum.UnityXR,
         WaveUnityXR = VRModuleSelectEnum.WaveUnityXR,
+        OpenVRUnityXR = VRModuleSelectEnum.OpenVRUnityXR,
     }
 
     public partial class VRModule : SingletonBehaviour<VRModule>

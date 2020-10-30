@@ -17,6 +17,136 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public abstract partial class UnityXRModuleBase : VRModule.ModuleBase
     {
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+        private class IndexMap
+        {
+            private Dictionary<int, uint> hashID2index = new Dictionary<int, uint>();
+            private InputDevice[] index2Device = new InputDevice[VRModule.MAX_DEVICE_COUNT];
+            public IndexMap() { Clear(); }
+
+            private bool IsValidDevice(InputDevice device) { return device.isValid; }
+            private bool IsValidIndex(uint index) { return index < index2Device.Length; }
+
+            public uint Device2Index(InputDevice device)
+            {
+                if (IsValidDevice(device))
+                {
+                    uint index;
+                    if (hashID2index.TryGetValue(HashID(device), out index))
+                    {
+                        return index;
+                    }
+                }
+                return VRModule.INVALID_DEVICE_INDEX;
+            }
+
+            public bool TryGetIndex(InputDevice device, out uint index)
+            {
+                index = Device2Index(device);
+                return IsValidIndex(index);
+            }
+
+            public InputDevice Index2Device(uint index)
+            {
+                return IsValidIndex(index) ? index2Device[index] : default(InputDevice);
+            }
+
+            public bool TryGetDevice(uint index, out InputDevice device)
+            {
+                device = Index2Device(index);
+                return IsValidDevice(device);
+            }
+
+            private bool IsMapped(int hashID)
+            {
+                uint index;
+                return hashID2index.TryGetValue(hashID, out index) && IsValidIndex(index);
+            }
+
+            private bool IsMapped(uint index)
+            {
+                return IsValidIndex(index) && IsValidDevice(index2Device[index]);
+            }
+
+            public static bool IsHMD(InputDevice device)
+            {
+                return (device.characteristics & InputDeviceCharacteristics.HeadMounted) > 0u;
+            }
+
+            public bool MapAsHMD(InputDevice device)
+            {
+                if (!IsValidDevice(device)) { throw new ArgumentException("Invalid device", "device"); }
+
+                var hashID = HashID(device);
+                if (IsMapped(hashID)) { throw new Exception("device(" + device.ToString() + ") already mapped"); }
+
+                if (!IsHMD(device)) { return false; }
+
+                hashID2index[hashID] = VRModule.HMD_DEVICE_INDEX;
+                index2Device[VRModule.HMD_DEVICE_INDEX] = device;
+                return true;
+            }
+
+            public void MapNonHMD(InputDevice device, uint index)
+            {
+                if (!IsValidDevice(device)) { throw new ArgumentException("Invalid device", "device"); }
+                if (!IsValidIndex(index)) { throw new ArgumentException("index larger then VRModule.MAX_DEVICE_COUNT(" + VRModule.MAX_DEVICE_COUNT + ")", "index"); }
+
+                var hashID = HashID(device);
+                if (IsMapped(hashID)) { throw new Exception("device(" + device.ToString() + ") already mapped"); }
+                if (IsMapped(index)) { throw new Exception("index(" + index + ") already mapped"); }
+
+                if (IsHMD(device)) { throw new Exception("device(" + device.ToString() + ") is hmd"); }
+                if (index == VRModule.HMD_DEVICE_INDEX) { throw new Exception("index cannot be VRModule.HMD_DEVICE_INDEX(" + VRModule.HMD_DEVICE_INDEX + ")"); }
+
+                hashID2index[hashID] = index;
+                index2Device[index] = device;
+            }
+
+            public void UnmapByDevice(InputDevice device)
+            {
+                if (!IsValidDevice(device)) { throw new ArgumentException("Invalid device", "device"); }
+
+                var hashID = HashID(device);
+                uint index;
+                if (!hashID2index.TryGetValue(hashID, out index)) { return; }
+                if (!index2Device[index].Equals(device)) { throw new Exception("Unexpected mapping " + device.ToString() + "=>" + index + " " + index + "=>" + index2Device[index].ToString()); }
+
+                hashID2index.Remove(hashID);
+                index2Device[index] = default(InputDevice);
+            }
+
+            public void UnmapByIndex(uint index)
+            {
+                if (!IsValidIndex(index)) { throw new ArgumentException("Invalid index", "index"); }
+
+                var device = index2Device[index];
+                if (!IsValidDevice(device)) { return; }
+
+                var hashID = HashID(device);
+                uint mappedIndex;
+                if (!hashID2index.TryGetValue(hashID, out mappedIndex)) { throw new Exception("Unexpected mapping " + index + "=>" + device.ToString() + " " + device.ToString() + "=>null"); }
+                if (mappedIndex != index) { throw new Exception("Unexpected mapping " + index + "=>" + device.ToString() + " " + device.ToString() + "=>" + mappedIndex); }
+
+                hashID2index.Remove(hashID);
+                index2Device[index] = default(InputDevice);
+            }
+
+            public void Clear()
+            {
+                hashID2index.Clear();
+                for (int i = index2Device.Length - 1; i >= 0; --i) { index2Device[i] = default(InputDevice); }
+            }
+
+            private static int HashID(InputDevice device)
+            {
+#if CSHARP_7_OR_LATER
+                return (device, device.name, device.characteristics).GetHashCode();
+#else
+                return new { device, device.name, device.characteristics }.GetHashCode();
+#endif
+            }
+        }
+
         public static bool HasActiveLoader()
         {
             var instance = XRGeneralSettings.Instance;
@@ -84,6 +214,35 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (loader == null) { return false; }
             loaderName = loader.name;
             return true;
+        }
+
+        protected void LogDeviceFeatureUsages(InputDevice device)
+        {
+            List<InputFeatureUsage> usages = new List<InputFeatureUsage>();
+            if (device.TryGetFeatureUsages(usages))
+            {
+                string strUsages = "";
+                foreach (var usage in usages)
+                {
+                    strUsages += "[" + usage.type.Name + "] " + usage.name + "\n";
+                }
+
+                Debug.Log(device.name + " feature usages:\n\n" + strUsages);
+            }
+        }
+
+        protected static string CharacteristicsToString(InputDeviceCharacteristics ch)
+        {
+            if (ch == 0u) { return " No Characteristic"; }
+            var chu = (uint)ch;
+            var str = string.Empty;
+            for (var i = 1u; chu > 0u; i <<= 1)
+            {
+                if ((chu & i) == 0u) { continue; }
+                str += " " + (InputDeviceCharacteristics)i;
+                chu &= ~i;
+            }
+            return str;
         }
 
         public static VRModuleKnownXRInputSubsystem GetKnownActiveInputSubsystem()
@@ -166,9 +325,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return defaultValue;
         }
 
-        public static Hand GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Hand> feature, Hand defaultValue = default(Hand))
+        public static UnityEngine.XR.Hand GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<UnityEngine.XR.Hand> feature, UnityEngine.XR.Hand defaultValue = default(UnityEngine.XR.Hand))
         {
-            Hand value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            UnityEngine.XR.Hand value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
             LogWarningFeatureNotFound(device, feature);
             return defaultValue;
         }

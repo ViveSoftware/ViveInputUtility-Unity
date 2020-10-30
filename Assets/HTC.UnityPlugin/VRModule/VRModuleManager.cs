@@ -135,18 +135,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private void EnsureDeviceStateLength(uint capacity)
         {
             // NOTE: this will clear out the array
-            var cap = Mathf.Min((int)capacity, (int)MAX_DEVICE_COUNT);
+            var cap = (int)(capacity < MAX_DEVICE_COUNT ? capacity : MAX_DEVICE_COUNT);
             if (GetDeviceStateLength() < cap)
             {
-                var oldPrevStates = m_prevStates;
-                var oldCurrStates = m_currStates;
-                m_prevStates = new DeviceState[cap];
-                m_currStates = new DeviceState[cap];
-                if (oldCurrStates != null && oldCurrStates.Length > 0)
-                {
-                    Array.Copy(oldPrevStates, 0, m_prevStates, 0, oldPrevStates.Length);
-                    Array.Copy(oldCurrStates, 0, m_currStates, 0, oldCurrStates.Length);
-                }
+                if (m_currStates == null) { m_currStates = new DeviceState[cap]; }
+                else { Array.Resize(ref m_currStates, cap); }
+                if (m_prevStates == null) { m_prevStates = new DeviceState[cap]; }
+                else { Array.Resize(ref m_prevStates, cap); }
             }
         }
 
@@ -170,7 +165,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private bool TryGetValidDeviceState(uint index, out DeviceState prevState, out DeviceState currState)
         {
-            if (m_currStates == null || m_currStates[index] == null)
+            if (m_currStates == null || index >= m_currStates.Length || m_currStates[index] == null)
             {
                 prevState = null;
                 currState = null;
@@ -186,6 +181,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void EnsureValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
         {
+            EnsureDeviceStateLength(index + 1);
             if (!TryGetValidDeviceState(index, out prevState, out currState))
             {
                 prevState = m_prevStates[index] = new DeviceState(index);
@@ -258,7 +254,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private VRModuleActiveEnum GetShouldActivateModule()
         {
-            if (m_isDestoryed) { return VRModuleActiveEnum.Uninitialized; }
+            if (IsApplicationQuitting || m_isDestoryed) { return VRModuleActiveEnum.Uninitialized; }
 
             if (m_selectModule == VRModuleSelectEnum.Auto)
             {

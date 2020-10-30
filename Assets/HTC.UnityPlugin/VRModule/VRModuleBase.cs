@@ -18,6 +18,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 UnityNativeVR,
                 UnityXR,
                 WaveUnityXR,
+                OpenVRUnityXR,
                 SteamVR,
                 OculusVR,
                 DayDream,
@@ -365,11 +366,37 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 return previousPressedState ? currentAxisValue > unsetThreshold : currentAxisValue >= setThreshold;
             }
+
+            // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+            protected uint FindOrEnsureUnusedNotHMDDeviceState(out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                var manager = Instance;
+                var len = manager.GetDeviceStateLength();
+                for (uint i = 0u, imax = len; i < imax; ++i)
+                {
+                    if (i == VRModule.HMD_DEVICE_INDEX) { continue; }
+                    if (manager.TryGetValidDeviceState(i, out prevState, out currState))
+                    {
+                        if (prevState.isConnected) { continue; }
+                        if (currState.isConnected) { continue; }
+                    }
+
+                    return i;
+                }
+
+                manager.EnsureValidDeviceState(len, out prevState, out currState);
+                return len;
+            }
         }
 
         private sealed class DefaultModule : ModuleBase
         {
             public override int moduleIndex { get { return (int)VRModuleActiveEnum.None; } }
+        }
+
+        public abstract class SubModuleBase
+        {
+
         }
     }
 }

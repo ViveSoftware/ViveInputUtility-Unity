@@ -25,6 +25,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             Add(new SymbolRequirement()
             {
+                symbol = "VIU_VIVE_HANDTRACKING",
+                reqTypeNames = new string[] { "ViveHandTracking.GestureProvider" },
+                reqFileNames = new string[] { "GestureProvider.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
                 symbol = "VIU_STEAMVR",
                 reqTypeNames = new string[] { "Valve.VR.OpenVR" },
                 reqAnyTypeNames = new string[] { "SteamVR", "Valve.VR.SteamVR" },

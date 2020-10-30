@@ -305,10 +305,9 @@ namespace HTC.UnityPlugin.Vive
 
         private bool m_isCustomModelActivated;
         private EnumArray<VRModuleDeviceModel, GameObject> m_customModelObjs = new EnumArray<VRModuleDeviceModel, GameObject>();
-        private IReadOnlyEnumArray<VRModuleDeviceModel, GameObject> m_customModelObjs_r;
         private VRModuleDeviceModel m_activeCustomModel;
 
-        public IReadOnlyEnumArray<VRModuleDeviceModel, GameObject> loadedCuustomModels { get { return m_customModelObjs_r != null ? m_customModelObjs_r : (m_customModelObjs_r = m_customModelObjs.ReadOnly); } }
+        public EnumArray<VRModuleDeviceModel, GameObject>.IReadOnly loadedCuustomModels { get { return m_customModelObjs.ReadOnly; } }
 
         private static void SendAfterModelCreatedMessage(GameObject rootObj, RenderModelHook hook)
         {

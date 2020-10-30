@@ -2,6 +2,7 @@
 
 #pragma warning disable 0649
 using HTC.UnityPlugin.Utility;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -54,20 +55,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static List<XRLoaderProfile> loaderProfiles = new List<XRLoaderProfile>()
         {
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.OpenVR, matchNameRgx = new Regex("openvr", RegexOptions.IgnoreCase) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.Oculus, matchNameRgx = new Regex("oculus", RegexOptions.IgnoreCase) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WindowsXR, matchNameRgx = new Regex("windows", RegexOptions.IgnoreCase) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.MagicLeap, matchNameRgx = new Regex("magicleap", RegexOptions.IgnoreCase) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WaveXR, matchNameRgx = new Regex("wave", RegexOptions.IgnoreCase) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.OpenVR, matchNameRgx = new Regex("openvr", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.Oculus, matchNameRgx = new Regex("oculus", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WindowsXR, matchNameRgx = new Regex("windows", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.MagicLeap, matchNameRgx = new Regex("magicleap", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WaveXR, matchNameRgx = new Regex("wave", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
         };
 
         private static List<XRInputSubsystemProfile> inputSubsystemProfiles = new List<XRInputSubsystemProfile>()
         {
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.OpenVR, matchNameRgx = new Regex("openvr", RegexOptions.IgnoreCase) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.Oculus, matchNameRgx = new Regex("oculus", RegexOptions.IgnoreCase) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WindowsXR, matchNameRgx = new Regex("windows", RegexOptions.IgnoreCase) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.MagicLeap, matchNameRgx = new Regex("magicleap", RegexOptions.IgnoreCase) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WaveXR, matchNameRgx = new Regex("wave", RegexOptions.IgnoreCase) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.OpenVR, matchNameRgx = new Regex("openvr", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.Oculus, matchNameRgx = new Regex("oculus", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WindowsXR, matchNameRgx = new Regex("windows", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.MagicLeap, matchNameRgx = new Regex("magicleap", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WaveXR, matchNameRgx = new Regex("wave", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
         };
 
         private VRModuleKnownXRLoader knownActiveLoader;
@@ -87,12 +88,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override void OnDeactivated()
         {
-            ResetIndexedInputDevices();
+            indexMap.Clear();
         }
 
         public override void UpdateTrackingSpaceType()
         {
-            var originFlag = default(TrackingOriginModeFlags);
+            TrackingOriginModeFlags originFlag;
             switch (VRModule.trackingSpaceType)
             {
                 case VRModuleTrackingSpaceType.Stationary: originFlag = TrackingOriginModeFlags.Device; break;
@@ -100,40 +101,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 default: return;
             }
             SetAllXRInputSubsystemTrackingOriginMode(originFlag);
-        }
-
-        // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
-        protected uint FindOrAllocateUnusedNotHMDIndex()
-        {
-            uint index;
-            if (!FindFirstUnusedNotHMDIndex(out index))
-            {
-                index = GetDeviceStateLength();
-                EnsureDeviceStateLength(index + 1u);
-            }
-            return index;
-        }
-
-        // will skip preserved index for HMD
-        protected bool FindFirstUnusedNotHMDIndex(out uint index)
-        {
-            IVRModuleDeviceState prevState;
-            IVRModuleDeviceStateRW currState;
-            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
-            {
-                if (i == VRModule.HMD_DEVICE_INDEX) { continue; }
-                if (TryGetValidDeviceState(i, out prevState, out currState))
-                {
-                    if (prevState.isConnected) { continue; }
-                    if (currState.isConnected) { continue; }
-                }
-
-                index = i;
-                return true;
-            }
-
-            index = default(uint);
-            return false;
         }
 
         private List<InputDevice> connectedDevices = new List<InputDevice>();
@@ -181,7 +148,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                         UpdateHandRoleForDisconnectedDevice(deviceIndex);
 
-                        if (GetInputDeviceByIndex(deviceIndex).isValid)
+                        if (indexMap.Index2Device(deviceIndex).isValid)
                         {
                             OnInputDeviceDisconnected(deviceIndex);
                         }
@@ -206,6 +173,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessDeviceInputChanged();
         }
 
+        public override void Update()
+        {
+            UpdateLockPhysicsUpdateRate();
+            UpdateHapticVibration();
+        }
+
         private uint uxrRightHandIndex = VRModule.INVALID_DEVICE_INDEX;
         private uint uxrLeftHandIndex = VRModule.INVALID_DEVICE_INDEX;
         private uint ctrlRightHandIndex = VRModule.INVALID_DEVICE_INDEX;
@@ -217,7 +190,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateHandRoleForNewConnectedDevice(uint index, IVRModuleDeviceStateRW state)
         {
-            var inputDevice = GetInputDeviceByIndex(index);
+            var inputDevice = indexMap.Index2Device(index);
             var inputDeviceChar = inputDevice.characteristics;
             const InputDeviceCharacteristics handChar = InputDeviceCharacteristics.Right | InputDeviceCharacteristics.Left;
 
@@ -258,29 +231,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (trackedLeftHandIndex == index) { trackedLeftHandIndex = VRModule.INVALID_DEVICE_INDEX; }
         }
 
-        public override uint GetRightControllerDeviceIndex()
-        {
-            return PrioritizedRightHandIndex;
-        }
+        public override uint GetRightControllerDeviceIndex() { return PrioritizedRightHandIndex; }
 
-        public override uint GetLeftControllerDeviceIndex()
-        {
-            return PrioritizedLeftHandIndex;
-        }
+        public override uint GetLeftControllerDeviceIndex() { return PrioritizedLeftHandIndex; }
 
-        protected InputDevice GetInputDeviceByIndex(uint index)
-        {
-            return index < (uint)indexedInputDevices.Count ? indexedInputDevices[(int)index] : default(InputDevice);
-        }
-
-        private void ResetIndexedInputDevices()
-        {
-            indexForInputDevices.Clear();
-            indexedInputDevices.Clear();
-        }
-
-        private Dictionary<int, uint> indexForInputDevices = new Dictionary<int, uint>();
-        private List<InputDevice> indexedInputDevices = new List<InputDevice>();
+        private IndexMap indexMap = new IndexMap();
         private void UpdateInputDevices()
         {
             IVRModuleDeviceState prevState;
@@ -290,25 +245,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
             InputDevices.GetDevices(connectedDevices);
             foreach (var connectedDevice in connectedDevices)
             {
-                var deviceID = GetInputDeviceInternalID(connectedDevice);
-                if (!indexForInputDevices.TryGetValue(deviceID, out deviceIndex))
+                if (!indexMap.TryGetIndex(connectedDevice, out deviceIndex))
                 {
-                    if ((connectedDevice.characteristics & InputDeviceCharacteristics.HeadMounted) > 0u)
+                    if (indexMap.MapAsHMD(connectedDevice))
                     {
-                        Debug.Assert(!indexedInputDevices[(int)VRModule.HMD_DEVICE_INDEX].isValid);
                         deviceIndex = VRModule.HMD_DEVICE_INDEX;
+                        EnsureValidDeviceState(deviceIndex, out prevState, out currState);
                     }
                     else
                     {
                         // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
-                        deviceIndex = FindOrAllocateUnusedNotHMDIndex();
+                        deviceIndex = FindOrEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+                        indexMap.MapNonHMD(connectedDevice, deviceIndex);
                     }
-                    // assign the index to the new connected device
-                    indexForInputDevices.Add(deviceID, deviceIndex);
-                    while (deviceIndex >= indexedInputDevices.Count) { indexedInputDevices.Add(default(InputDevice)); }
-                    indexedInputDevices[(int)deviceIndex] = connectedDevice;
 
-                    EnsureValidDeviceState(deviceIndex, out prevState, out currState); Debug.Assert(!prevState.isConnected);
                     currState.isConnected = true;
 
                     UpdateNewConnectedInputDevice(currState, connectedDevice);
@@ -316,6 +266,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 else
                 {
                     EnsureValidDeviceState(deviceIndex, out prevState, out currState);
+
                     currState.isConnected = true;
                 }
 
@@ -360,11 +311,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         // get/set HandDeviceIndex in BeforeHandRoleChanged stage
         private void OnInputDeviceDisconnected(uint index)
         {
-            if (index < indexedInputDevices.Count && indexedInputDevices[(int)index].isValid)
-            {
-                indexForInputDevices.Remove(GetInputDeviceInternalID(indexedInputDevices[(int)index]));
-                indexedInputDevices[(int)index] = default(InputDevice);
-            }
+            indexMap.UnmapByIndex(index);
         }
 
         protected virtual void UpdateCustomDevices()
@@ -396,15 +343,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         // Incase prev hand is disconnected, and want to fallback to other controller
         protected virtual void BeforeHandRoleChanged() { }
-
-        private static int GetInputDeviceInternalID(InputDevice device)
-        {
-#if CSHARP_7_OR_LATER
-            return (device, device.name, device.characteristics).GetHashCode();
-#else
-            return new { device, device.name, device.characteristics }.GetHashCode();
-#endif
-        }
 
         protected static VRModuleDeviceClass GetDeviceClass(string name, InputDeviceCharacteristics characteristics)
         {
@@ -446,9 +384,102 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
             }
-            finally
+            finally { ListPool<XRInputSubsystem>.Release(activeSubsys); }
+        }
+
+        private struct HapticState
+        {
+            public float amplitude;
+            public float startTime;
+            public float endTime;
+
+            public HapticState(float amp, float startTime, float endTime)
             {
-                ListPool<XRInputSubsystem>.Release(activeSubsys);
+                this.amplitude = amp;
+                this.endTime = endTime;
+                this.startTime = startTime;
+            }
+        }
+
+        private uint maxHapticStateIndex = 0u;
+        private HapticState[] hapticStates = new HapticState[VRModule.MAX_DEVICE_COUNT];
+
+        // NOTE: Frequency not supported
+        public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85.0f, float amplitude = 0.125f, float startSecondsFromNow = 0.0f)
+        {
+            InputDevice device;
+            if (indexMap.TryGetDevice(deviceIndex, out device))
+            {
+                HapticCapabilities capabilities;
+                if (device.TryGetHapticCapabilities(out capabilities))
+                {
+                    if (capabilities.supportsImpulse)
+                    {
+                        var now = Time.unscaledTime;
+                        hapticStates[deviceIndex] = new HapticState()
+                        {
+                            amplitude = amplitude,
+                            startTime = now + startSecondsFromNow,
+                            endTime = now + startSecondsFromNow + durationSeconds,
+                        };
+
+                        if (deviceIndex > maxHapticStateIndex) { maxHapticStateIndex = deviceIndex; }
+                    }
+                }
+            }
+        }
+
+        protected void UpdateHapticVibration()
+        {
+            if (maxHapticStateIndex > 0u)
+            {
+                var now = Time.unscaledTime;
+                var newMaxIndex = 0u;
+                for (uint i = 0, imax = maxHapticStateIndex; i < imax; ++i)
+                {
+                    InputDevice device;
+                    if (now <= hapticStates[i].endTime)
+                    {
+                        if (now >= hapticStates[i].startTime && indexMap.TryGetDevice(i, out device))
+                        {
+                            device.SendHapticImpulse(0u, hapticStates[i].amplitude);
+                        }
+
+                        if (i > newMaxIndex) { newMaxIndex = i; }
+                    }
+                }
+                maxHapticStateIndex = newMaxIndex;
+            }
+        }
+
+        protected void UpdateLockPhysicsUpdateRate()
+        {
+            if (VRModule.lockPhysicsUpdateRateToRenderFrequency && Time.timeScale > 0.0f)
+            {
+                var displaySystems = ListPool<XRDisplaySubsystem>.Get();
+                try
+                {
+                    SubsystemManager.GetInstances(displaySystems);
+
+                    var minRefreshRate = float.MaxValue;
+                    foreach (XRDisplaySubsystem system in displaySystems)
+                    {
+                        float rate = 60.0f;
+                        if (system.TryGetDisplayRefreshRate(out rate))
+                        {
+                            if (rate < minRefreshRate)
+                            {
+                                minRefreshRate = rate;
+                            }
+                        }
+                    }
+
+                    if (minRefreshRate > 0 && minRefreshRate < float.MaxValue)
+                    {
+                        Time.fixedDeltaTime = 1.0f / minRefreshRate;
+                    }
+                }
+                finally { ListPool<XRDisplaySubsystem>.Release(displaySystems); }
             }
         }
 #endif
