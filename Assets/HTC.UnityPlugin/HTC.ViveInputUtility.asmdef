@@ -12,7 +12,7 @@
         "Wave.Native",
         "Controller",
         "Hand",
-        "ViveHandTracking"
+        "HTC.ViveHandTracking"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

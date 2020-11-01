@@ -122,6 +122,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Instance.EnsureValidDeviceState(index, out prevState, out currState);
             }
 
+            // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+            protected uint FindAndEnsureUnusedNotHMDDeviceState(out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                return Instance.FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+            }
+
             protected void FlushDeviceState()
             {
                 Instance.ModuleFlushDeviceState();
@@ -366,27 +372,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 return previousPressedState ? currentAxisValue > unsetThreshold : currentAxisValue >= setThreshold;
             }
-
-            // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
-            protected uint FindOrEnsureUnusedNotHMDDeviceState(out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
-            {
-                var manager = Instance;
-                var len = manager.GetDeviceStateLength();
-                for (uint i = 0u, imax = len; i < imax; ++i)
-                {
-                    if (i == VRModule.HMD_DEVICE_INDEX) { continue; }
-                    if (manager.TryGetValidDeviceState(i, out prevState, out currState))
-                    {
-                        if (prevState.isConnected) { continue; }
-                        if (currState.isConnected) { continue; }
-                    }
-
-                    return i;
-                }
-
-                manager.EnsureValidDeviceState(len, out prevState, out currState);
-                return len;
-            }
         }
 
         private sealed class DefaultModule : ModuleBase
@@ -396,7 +381,119 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public abstract class SubModuleBase
         {
+            public class Collection
+            {
+                private List<SubModuleBase> modules = new List<SubModuleBase>();
 
+                public Collection(params SubModuleBase[] modules)
+                {
+                    if (modules != null && modules.Length > 0)
+                    {
+                        foreach (var m in modules)
+                        {
+                            if (m != null) { this.modules.Add(m); }
+                        }
+                    }
+                }
+
+                public void AddModule(SubModuleBase module, params SubModuleBase[] modules)
+                {
+                    if (module != null) { this.modules.Add(module); }
+                    if (modules != null && modules.Length > 0)
+                    {
+                        foreach (var m in modules)
+                        {
+                            if (m != null) { this.modules.Add(module); }
+                        }
+                    }
+                }
+
+                public void ActivateAllModules()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        if (modules[i].ShouldActiveModule())
+                        {
+                            modules[i].Activate();
+                        }
+                    }
+                }
+
+                public void DeactivateAllModules()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        modules[i].Deactivate();
+                    }
+                }
+
+                public void UpdateModulesDeviceConnectionAndPoses()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        modules[i].OnUpdateDeviceConnectionAndPoses();
+                    }
+                }
+
+                public void UpdateModuleseDeviceInput()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        modules[i].OnUpdateDeviceInput();
+                    }
+                }
+            }
+
+            public bool isActivated { get; private set; }
+
+            public virtual bool ShouldActiveModule() { return false; }
+
+            public void Activate()
+            {
+                if (!isActivated)
+                {
+                    isActivated = true;
+                    OnActivated();
+                }
+            }
+
+            public void Deactivate()
+            {
+                if (isActivated)
+                {
+                    isActivated = false;
+                    OnDeactivated();
+                }
+            }
+
+            protected virtual void OnActivated() { }
+
+            protected virtual void OnDeactivated() { }
+
+            protected virtual void OnUpdateDeviceConnectionAndPoses() { }
+
+            protected virtual void OnUpdateDeviceInput() { }
+
+            protected uint GetDeviceStateLength()
+            {
+                return Instance.GetDeviceStateLength();
+            }
+
+            protected bool TryGetValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                return Instance.TryGetValidDeviceState(index, out prevState, out currState);
+            }
+
+            protected void EnsureValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                Instance.EnsureValidDeviceState(index, out prevState, out currState);
+            }
+
+            // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+            protected uint FindAndEnsureUnusedNotHMDDeviceState(out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                return Instance.FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+            }
         }
     }
 }

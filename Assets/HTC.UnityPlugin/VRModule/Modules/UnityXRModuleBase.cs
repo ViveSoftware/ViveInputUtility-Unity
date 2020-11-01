@@ -255,7 +255,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     else
                     {
                         // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
-                        deviceIndex = FindOrEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+                        deviceIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
                         indexMap.MapNonHMD(connectedDevice, deviceIndex);
                     }
 

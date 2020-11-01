@@ -81,6 +81,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             s_moduleInstance = this;
 
+#if VIU_VIVE_HANDTRACKING
+            if (GameObject.FindObjectOfType<GestureProvider>() == null)
+            {
+                VRModule.Instance.gameObject.AddComponent<GestureProvider>();
+            }
+#endif
+
             Debug.Log("Activated XRLoader Name: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
         }
 
@@ -157,7 +164,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (!VRModule.IsValidDeviceIndex(rightTrackedHandIndex))
                 {
-                    rightTrackedHandIndex = FindOrEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+                    rightTrackedHandIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
 
                     currState.deviceClass = VRModuleDeviceClass.TrackedHand;
                     currState.serialNumber = "RIGHT" + rightTrackedHandIndex;
@@ -177,14 +184,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState.isPoseValid = true;
 
                 UpdateTrackedHandJointState(currState, false);
-                //UpdateTrackedHandGestureState(currState, false);
+                UpdateTrackedHandGestureState(currState, false);
             }
 
             if (GestureProvider.LeftHand != null)
             {
                 if (!VRModule.IsValidDeviceIndex(leftTrackedHandIndex))
                 {
-                    leftTrackedHandIndex = FindOrEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+                    leftTrackedHandIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
 
                     currState.deviceClass = VRModuleDeviceClass.TrackedHand;
                     currState.serialNumber = "LEFT" + leftTrackedHandIndex;
@@ -204,7 +211,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState.isPoseValid = true;
 
                 UpdateTrackedHandJointState(currState, true);
-                //UpdateTrackedHandGestureState(currState, true);
+                UpdateTrackedHandGestureState(currState, true);
             }
 #endif
         }
@@ -241,7 +248,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #if VIU_VIVE_HANDTRACKING
         private static void SetWrist(IVRModuleDeviceStateRW state, HandJointName joint, GestureResult pose)
         {
-            var pos = pose.position;
+            var pos = pose.points[0];
             var rot = pose.rotation * Quaternion.Euler(90, 0, 180);
             state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, pos, rot);
             state.position = pos;
@@ -283,7 +290,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
             else
             {
-                //var currPos = new Vector3(currPose.v0, currPose.v1, -currPose.v2);
                 var rot = Quaternion.identity;
                 state.handJoints[HandJointPose.NameToIndex(joint)] = new HandJointPose(joint, currPose, rot);
             }
@@ -458,33 +464,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateTrackedHandGestureState(IVRModuleDeviceStateRW state, bool isLeft)
         {
-//#if VIU_WAVEXR_ESSENCE_HAND
-//            WVR_HandGestureData_t handGestureData = new WVR_HandGestureData_t();
-//            if (Interop.WVR_GetHandGestureData(ref handGestureData) == WVR_Result.WVR_Success)
-//            {
-//                var gesture = isLeft ? handGestureData.left : handGestureData.right;
-//                switch (gesture)
-//                {
-//                    case WVR_HandGestureType.WVR_HandGestureType_Fist:
-//                        break;
-//                    case WVR_HandGestureType.WVR_HandGestureType_Five:
-//                        break;
-//                    case WVR_HandGestureType.WVR_HandGestureType_IndexUp:
-//                        state.SetButtonPress(VRModuleRawButton.Trigger, true);
-//                        state.SetAxisValue(VRModuleRawAxis.Trigger, 1f);
-//                        break;
-//                    case WVR_HandGestureType.WVR_HandGestureType_OK:
-//                        break;
-//                    case WVR_HandGestureType.WVR_HandGestureType_ThumbUp:
-//                        break;
-//                    case WVR_HandGestureType.WVR_HandGestureType_Invalid:
-//                    case WVR_HandGestureType.WVR_HandGestureType_Unknown:
-//                        state.SetButtonPress(VRModuleRawButton.Trigger, false);
-//                        state.SetAxisValue(VRModuleRawAxis.Trigger, 0f);
-//                        break;
-//                }
-//            }
-//#endif
+#if VIU_VIVE_HANDTRACKING
+            var skeleton = isLeft ? GestureProvider.LeftHand : GestureProvider.RightHand;
+            state.SetButtonPress(VRModuleRawButton.Trigger, skeleton.pinch.isPinching);
+            state.SetAxisValue(VRModuleRawAxis.Trigger, skeleton.pinch.pinchLevel);
+#endif
         }
 #endif
     }

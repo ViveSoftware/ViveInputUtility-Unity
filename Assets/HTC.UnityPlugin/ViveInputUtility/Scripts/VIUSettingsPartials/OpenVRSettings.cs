@@ -12,5 +12,7 @@ namespace HTC.UnityPlugin.Vive
         private bool m_activateSteamVRModule = ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE;
 
         public static bool activateSteamVRModule { get { return Instance == null ? ACTIVATE_STEAM_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateSteamVRModule; } set { if (Instance != null) { Instance.m_activateSteamVRModule = value; } } }
+
+        public static bool activateOpenVRUnityXRModule { get { return false; } set { } }
     }
 }

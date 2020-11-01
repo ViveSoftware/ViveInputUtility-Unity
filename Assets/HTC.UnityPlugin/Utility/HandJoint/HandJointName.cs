@@ -34,4 +34,35 @@ namespace HTC.UnityPlugin.Utility
         PinkyDistal,
         PinkyTip,
     }
+
+    public enum HandJointIndex
+    {
+        Palm = HandJointName.Palm,
+        Wrist,
+        ThumbTrapezium,
+        ThumbMetacarpal,
+        ThumbProximal,
+        ThumbDistal,
+        ThumbTip,
+        IndexMetacarpal,
+        IndexProximal,
+        IndexIntermediate,
+        IndexDistal,
+        IndexTip,
+        MiddleMetacarpal,
+        MiddleProximal,
+        MiddleIntermediate,
+        MiddleDistal,
+        MiddleTip,
+        RingMetacarpal,
+        RingProximal,
+        RingIntermediate,
+        RingDistal,
+        RingTip,
+        PinkyMetacarpal,
+        PinkyProximal,
+        PinkyIntermediate,
+        PinkyDistal,
+        PinkyTip,
+    }
 }

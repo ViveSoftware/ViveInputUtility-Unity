@@ -53,6 +53,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private OriginDataCache m_originDataCache = new OriginDataCache();
         private IndexMap m_indexMap = new IndexMap();
+        private VRModule.SubModuleBase.Collection m_submodules = new VRModule.SubModuleBase.Collection(new ViveHandTrackingSubmodule());
 
         private static ETrackingUniverseOrigin trackingSpace
         {
@@ -229,10 +230,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
 
             s_moduleInstance = this;
+
+            m_submodules.ActivateAllModules();
         }
 
         public override void OnDeactivated()
         {
+            m_submodules.DeactivateAllModules();
+
             SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
 
@@ -330,6 +335,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+            m_submodules.UpdateModulesDeviceConnectionAndPoses();
+
             ProcessDeviceInputChanged();
         }
 
@@ -374,7 +381,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     uint moduleIndex;
                     if (!m_indexMap.TryGetModuleIndex(i, out moduleIndex))
                     {
-                        moduleIndex = FindOrEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+                        moduleIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
                         m_indexMap.Map(i, moduleIndex);
                     }
                     else
@@ -406,6 +413,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     currState.rotation = rigidTransform.rot;
                 }
             }
+
+            m_submodules.UpdateModulesDeviceConnectionAndPoses();
 
             ProcessConnectedDeviceChanged();
             ProcessDevicePoseChanged();

@@ -10,61 +10,62 @@ using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
 {
-    public class HandJointUpdater : MonoBehaviour, RenderModelHook.ICustomModel
+    public class HandJointUpdater : MonoBehaviour, RenderModelHook.ICustomModel, IViveRoleComponent
     {
-        public enum Joint
+        public enum Handed
         {
-            Palm = HandJointName.Palm,
-            Wrist,
-            ThumbTrapezium,
-            ThumbMetacarpal,
-            ThumbProximal,
-            ThumbDistal,
-            ThumbTip,
-            IndexMetacarpal,
-            IndexProximal,
-            IndexIntermediate,
-            IndexDistal,
-            IndexTip,
-            MiddleMetacarpal,
-            MiddleProximal,
-            MiddleIntermediate,
-            MiddleDistal,
-            MiddleTip,
-            RingMetacarpal,
-            RingProximal,
-            RingIntermediate,
-            RingDistal,
-            RingTip,
-            PinkyMetacarpal,
-            PinkyProximal,
-            PinkyIntermediate,
-            PinkyDistal,
-            PinkyTip,
+            Right,
+            Left,
         }
 
-        public static Joint ToJoint(HandJointName name) { return (Joint)name; }
+        [SerializeField]
+        private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
+        [SerializeField]
+        private Handed m_modelHanded;
+        [SerializeField]
+        private EnumArray<HandJointIndex, Transform> m_joints = new EnumArray<HandJointIndex, Transform>();
 
-        private EnumArray<HandJointName, RigidPose> jointPoses = new EnumArray<HandJointName, RigidPose>();
+        private EnumArray<HandJointIndex, JointPose> m_jointOriginPoses = new EnumArray<HandJointIndex, JointPose>();
+        private EnumArray<HandJointIndex, JointPose> m_jointPoses = new EnumArray<HandJointIndex, JointPose>();
 
-        private void Update()
+        public ViveRoleProperty viveRole { get { return m_viveRole; } }
+
+        public EnumArray<HandJointIndex, Transform> joints { get { return m_joints; } }
+
+        private void Awake()
         {
+            // setup joints
+
+            // findout model front/up axis
             
+        }
+
+        private void OnEnable()
+        {
+            VRModule.onNewPoses += UpdatePoses;
+        }
+
+        private void OnDisable()
+        {
+            VRModule.onNewPoses -= UpdatePoses;
+        }
+
+        private void UpdatePoses()
+        {
+            var deviceIndex = m_viveRole.GetDeviceIndex();
+            if (!VRModule.IsValidDeviceIndex(deviceIndex)) { return; }
+
+            var deviceState = VRModule.GetCurrentDeviceState(deviceIndex);
+
         }
 
         public void OnAfterModelCreated(RenderModelHook hook)
         {
-            throw new NotImplementedException();
+            m_viveRole.Set(hook.viveRole);
         }
 
-        public bool OnBeforeModelActivated(RenderModelHook hook)
-        {
-            throw new NotImplementedException();
-        }
+        public bool OnBeforeModelActivated(RenderModelHook hook) { return true; }
 
-        public bool OnBeforeModelDeactivated(RenderModelHook hook)
-        {
-            throw new NotImplementedException();
-        }
+        public bool OnBeforeModelDeactivated(RenderModelHook hook) { return true; }
     }
 }

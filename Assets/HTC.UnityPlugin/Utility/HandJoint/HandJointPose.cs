@@ -29,7 +29,7 @@ namespace HTC.UnityPlugin.Utility
 
         public static int NameToIndex(HandJointName joint)
         {
-            return (int) joint - 1; // Since HandJointName.None = 0
+            return (int)joint - 1; // Since HandJointName.None = 0
         }
 
         public static void AssignToArray(HandJointPose[] joints, HandJointName jointName, Vector3 position, Quaternion rotation)
@@ -50,6 +50,18 @@ namespace HTC.UnityPlugin.Utility
             }
 
             joints[NameToIndex(jointName)] = new HandJointPose(jointName, position, rotation);
+        }
+    }
+
+    [Serializable]
+    public struct JointPose
+    {
+        public bool isValid;
+        public RigidPose pose;
+        public JointPose(Vector3 position, Quaternion rotation)
+        {
+            isValid = true;
+            pose = new RigidPose(position, rotation);
         }
     }
 }

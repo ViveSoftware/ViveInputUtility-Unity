@@ -188,6 +188,26 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState = m_currStates[index] = new DeviceState(index);
             }
         }
+        // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+        private uint FindAndEnsureUnusedNotHMDDeviceState(out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+        {
+            var len = GetDeviceStateLength();
+            for (uint i = 0u, imax = len; i < imax; ++i)
+            {
+                if (i == VRModule.HMD_DEVICE_INDEX) { continue; }
+                if (TryGetValidDeviceState(i, out prevState, out currState))
+                {
+                    if (prevState.isConnected) { continue; }
+                    if (currState.isConnected) { continue; }
+                }
+
+                EnsureValidDeviceState(i, out prevState, out currState);
+                return i;
+            }
+
+            EnsureValidDeviceState(len, out prevState, out currState);
+            return len;
+        }
 
         private void Update()
         {

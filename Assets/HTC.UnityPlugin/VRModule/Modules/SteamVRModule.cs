@@ -280,11 +280,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
                 else
                 {
-                    var moduleIndex = m_indexMap.Tracked2ModuleIndex(i);
-                    if (!VRModule.IsValidDeviceIndex(moduleIndex))
+                    uint moduleIndex;
+                    if (!m_indexMap.TryGetModuleIndex(i, out moduleIndex))
                     {
-                        moduleIndex = FindOrAllocateUnusedNotHMDIndex();
+                        moduleIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
                         m_indexMap.Map(i, moduleIndex);
+                    }
+                    else
+                    {
+                        EnsureValidDeviceState(moduleIndex, out prevState, out currState);
                     }
 
                     EnsureValidDeviceState(moduleIndex, out prevState, out currState);
