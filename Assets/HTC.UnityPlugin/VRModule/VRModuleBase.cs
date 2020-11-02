@@ -435,7 +435,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
 
-                public void UpdateModuleseDeviceInput()
+                public void UpdateModulesDeviceInput()
                 {
                     for (int i = 0, imax = modules.Count; i < imax; ++i)
                     {

@@ -15,6 +15,19 @@ namespace HTC.UnityPlugin.Vive
     [AddComponentMenu("VIU/Hooks/Render Model Hook", 10)]
     public class RenderModelHook : MonoBehaviour, IViveRoleComponent
     {
+        public interface ICustomModel
+        {
+            void OnAfterModelCreated(RenderModelHook hook);
+            /// <summary>
+            /// If from all components return true, hook will perform SetActive(true) on this model after this message
+            /// </summary>
+            bool OnBeforeModelActivated(RenderModelHook hook);
+            /// <summary>
+            /// If from all components return true, hook will perform SetActive(false) on this model after this message
+            /// </summary>
+            bool OnBeforeModelDeactivated(RenderModelHook hook);
+        }
+
         [AttributeUsage(AttributeTargets.Class)]
         public class CreatorPriorityAttirbute : Attribute
         {
@@ -288,19 +301,6 @@ namespace HTC.UnityPlugin.Vive
             }
 
             return result;
-        }
-
-        public interface ICustomModel
-        {
-            void OnAfterModelCreated(RenderModelHook hook);
-            /// <summary>
-            /// If from all components return true, hook will perform SetActive(true) on this model after this message
-            /// </summary>
-            bool OnBeforeModelActivated(RenderModelHook hook);
-            /// <summary>
-            /// If from all components return true, hook will perform SetActive(false) on this model after this message
-            /// </summary>
-            bool OnBeforeModelDeactivated(RenderModelHook hook);
         }
 
         private bool m_isCustomModelActivated;

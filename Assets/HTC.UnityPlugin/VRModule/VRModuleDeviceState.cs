@@ -165,7 +165,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Quaternion rotation { get; set; }
         RigidPose pose { get; set; }
         [Obsolete] HandJointPose[] handJoints { get; }
-        EnumArray<HandJointIndex, JointPose> joints { get; }
+        JointEnumArray joints { get; }
 
         ulong buttonPressed { get; set; }
         ulong buttonTouched { get; set; }
@@ -210,7 +210,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         bool GetButtonTouch(VRModuleRawButton button);
         float GetAxisValue(VRModuleRawAxis axis);
 
-        EnumArray<HandJointIndex, JointPose>.IReadOnly _handJoins { get; }
+        JointEnumArray.IReadOnly _handJoins { get; }
         int GetValidHandJointCount();
         void GetFingerJoints(FingerName fingerName, IList<JointPose> outHandJoints);
         [Obsolete] bool TryGetHandJointPose(HandJointName jointName, out RigidPose pose);
@@ -218,6 +218,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         [Obsolete] void GetFingerJoints(FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true);
         [Obsolete] int GetHandJointCount();
     }
+
+    [Serializable]
+    public class JointEnumArray : EnumArray<HandJointIndex, JointPose> { }
 
     public partial class VRModule : SingletonBehaviour<VRModule>
     {
@@ -258,7 +261,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [SerializeField]
             private HandJointPose[] m_handJoints;
             [SerializeField]
-            private EnumArray<HandJointIndex, JointPose> m_joints;
+            private JointEnumArray m_joints;
 
             // device property, changed only when connected or disconnected
             public uint deviceIndex { get; private set; }
@@ -294,16 +297,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            public EnumArray<HandJointIndex, JointPose> joints
+            public JointEnumArray joints
             {
                 get
                 {
-                    if (m_joints == null) { m_joints = new EnumArray<HandJointIndex, JointPose>(); }
+                    if (m_joints == null) { m_joints = new JointEnumArray(); }
                     return m_joints;
                 }
             }
 
-            public EnumArray<HandJointIndex, JointPose>.IReadOnly _handJoins { get { return joints.ReadOnly; } }
+            public JointEnumArray.IReadOnly _handJoins { get { return joints.ReadOnly; } }
 
             // device input state
             [SerializeField]

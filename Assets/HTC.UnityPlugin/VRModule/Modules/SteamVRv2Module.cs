@@ -335,7 +335,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            m_submodules.UpdateModulesDeviceConnectionAndPoses();
+            m_submodules.UpdateModulesDeviceInput();
 
             ProcessDeviceInputChanged();
         }

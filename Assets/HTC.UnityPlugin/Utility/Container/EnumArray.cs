@@ -5,12 +5,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using System.Runtime.InteropServices;
 
 namespace HTC.UnityPlugin.Utility
 {
     [Serializable]
     public abstract class EnumArrayBase
     {
+        public const int LENGTH_LIMIT = 1024;
+
         public abstract Type EnumType { get; }
         public abstract Type ElementType { get; }
         public abstract int MinInt { get; }
@@ -22,6 +25,22 @@ namespace HTC.UnityPlugin.Utility
         public abstract void Clear();
         public abstract void FillCapacityToLength();
         public abstract void TrimCapacityToLength();
+
+        protected static void AssertSupportedRangeInt64(object e)
+        {
+            if (Convert.ToInt64(e) < 0L)
+            {
+                throw new Exception("Out of EnumArray supported long value, must larger then 0");
+            }
+        }
+
+        protected static void AssertSupportedRangeUInt64(object e)
+        {
+            if (Convert.ToUInt64(e) > uint.MaxValue)
+            {
+                throw new Exception("Out of EnumArray supported ulong value, must less then " + uint.MaxValue);
+            }
+        }
     }
 
     [Serializable]
@@ -47,8 +66,7 @@ namespace HTC.UnityPlugin.Utility
             {
                 while (i < DefinedLength)
                 {
-                    var index = i++;
-                    if (enumIsDefined[index])
+                    if (enumIsDefined[i++])
                     {
                         return true;
                     }
@@ -57,38 +75,73 @@ namespace HTC.UnityPlugin.Utility
             }
         }
 
-        private static readonly bool[] enumIsDefined;
-        private static readonly TEnum[] enums;
+        private static readonly bool needRearrangeHashCode;
+        protected static readonly TEnum[] enums;
+        protected static readonly bool[] enumIsDefined;
         public static readonly int DefinedMinInt;
         public static readonly TEnum DefinedMin;
         public static readonly int DefinedMaxInt;
         public static readonly TEnum DefinedMax;
         public static readonly int DefinedLength;
+        public static readonly Type BaseEnumType = typeof(TEnum);
 
         static EnumArrayBase()
         {
 #if !CSHARP_7_OR_LATER
-            if (!typeof(TEnum).IsEnum) { throw new Exception(typeof(TEnum).Name + " is not enum type!"); }
+            if (!BaseEnumType.IsEnum) { throw new Exception(BaseEnumType.Name + " is not enum type!"); }
 #endif
+            var underlyingeType = Enum.GetUnderlyingType(BaseEnumType);
+            if (underlyingeType == typeof(sbyte) || underlyingeType == typeof(short))
+            {
+                throw new Exception("Underlyinge type of " + BaseEnumType.Name + "(" + underlyingeType.Name + ") is not supported.");
+            }
+
+            Action<object> assertSupportedRange = null;
+            if (underlyingeType == typeof(uint))
+            {
+                needRearrangeHashCode = true;
+            }
+            else if (underlyingeType == typeof(long))
+            {
+                needRearrangeHashCode = true;
+                assertSupportedRange = AssertSupportedRangeInt64;
+            }
+            else if (underlyingeType == typeof(ulong))
+            {
+                needRearrangeHashCode = true;
+                assertSupportedRange = AssertSupportedRangeUInt64;
+            }
+
             // find out min/max/length value in defined enum values
             DefinedMinInt = int.MaxValue;
             DefinedMaxInt = int.MinValue;
-            var enums = Enum.GetValues(typeof(TEnum)) as TEnum[];
+            var enums = Enum.GetValues(BaseEnumType) as TEnum[];
             foreach (var e in enums)
             {
+                if (assertSupportedRange != null) { assertSupportedRange(e); }
                 var i = E2I(e);
 
-                if (i < DefinedMinInt)
+                if (i <= DefinedMinInt)
                 {
                     DefinedMinInt = i;
                     DefinedMin = e;
                 }
 
-                if (i > DefinedMaxInt)
+                if (i >= DefinedMaxInt)
                 {
                     DefinedMaxInt = i;
                     DefinedMax = e;
                 }
+            }
+
+            if (DefinedMinInt < (int.MaxValue - LENGTH_LIMIT) && (DefinedMinInt + LENGTH_LIMIT) < DefinedMaxInt)
+            {
+                var min = (long)DefinedMinInt;
+                var max = (long)DefinedMaxInt;
+                var len = max - min;
+                DefinedMinInt = 0;
+                DefinedMaxInt = 0;
+                throw new Exception("Defined length must less then " + LENGTH_LIMIT + ". min:" + DefinedMin + "(" + min + ") max:" + DefinedMax + "(" + max + ") len:" + len);
             }
 
             DefinedLength = DefinedMaxInt - DefinedMinInt + 1;
@@ -112,10 +165,6 @@ namespace HTC.UnityPlugin.Utility
 
         public bool IsDefined(TEnum e) { return BaseIsDefined(e); }
 
-        public EnumKeyEnumerator EnumKeys { get { return BaseEnumKeys; } }
-
-        public static Type BaseEnumType { get { return typeof(TEnum); } }
-
         public static string BaseEnumIntName(int enumInt) { return I2E(enumInt).ToString(); }
 
         public static bool BaseIsEnumIntDefined(int enumInt)
@@ -133,7 +182,14 @@ namespace HTC.UnityPlugin.Utility
 
         public static int E2I(TEnum e)
         {
-            return EqualityComparer<TEnum>.Default.GetHashCode(e);
+            var value = EqualityComparer<TEnum>.Default.GetHashCode(e);
+            if (needRearrangeHashCode)
+            {
+                if (value >= 0) { value -= int.MaxValue; }
+                else { value += int.MaxValue; }
+                --value;
+            }
+            return value;
         }
 
         public static TEnum I2E(int ev)
@@ -156,14 +212,21 @@ namespace HTC.UnityPlugin.Utility
             TEnum Max { get; }
             int MinInt { get; }
             int MaxInt { get; }
-            int Length { get; }
-            int Capacity { get; }
             TElement this[TEnum e] { get; }
             TElement this[int ev] { get; }
             string EnumName(int enumInt);
             EnumKeyEnumerator EnumKeys { get; }
             ElementEnumerator Elements { get; }
             new Enumerator GetEnumerator();
+
+            /// <summary>
+            /// Length defined by TEnum value
+            /// </summary>
+            int Length { get; }
+            /// <summary>
+            /// Real length for the underlying array (underlying array could be overridden by Unity's serialization)
+            /// </summary>
+            int Capacity { get; }
         }
 
         public struct ElementEnumerator : IEnumerator<TElement>, IEnumerable<TElement>
@@ -190,9 +253,7 @@ namespace HTC.UnityPlugin.Utility
             {
                 while (i < DefinedLength)
                 {
-                    var index = i++;
-                    var enumInt = index + DefinedMinInt;
-                    if (BaseIsEnumIntDefined(enumInt))
+                    if (enumIsDefined[i++])
                     {
                         return true;
                     }
@@ -207,7 +268,7 @@ namespace HTC.UnityPlugin.Utility
             private int i;
 
             object IEnumerator.Current { get { return Current; } }
-            public KeyValuePair<TEnum, TElement> Current { get { return new KeyValuePair<TEnum, TElement>(I2E(i + DefinedMinInt - 1), elements[i - 1]); } }
+            public KeyValuePair<TEnum, TElement> Current { get { return new KeyValuePair<TEnum, TElement>(enums[i - 1], elements[i - 1]); } }
 
             public Enumerator(TElement[] elements)
             {
@@ -225,9 +286,7 @@ namespace HTC.UnityPlugin.Utility
             {
                 while (i < DefinedLength)
                 {
-                    var index = i++;
-                    var enumInt = index + DefinedMinInt;
-                    if (BaseIsEnumIntDefined(enumInt))
+                    if (enumIsDefined[i++])
                     {
                         return true;
                     }
@@ -236,6 +295,7 @@ namespace HTC.UnityPlugin.Utility
             }
         }
 
+        [Serializable]
         private class ReadOnlyEnumArray : IReadOnly
         {
             private readonly EnumArray<TEnum, TElement> source;
@@ -277,11 +337,19 @@ namespace HTC.UnityPlugin.Utility
 
         public TEnum Max { get { return DefinedMax; } }
 
+        /// <summary>
+        /// Length defined by TEnum value
+        /// </summary>
         public override int Length { get { return DefinedLength; } }
 
+        /// <summary>
+        /// Real length for the underlying array (underlying array could be overridden by Unity's serialization)
+        /// </summary>
         public override int Capacity { get { return elements == null ? 0 : elements.Length; } }
 
         public IReadOnly ReadOnly { get { return readOnly != null ? readOnly : (readOnly = new ReadOnlyEnumArray(this)); } }
+
+        public EnumKeyEnumerator EnumKeys { get { return new EnumKeyEnumerator(); } }
 
         public ElementEnumerator Elements { get { FillCapacityToLength(); return new ElementEnumerator(elements); } }
 
