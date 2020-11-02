@@ -166,7 +166,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private class RenderModelCreator : RenderModelHook.RenderModelCreator
         {
             private uint m_index = INVALID_DEVICE_INDEX;
-            private VIUOculusVRRenderModel m_model;
+            private VIUOculusVRRenderModel m_controllerModel;
+            private OculusHandRenderModel m_handModel;
 
             public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
 
@@ -174,42 +175,79 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
 
-                if (VRModule.IsValidDeviceIndex(m_index))
+                DisableAllModels();
+                if (!VRModule.IsValidDeviceIndex(m_index))
                 {
-                    // create object for render model
-                    if (m_model == null)
+                    return;
+                }
+
+                if (IsHand())
+                {
+                    bool isLeftHand = m_index == s_leftHandIndex;
+                    if (m_handModel == null)
                     {
-                        var go = new GameObject("Model");
-                        go.transform.SetParent(hook.transform, false);
-                        m_model = go.AddComponent<VIUOculusVRRenderModel>();
+                        GameObject handObj = new GameObject("OculusHandModel");
+                        handObj.transform.SetParent(hook.transform.parent.parent, false);
+                        m_handModel = handObj.AddComponent<OculusHandRenderModel>();
+                        m_handModel.Initialize(isLeftHand);
                     }
 
-                    // set render model index
-                    m_model.gameObject.SetActive(true);
-                    m_model.shaderOverride = hook.overrideShader;
-#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER
-                    m_model.gameObject.AddComponent(System.Type.GetType("OvrAvatarTouchController"));
-#endif
-                    m_model.SetDeviceIndex(m_index);
+                    m_handModel.gameObject.SetActive(true);
+                    m_handModel.SetHand(isLeftHand);
                 }
                 else
                 {
-                    // deacitvate object for render model
-                    if (m_model != null)
+                    // create object for render model
+                    if (m_controllerModel == null)
                     {
-                        m_model.gameObject.SetActive(false);
+                        var go = new GameObject("OculusControllerModel");
+                        go.transform.SetParent(hook.transform, false);
+                        m_controllerModel = go.AddComponent<VIUOculusVRRenderModel>();
                     }
+
+                    // set render model index
+                    m_controllerModel.gameObject.SetActive(true);
+                    m_controllerModel.shaderOverride = hook.overrideShader;
+#if VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER
+                    m_controllerModel.gameObject.AddComponent(System.Type.GetType("OvrAvatarTouchController"));
+#endif
+                    m_controllerModel.SetDeviceIndex(m_index);
                 }
             }
 
             public override void CleanUpRenderModel()
             {
-                if (m_model != null)
+                if (m_handModel != null)
                 {
-                    Object.Destroy(m_model.gameObject);
-                    m_model = null;
-                    m_index = INVALID_DEVICE_INDEX;
+                    Object.Destroy(m_handModel.gameObject);
+                    m_handModel = null;
                 }
+
+                if (m_controllerModel != null)
+                {
+                    Object.Destroy(m_controllerModel.gameObject);
+                    m_controllerModel = null;
+                }
+
+                m_index = INVALID_DEVICE_INDEX;
+            }
+
+            private void DisableAllModels()
+            {
+                if (m_controllerModel != null)
+                {
+                    m_controllerModel.gameObject.SetActive(false);
+                }
+
+                if (m_handModel != null)
+                {
+                    m_handModel.gameObject.SetActive(false);
+                }
+            }
+
+            private bool IsHand()
+            {
+                return m_index == s_leftHandIndex || m_index == s_rightHandIndex;
             }
         }
 

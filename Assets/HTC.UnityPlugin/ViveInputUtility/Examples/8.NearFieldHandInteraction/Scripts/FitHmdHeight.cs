@@ -31,7 +31,7 @@ namespace HTC.UnityPlugin.Vive
             Vector3 pos = hmdPose.pos;
             pos += hmdPose.forward * m_distance;
             pos.y += m_height;
-            transform.position = pos;
+            transform.localPosition = pos;
 
             Vector3 lookAtTarget = new Vector3(hmdPose.pos.x, pos.y, hmdPose.pos.z);
             transform.LookAt(lookAtTarget, Vector3.up);

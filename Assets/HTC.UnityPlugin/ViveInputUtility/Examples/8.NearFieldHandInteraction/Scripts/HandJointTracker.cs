@@ -32,8 +32,8 @@ namespace HTC.UnityPlugin.Vive
             RigidPose pose;
             if (VivePose.TryGetHandJointPoseEx(handRole, jointName, out pose))
             {
-                transform.position = pose.pos;
-                transform.rotation = pose.rot;
+                transform.localPosition = pose.pos;
+                transform.localRotation = pose.rot;
 
                 if (!m_isPoseValid)
                 {
