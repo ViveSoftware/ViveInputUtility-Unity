@@ -52,9 +52,23 @@ namespace HTC.UnityPlugin.Utility
         public struct EnumKeyEnumerator : IEnumerator<TEnum>, IEnumerable<TEnum>
         {
             private int i;
+            private int iCurrent;
+            private int iDst;
 
             object IEnumerator.Current { get { return Current; } }
-            public TEnum Current { get { return enums[i - 1]; } }
+            public TEnum Current { get { return enums[iCurrent]; } }
+
+            public EnumKeyEnumerator(TEnum from)
+            {
+                i = iCurrent = E2I(from) - DefinedMinInt;
+                iDst = DefinedLength - 1;
+            }
+
+            public EnumKeyEnumerator(TEnum from, TEnum to)
+            {
+                i = iCurrent = E2I(from) - DefinedMinInt;
+                iDst = E2I(to) - DefinedMinInt;
+            }
 
             void IDisposable.Dispose() { }
             public void Reset() { i = 0; }
@@ -64,9 +78,11 @@ namespace HTC.UnityPlugin.Utility
 
             public bool MoveNext()
             {
-                while (i < DefinedLength)
+                while (i != iDst)
                 {
-                    if (enumIsDefined[i++])
+                    iCurrent = i;
+                    if (i > iDst) { --i; } else { ++i; }
+                    if (enumIsDefined[iCurrent])
                     {
                         return true;
                     }
@@ -180,6 +196,10 @@ namespace HTC.UnityPlugin.Utility
 
         public static EnumKeyEnumerator BaseEnumKeys { get { return new EnumKeyEnumerator(); } }
 
+        public static EnumKeyEnumerator BaseEnumKeysFrom(TEnum from) { return new EnumKeyEnumerator(from); }
+
+        public static EnumKeyEnumerator BaseEnumKeysFrom(TEnum from, TEnum to) { return new EnumKeyEnumerator(from, to); }
+
         public static int E2I(TEnum e)
         {
             var value = EqualityComparer<TEnum>.Default.GetHashCode(e);
@@ -216,8 +236,14 @@ namespace HTC.UnityPlugin.Utility
             TElement this[int ev] { get; }
             string EnumName(int enumInt);
             EnumKeyEnumerator EnumKeys { get; }
+            EnumKeyEnumerator EnumKeysFrom(TEnum from);
+            EnumKeyEnumerator EnumKeysFrom(TEnum from, TEnum to);
             ElementEnumerator Elements { get; }
+            ElementEnumerator ElementsFrom(TEnum from);
+            ElementEnumerator ElementsFrom(TEnum from, TEnum to);
             new Enumerator GetEnumerator();
+            Enumerator EnumerateFrom(TEnum from);
+            Enumerator EnumerateFrom(TEnum from, TEnum to);
 
             /// <summary>
             /// Length defined by TEnum value
@@ -233,14 +259,31 @@ namespace HTC.UnityPlugin.Utility
         {
             private readonly TElement[] elements;
             private int i;
+            private int iCurrent;
+            private int iDst;
 
             object IEnumerator.Current { get { return Current; } }
-            public TElement Current { get { return elements[i - 1]; } }
+            public TElement Current { get { return elements[iCurrent]; } }
 
-            public ElementEnumerator(TElement[] elements)
+            public ElementEnumerator(EnumArray<TEnum, TElement> array)
             {
-                i = 0;
-                this.elements = elements;
+                elements = array.elements;
+                i = iCurrent = 0;
+                iDst = DefinedLength - 1;
+            }
+
+            public ElementEnumerator(EnumArray<TEnum, TElement> array, TEnum from)
+            {
+                elements = array.elements;
+                i = iCurrent = E2I(from) - DefinedMinInt;
+                iDst = DefinedLength - 1;
+            }
+
+            public ElementEnumerator(EnumArray<TEnum, TElement> array, TEnum from, TEnum to)
+            {
+                elements = array.elements;
+                i = iCurrent = E2I(from) - DefinedMinInt;
+                iDst = E2I(to) - DefinedMinInt;
             }
 
             void IDisposable.Dispose() { }
@@ -251,9 +294,11 @@ namespace HTC.UnityPlugin.Utility
 
             public bool MoveNext()
             {
-                while (i < DefinedLength)
+                while (i != iDst)
                 {
-                    if (enumIsDefined[i++])
+                    iCurrent = i;
+                    if (i > iDst) { --i; } else { ++i; }
+                    if (enumIsDefined[iCurrent])
                     {
                         return true;
                     }
@@ -266,14 +311,31 @@ namespace HTC.UnityPlugin.Utility
         {
             private readonly TElement[] elements;
             private int i;
+            private int iCurrent;
+            private int iDst;
 
             object IEnumerator.Current { get { return Current; } }
-            public KeyValuePair<TEnum, TElement> Current { get { return new KeyValuePair<TEnum, TElement>(enums[i - 1], elements[i - 1]); } }
+            public KeyValuePair<TEnum, TElement> Current { get { return new KeyValuePair<TEnum, TElement>(enums[iCurrent], elements[iCurrent]); } }
 
-            public Enumerator(TElement[] elements)
+            public Enumerator(EnumArray<TEnum, TElement> array)
             {
-                i = 0;
-                this.elements = elements;
+                elements = array.elements;
+                i = iCurrent = 0;
+                iDst = DefinedLength - 1;
+            }
+
+            public Enumerator(EnumArray<TEnum, TElement> array, TEnum from)
+            {
+                elements = array.elements;
+                i = iCurrent = E2I(from) - DefinedMinInt;
+                iDst = DefinedLength;
+            }
+
+            public Enumerator(EnumArray<TEnum, TElement> array, TEnum from, TEnum to)
+            {
+                elements = array.elements;
+                i = iCurrent = E2I(from) - DefinedMinInt;
+                iDst = E2I(to) - DefinedMinInt;
             }
 
             void IDisposable.Dispose() { }
@@ -284,9 +346,11 @@ namespace HTC.UnityPlugin.Utility
 
             public bool MoveNext()
             {
-                while (i < DefinedLength)
+                while (i != iDst)
                 {
-                    if (enumIsDefined[i++])
+                    iCurrent = i;
+                    if (i > iDst) { --i; } else { ++i; }
+                    if (enumIsDefined[iCurrent])
                     {
                         return true;
                     }
@@ -298,7 +362,7 @@ namespace HTC.UnityPlugin.Utility
         [Serializable]
         private class ReadOnlyEnumArray : IReadOnly
         {
-            private readonly EnumArray<TEnum, TElement> source;
+            public readonly EnumArray<TEnum, TElement> source;
             public ReadOnlyEnumArray(EnumArray<TEnum, TElement> source) { this.source = source; }
             public Type EnumType { get { return source.EnumType; } }
             public Type ElementType { get { return source.ElementType; } }
@@ -312,8 +376,14 @@ namespace HTC.UnityPlugin.Utility
             public TElement this[int ev] { get { return source[ev]; } }
             public string EnumName(int enumInt) { return source.EnumIntName(enumInt); }
             public EnumKeyEnumerator EnumKeys { get { return source.EnumKeys; } }
+            public EnumKeyEnumerator EnumKeysFrom(TEnum from) { return source.EnumKeysFrom(from); }
+            public EnumKeyEnumerator EnumKeysFrom(TEnum from, TEnum to) { return source.EnumKeysFrom(from, to); }
             public ElementEnumerator Elements { get { return source.Elements; } }
+            public ElementEnumerator ElementsFrom(TEnum from) { return source.ElementsFrom(from); }
+            public ElementEnumerator ElementsFrom(TEnum from, TEnum to) { return source.ElementsFrom(from, to); }
             public Enumerator GetEnumerator() { return source.GetEnumerator(); }
+            public Enumerator EnumerateFrom(TEnum from) { return source.EnumerateFrom(from); }
+            public Enumerator EnumerateFrom(TEnum from, TEnum to) { return source.EnumerateFrom(from, to); }
             IEnumerator<KeyValuePair<TEnum, TElement>> IEnumerable<KeyValuePair<TEnum, TElement>>.GetEnumerator() { return source.GetEnumerator(); }
             IEnumerator IEnumerable.GetEnumerator() { return source.GetEnumerator(); }
         }
@@ -351,9 +421,21 @@ namespace HTC.UnityPlugin.Utility
 
         public EnumKeyEnumerator EnumKeys { get { return new EnumKeyEnumerator(); } }
 
-        public ElementEnumerator Elements { get { FillCapacityToLength(); return new ElementEnumerator(elements); } }
+        public EnumKeyEnumerator EnumKeysFrom(TEnum from) { return new EnumKeyEnumerator(from); }
 
-        public Enumerator GetEnumerator() { FillCapacityToLength(); return new Enumerator(elements); }
+        public EnumKeyEnumerator EnumKeysFrom(TEnum from, TEnum to) { return new EnumKeyEnumerator(from, to); }
+
+        public ElementEnumerator Elements { get { FillCapacityToLength(); return new ElementEnumerator(this); } }
+
+        public ElementEnumerator ElementsFrom(TEnum from) { FillCapacityToLength(); return new ElementEnumerator(this, from); }
+
+        public ElementEnumerator ElementsFrom(TEnum from, TEnum to) { FillCapacityToLength(); return new ElementEnumerator(this, from, to); }
+
+        public Enumerator GetEnumerator() { FillCapacityToLength(); return new Enumerator(this); }
+
+        public Enumerator EnumerateFrom(TEnum from) { FillCapacityToLength(); return new Enumerator(this, from); }
+
+        public Enumerator EnumerateFrom(TEnum from, TEnum to) { FillCapacityToLength(); return new Enumerator(this, from, to); }
 
         IEnumerator<KeyValuePair<TEnum, TElement>> IEnumerable<KeyValuePair<TEnum, TElement>>.GetEnumerator() { return GetEnumerator(); }
 
@@ -367,8 +449,8 @@ namespace HTC.UnityPlugin.Utility
 
         public TElement this[int ev]
         {
-            get { FillCapacityToLength(); return elements[ev - MinInt]; }
-            set { FillCapacityToLength(); elements[ev - MinInt] = value; }
+            get { FillCapacityToLength(); return elements[ev - DefinedMinInt]; }
+            set { FillCapacityToLength(); elements[ev - DefinedMinInt] = value; }
         }
 
         public override void Clear()
@@ -383,6 +465,26 @@ namespace HTC.UnityPlugin.Utility
         {
             FillCapacityToLength();
             for (int i = elements.Length - 1; i >= 0; --i) { elements[i] = clearWith; }
+        }
+
+        public void CopyFrom(EnumArray<TEnum, TElement> source)
+        {
+            if (ReferenceEquals(this, source)) { return; }
+            FillCapacityToLength();
+            source.FillCapacityToLength();
+            Array.Copy(source.elements, 0, elements, 0, DefinedLength);
+        }
+
+        public static void Copy(EnumArray<TEnum, TElement> srcArray, TEnum srcEnumIndex, EnumArray<TEnum, TElement> dstArray, TEnum dstEnumIndex, int length)
+        {
+            Copy(srcArray, E2I(srcEnumIndex), dstArray, E2I(dstEnumIndex), length);
+        }
+
+        public static void Copy(EnumArray<TEnum, TElement> srcArray, int srcEnumValueIndex, EnumArray<TEnum, TElement> dstArray, int dstEnumValueIndex, int length)
+        {
+            srcArray.FillCapacityToLength();
+            dstArray.FillCapacityToLength();
+            Array.Copy(srcArray.elements, srcEnumValueIndex - DefinedMinInt, dstArray.elements, dstEnumValueIndex - DefinedMinInt, length);
         }
 
         public override void FillCapacityToLength()

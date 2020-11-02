@@ -459,10 +459,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonTouched = state.m_buttonTouched;
                 Array.Copy(state.m_axisValue, m_axisValue, m_axisValue.Length);
 
-                if (m_handJoints != null && state.m_handJoints != null)
-                {
-                    Array.Copy(state.handJoints, handJoints, state.handJoints.Length);
-                }
+                if (m_handJoints != null && state.m_handJoints != null) { Array.Copy(state.m_handJoints, m_handJoints, m_handJoints.Length); }
+
+                m_joints.CopyFrom(state.m_joints);
             }
 
             public void Reset()
@@ -486,10 +485,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonTouched = 0ul;
                 ResetAxisValues();
 
-                if (m_handJoints != null)
-                {
-                    Array.Clear(m_handJoints, 0, m_handJoints.Length);
-                }
+                if (m_handJoints != null) { Array.Clear(m_handJoints, 0, m_handJoints.Length); }
+
+                if (m_joints != null) { m_joints.Clear(); }
             }
         }
     }
