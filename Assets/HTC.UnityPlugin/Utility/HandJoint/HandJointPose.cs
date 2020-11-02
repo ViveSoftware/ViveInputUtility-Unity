@@ -60,8 +60,13 @@ namespace HTC.UnityPlugin.Utility
         public RigidPose pose;
         public JointPose(Vector3 position, Quaternion rotation)
         {
-            isValid = true;
-            pose = new RigidPose(position, rotation);
+            this.isValid = true;
+            this.pose = new RigidPose(position, rotation);
+        }
+        public JointPose(RigidPose pose)
+        {
+            this.isValid = true;
+            this.pose = pose;
         }
     }
 }
