@@ -420,32 +420,62 @@ namespace HTC.UnityPlugin.VRModuleManagement
             DeviceState currState;
 
             m_delayDeactivate = true;
+            List<uint> connected = null;
+            List<uint> disconnected = null;
             // send connect/disconnect event
             for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
                 if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
 
-                if (prevState.isConnected == currState.isConnected) { continue; }
-
-                if (currState.isConnected)
+                if (!prevState.isConnected)
                 {
-                    if (string.IsNullOrEmpty(currState.serialNumber))
+                    if (currState.isConnected)
                     {
-                        Debug.LogError("Device connected with empty serialNumber. index:" + i);
-                    }
-                    else if (s_deviceSerialNumberTable.ContainsKey(currState.serialNumber))
-                    {
-                        Debug.LogError("Device connected with duplicate serialNumber: " + currState.serialNumber + " index:" + i + "(" + s_deviceSerialNumberTable[currState.serialNumber] + ")");
-                    }
-                    else
-                    {
-                        s_deviceSerialNumberTable.Add(currState.serialNumber, i);
+                        if (connected == null) { connected = ListPool<uint>.Get(); }
+                        connected.Add(i);
                     }
                 }
                 else
                 {
-                    s_deviceSerialNumberTable.Remove(prevState.serialNumber);
+                    if (!currState.isConnected)
+                    {
+                        if (disconnected == null) { disconnected = ListPool<uint>.Get(); }
+                        disconnected.Add(i);
+                    }
                 }
+            }
+
+            if (disconnected != null)
+            {
+                for (int i = 0, imax = disconnected.Count; i < imax; ++i)
+                {
+                    var index = disconnected[i];
+                    var state = m_prevStates[index];
+                    s_deviceSerialNumberTable.Remove(state.serialNumber);
+                }
+                ListPool<uint>.Release(disconnected);
+            }
+
+            if (connected != null)
+            {
+                for (int i = 0, imax = connected.Count; i < imax; ++i)
+                {
+                    var index = connected[i];
+                    var state = m_currStates[index];
+                    if (string.IsNullOrEmpty(state.serialNumber))
+                    {
+                        Debug.LogError("Device connected with empty serialNumber. index:" + state.deviceIndex);
+                    }
+                    else if (s_deviceSerialNumberTable.ContainsKey(state.serialNumber))
+                    {
+                        Debug.LogError("Device connected with duplicate serialNumber: " + state.serialNumber + " index:" + state.deviceIndex + "(" + s_deviceSerialNumberTable[state.serialNumber] + ")");
+                    }
+                    else
+                    {
+                        s_deviceSerialNumberTable.Add(state.serialNumber, index);
+                    }
+                }
+                ListPool<uint>.Release(connected);
             }
 
             SendAllDeviceConnectedEvent();

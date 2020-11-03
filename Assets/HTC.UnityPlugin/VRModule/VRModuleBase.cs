@@ -379,13 +379,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public override int moduleIndex { get { return (int)VRModuleActiveEnum.None; } }
         }
 
-        public abstract class SubModuleBase
+        public abstract class SubmoduleBase
         {
             public class Collection
             {
-                private List<SubModuleBase> modules = new List<SubModuleBase>();
+                private List<SubmoduleBase> modules = new List<SubmoduleBase>();
 
-                public Collection(params SubModuleBase[] modules)
+                public Collection(params SubmoduleBase[] modules)
                 {
                     if (modules != null && modules.Length > 0)
                     {
@@ -396,7 +396,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
 
-                public void AddModule(SubModuleBase module, params SubModuleBase[] modules)
+                public void AddModule(SubmoduleBase module, params SubmoduleBase[] modules)
                 {
                     if (module != null) { this.modules.Add(module); }
                     if (modules != null && modules.Length > 0)

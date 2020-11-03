@@ -78,6 +78,7 @@ namespace HTC.UnityPlugin.Utility
 
             public bool MoveNext()
             {
+                if (enums == null) { return false; }
                 while (i != iDst)
                 {
                     iCurrent = i;
@@ -294,6 +295,7 @@ namespace HTC.UnityPlugin.Utility
 
             public bool MoveNext()
             {
+                if (elements == null) { return false; }
                 while (i != iDst)
                 {
                     iCurrent = i;
@@ -346,6 +348,7 @@ namespace HTC.UnityPlugin.Utility
 
             public bool MoveNext()
             {
+                if (elements == null) { return false; }
                 while (i != iDst)
                 {
                     iCurrent = i;

@@ -210,7 +210,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         bool GetButtonTouch(VRModuleRawButton button);
         float GetAxisValue(VRModuleRawAxis axis);
 
-        JointEnumArray.IReadOnly _handJoins { get; }
+        JointEnumArray.IReadOnly _handJoints { get; }
         int GetValidHandJointCount();
         void GetFingerJoints(FingerName fingerName, IList<JointPose> outHandJoints);
         [Obsolete] bool TryGetHandJointPose(HandJointName jointName, out RigidPose pose);
@@ -306,7 +306,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            public JointEnumArray.IReadOnly _handJoins { get { return joints.ReadOnly; } }
+            public JointEnumArray.IReadOnly _handJoints { get { return joints.ReadOnly; } }
 
             // device input state
             [SerializeField]
@@ -461,7 +461,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (m_handJoints != null && state.m_handJoints != null) { Array.Copy(state.m_handJoints, m_handJoints, m_handJoints.Length); }
 
-                m_joints.CopyFrom(state.m_joints);
+                if (m_joints != null && state.m_joints != null) { m_joints.CopyFrom(state.m_joints); }
             }
 
             public void Reset()

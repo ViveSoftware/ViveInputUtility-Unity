@@ -53,7 +53,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private OriginDataCache m_originDataCache = new OriginDataCache();
         private IndexMap m_indexMap = new IndexMap();
-        private VRModule.SubModuleBase.Collection m_submodules = new VRModule.SubModuleBase.Collection(new ViveHandTrackingSubmodule());
+        private VRModule.SubmoduleBase.Collection m_submodules = new VRModule.SubmoduleBase.Collection(new ViveHandTrackingSubmodule());
 
         private static ETrackingUniverseOrigin trackingSpace
         {
@@ -368,12 +368,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (!m_poses[i].bDeviceIsConnected)
                 {
-                    m_indexMap.UnmapTracked(i);
-
                     uint moduleIndex;
-                    if (m_indexMap.TryGetModuleIndex(i, out moduleIndex) && TryGetValidDeviceState(moduleIndex, out prevState, out currState))
+                    if (m_indexMap.TryGetModuleIndex(i, out moduleIndex))
                     {
-                        currState.Reset();
+                        m_indexMap.UnmapTracked(i);
+                        if (TryGetValidDeviceState(moduleIndex, out prevState, out currState))
+                        {
+                            currState.Reset();
+                        }
                     }
                 }
                 else
