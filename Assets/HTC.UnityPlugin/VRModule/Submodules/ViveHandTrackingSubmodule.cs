@@ -120,7 +120,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
             for (int i = 0, imax = resultSize; i < imax; ++i)
             {
                 var result = (GestureResult)Marshal.PtrToStructure(resultPtr, typeof(GestureResult));
-                IntPtr.Add(resultPtr, sizeofGestureResult);
                 if (result.isLeft)
                 {
                     leftResult = new HandResultData()
@@ -143,6 +142,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         pinchLevel = result.pinchLevel,
                     };
                 }
+                resultPtr = IntPtr.Add(resultPtr, sizeofGestureResult);
             }
 
             IVRModuleDeviceState prevState;
@@ -263,78 +263,69 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-
         private static void UpdateDeviceJoints(IVRModuleDeviceStateRW state, Vector3[] rawJoints, bool isLeft)
         {
             var hmdPose = VRModule.GetDeviceState(VRModule.HMD_DEVICE_INDEX).pose;
-            var wrist2index = rawJoints[5] - rawJoints[0];
-            var wrist2middle = rawJoints[9] - rawJoints[0];
-            var wristUp = isLeft ? Vector3.Cross(wrist2middle, wrist2index) : Vector3.Cross(wrist2index, wrist2middle);
-            var wristRot = Quaternion.LookRotation(wrist2middle, wristUp);
-            var wristPose = new RigidPose(rawJoints[0], wristRot);
-            var wristInverse = wristPose.GetInverse();
-            var wristRight = wristRot * Vector3.right;
+            var roomSpaceCamPose = hmdPose;
+            var camSpaceWrist2index = rawJoints[5] - rawJoints[0];
+            var camSpaceWrist2middle = rawJoints[9] - rawJoints[0];
+            var camSpaceWrist2pinky = rawJoints[17] - rawJoints[0];
+            var camSpaceWristUp = isLeft ? Vector3.Cross(camSpaceWrist2pinky, camSpaceWrist2index) : Vector3.Cross(camSpaceWrist2index, camSpaceWrist2pinky);
+            var camSpaceWristPose = new RigidPose(rawJoints[0], Quaternion.LookRotation(camSpaceWrist2middle, camSpaceWristUp));
+            var roomSpaceWristPose = roomSpaceCamPose * camSpaceWristPose;
 
-            state.pose = hmdPose * wristPose;
+            state.pose = roomSpaceWristPose;
+            state.joints[HandJointIndex.Wrist] = new JointPose(roomSpaceWristPose);
+            state.joints[HandJointIndex.Palm] = new JointPose(roomSpaceCamPose * new RigidPose((rawJoints[0] + rawJoints[9]) * 0.5f, camSpaceWristPose.rot));
 
-            state.joints[HandJointIndex.Wrist] = new JointPose(Vector3.zero, Quaternion.identity);
-            var palmPose = new RigidPose((rawJoints[0] + rawJoints[9]) * 0.5f, Quaternion.identity);
-            state.joints[HandJointIndex.Palm] = new JointPose(wristInverse * palmPose);
+            var camSpaceThumbRight = camSpaceWristPose.rot * (isLeft ? new Vector3(-3f, -8f, -5f) : new Vector3(-3f, 8f, 5f));
+            var camSpaceFingerRight = camSpaceWristPose.rot * Vector3.right;
+            Quaternion camSpaceRot;
+            camSpaceRot = CalculateJointRot(rawJoints, 1, 2, camSpaceThumbRight);
+            state.joints[HandJointIndex.ThumbMetacarpal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[1], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 2, 3, camSpaceThumbRight);
+            state.joints[HandJointIndex.ThumbProximal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[2], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 3, 4, camSpaceThumbRight);
+            state.joints[HandJointIndex.ThumbDistal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[3], camSpaceRot));
+            state.joints[HandJointIndex.ThumbTip] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[4], camSpaceRot));
 
-            Quaternion linkedJointRot;
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 0, 1, wristRight) * Quaternion.Euler(0f, 0f, isLeft ? 50f : -50f);
-            state.joints[HandJointIndex.ThumbMetacarpal] = new JointPose(wristInverse * new RigidPose(rawJoints[1], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 1, 2, wristRight);
-            state.joints[HandJointIndex.ThumbProximal] = new JointPose(wristInverse * new RigidPose(rawJoints[2], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 2, 3, wristRight);
-            state.joints[HandJointIndex.ThumbDistal] = new JointPose(wristInverse * new RigidPose(rawJoints[3], linkedJointRot));
-            state.joints[HandJointIndex.ThumbTip] = new JointPose(wristInverse * new RigidPose(rawJoints[4], linkedJointRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 5, 6, camSpaceFingerRight);
+            state.joints[HandJointIndex.IndexProximal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[5], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 6, 7, camSpaceFingerRight);
+            state.joints[HandJointIndex.IndexIntermediate] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[6], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 7, 8, camSpaceFingerRight);
+            state.joints[HandJointIndex.IndexDistal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[7], camSpaceRot));
+            state.joints[HandJointIndex.IndexTip] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[8], camSpaceRot));
 
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 5, 6, wristRight);
-            state.joints[HandJointIndex.IndexProximal] = new JointPose(wristInverse * new RigidPose(rawJoints[5], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 6, 7, wristRight);
-            state.joints[HandJointIndex.IndexIntermediate] = new JointPose(wristInverse * new RigidPose(rawJoints[6], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 7, 8, wristRight);
-            state.joints[HandJointIndex.IndexDistal] = new JointPose(wristInverse * new RigidPose(rawJoints[7], linkedJointRot));
-            state.joints[HandJointIndex.IndexTip] = new JointPose(wristInverse * new RigidPose(rawJoints[8], linkedJointRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 9, 10, camSpaceFingerRight);
+            state.joints[HandJointIndex.MiddleProximal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[9], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 10, 11, camSpaceFingerRight);
+            state.joints[HandJointIndex.MiddleIntermediate] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[10], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 11, 12, camSpaceFingerRight);
+            state.joints[HandJointIndex.MiddleDistal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[11], camSpaceRot));
+            state.joints[HandJointIndex.MiddleTip] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[12], camSpaceRot));
 
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 9, 10, wristRight);
-            state.joints[HandJointIndex.MiddleProximal] = new JointPose(wristInverse * new RigidPose(rawJoints[9], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 10, 11, wristRight);
-            state.joints[HandJointIndex.MiddleIntermediate] = new JointPose(wristInverse * new RigidPose(rawJoints[10], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 11, 12, wristRight);
-            state.joints[HandJointIndex.MiddleDistal] = new JointPose(wristInverse * new RigidPose(rawJoints[11], linkedJointRot));
-            state.joints[HandJointIndex.MiddleTip] = new JointPose(wristInverse * new RigidPose(rawJoints[12], linkedJointRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 13, 14, camSpaceFingerRight);
+            state.joints[HandJointIndex.RingProximal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[13], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 14, 15, camSpaceFingerRight);
+            state.joints[HandJointIndex.RingIntermediate] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[14], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 15, 16, camSpaceFingerRight);
+            state.joints[HandJointIndex.RingDistal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[15], camSpaceRot));
+            state.joints[HandJointIndex.RingTip] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[16], camSpaceRot));
 
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 13, 14, wristRight);
-            state.joints[HandJointIndex.RingProximal] = new JointPose(wristInverse * new RigidPose(rawJoints[13], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 14, 15, wristRight);
-            state.joints[HandJointIndex.RingIntermediate] = new JointPose(wristInverse * new RigidPose(rawJoints[14], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 15, 16, wristRight);
-            state.joints[HandJointIndex.RingDistal] = new JointPose(wristInverse * new RigidPose(rawJoints[15], linkedJointRot));
-            state.joints[HandJointIndex.RingTip] = new JointPose(wristInverse * new RigidPose(rawJoints[16], linkedJointRot));
-
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 17, 18, wristRight);
-            state.joints[HandJointIndex.PinkyProximal] = new JointPose(wristInverse * new RigidPose(rawJoints[17], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 18, 19, wristRight);
-            state.joints[HandJointIndex.PinkyIntermediate] = new JointPose(wristInverse * new RigidPose(rawJoints[18], linkedJointRot));
-            linkedJointRot = CalculateFingerJointRotation(rawJoints, 19, 20, wristRight);
-            state.joints[HandJointIndex.PinkyDistal] = new JointPose(wristInverse * new RigidPose(rawJoints[19], linkedJointRot));
-            state.joints[HandJointIndex.PinkyTip] = new JointPose(wristInverse * new RigidPose(rawJoints[20], linkedJointRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 17, 18, camSpaceFingerRight);
+            state.joints[HandJointIndex.PinkyProximal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[17], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 18, 19, camSpaceFingerRight);
+            state.joints[HandJointIndex.PinkyIntermediate] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[18], camSpaceRot));
+            camSpaceRot = CalculateJointRot(rawJoints, 19, 20, camSpaceFingerRight);
+            state.joints[HandJointIndex.PinkyDistal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[19], camSpaceRot));
+            state.joints[HandJointIndex.PinkyTip] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[20], camSpaceRot));
         }
 
-        private static Quaternion CalculateFingerJointRotation(Vector3[] joints, int i, int iChild, Vector3 right)
+        private static Quaternion CalculateJointRot(Vector3[] joints, int i, int iChild, Vector3 right)
         {
             var forward = joints[iChild] - joints[i];
             return Quaternion.LookRotation(forward, Vector3.Cross(forward, right));
-        }
-
-        private static Quaternion CalculateLinkedJointRotation(Vector3[] joints, int back, int mid, int front)
-        {
-            var m2f = joints[front] - joints[mid];
-            var b2m = joints[mid] - joints[back];
-            var right = Vector3.Cross(b2m, m2f);
-            return Quaternion.LookRotation(m2f, Vector3.Cross(m2f, right));
         }
 
         [StructLayout(LayoutKind.Sequential)]
