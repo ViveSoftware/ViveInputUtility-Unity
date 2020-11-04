@@ -58,16 +58,20 @@ namespace HTC.UnityPlugin.Utility
             object IEnumerator.Current { get { return Current; } }
             public TEnum Current { get { return enums[iCurrent]; } }
 
+            public static EnumKeyEnumerator Default { get { return new EnumKeyEnumerator() { iDst = DefinedLength }; } }
+
             public EnumKeyEnumerator(TEnum from)
             {
                 i = iCurrent = E2I(from) - DefinedMinInt;
-                iDst = DefinedLength - 1;
+                iDst = DefinedLength;
             }
 
             public EnumKeyEnumerator(TEnum from, TEnum to)
             {
                 i = iCurrent = E2I(from) - DefinedMinInt;
                 iDst = E2I(to) - DefinedMinInt;
+                if (iDst > i) { ++iDst; }
+                else { --iDst; }
             }
 
             void IDisposable.Dispose() { }
@@ -195,7 +199,7 @@ namespace HTC.UnityPlugin.Utility
             return BaseIsEnumIntDefined(E2I(e));
         }
 
-        public static EnumKeyEnumerator BaseEnumKeys { get { return new EnumKeyEnumerator(); } }
+        public static EnumKeyEnumerator BaseEnumKeys { get { return EnumKeyEnumerator.Default; } }
 
         public static EnumKeyEnumerator BaseEnumKeysFrom(TEnum from) { return new EnumKeyEnumerator(from); }
 
@@ -270,14 +274,14 @@ namespace HTC.UnityPlugin.Utility
             {
                 elements = array.elements;
                 i = iCurrent = 0;
-                iDst = DefinedLength - 1;
+                iDst = DefinedLength;
             }
 
             public ElementEnumerator(EnumArray<TEnum, TElement> array, TEnum from)
             {
                 elements = array.elements;
                 i = iCurrent = E2I(from) - DefinedMinInt;
-                iDst = DefinedLength - 1;
+                iDst = DefinedLength;
             }
 
             public ElementEnumerator(EnumArray<TEnum, TElement> array, TEnum from, TEnum to)
@@ -285,6 +289,8 @@ namespace HTC.UnityPlugin.Utility
                 elements = array.elements;
                 i = iCurrent = E2I(from) - DefinedMinInt;
                 iDst = E2I(to) - DefinedMinInt;
+                if (iDst > i) { ++iDst; }
+                else { --iDst; }
             }
 
             void IDisposable.Dispose() { }
@@ -323,7 +329,7 @@ namespace HTC.UnityPlugin.Utility
             {
                 elements = array.elements;
                 i = iCurrent = 0;
-                iDst = DefinedLength - 1;
+                iDst = DefinedLength;
             }
 
             public Enumerator(EnumArray<TEnum, TElement> array, TEnum from)
@@ -338,6 +344,8 @@ namespace HTC.UnityPlugin.Utility
                 elements = array.elements;
                 i = iCurrent = E2I(from) - DefinedMinInt;
                 iDst = E2I(to) - DefinedMinInt;
+                if (iDst > i) { ++iDst; }
+                else { --iDst; }
             }
 
             void IDisposable.Dispose() { }
