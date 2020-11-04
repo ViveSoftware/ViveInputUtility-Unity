@@ -83,7 +83,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public void UnmapTracked(uint trackedIndex)
             {
-                if (trackedIndex == OpenVR.k_unTrackedDeviceIndex_Hmd) { throw new ArgumentException("Cannot unmap OpenVR.k_unTrackedDeviceIndex_Hmd(" + OpenVR.k_unTrackedDeviceIndex_Hmd + ")", "trackedIndex"); }
+                if (trackedIndex == OpenVR.k_unTrackedDeviceIndex_Hmd) { return; }
                 if (!IsValidTracked(trackedIndex)) { throw new ArgumentException("Cannot unmap invalid trackedIndex(" + trackedIndex + ")", "trackedIndex"); }
                 if (!IsValidModule(tracked2module[trackedIndex])) { return; }
                 var moduleIndex = tracked2module[trackedIndex];
