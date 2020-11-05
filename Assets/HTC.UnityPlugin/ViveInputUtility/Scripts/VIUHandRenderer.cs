@@ -26,8 +26,8 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
 
     [Tooltip("Root object of skinned mesh")]
     public SkinnedMeshRenderer skinRenderer;
-    //[SerializeField]
-    bool rotationFix = false;
+    [SerializeField]
+    bool rotationFix = true;
     //[SerializeField]
     //bool positionFix = true;
     [SerializeField]
@@ -179,12 +179,6 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
                     Vector3 wristPos = (Vector3)worldWristMat.GetColumn(3);
                     RigidPose pose = new RigidPose(wristPos + worldSpaceVec, localSpaceRot);
                     _convertWorlPoses[jointName] = pose;
-                    /*
-                    Vector3 localSpaceVec = jointPose.pos - wristPose.pos;                   
-                    Vector3 worldSpaceVec = cameraRigMat.MultiplyVector(localSpaceVec);
-                    Matrix4x4 localSpaceRot = cameraRigMat * Matrix4x4.TRS(Vector3.zero, jointPose.rot, Vector3.one);
-                    RigidPose pose = new RigidPose(wristNode.position + worldSpaceVec, localSpaceRot.rotation);
-                    _convertWorlPoses[jointName] = pose;*/
                 }
 
 
@@ -283,6 +277,8 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
             _initRenderBone(wristNode);
             _updateRenderBone();
         }
+        else
+            _destroyRenderBone();
     }
 
     void _destroyRenderBone()
@@ -318,7 +314,7 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             Destroy(go.GetComponent<Collider>());
             go.name = "point" + i;
-            go.transform.parent = wristNode;
+            //go.transform.parent = wristNode;
             go.transform.localScale = Vector3.one * 0.006f;
             go.SetActive(false);
             Destroy(go.GetComponent<Collider>());
@@ -342,7 +338,7 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
             {
                 GameObject axisObj = _createAxisPrefab();
                 axisObj.name = "axis" + i;
-                axisObj.transform.parent = wristNode;
+                //axisObj.transform.parent = wristNode;
                 axisObj.transform.localScale = Vector3.one * 0.006f;
                 axisObj.SetActive(false);
                 axisList.Add(axisObj);
@@ -356,7 +352,7 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Destroy(go.GetComponent<Collider>());
             go.name = "link" + i;
-            go.transform.parent = wristNode;
+            //go.transform.parent = wristNode;
             go.transform.localScale = Vector3.one * 0.004f;
             go.SetActive(false);
             Destroy(go.GetComponent<Collider>());
