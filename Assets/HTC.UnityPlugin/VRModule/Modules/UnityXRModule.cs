@@ -5,6 +5,7 @@ using HTC.UnityPlugin.Vive;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using System;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #endif
@@ -12,7 +13,6 @@ using UnityEngine.XR;
 #if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
 using UnityEngine.SpatialTracking;
-using System;
 #if VIU_WAVEXR_ESSENCE_RENDERMODEL
 using Wave.Essence;
 #endif
