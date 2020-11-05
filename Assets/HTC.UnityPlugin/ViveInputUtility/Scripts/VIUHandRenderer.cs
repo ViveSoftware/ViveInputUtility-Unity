@@ -27,9 +27,9 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
     [Tooltip("Root object of skinned mesh")]
     public SkinnedMeshRenderer skinRenderer;
     //[SerializeField]
-    bool rotationFix = true;
+    bool rotationFix = false;
     //[SerializeField]
-    bool positionFix = true;
+    //bool positionFix = true;
     [SerializeField]
     bool scaleFix = false;
     [Tooltip("Nodes of skinned mesh, must be size of 21 in same order as skeleton definition")]
@@ -131,35 +131,83 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
         if (!VivePose.TryGetHandJointPose(viveRole, HandJointName.Wrist, out wristPose))
             Debug.LogError("[VIUHandRenderer] Cannot find wrist in hand engine");
 
-        Quaternion cameraRigRot = Quaternion.identity;
+        Matrix4x4 cameraRigMat = Matrix4x4.identity;
+        Matrix4x4 worldWristMat = Matrix4x4.identity;
 
         //Update points and links position
         int count = 0;
         foreach (HandJointName jointName in considerJoint)
         {
-            RigidPose pos;
-            if (VivePose.TryGetHandJointPose(viveRole, jointName, out pos))
+            RigidPose jointPose;
+            if (VivePose.TryGetHandJointPose(viveRole, jointName, out jointPose))
             {
                 if (count == 0)
                 {
-                    Quaternion worldRigSpaceRot = transform.rotation;
-                    Quaternion localRigSpaceRot = wristPose.rot;
-                    cameraRigRot = worldRigSpaceRot * Quaternion.Inverse(localRigSpaceRot);
-                    //Wrist must use Tracker hand's position, that also consider the CameraRig's transform
-                    wristNode.position = transform.position;
-                    wristNode.rotation = worldRigSpaceRot;
+                    worldWristMat = transform.localToWorldMatrix;
+                    Matrix4x4 worldWristMatNoScale = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
 
-                    RigidPose pose = new RigidPose(wristNode.position, wristNode.rotation);
+                    cameraRigMat = worldWristMat * Matrix4x4.TRS(wristPose.pos, wristPose.rot, Vector3.one).inverse;
+
+                    Matrix4x4 localSpaceMat = cameraRigMat * Matrix4x4.TRS(wristPose.pos, wristPose.rot, Vector3.one);
+                    if (transform.lossyScale.x < 0)
+                        localSpaceMat.SetColumn(0, -localSpaceMat.GetColumn(0));
+                    if (transform.lossyScale.y < 0)
+                        localSpaceMat.SetColumn(1, -localSpaceMat.GetColumn(1));
+                    if (transform.lossyScale.z < 0)
+                        localSpaceMat.SetColumn(2, -localSpaceMat.GetColumn(2));
+                    Quaternion localSpaceRot = localSpaceMat.rotation;
+
+                    RigidPose pose = new RigidPose(worldWristMat.GetColumn(3), localSpaceRot);
                     _convertWorlPoses[jointName] = pose;
                 }
                 else
                 {
-                    Vector3 localSpaceVec = pos.pos - wristPose.pos;
-                    Vector3 worldSpaceVec = cameraRigRot * localSpaceVec;
-                    Quaternion localSpaceRot = cameraRigRot * pos.rot;
-                    RigidPose pose = new RigidPose(wristNode.position + worldSpaceVec, localSpaceRot);
+                    Vector3 localSpaceVec = jointPose.pos - wristPose.pos;
+                    //localSpaceVec = scaleMat.MultiplyVector(localSpaceVec);
+                    Vector3 worldSpaceVec = cameraRigMat.MultiplyVector(localSpaceVec);
+
+                    Matrix4x4 localSpaceMat = cameraRigMat * Matrix4x4.TRS(jointPose.pos, jointPose.rot, Vector3.one);
+                    if (transform.lossyScale.x < 0)
+                        localSpaceMat.SetColumn(0, -localSpaceMat.GetColumn(0));
+                    if (transform.lossyScale.y < 0)
+                        localSpaceMat.SetColumn(1, -localSpaceMat.GetColumn(1));
+                    if (transform.lossyScale.z < 0)
+                        localSpaceMat.SetColumn(2, -localSpaceMat.GetColumn(2));
+                    Quaternion localSpaceRot = localSpaceMat.rotation;
+
+                    // localSpaceMat = localSpaceMat * scaleMat;
+                    Vector3 wristPos = (Vector3)worldWristMat.GetColumn(3);
+                    RigidPose pose = new RigidPose(wristPos + worldSpaceVec, localSpaceRot);
                     _convertWorlPoses[jointName] = pose;
+                    /*
+                    Vector3 localSpaceVec = jointPose.pos - wristPose.pos;                   
+                    Vector3 worldSpaceVec = cameraRigMat.MultiplyVector(localSpaceVec);
+                    Matrix4x4 localSpaceRot = cameraRigMat * Matrix4x4.TRS(Vector3.zero, jointPose.rot, Vector3.one);
+                    RigidPose pose = new RigidPose(wristNode.position + worldSpaceVec, localSpaceRot.rotation);
+                    _convertWorlPoses[jointName] = pose;*/
                 }
+
+
+                //if (count == 0)
+                //{
+                //    Quaternion worldRigSpaceRot = transform.rotation;
+                //    Quaternion localRigSpaceRot = wristPose.rot;
+                //    cameraRigRot = worldRigSpaceRot * Quaternion.Inverse(localRigSpaceRot);
+                //    //Wrist must use Tracker hand's position, that also consider the CameraRig's transform
+                //    wristNode.position = transform.position;
+                //    wristNode.rotation = worldRigSpaceRot;
+
+                //    RigidPose pose = new RigidPose(wristNode.position, wristNode.rotation);
+                //    _convertWorlPoses[jointName] = pose;
+                //}
+                //else
+                //{
+                //    Vector3 localSpaceVec = jointPose.pos - wristPose.pos;
+                //    Vector3 worldSpaceVec = cameraRigRot * localSpaceVec;
+                //    Quaternion localSpaceRot = cameraRigRot * jointPose.rot;
+                //    RigidPose pose = new RigidPose(wristNode.position + worldSpaceVec, localSpaceRot);
+                //    _convertWorlPoses[jointName] = pose;
+                //}
             }
             else
                 Debug.LogError("[VIUHandRenderer] Cannot find joint in hand engine : " + jointName);
@@ -171,8 +219,8 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
         {
             skinRenderer.enabled = true;
 
-            //Nodes[0].position = _convertWorlPoses[HandJointName.Wrist].pos;
-            //Nodes[0].rotation = _convertWorlPoses[HandJointName.Wrist].rot;
+            Nodes[0].position = _convertWorlPoses[HandJointName.Wrist].pos;
+            Nodes[0].rotation = _convertWorlPoses[HandJointName.Wrist].rot;
 
             int nodeIndex = 1;
             for (int b = 0; b < 5; b++)
@@ -187,16 +235,16 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
                     Transform nextJoint = Nodes[nodeIndex + countNode + 1];
                     RigidPose pose = _convertWorlPoses[fingerConnection[a]];
 
-                    if (positionFix)
-                    {
-                        RigidPose poseNext = _convertWorlPoses[fingerConnection[a + 1]];
-                        if (a == 0)
-                            curJoint.position = pose.pos;
+                    //if (positionFix)
+                    //{
+                    //    RigidPose poseNext = _convertWorlPoses[fingerConnection[a + 1]];
+                    //    if (a == 0)
+                    //        curJoint.position = pose.pos;
 
-                        float nextBoneLength = (poseNext.pos - pose.pos).magnitude;
-                        Vector3 dir = (nextJoint.position - curJoint.position).normalized;
-                        nextJoint.position = curJoint.position + dir * nextBoneLength;
-                    }
+                    //    float nextBoneLength = (poseNext.pos - pose.pos).magnitude;
+                    //    Vector3 dir = (nextJoint.position - curJoint.position).normalized;
+                    //    nextJoint.position = curJoint.position + dir * nextBoneLength;
+                    //}
 
                     //1. Set rotation and get new dir with next joint.
                     curJoint.rotation = pose.rot;
