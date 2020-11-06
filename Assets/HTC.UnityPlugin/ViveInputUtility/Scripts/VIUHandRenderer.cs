@@ -19,6 +19,9 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
     bool renderTrackedBone = true;
     bool oldRenderAxis;
 
+    public bool RenderTrackedBone { set { renderTrackedBone = value; } }
+    public bool RenderAxis { set { renderAxis = value; } }
+
     [Tooltip("Default color of hand points")]
     public Color pointColor = Color.blue;
     [Tooltip("Default color of links between keypoints in skeleton mode")]
@@ -102,6 +105,10 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
             skinRenderer.enabled = false;
     }
 
+    private void OnDisable()
+    {
+        _disableRenderBone();
+    }
 
     Dictionary<HandJointName, RigidPose> _convertWorlPoses = new Dictionary<HandJointName, RigidPose>();
     void LateUpdate()
@@ -109,15 +116,7 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
         var deviceState = VRModule.GetCurrentDeviceState(viveRole.GetDeviceIndex());
         if (!deviceState.isPoseValid)
         {
-            if (points != null)
-                foreach (var p in points)
-                    p.SetActive(false);
-            if (links != null)
-                foreach (var l in links)
-                    l.SetActive(false);
-            if (axisList != null)
-                foreach (GameObject o in axisList)
-                    o.SetActive(false);
+            _disableRenderBone();
             if (skinRenderer != null)
                 skinRenderer.enabled = false;
             return;
@@ -272,6 +271,19 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
         }
         else
             _destroyRenderBone();
+    }
+
+    void _disableRenderBone()
+    {
+        if (points != null)
+            foreach (var p in points)
+                p.SetActive(false);
+        if (links != null)
+            foreach (var l in links)
+                l.SetActive(false);
+        if (axisList != null)
+            foreach (GameObject o in axisList)
+                o.SetActive(false);
     }
 
     void _destroyRenderBone()
