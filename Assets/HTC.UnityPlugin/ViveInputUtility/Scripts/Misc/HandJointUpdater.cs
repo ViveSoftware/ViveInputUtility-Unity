@@ -168,7 +168,7 @@ namespace HTC.UnityPlugin.Vive
             VRModule.onNewPoses -= UpdatePoses;
         }
 
-        private void UpdateFingerJoints(JointEnumArray.IReadOnly roomSpaceJoints, RigidPose roomSpaceParentPoseInverse, HandJointIndex startJoint, HandJointIndex endJoint)
+        private void UpdateFingerJoints(JointEnumArray.IReadOnly roomSpaceJoints, Transform parentTransform, RigidPose roomSpaceParentPoseInverse, HandJointIndex startJoint, HandJointIndex endJoint)
         {
             foreach (var index in EnumArrayBase<HandJointIndex>.BaseEnumKeysFrom(startJoint, endJoint))
             {
@@ -178,33 +178,47 @@ namespace HTC.UnityPlugin.Vive
                 var data = roomSpaceJoints[index];
                 if (!data.isValid) { continue; }
 
-                var wristSpaceJointPose = roomSpaceParentPoseInverse * data.pose;
-                UpdateJointTransformLocal(jointTrans, wristSpaceJointPose);
+                var parentSpaceJointPose = roomSpaceParentPoseInverse * data.pose;
+                UpdateJointTransformLocal(parentTransform, jointTrans, parentSpaceJointPose);
+                parentTransform = jointTrans;
                 roomSpaceParentPoseInverse = data.pose.GetInverse();
             }
         }
 
-        private void UpdateJointTransformLocal(Transform targetTransform, RigidPose roomSpacePose)
+        private void UpdateJointTransformLocal(Transform parentTransform, Transform targetTransform, RigidPose parentSpacePose)
         {
+            RigidPose localSpacePose;
             if (m_modelOffset.rot != Quaternion.identity)
             {
                 // FIXME: should calculate a fixed matrix to trasform coordinating system?
-                float angle;
-                Vector3 axis;
-                roomSpacePose.rot.ToAngleAxis(out angle, out axis);
+                float angle; Vector3 axis;
+                parentSpacePose.rot.ToAngleAxis(out angle, out axis);
                 axis = m_modelOffset.rot * axis;
-                roomSpacePose.rot = Quaternion.AngleAxis(angle, axis);
+                localSpacePose.rot = Quaternion.AngleAxis(angle, axis);
+                localSpacePose.pos = m_modelOffset.rot * parentSpacePose.pos;
+            }
+            else
+            {
+                localSpacePose = parentSpacePose;
+            }
+
+            if (targetTransform.parent != parentTransform && targetTransform.IsChildOf(parentTransform))
+            {
+                for (var t = targetTransform.parent; t != parentTransform; t = t.parent)
+                {
+                    localSpacePose = new RigidPose(t, true).GetInverse() * localSpacePose;
+                }
             }
 
             switch (m_rigMode)
             {
                 case RigMode.RotateOnly:
                 case RigMode.RotateAndScale:
-                    targetTransform.localRotation = roomSpacePose.rot;
+                    targetTransform.localRotation = localSpacePose.rot;
                     break;
                 case RigMode.RotateAndTranslate:
-                    targetTransform.localPosition = m_modelOffset.rot * roomSpacePose.pos;
-                    targetTransform.localRotation = roomSpacePose.rot;
+                    targetTransform.localPosition = localSpacePose.pos;
+                    targetTransform.localRotation = localSpacePose.rot;
                     break;
             }
         }
@@ -232,15 +246,15 @@ namespace HTC.UnityPlugin.Vive
                 var data = roomSpaceJoints[HandJointIndex.Palm];
                 if (data.isValid)
                 {
-                    UpdateJointTransformLocal(palmTransform, roomSpaceWristPoseInverse * data.pose);
+                    UpdateJointTransformLocal(wristTransform, palmTransform, roomSpaceWristPoseInverse * data.pose);
                 }
             }
 
-            UpdateFingerJoints(roomSpaceJoints, roomSpaceWristPoseInverse, HandJointIndex.ThumbTrapezium, HandJointIndex.ThumbTip);
-            UpdateFingerJoints(roomSpaceJoints, roomSpaceWristPoseInverse, HandJointIndex.IndexMetacarpal, HandJointIndex.IndexTip);
-            UpdateFingerJoints(roomSpaceJoints, roomSpaceWristPoseInverse, HandJointIndex.MiddleMetacarpal, HandJointIndex.MiddleTip);
-            UpdateFingerJoints(roomSpaceJoints, roomSpaceWristPoseInverse, HandJointIndex.RingMetacarpal, HandJointIndex.RingTip);
-            UpdateFingerJoints(roomSpaceJoints, roomSpaceWristPoseInverse, HandJointIndex.PinkyMetacarpal, HandJointIndex.PinkyTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.ThumbTrapezium, HandJointIndex.ThumbTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.IndexMetacarpal, HandJointIndex.IndexTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.MiddleMetacarpal, HandJointIndex.MiddleTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.RingMetacarpal, HandJointIndex.RingTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.PinkyMetacarpal, HandJointIndex.PinkyTip);
 
             if (m_rigMode == RigMode.RotateAndScale)
             {
