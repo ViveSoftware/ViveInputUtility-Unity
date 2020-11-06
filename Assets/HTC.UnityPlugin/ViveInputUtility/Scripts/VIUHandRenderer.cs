@@ -28,7 +28,7 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
     public SkinnedMeshRenderer skinRenderer;
     //[SerializeField]
     //bool rotationFix = true;
-    //[SerializeField]
+    [SerializeField]
     bool positionFix = true;
     [SerializeField]
     bool scaleFix = false;
@@ -221,18 +221,14 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
                 for (int a = 0; a < fingerConnection.Length; a += 2)
                 {
                     Transform curJoint = Nodes[nodeIndex + countNode];
+                    Transform nextJoint = Nodes[nodeIndex + countNode + 1];
                     RigidPose pose = _convertWorlPoses[fingerConnection[a]];
+                    RigidPose nextPose = _convertWorlPoses[fingerConnection[a + 1]];
 
                     if (positionFix)
                     {
-                        Transform nextJoint = Nodes[nodeIndex + countNode + 1];
-                        RigidPose poseNext = _convertWorlPoses[fingerConnection[a + 1]];
-                        if (a == 0)
-                            curJoint.position = pose.pos;
-
-                        float nextBoneLength = (poseNext.pos - pose.pos).magnitude;
-                        Vector3 dir = (nextJoint.position - curJoint.position).normalized;
-                        nextJoint.position = curJoint.position + dir * nextBoneLength;
+                        // if (a == 0)
+                        curJoint.position = pose.pos;
                     }
 
                     //1. Set rotation and get new dir with next joint.
@@ -250,10 +246,10 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
                     //    //curJoint.rotation = cameraRigMat.rotation * curJoint.rotation;
 
                     //    //*.Local rotation can record at initialize step, no need compute at update().
-                    //    //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);
-                    //    Vector3 localSkinNext = curJoint.InverseTransformPoint(nextJoint.position);
-                    //    Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
-                    //    curJoint.localRotation *= Quaternion.FromToRotation(Vector3.forward, localSkinDir);
+                    //    //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);                    
+                    //Vector3 localSkinNext = curJoint.InverseTransformPoint(nextPose.pos);//nextJoint's positin at curJoint
+                    //Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
+                    //curJoint.localRotation = Quaternion.LookRotation(localSkinDir);
                     //}
 
                     countNode++;
@@ -350,7 +346,7 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
             Destroy(go.GetComponent<Collider>());
             go.name = "link" + i;
             //go.transform.parent = wristNode;
-            go.transform.localScale = Vector3.one * 0.004f;
+            go.transform.localScale = Vector3.one * 0.008f;
             go.SetActive(false);
             Destroy(go.GetComponent<Collider>());
             links.Add(go);
@@ -405,7 +401,7 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
                 //_convertWorlPoses[startIndex].rot * Vector3.forward
                 direction
                 );
-            link.transform.localScale = new Vector3(0.0005f, 0.0005f, len / 2f - 0.0051f);
+            link.transform.localScale = new Vector3(0.0005f, 0.0005f, len / 2f - 0.001f);
         }
     }
 
