@@ -115,7 +115,6 @@ MonoBehaviour:
   pointColor: {r: 0, g: 0, b: 1, a: 1}
   linkColor: {r: 1, g: 1, b: 1, a: 1}
   skinRenderer: {fileID: 8505684648547443533}
-  rotationFix: 1
   scaleFix: 0
   Nodes:
   - {fileID: 4711026060846615191}
@@ -530,7 +529,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: af943b53172661545bc2c189dc96d081, type: 2}
+  - {fileID: 2100000, guid: 0edfb21d504a2b04b8baa3d1ca5c43ab, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

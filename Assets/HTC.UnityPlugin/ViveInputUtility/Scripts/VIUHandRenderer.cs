@@ -26,10 +26,10 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
 
     [Tooltip("Root object of skinned mesh")]
     public SkinnedMeshRenderer skinRenderer;
-    [SerializeField]
-    bool rotationFix = true;
     //[SerializeField]
-    //bool positionFix = true;
+    //bool rotationFix = true;
+    //[SerializeField]
+    bool positionFix = true;
     [SerializeField]
     bool scaleFix = false;
     [Tooltip("Nodes of skinned mesh, must be size of 21 in same order as skeleton definition")]
@@ -109,16 +109,15 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
         var deviceState = VRModule.GetCurrentDeviceState(viveRole.GetDeviceIndex());
         if (!deviceState.isPoseValid)
         {
-            if (renderTrackedBone)
-            {
-                if (points != null)
-                    foreach (var p in points)
-                        p.SetActive(false);
-                if (links != null)
-                    foreach (var l in links)
-                        l.SetActive(false);
-            }
-
+            if (points != null)
+                foreach (var p in points)
+                    p.SetActive(false);
+            if (links != null)
+                foreach (var l in links)
+                    l.SetActive(false);
+            if (axisList != null)
+                foreach (GameObject o in axisList)
+                    o.SetActive(false);
             if (skinRenderer != null)
                 skinRenderer.enabled = false;
             return;
@@ -155,15 +154,13 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
                         localSpaceMat.SetColumn(1, -localSpaceMat.GetColumn(1));
                     if (transform.lossyScale.z < 0)
                         localSpaceMat.SetColumn(2, -localSpaceMat.GetColumn(2));
-                    Quaternion localSpaceRot = localSpaceMat.rotation;
 
-                    RigidPose pose = new RigidPose(worldWristMat.GetColumn(3), localSpaceRot);
+                    RigidPose pose = new RigidPose(worldWristMat.GetColumn(3), localSpaceMat.rotation);
                     _convertWorlPoses[jointName] = pose;
                 }
                 else
                 {
                     Vector3 localSpaceVec = jointPose.pos - wristPose.pos;
-                    //localSpaceVec = scaleMat.MultiplyVector(localSpaceVec);
                     Vector3 worldSpaceVec = cameraRigMat.MultiplyVector(localSpaceVec);
 
                     Matrix4x4 localSpaceMat = cameraRigMat * Matrix4x4.TRS(jointPose.pos, jointPose.rot, Vector3.one);
@@ -173,35 +170,33 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
                         localSpaceMat.SetColumn(1, -localSpaceMat.GetColumn(1));
                     if (transform.lossyScale.z < 0)
                         localSpaceMat.SetColumn(2, -localSpaceMat.GetColumn(2));
-                    Quaternion localSpaceRot = localSpaceMat.rotation;
 
-                    // localSpaceMat = localSpaceMat * scaleMat;
                     Vector3 wristPos = (Vector3)worldWristMat.GetColumn(3);
-                    RigidPose pose = new RigidPose(wristPos + worldSpaceVec, localSpaceRot);
+                    RigidPose pose = new RigidPose(wristPos + worldSpaceVec, localSpaceMat.rotation);
                     _convertWorlPoses[jointName] = pose;
                 }
 
+                /*
+                if (count == 0)
+                {
+                    Quaternion worldRigSpaceRot = transform.rotation;
+                    Quaternion localRigSpaceRot = wristPose.rot;
+                    cameraRigRot = worldRigSpaceRot * Quaternion.Inverse(localRigSpaceRot);
+                    //Wrist must use Tracker hand's position, that also consider the CameraRig's transform
+                    wristNode.position = transform.position;
+                    wristNode.rotation = worldRigSpaceRot;
 
-                //if (count == 0)
-                //{
-                //    Quaternion worldRigSpaceRot = transform.rotation;
-                //    Quaternion localRigSpaceRot = wristPose.rot;
-                //    cameraRigRot = worldRigSpaceRot * Quaternion.Inverse(localRigSpaceRot);
-                //    //Wrist must use Tracker hand's position, that also consider the CameraRig's transform
-                //    wristNode.position = transform.position;
-                //    wristNode.rotation = worldRigSpaceRot;
-
-                //    RigidPose pose = new RigidPose(wristNode.position, wristNode.rotation);
-                //    _convertWorlPoses[jointName] = pose;
-                //}
-                //else
-                //{
-                //    Vector3 localSpaceVec = jointPose.pos - wristPose.pos;
-                //    Vector3 worldSpaceVec = cameraRigRot * localSpaceVec;
-                //    Quaternion localSpaceRot = cameraRigRot * jointPose.rot;
-                //    RigidPose pose = new RigidPose(wristNode.position + worldSpaceVec, localSpaceRot);
-                //    _convertWorlPoses[jointName] = pose;
-                //}
+                    RigidPose pose = new RigidPose(wristNode.position, wristNode.rotation);
+                    _convertWorlPoses[jointName] = pose;
+                }
+                else
+                {
+                    Vector3 localSpaceVec = jointPose.pos - wristPose.pos;
+                    Vector3 worldSpaceVec = cameraRigRot * localSpaceVec;
+                    Quaternion localSpaceRot = cameraRigRot * jointPose.rot;
+                    RigidPose pose = new RigidPose(wristNode.position + worldSpaceVec, localSpaceRot);
+                    _convertWorlPoses[jointName] = pose;
+                }*/
             }
             else
                 Debug.LogError("[VIUHandRenderer] Cannot find joint in hand engine : " + jointName);
@@ -226,44 +221,46 @@ class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
                 for (int a = 0; a < fingerConnection.Length; a += 2)
                 {
                     Transform curJoint = Nodes[nodeIndex + countNode];
-                    Transform nextJoint = Nodes[nodeIndex + countNode + 1];
                     RigidPose pose = _convertWorlPoses[fingerConnection[a]];
 
-                    //if (positionFix)
-                    //{
-                    //    RigidPose poseNext = _convertWorlPoses[fingerConnection[a + 1]];
-                    //    if (a == 0)
-                    //        curJoint.position = pose.pos;
+                    if (positionFix)
+                    {
+                        Transform nextJoint = Nodes[nodeIndex + countNode + 1];
+                        RigidPose poseNext = _convertWorlPoses[fingerConnection[a + 1]];
+                        if (a == 0)
+                            curJoint.position = pose.pos;
 
-                    //    float nextBoneLength = (poseNext.pos - pose.pos).magnitude;
-                    //    Vector3 dir = (nextJoint.position - curJoint.position).normalized;
-                    //    nextJoint.position = curJoint.position + dir * nextBoneLength;
-                    //}
+                        float nextBoneLength = (poseNext.pos - pose.pos).magnitude;
+                        Vector3 dir = (nextJoint.position - curJoint.position).normalized;
+                        nextJoint.position = curJoint.position + dir * nextBoneLength;
+                    }
 
                     //1. Set rotation and get new dir with next joint.
                     curJoint.rotation = pose.rot;
-                    if (rotationFix)
-                    {
-                        //Calculate the joint rotation offset between joint axis dir and actual bone dir.
+                    //if (rotationFix)
+                    //{
+                    //    //Calculate the joint rotation offset between joint axis dir and actual bone dir.
 
-                        //2. Calculate offset
-                        //*.Global rotation way
-                        //Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
-                        //dir = Quaternion.Inverse(cameraRigRot) * dir;
-                        //Quaternion rot = Quaternion.FromToRotation(dir, pose.rot * Vector3.forward);
-                        //curJoint.rotation = rot * pose.rot;
+                    //    //2. Calculate offset
+                    //    //*.Global rotation way
+                    //    //Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
+                    //    //dir = cameraRigMat.inverse.MultiplyVector(dir);
+                    //    //Quaternion rot = Quaternion.FromToRotation(dir, pose.rot * Vector3.forward);
+                    //    //curJoint.rotation = pose.rot * rot;
+                    //    //curJoint.rotation = cameraRigMat.rotation * curJoint.rotation;
 
-                        //*.Local rotation can record at initialize step, no need compute at update().
-                        //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);
-                        Vector3 localSkinNext = curJoint.InverseTransformPoint(nextJoint.position);
-                        Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
-                        curJoint.localRotation *= Quaternion.Inverse(Quaternion.LookRotation(localSkinDir));
-                    }
+                    //    //*.Local rotation can record at initialize step, no need compute at update().
+                    //    //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);
+                    //    Vector3 localSkinNext = curJoint.InverseTransformPoint(nextJoint.position);
+                    //    Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
+                    //    curJoint.localRotation *= Quaternion.FromToRotation(Vector3.forward, localSkinDir);
+                    //}
 
                     countNode++;
                 }
                 nodeIndex += 4;//skip finger tip
             }
+
         }
 
         //Update debug bone
