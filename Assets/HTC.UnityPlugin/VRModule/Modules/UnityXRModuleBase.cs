@@ -55,24 +55,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static List<XRLoaderProfile> loaderProfiles = new List<XRLoaderProfile>()
         {
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.OpenVR, matchNameRgx = new Regex("openvr", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.Oculus, matchNameRgx = new Regex("oculus", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WindowsXR, matchNameRgx = new Regex("windows", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.MagicLeap, matchNameRgx = new Regex("magicleap", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WaveXR, matchNameRgx = new Regex("wave", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.OpenVR, matchNameRgx = new Regex("openvr", REGES_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.Oculus, matchNameRgx = new Regex("oculus", REGES_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WindowsXR, matchNameRgx = new Regex("windows", REGES_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.MagicLeap, matchNameRgx = new Regex("magicleap", REGES_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WaveXR, matchNameRgx = new Regex("wave", REGES_OPTIONS) },
         };
 
         private static List<XRInputSubsystemProfile> inputSubsystemProfiles = new List<XRInputSubsystemProfile>()
         {
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.OpenVR, matchNameRgx = new Regex("openvr", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.Oculus, matchNameRgx = new Regex("oculus", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WindowsXR, matchNameRgx = new Regex("windows", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.MagicLeap, matchNameRgx = new Regex("magicleap", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WaveXR, matchNameRgx = new Regex("wave", RegexOptions.IgnoreCase | RegexOptions.Compiled) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.OpenVR, matchNameRgx = new Regex("openvr", REGES_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.Oculus, matchNameRgx = new Regex("oculus", REGES_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WindowsXR, matchNameRgx = new Regex("windows", REGES_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.MagicLeap, matchNameRgx = new Regex("magicleap", REGES_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WaveXR, matchNameRgx = new Regex("wave", REGES_OPTIONS) },
         };
 
         private VRModuleKnownXRLoader knownActiveLoader;
         private VRModuleKnownXRInputSubsystem knownActiveInputSubsystem;
+        private IndexMap indexMap = new IndexMap();
+        private uint uxrRightIndex = INVALID_DEVICE_INDEX;
+        private uint uxrLeftIndex = INVALID_DEVICE_INDEX;
+        private uint moduleRightIndex = INVALID_DEVICE_INDEX;
+        private uint moduleLeftIndex = INVALID_DEVICE_INDEX;
+        private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection();
 
         protected VRModuleKnownXRLoader KnownActiveLoader { get { return knownActiveLoader; } }
         protected VRModuleKnownXRInputSubsystem KnownActiveInputSubsystem { get { return knownActiveInputSubsystem; } }
@@ -106,6 +112,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private List<InputDevice> connectedDevices = new List<InputDevice>();
         public sealed override void BeforeRenderUpdate()
         {
+            // update device connection and poses
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
             uint deviceIndex;
@@ -121,133 +128,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState.isConnected = false;
             }
 
-            UpdateInputDevices();
-
-            UpdateCustomDevices();
-
-            // preserve last hand role index
-            var pRightIndex = PrioritizedRightHandIndex;
-            var pLeftIndex = PrioritizedLeftHandIndex;
-            // process all disconnected devices
-            deviceIndex = 0u;
-            while (TryGetValidDeviceState(deviceIndex, out prevState, out currState))
-            {
-                if (!prevState.isConnected)
-                {
-                    if (currState.isConnected)
-                    {
-                        UpdateHandRoleForNewConnectedDevice(deviceIndex, currState);
-                    }
-                }
-                else
-                {
-                    if (!currState.isConnected)
-                    {
-                        // reset all devices that is not connected in this frame
-                        currState.Reset();
-
-                        UpdateHandRoleForDisconnectedDevice(deviceIndex);
-
-                        if (indexMap.Index2Device(deviceIndex).isValid)
-                        {
-                            OnInputDeviceDisconnected(deviceIndex);
-                        }
-                        else
-                        {
-                            OnCustomDeviceDisconnected(deviceIndex);
-                        }
-                    }
-                }
-
-                ++deviceIndex;
-            }
-
-            if (pRightIndex != PrioritizedRightHandIndex || pLeftIndex != PrioritizedLeftHandIndex)
-            {
-                BeforeHandRoleChanged();
-                InvokeControllerRoleChangedEvent();
-            }
-
-            ProcessConnectedDeviceChanged();
-            ProcessDevicePoseChanged();
-            ProcessDeviceInputChanged();
-        }
-
-        public override void Update()
-        {
-            UpdateLockPhysicsUpdateRate();
-            UpdateHapticVibration();
-        }
-
-        private uint uxrRightHandIndex = VRModule.INVALID_DEVICE_INDEX;
-        private uint uxrLeftHandIndex = VRModule.INVALID_DEVICE_INDEX;
-        private uint ctrlRightHandIndex = VRModule.INVALID_DEVICE_INDEX;
-        private uint ctrlLeftHandIndex = VRModule.INVALID_DEVICE_INDEX;
-        private uint trackedRightHandIndex = VRModule.INVALID_DEVICE_INDEX;
-        private uint trackedLeftHandIndex = VRModule.INVALID_DEVICE_INDEX;
-        protected uint PrioritizedRightHandIndex { get { var len = GetDeviceStateLength(); return uxrRightHandIndex < len ? uxrRightHandIndex : ctrlRightHandIndex < len ? ctrlRightHandIndex : trackedRightHandIndex; } }
-        protected uint PrioritizedLeftHandIndex { get { var len = GetDeviceStateLength(); return uxrLeftHandIndex < len ? uxrLeftHandIndex : ctrlLeftHandIndex < len ? ctrlLeftHandIndex : trackedLeftHandIndex; } }
-
-        private void UpdateHandRoleForNewConnectedDevice(uint index, IVRModuleDeviceStateRW state)
-        {
-            var inputDevice = indexMap.Index2Device(index);
-            var inputDeviceChar = inputDevice.characteristics;
-            const InputDeviceCharacteristics handChar = InputDeviceCharacteristics.Right | InputDeviceCharacteristics.Left;
-
-            if (inputDevice.isValid && (inputDeviceChar & handChar) > 0)
-            {
-                if ((inputDeviceChar & InputDeviceCharacteristics.Right) > 0)
-                {
-                    uxrRightHandIndex = index;
-                }
-                else
-                {
-                    uxrLeftHandIndex = index;
-                }
-            }
-            else
-            {
-                switch (state.deviceClass)
-                {
-                    case VRModuleDeviceClass.Controller:
-                        if (state.deviceModel.IsRight()) { ctrlRightHandIndex = index; }
-                        else if (state.deviceModel.IsLeft()) { ctrlLeftHandIndex = index; }
-                        break;
-                    case VRModuleDeviceClass.TrackedHand:
-                        if (state.deviceModel.IsRight()) { trackedRightHandIndex = index; }
-                        else if (state.deviceModel.IsLeft()) { trackedLeftHandIndex = index; }
-                        break;
-                }
-            }
-        }
-
-        private void UpdateHandRoleForDisconnectedDevice(uint index)
-        {
-            if (uxrRightHandIndex == index) { uxrRightHandIndex = VRModule.INVALID_DEVICE_INDEX; }
-            if (uxrLeftHandIndex == index) { uxrLeftHandIndex = VRModule.INVALID_DEVICE_INDEX; }
-            if (ctrlRightHandIndex == index) { ctrlRightHandIndex = VRModule.INVALID_DEVICE_INDEX; }
-            if (ctrlLeftHandIndex == index) { ctrlLeftHandIndex = VRModule.INVALID_DEVICE_INDEX; }
-            if (trackedRightHandIndex == index) { trackedRightHandIndex = VRModule.INVALID_DEVICE_INDEX; }
-            if (trackedLeftHandIndex == index) { trackedLeftHandIndex = VRModule.INVALID_DEVICE_INDEX; }
-        }
-
-        public override uint GetRightControllerDeviceIndex() { return PrioritizedRightHandIndex; }
-
-        public override uint GetLeftControllerDeviceIndex() { return PrioritizedLeftHandIndex; }
-
-        private IndexMap indexMap = new IndexMap();
-        private void UpdateInputDevices()
-        {
-            IVRModuleDeviceState prevState;
-            IVRModuleDeviceStateRW currState;
-            uint deviceIndex;
-
             InputDevices.GetDevices(connectedDevices);
-            foreach (var connectedDevice in connectedDevices)
+
+            foreach (var device in connectedDevices)
             {
-                if (!indexMap.TryGetIndex(connectedDevice, out deviceIndex))
+                if (!indexMap.TryGetIndex(device, out deviceIndex))
                 {
-                    if (indexMap.MapAsHMD(connectedDevice))
+                    if (indexMap.TryMapAsHMD(device))
                     {
                         deviceIndex = VRModule.HMD_DEVICE_INDEX;
                         EnsureValidDeviceState(deviceIndex, out prevState, out currState);
@@ -256,93 +143,117 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
                         deviceIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
-                        indexMap.MapNonHMD(connectedDevice, deviceIndex);
+                        indexMap.MapNonHMD(device, deviceIndex);
                     }
 
-                    currState.isConnected = true;
+                    currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
+                    currState.serialNumber = device.name + " " + device.serialNumber + " " + (int)device.characteristics;
+                    currState.modelNumber = device.name;
+                    currState.renderModelName = device.name;
 
-                    UpdateNewConnectedInputDevice(currState, connectedDevice);
+                    SetupKnownDeviceModel(currState);
+
+                    Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})",
+                        currState.deviceIndex,
+                        currState.deviceClass,
+                        currState.deviceModel,
+                        currState.modelNumber,
+                        currState.serialNumber,
+                        device.name,
+                        device.characteristics);
+
+                    if ((device.characteristics & InputDeviceCharacteristics.Right) > 0u)
+                    {
+                        uxrRightIndex = deviceIndex;
+                    }
+                    else if ((device.characteristics & InputDeviceCharacteristics.Left) > 0u)
+                    {
+                        uxrLeftIndex = deviceIndex;
+                    }
+
+                    UpdateNewConnectedInputDevice(currState, device);
                 }
                 else
                 {
                     EnsureValidDeviceState(deviceIndex, out prevState, out currState);
-
-                    currState.isConnected = true;
                 }
 
-                UpdateInputDeviceTrackingState(currState, connectedDevice);
+                currState.isConnected = true;
+                // update device Poses
+                currState.isPoseValid = GetDeviceFeatureValueOrDefault(device, CommonUsages.isTracked);
+                currState.position = GetDeviceFeatureValueOrDefault(device, CommonUsages.devicePosition);
+                currState.rotation = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceRotation);
+                currState.velocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceVelocity);
+                currState.angularVelocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceAngularVelocity);
 
-                if ((connectedDevice.characteristics & InputDeviceCharacteristics.Controller) > 0)
+                // TODO: update hand skeleton pose
+            }
+
+            // unmap index for disconnected device state
+            deviceIndex = 0u;
+            for (var len = GetDeviceStateLength(); deviceIndex < len; ++deviceIndex)
+            {
+                if (indexMap.IsMapped(deviceIndex))
                 {
-                    UpdateInputDevicesControllerState(currState, connectedDevice);
+                    EnsureValidDeviceState(deviceIndex, out prevState, out currState);
+                    if (prevState.isConnected && !currState.isConnected)
+                    {
+                        indexMap.UnmapByIndex(deviceIndex);
+                        currState.Reset();
+                        if (uxrRightIndex == deviceIndex) { uxrRightIndex = INVALID_DEVICE_INDEX; }
+                        if (uxrLeftIndex == deviceIndex) { uxrLeftIndex = INVALID_DEVICE_INDEX; }
+                    }
                 }
             }
+
+            submodules.UpdateModulesDeviceConnectionAndPoses();
+
+            // process hand role
+            var currentRight = uxrRightIndex != INVALID_DEVICE_INDEX ? uxrRightIndex : submodules.GetFirstRightHandedIndex();
+            var currentLeft = uxrLeftIndex != INVALID_DEVICE_INDEX ? uxrLeftIndex : submodules.GetFirstLeftHandedIndex();
+            var roleChanged = ChangeProp.Set(ref moduleRightIndex, currentRight);
+            roleChanged |= ChangeProp.Set(ref moduleLeftIndex, currentLeft);
+            if (roleChanged)
+            {
+                InvokeControllerRoleChangedEvent();
+            }
+
+            ProcessConnectedDeviceChanged();
+            ProcessDevicePoseChanged();
         }
 
-        // setup constent propert
-        // setup deviceModel
-        // setup LeftHandDeviceIndex/RightHandDeviceIndex
-        protected virtual void UpdateNewConnectedInputDevice(IVRModuleDeviceStateRW state, InputDevice device)
+        public override void Update()
         {
-            state.deviceClass = GetDeviceClass(device.name, device.characteristics);
-            state.serialNumber = device.name + " " + device.serialNumber + " " + (int)device.characteristics;
-            state.modelNumber = device.name;
-            state.renderModelName = device.name;
+            UpdateLockPhysicsUpdateRate();
 
-            SetupKnownDeviceModel(state);
+            for (uint deviceIndex = 0u, len = GetDeviceStateLength(); deviceIndex < len; ++deviceIndex)
+            {
+                InputDevice device;
+                if (indexMap.TryGetDevice(deviceIndex, out device))
+                {
+                    if ((device.characteristics & InputDeviceCharacteristics.Controller) > 0)
+                    {
+                        IVRModuleDeviceState prevState;
+                        IVRModuleDeviceStateRW currState;
+                        EnsureValidDeviceState(deviceIndex, out prevState, out currState);
+                        UpdateInputDevicesControllerState(currState, device);
+                    }
+                }
+            }
 
-            Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})", state.deviceIndex, state.deviceClass, state.deviceModel, state.modelNumber, state.serialNumber, device.name, device.characteristics);
+            submodules.UpdateModulesDeviceInput();
+
+            UpdateHapticVibration();
+            ProcessDeviceInputChanged();
         }
 
-        protected virtual void UpdateInputDeviceTrackingState(IVRModuleDeviceStateRW state, InputDevice device)
-        {
-            if (!device.isValid) { Debug.LogError("[UpdateInputDeviceTrackingState] unable to update invalid device"); return; }
+        public override uint GetRightControllerDeviceIndex() { return moduleRightIndex; }
 
-            state.isPoseValid = GetDeviceFeatureValueOrDefault(device, CommonUsages.isTracked);
-            state.position = GetDeviceFeatureValueOrDefault(device, CommonUsages.devicePosition);
-            state.rotation = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceRotation);
-            state.velocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceVelocity);
-            state.angularVelocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceAngularVelocity);
-        }
+        public override uint GetLeftControllerDeviceIndex() { return moduleLeftIndex; }
+
+        protected virtual void UpdateNewConnectedInputDevice(IVRModuleDeviceStateRW state, InputDevice device) { }
 
         protected virtual void UpdateInputDevicesControllerState(IVRModuleDeviceStateRW state, InputDevice device) { }
-
-        // note: LeftHandDeviceIndex/RightHandDeviceIndex is not reliable in this stage
-        // get/set HandDeviceIndex in BeforeHandRoleChanged stage
-        private void OnInputDeviceDisconnected(uint index)
-        {
-            indexMap.UnmapByIndex(index);
-        }
-
-        protected virtual void UpdateCustomDevices()
-        {
-            // sudo code:
-            // foreach devices
-            //   if is new incomming device
-            //     use FindOrAllocateUnusedIndex() to get valid index and assign to this device
-            //
-            //     use EnsureValidDeviceState to get deviceState by index
-            //     set deviceState.Connected = true;
-            //
-            //   if is already connected device
-            //     get index previously associated with the device
-            //
-            //     use EnsureValidDeviceState to get deviceState by index
-            //     set deviceState.Connected = true;
-            //
-            //   update deviceState tracking data
-            //   if has input, update deviceState input data
-        }
-
-        // note: LeftHandDeviceIndex/RightHandDeviceIndex is not reliable in this stage
-        // get/set HandDeviceIndex in BeforeHandRoleChanged stage
-        protected virtual void OnCustomDeviceDisconnected(uint index)
-        {
-
-        }
-
-        // Incase prev hand is disconnected, and want to fallback to other controller
-        protected virtual void BeforeHandRoleChanged() { }
 
         protected static VRModuleDeviceClass GetDeviceClass(string name, InputDeviceCharacteristics characteristics)
         {

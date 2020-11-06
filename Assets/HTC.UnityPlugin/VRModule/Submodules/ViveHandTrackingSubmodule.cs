@@ -52,6 +52,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             GestureInterface.StopGestureDetection();
         }
 
+        public override uint GetRightHandedIndex() { return rightDeviceIndex; }
+
+        public override uint GetLeftHandedIndex() { return leftDeviceIndex; }
+
         protected override void OnUpdateDeviceConnectionAndPoses()
         {
             // try start engine detection
@@ -228,18 +232,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
 
-                currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, leftResult.pinchLevel >= 0.95f);
-                currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, leftResult.pinchLevel >= 0.90f);
-                currState.SetButtonPress(VRModuleRawButton.GestureFist, leftResult.gesture == GestureType.Fist);
-                currState.SetButtonTouch(VRModuleRawButton.GestureFist, leftResult.gesture == GestureType.Fist);
-                currState.SetButtonPress(VRModuleRawButton.GestureFive, leftResult.gesture == GestureType.Five);
-                currState.SetButtonTouch(VRModuleRawButton.GestureFive, leftResult.gesture == GestureType.Five);
-                currState.SetButtonPress(VRModuleRawButton.GestureOk, leftResult.gesture == GestureType.OK);
-                currState.SetButtonTouch(VRModuleRawButton.GestureOk, leftResult.gesture == GestureType.OK);
-                currState.SetButtonPress(VRModuleRawButton.GestureThumbUp, leftResult.gesture == GestureType.Like);
-                currState.SetButtonTouch(VRModuleRawButton.GestureThumbUp, leftResult.gesture == GestureType.Like);
-                currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, leftResult.gesture == GestureType.Point);
-                currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, leftResult.gesture == GestureType.Point);
+                var pinched = leftResult.pinchLevel >= 0.95f;
+                var gFist = leftResult.gesture == GestureType.Fist && leftResult.confidence > 0.1f;
+                var gFive = leftResult.gesture == GestureType.Five && leftResult.confidence > 0.1f;
+                var gOK = leftResult.gesture == GestureType.OK && leftResult.confidence > 0.1f;
+                var gLike = leftResult.gesture == GestureType.Like && leftResult.confidence > 0.1f;
+                var gPoint = leftResult.gesture == GestureType.Point && leftResult.confidence > 0.1f;
+                currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
+                currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
+                currState.SetButtonPress(VRModuleRawButton.GestureFist, gFist);
+                currState.SetButtonTouch(VRModuleRawButton.GestureFist, gFist);
+                currState.SetButtonPress(VRModuleRawButton.GestureFive, gFive);
+                currState.SetButtonTouch(VRModuleRawButton.GestureFive, gFive);
+                currState.SetButtonPress(VRModuleRawButton.GestureOk, gOK);
+                currState.SetButtonTouch(VRModuleRawButton.GestureOk, gOK);
+                currState.SetButtonPress(VRModuleRawButton.GestureThumbUp, gLike);
+                currState.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gLike);
+                currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, gPoint);
+                currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gPoint);
                 currState.SetAxisValue(VRModuleRawAxis.Trigger, leftResult.pinchLevel);
             }
 
@@ -247,18 +257,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
 
-                currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, rightResult.pinchLevel >= 0.95f);
-                currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, rightResult.pinchLevel >= 0.90f);
-                currState.SetButtonPress(VRModuleRawButton.GestureFist, rightResult.gesture == GestureType.Fist);
-                currState.SetButtonTouch(VRModuleRawButton.GestureFist, rightResult.gesture == GestureType.Fist);
-                currState.SetButtonPress(VRModuleRawButton.GestureFive, rightResult.gesture == GestureType.Five);
-                currState.SetButtonTouch(VRModuleRawButton.GestureFive, rightResult.gesture == GestureType.Five);
-                currState.SetButtonPress(VRModuleRawButton.GestureOk, rightResult.gesture == GestureType.OK);
-                currState.SetButtonTouch(VRModuleRawButton.GestureOk, rightResult.gesture == GestureType.OK);
-                currState.SetButtonPress(VRModuleRawButton.GestureThumbUp, rightResult.gesture == GestureType.Like);
-                currState.SetButtonTouch(VRModuleRawButton.GestureThumbUp, rightResult.gesture == GestureType.Like);
-                currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, rightResult.gesture == GestureType.Point);
-                currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, rightResult.gesture == GestureType.Point);
+                var pinched = rightResult.pinchLevel >= 0.95f;
+                var gFist = rightResult.gesture == GestureType.Fist && rightResult.confidence > 0.1f;
+                var gFive = rightResult.gesture == GestureType.Five && rightResult.confidence > 0.1f;
+                var gOK = rightResult.gesture == GestureType.OK && rightResult.confidence > 0.1f;
+                var gLike = rightResult.gesture == GestureType.Like && rightResult.confidence > 0.1f;
+                var gPoint = rightResult.gesture == GestureType.Point && rightResult.confidence > 0.1f;
+                currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
+                currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
+                currState.SetButtonPress(VRModuleRawButton.GestureFist, gFist);
+                currState.SetButtonTouch(VRModuleRawButton.GestureFist, gFist);
+                currState.SetButtonPress(VRModuleRawButton.GestureFive, gFive);
+                currState.SetButtonTouch(VRModuleRawButton.GestureFive, gFive);
+                currState.SetButtonPress(VRModuleRawButton.GestureOk, gOK);
+                currState.SetButtonTouch(VRModuleRawButton.GestureOk, gOK);
+                currState.SetButtonPress(VRModuleRawButton.GestureThumbUp, gLike);
+                currState.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gLike);
+                currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, gPoint);
+                currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gPoint);
                 currState.SetAxisValue(VRModuleRawAxis.Trigger, rightResult.pinchLevel);
             }
         }

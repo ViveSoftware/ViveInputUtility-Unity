@@ -56,13 +56,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return IsValidDevice(device);
             }
 
-            private bool IsMapped(int hashID)
+            public bool IsMapped(int hashID)
             {
                 uint index;
                 return hashID2index.TryGetValue(hashID, out index) && IsValidIndex(index);
             }
 
-            private bool IsMapped(uint index)
+            public bool IsMapped(uint index)
             {
                 return IsValidIndex(index) && IsValidDevice(index2Device[index]);
             }
@@ -72,7 +72,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return (device.characteristics & InputDeviceCharacteristics.HeadMounted) > 0u;
             }
 
-            public bool MapAsHMD(InputDevice device)
+            public bool TryMapAsHMD(InputDevice device)
             {
                 if (!IsValidDevice(device)) { throw new ArgumentException("Invalid device", "device"); }
 

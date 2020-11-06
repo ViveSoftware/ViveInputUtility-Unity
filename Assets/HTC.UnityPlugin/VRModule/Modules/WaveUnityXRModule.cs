@@ -309,71 +309,71 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private uint rightTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
         private uint leftTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
-        protected override void UpdateCustomDevices()
-        {
-#if VIU_WAVEXR_ESSENCE_HAND
-            IVRModuleDeviceState prevState;
-            IVRModuleDeviceStateRW currState;
+//        protected override void UpdateCustomDevices()
+//        {
+//#if VIU_WAVEXR_ESSENCE_HAND
+//            IVRModuleDeviceState prevState;
+//            IVRModuleDeviceStateRW currState;
 
-            if (!(Interop.WVR_GetHandTrackingData(ref handJointData, ref handPinchData, originFlag) == WVR_Result.WVR_Success)) return;
+//            if (!(Interop.WVR_GetHandTrackingData(ref handJointData, ref handPinchData, originFlag) == WVR_Result.WVR_Success)) return;
 
-            if (handJointData.right.confidence > 0.1f)
-            {
-                if (!VRModule.IsValidDeviceIndex(rightTrackedHandIndex))
-                {
-                    rightTrackedHandIndex = FindOrAllocateUnusedNotHMDIndex();
-                    EnsureValidDeviceState(rightTrackedHandIndex, out prevState, out currState);
+//            if (handJointData.right.confidence > 0.1f)
+//            {
+//                if (!VRModule.IsValidDeviceIndex(rightTrackedHandIndex))
+//                {
+//                    rightTrackedHandIndex = FindOrAllocateUnusedNotHMDIndex();
+//                    EnsureValidDeviceState(rightTrackedHandIndex, out prevState, out currState);
 
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.serialNumber = "RIGHT" + rightTrackedHandIndex;
-                    currState.modelNumber = "WVR_RIGHT";
-                    currState.renderModelName = "WVR_RIGHT";
+//                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+//                    currState.serialNumber = "RIGHT" + rightTrackedHandIndex;
+//                    currState.modelNumber = "WVR_RIGHT";
+//                    currState.renderModelName = "WVR_RIGHT";
 
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.deviceModel = VRModuleDeviceModel.WaveTrackedHandRight;
-                    currState.input2DType = VRModuleInput2DType.None;
-                }
-                else
-                {
-                    EnsureValidDeviceState(rightTrackedHandIndex, out prevState, out currState);
-                    currState.isConnected = true;
-                }
+//                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+//                    currState.deviceModel = VRModuleDeviceModel.WaveTrackedHandRight;
+//                    currState.input2DType = VRModuleInput2DType.None;
+//                }
+//                else
+//                {
+//                    EnsureValidDeviceState(rightTrackedHandIndex, out prevState, out currState);
+//                    currState.isConnected = true;
+//                }
 
-                currState.isPoseValid = true;
+//                currState.isPoseValid = true;
 
-                UpdateTrackedHandJointState(currState, false);
-                //UpdateTrackedHandGestureState(currState, false);
-            }
+//                UpdateTrackedHandJointState(currState, false);
+//                //UpdateTrackedHandGestureState(currState, false);
+//            }
 
-            if (handJointData.left.confidence > 0.1f)
-            {
-                if (!VRModule.IsValidDeviceIndex(leftTrackedHandIndex))
-                {
-                    leftTrackedHandIndex = FindOrAllocateUnusedNotHMDIndex();
-                    EnsureValidDeviceState(leftTrackedHandIndex, out prevState, out currState);
+//            if (handJointData.left.confidence > 0.1f)
+//            {
+//                if (!VRModule.IsValidDeviceIndex(leftTrackedHandIndex))
+//                {
+//                    leftTrackedHandIndex = FindOrAllocateUnusedNotHMDIndex();
+//                    EnsureValidDeviceState(leftTrackedHandIndex, out prevState, out currState);
 
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.serialNumber = "LEFT" + leftTrackedHandIndex;
-                    currState.modelNumber = "WVR_LEFT";
-                    currState.renderModelName = "WVR_LEFT";
+//                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+//                    currState.serialNumber = "LEFT" + leftTrackedHandIndex;
+//                    currState.modelNumber = "WVR_LEFT";
+//                    currState.renderModelName = "WVR_LEFT";
 
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.deviceModel = VRModuleDeviceModel.WaveTrackedHandLeft;
-                    currState.input2DType = VRModuleInput2DType.None;
-                }
-                else
-                {
-                    EnsureValidDeviceState(leftTrackedHandIndex, out prevState, out currState);
-                    currState.isConnected = true;
-                }
+//                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+//                    currState.deviceModel = VRModuleDeviceModel.WaveTrackedHandLeft;
+//                    currState.input2DType = VRModuleInput2DType.None;
+//                }
+//                else
+//                {
+//                    EnsureValidDeviceState(leftTrackedHandIndex, out prevState, out currState);
+//                    currState.isConnected = true;
+//                }
 
-                currState.isPoseValid = true;
+//                currState.isPoseValid = true;
 
-                UpdateTrackedHandJointState(currState, true);
-                //UpdateTrackedHandGestureState(currState, true);
-            }
-#endif
-        }
+//                UpdateTrackedHandJointState(currState, true);
+//                //UpdateTrackedHandGestureState(currState, true);
+//            }
+//#endif
+//        }
 
         private void UpdateTrackedHandJointState(IVRModuleDeviceStateRW state, bool isLeft)
         {
@@ -464,20 +464,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 #endif
 
-        protected override void OnCustomDeviceDisconnected(uint index)
-        {
-#if VIU_WAVEXR_ESSENCE_HAND
-            if (rightTrackedHandIndex == index)
-            {
-                rightTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
-            }
+//        protected override void OnCustomDeviceDisconnected(uint index)
+//        {
+//#if VIU_WAVEXR_ESSENCE_HAND
+//            if (rightTrackedHandIndex == index)
+//            {
+//                rightTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
+//            }
 
-            if (leftTrackedHandIndex == index)
-            {
-                leftTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
-            }
-#endif
-        }
+//            if (leftTrackedHandIndex == index)
+//            {
+//                leftTrackedHandIndex = VRModule.INVALID_DEVICE_INDEX;
+//            }
+//#endif
+//        }
 
         private bool TryGetDevice(uint index, out InputDevice deviceOut)
         {

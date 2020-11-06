@@ -54,6 +54,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private OriginDataCache m_originDataCache = new OriginDataCache();
         private IndexMap m_indexMap = new IndexMap();
         private VRModule.SubmoduleBase.Collection m_submodules = new VRModule.SubmoduleBase.Collection(new ViveHandTrackingSubmodule());
+        private bool m_openvrCtrlRoleDirty;
+        private uint m_openvrRightIndex;
+        private uint m_openvrLeftIndex;
+        private uint m_moduleRightIndex;
+        private uint m_moduleLeftIndex;
 
         private static ETrackingUniverseOrigin trackingSpace
         {
@@ -212,10 +217,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
 #if VIU_STEAMVR_2_2_0_OR_NEWER
             SteamVR_Input.onNonVisualActionsUpdated += UpdateDeviceInput;
-            SteamVR_Input.onPosesUpdated += UpdateDevicePose;
+            SteamVR_Input.onPosesUpdated += UpdateDeviceConnectionAndPose;
 #else
             SteamVR_Input.OnNonVisualActionsUpdated += UpdateDeviceInput;
-            SteamVR_Input.OnPosesUpdated += UpdateDevicePose;
+            SteamVR_Input.OnPosesUpdated += UpdateDeviceConnectionAndPose;
 #endif
 
             //s_devicePathHandles = new ulong[OpenVR.k_unMaxTrackedDeviceCount];
@@ -243,10 +248,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
 #if VIU_STEAMVR_2_2_0_OR_NEWER
             SteamVR_Input.onNonVisualActionsUpdated -= UpdateDeviceInput;
-            SteamVR_Input.onPosesUpdated -= UpdateDevicePose;
+            SteamVR_Input.onPosesUpdated -= UpdateDeviceConnectionAndPose;
 #else
             SteamVR_Input.OnNonVisualActionsUpdated -= UpdateDeviceInput;
-            SteamVR_Input.OnPosesUpdated -= UpdateDevicePose;
+            SteamVR_Input.OnPosesUpdated -= UpdateDeviceConnectionAndPose;
 #endif
             m_originDataCache.ClearCache();
             m_indexMap.Clear();
@@ -340,7 +345,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             ProcessDeviceInputChanged();
         }
 
-        private void UpdateDevicePose(bool obj)
+        private void UpdateDeviceConnectionAndPose(bool obj)
         {
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
@@ -351,6 +356,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var vrCompositor = OpenVR.Compositor;
             if (vrSystem == null || vrCompositor == null)
             {
+                m_openvrCtrlRoleDirty = true;
+                // clear all device states if OpenVR disabled
                 for (uint i = 0, imax = GetDeviceStateLength(); i < imax; ++i)
                 {
                     if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
@@ -358,65 +365,94 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         currState.Reset();
                     }
                 }
-
-                return;
             }
-
-            vrCompositor.GetLastPoses(m_poses, m_gamePoses);
-
-            for (uint i = 0u, imax = (uint)m_poses.Length; i < imax; ++i)
+            else
             {
-                if (!m_poses[i].bDeviceIsConnected)
+                vrCompositor.GetLastPoses(m_poses, m_gamePoses);
+
+                for (uint i = 0u, imax = (uint)m_poses.Length; i < imax; ++i)
                 {
-                    uint moduleIndex;
-                    if (m_indexMap.TryGetModuleIndex(i, out moduleIndex))
+                    if (!m_poses[i].bDeviceIsConnected)
                     {
-                        m_indexMap.UnmapTracked(i);
-                        if (TryGetValidDeviceState(moduleIndex, out prevState, out currState))
+                        m_openvrCtrlRoleDirty = true;
+                        uint moduleIndex;
+                        if (m_indexMap.TryGetModuleIndex(i, out moduleIndex))
                         {
-                            currState.Reset();
+                            m_indexMap.UnmapTracked(i);
+                            if (TryGetValidDeviceState(moduleIndex, out prevState, out currState))
+                            {
+                                currState.Reset();
+                            }
                         }
-                    }
-                }
-                else
-                {
-                    uint moduleIndex;
-                    if (!m_indexMap.TryGetModuleIndex(i, out moduleIndex))
-                    {
-                        moduleIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
-                        m_indexMap.Map(i, moduleIndex);
                     }
                     else
                     {
-                        EnsureValidDeviceState(moduleIndex, out prevState, out currState);
+                        uint moduleIndex;
+                        if (!m_indexMap.TryGetModuleIndex(i, out moduleIndex))
+                        {
+                            moduleIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+                            m_indexMap.Map(i, moduleIndex);
+                        }
+                        else
+                        {
+                            EnsureValidDeviceState(moduleIndex, out prevState, out currState);
+                        }
+
+                        if (!prevState.isConnected)
+                        {
+                            m_openvrCtrlRoleDirty = true;
+                            currState.isConnected = true;
+                            currState.deviceClass = (VRModuleDeviceClass)vrSystem.GetTrackedDeviceClass(i);
+                            currState.serialNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_SerialNumber_String);
+                            currState.modelNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_ModelNumber_String);
+                            currState.renderModelName = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_RenderModelName_String);
+
+                            SetupKnownDeviceModel(currState);
+                        }
+
+                        // update device status
+                        currState.isPoseValid = m_poses[i].bPoseIsValid;
+                        currState.isOutOfRange = m_poses[i].eTrackingResult == ETrackingResult.Running_OutOfRange || m_poses[i].eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
+                        currState.isCalibrating = m_poses[i].eTrackingResult == ETrackingResult.Calibrating_InProgress || m_poses[i].eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
+                        currState.isUninitialized = m_poses[i].eTrackingResult == ETrackingResult.Uninitialized;
+                        currState.velocity = new Vector3(m_poses[i].vVelocity.v0, m_poses[i].vVelocity.v1, -m_poses[i].vVelocity.v2);
+                        currState.angularVelocity = new Vector3(-m_poses[i].vAngularVelocity.v0, -m_poses[i].vAngularVelocity.v1, m_poses[i].vAngularVelocity.v2);
+
+                        var rigidTransform = new SteamVR_Utils.RigidTransform(m_poses[i].mDeviceToAbsoluteTracking);
+                        currState.position = rigidTransform.pos;
+                        currState.rotation = rigidTransform.rot;
                     }
-
-                    if (!prevState.isConnected)
-                    {
-                        currState.isConnected = true;
-                        currState.deviceClass = (VRModuleDeviceClass)vrSystem.GetTrackedDeviceClass(i);
-                        currState.serialNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_SerialNumber_String);
-                        currState.modelNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_ModelNumber_String);
-                        currState.renderModelName = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_RenderModelName_String);
-
-                        SetupKnownDeviceModel(currState);
-                    }
-
-                    // update device status
-                    currState.isPoseValid = m_poses[i].bPoseIsValid;
-                    currState.isOutOfRange = m_poses[i].eTrackingResult == ETrackingResult.Running_OutOfRange || m_poses[i].eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
-                    currState.isCalibrating = m_poses[i].eTrackingResult == ETrackingResult.Calibrating_InProgress || m_poses[i].eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
-                    currState.isUninitialized = m_poses[i].eTrackingResult == ETrackingResult.Uninitialized;
-                    currState.velocity = new Vector3(m_poses[i].vVelocity.v0, m_poses[i].vVelocity.v1, -m_poses[i].vVelocity.v2);
-                    currState.angularVelocity = new Vector3(-m_poses[i].vAngularVelocity.v0, -m_poses[i].vAngularVelocity.v1, m_poses[i].vAngularVelocity.v2);
-
-                    var rigidTransform = new SteamVR_Utils.RigidTransform(m_poses[i].mDeviceToAbsoluteTracking);
-                    currState.position = rigidTransform.pos;
-                    currState.rotation = rigidTransform.rot;
                 }
             }
 
             m_submodules.UpdateModulesDeviceConnectionAndPoses();
+
+            // process hand role
+            if (m_openvrCtrlRoleDirty)
+            {
+                m_openvrCtrlRoleDirty = false;
+                if (vrSystem == null)
+                {
+                    m_openvrRightIndex = INVALID_DEVICE_INDEX;
+                    m_openvrLeftIndex = INVALID_DEVICE_INDEX;
+                }
+                else
+                {
+                    var right = vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+                    var left = vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
+                    m_indexMap.TryGetModuleIndex(right, out m_openvrRightIndex);
+                    m_indexMap.TryGetModuleIndex(left, out m_openvrLeftIndex);
+                }
+            }
+
+            var moduleRight = m_openvrRightIndex != INVALID_DEVICE_INDEX ? m_openvrRightIndex : m_submodules.GetFirstRightHandedIndex();
+            var moduleLeft = m_openvrLeftIndex != INVALID_DEVICE_INDEX ? m_openvrLeftIndex : m_submodules.GetFirstLeftHandedIndex();
+            var roleChanged = ChangeProp.Set(ref m_moduleRightIndex, moduleRight);
+            roleChanged |= ChangeProp.Set(ref m_moduleLeftIndex, moduleLeft);
+            if (roleChanged)
+            {
+                InvokeControllerRoleChangedEvent();
+            }
 
             ProcessConnectedDeviceChanged();
             ProcessDevicePoseChanged();
@@ -451,26 +487,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override bool HasInputFocus() { return m_hasInputFocus; }
 
-        private void OnTrackedDeviceRoleChanged(VREvent_t arg)
-        {
-            InvokeControllerRoleChangedEvent();
-        }
+        private void OnTrackedDeviceRoleChanged(VREvent_t arg) { m_openvrCtrlRoleDirty = true; }
 
-        public override uint GetLeftControllerDeviceIndex()
-        {
-            var system = OpenVR.System;
-            if (system == null) { return VRModule.INVALID_DEVICE_INDEX; }
-            var trackedIndex = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
-            return m_indexMap.Tracked2ModuleIndex(trackedIndex);
-        }
+        public override uint GetLeftControllerDeviceIndex() { return m_moduleLeftIndex; }
 
-        public override uint GetRightControllerDeviceIndex()
-        {
-            var system = OpenVR.System;
-            if (system == null) { return VRModule.INVALID_DEVICE_INDEX; }
-            var trackedIndex = system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
-            return m_indexMap.Tracked2ModuleIndex(trackedIndex);
-        }
+        public override uint GetRightControllerDeviceIndex() { return m_moduleRightIndex; }
 
         private StringBuilder m_sb;
         private string QueryDeviceStringProperty(CVRSystem system, uint deviceIndex, ETrackedDeviceProperty prop)

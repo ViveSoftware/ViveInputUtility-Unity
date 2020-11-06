@@ -28,18 +28,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [Obsolete("Module should set their own MAX_DEVICE_COUNT, use EnsureDeviceStateLength to set, VRModule.GetDeviceStateCount() to get")]
             protected const uint MAX_DEVICE_COUNT = VRModule.MAX_DEVICE_COUNT;
             protected const uint INVALID_DEVICE_INDEX = VRModule.INVALID_DEVICE_INDEX;
+            protected const RegexOptions REGES_OPTIONS = RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline;
 
-            private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", RegexOptions.IgnoreCase);
-            private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", REGES_OPTIONS);
+            private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", REGES_OPTIONS);
+            private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", REGES_OPTIONS);
+            private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGES_OPTIONS);
+            private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", REGES_OPTIONS);
+            private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGES_OPTIONS);
+            private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", REGES_OPTIONS);
+            private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", REGES_OPTIONS);
+            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", REGES_OPTIONS);
+            private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", REGES_OPTIONS);
+            private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", REGES_OPTIONS);
 
             private struct WVRCtrlProfile
             {
@@ -442,6 +443,34 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         modules[i].OnUpdateDeviceInput();
                     }
                 }
+
+                public uint GetFirstRightHandedIndex()
+                {
+                    if (modules.Count > 0)
+                    {
+                        var indexMax = Instance.GetDeviceStateLength();
+                        for (int i = 0, imax = modules.Count; i < imax; ++i)
+                        {
+                            var index = modules[i].GetRightHandedIndex();
+                            if (index < indexMax) { return index; }
+                        }
+                    }
+                    return INVALID_DEVICE_INDEX;
+                }
+
+                public uint GetFirstLeftHandedIndex()
+                {
+                    if (modules.Count > 0)
+                    {
+                        var indexMax = Instance.GetDeviceStateLength();
+                        for (int i = 0, imax = modules.Count; i < imax; ++i)
+                        {
+                            var index = modules[i].GetLeftHandedIndex();
+                            if (index < indexMax) { return index; }
+                        }
+                    }
+                    return INVALID_DEVICE_INDEX;
+                }
             }
 
             public bool isActivated { get; private set; }
@@ -473,6 +502,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             protected virtual void OnUpdateDeviceConnectionAndPoses() { }
 
             protected virtual void OnUpdateDeviceInput() { }
+
+            public abstract uint GetRightHandedIndex();
+
+            public abstract uint GetLeftHandedIndex();
 
             protected uint GetDeviceStateLength()
             {
