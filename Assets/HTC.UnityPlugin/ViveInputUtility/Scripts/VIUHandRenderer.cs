@@ -7,15 +7,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-class VIUHandRenderer : MonoBehaviour
+class VIUHandRenderer : MonoBehaviour, IViveRoleComponent
 {
-    public ViveRoleProperty role = ViveRoleProperty.New();
+    [SerializeField]
+    private ViveRoleProperty m_viveRole = ViveRoleProperty.New(TrackedHandRole.RightHand);
+    public ViveRoleProperty viveRole { get { return m_viveRole; } }
 
     [SerializeField]
     bool renderAxis;
     [SerializeField]
     bool renderTrackedBone = true;
     bool oldRenderAxis;
+
+    public bool RenderTrackedBone { set { renderTrackedBone = value; } }
+    public bool RenderAxis { set { renderAxis = value; } }
 
     [Tooltip("Default color of hand points")]
     public Color pointColor = Color.blue;
@@ -25,8 +30,8 @@ class VIUHandRenderer : MonoBehaviour
     [Tooltip("Root object of skinned mesh")]
     public SkinnedMeshRenderer skinRenderer;
     //[SerializeField]
-    bool rotationFix = true;
-    //[SerializeField]
+    //bool rotationFix = true;
+    [SerializeField]
     bool positionFix = true;
     [SerializeField]
     bool scaleFix = false;
@@ -100,23 +105,18 @@ class VIUHandRenderer : MonoBehaviour
             skinRenderer.enabled = false;
     }
 
+    private void OnDisable()
+    {
+        _disableRenderBone();
+    }
 
     Dictionary<HandJointName, RigidPose> _convertWorlPoses = new Dictionary<HandJointName, RigidPose>();
     void LateUpdate()
     {
-        var deviceState = VRModule.GetCurrentDeviceState(role.GetDeviceIndex());
+        var deviceState = VRModule.GetCurrentDeviceState(viveRole.GetDeviceIndex());
         if (!deviceState.isPoseValid)
         {
-            if (renderTrackedBone)
-            {
-                if (points != null)
-                    foreach (var p in points)
-                        p.SetActive(false);
-                if (links != null)
-                    foreach (var l in links)
-                        l.SetActive(false);
-            }
-
+            _disableRenderBone();
             if (skinRenderer != null)
                 skinRenderer.enabled = false;
             return;
@@ -126,18 +126,56 @@ class VIUHandRenderer : MonoBehaviour
 
         //Transform joint consider the cameraRig's teleport position.
         RigidPose wristPose;
-        if (!VivePose.TryGetHandJointPose(role, HandJointName.Wrist, out wristPose))
+        if (!VivePose.TryGetHandJointPose(viveRole, HandJointName.Wrist, out wristPose))
             Debug.LogError("[VIUHandRenderer] Cannot find wrist in hand engine");
 
-        Quaternion cameraRigRot = Quaternion.identity;
+        Matrix4x4 cameraRigMat = Matrix4x4.identity;
+        Matrix4x4 worldWristMat = Matrix4x4.identity;
 
         //Update points and links position
         int count = 0;
         foreach (HandJointName jointName in considerJoint)
         {
-            RigidPose pos;
-            if (VivePose.TryGetHandJointPose(role, jointName, out pos))
+            RigidPose jointPose;
+            if (VivePose.TryGetHandJointPose(viveRole, jointName, out jointPose))
             {
+                if (count == 0)
+                {
+                    worldWristMat = transform.localToWorldMatrix;
+                    Matrix4x4 worldWristMatNoScale = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+
+                    cameraRigMat = worldWristMat * Matrix4x4.TRS(wristPose.pos, wristPose.rot, Vector3.one).inverse;
+
+                    Matrix4x4 localSpaceMat = cameraRigMat * Matrix4x4.TRS(wristPose.pos, wristPose.rot, Vector3.one);
+                    if (transform.lossyScale.x < 0)
+                        localSpaceMat.SetColumn(0, -localSpaceMat.GetColumn(0));
+                    if (transform.lossyScale.y < 0)
+                        localSpaceMat.SetColumn(1, -localSpaceMat.GetColumn(1));
+                    if (transform.lossyScale.z < 0)
+                        localSpaceMat.SetColumn(2, -localSpaceMat.GetColumn(2));
+
+                    RigidPose pose = new RigidPose(worldWristMat.GetColumn(3), localSpaceMat.rotation);
+                    _convertWorlPoses[jointName] = pose;
+                }
+                else
+                {
+                    Vector3 localSpaceVec = jointPose.pos - wristPose.pos;
+                    Vector3 worldSpaceVec = cameraRigMat.MultiplyVector(localSpaceVec);
+
+                    Matrix4x4 localSpaceMat = cameraRigMat * Matrix4x4.TRS(jointPose.pos, jointPose.rot, Vector3.one);
+                    if (transform.lossyScale.x < 0)
+                        localSpaceMat.SetColumn(0, -localSpaceMat.GetColumn(0));
+                    if (transform.lossyScale.y < 0)
+                        localSpaceMat.SetColumn(1, -localSpaceMat.GetColumn(1));
+                    if (transform.lossyScale.z < 0)
+                        localSpaceMat.SetColumn(2, -localSpaceMat.GetColumn(2));
+
+                    Vector3 wristPos = (Vector3)worldWristMat.GetColumn(3);
+                    RigidPose pose = new RigidPose(wristPos + worldSpaceVec, localSpaceMat.rotation);
+                    _convertWorlPoses[jointName] = pose;
+                }
+
+                /*
                 if (count == 0)
                 {
                     Quaternion worldRigSpaceRot = transform.rotation;
@@ -152,12 +190,12 @@ class VIUHandRenderer : MonoBehaviour
                 }
                 else
                 {
-                    Vector3 localSpaceVec = pos.pos - wristPose.pos;
+                    Vector3 localSpaceVec = jointPose.pos - wristPose.pos;
                     Vector3 worldSpaceVec = cameraRigRot * localSpaceVec;
-                    Quaternion localSpaceRot = cameraRigRot * pos.rot;
+                    Quaternion localSpaceRot = cameraRigRot * jointPose.rot;
                     RigidPose pose = new RigidPose(wristNode.position + worldSpaceVec, localSpaceRot);
                     _convertWorlPoses[jointName] = pose;
-                }
+                }*/
             }
             else
                 Debug.LogError("[VIUHandRenderer] Cannot find joint in hand engine : " + jointName);
@@ -169,8 +207,8 @@ class VIUHandRenderer : MonoBehaviour
         {
             skinRenderer.enabled = true;
 
-            //Nodes[0].position = _convertWorlPoses[HandJointName.Wrist].pos;
-            //Nodes[0].rotation = _convertWorlPoses[HandJointName.Wrist].rot;
+            Nodes[0].position = _convertWorlPoses[HandJointName.Wrist].pos;
+            Nodes[0].rotation = _convertWorlPoses[HandJointName.Wrist].rot;
 
             int nodeIndex = 1;
             for (int b = 0; b < 5; b++)
@@ -184,42 +222,40 @@ class VIUHandRenderer : MonoBehaviour
                     Transform curJoint = Nodes[nodeIndex + countNode];
                     Transform nextJoint = Nodes[nodeIndex + countNode + 1];
                     RigidPose pose = _convertWorlPoses[fingerConnection[a]];
+                    RigidPose nextPose = _convertWorlPoses[fingerConnection[a + 1]];
 
                     if (positionFix)
                     {
-                        RigidPose poseNext = _convertWorlPoses[fingerConnection[a + 1]];
-                        if (a == 0)
-                            curJoint.position = pose.pos;
-
-                        float nextBoneLength = (poseNext.pos - pose.pos).magnitude;
-                        Vector3 dir = (nextJoint.position - curJoint.position).normalized;
-                        nextJoint.position = curJoint.position + dir * nextBoneLength;
+                        // if (a == 0)
+                        curJoint.position = pose.pos;
                     }
 
                     //1. Set rotation and get new dir with next joint.
                     curJoint.rotation = pose.rot;
-                    if (rotationFix)
-                    {
-                        //Calculate the joint rotation offset between joint axis dir and actual bone dir.
+                    //if (rotationFix)
+                    //{
+                    //    //Calculate the joint rotation offset between joint axis dir and actual bone dir.
 
-                        //2. Calculate offset
-                        //*.Global rotation way
-                        //Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
-                        //dir = Quaternion.Inverse(cameraRigRot) * dir;
-                        //Quaternion rot = Quaternion.FromToRotation(dir, pose.rot * Vector3.forward);
-                        //curJoint.rotation = rot * pose.rot;
+                    //    //2. Calculate offset
+                    //    //*.Global rotation way
+                    //    //Vector3 dir = -(nextJoint.position - curJoint.position).normalized;
+                    //    //dir = cameraRigMat.inverse.MultiplyVector(dir);
+                    //    //Quaternion rot = Quaternion.FromToRotation(dir, pose.rot * Vector3.forward);
+                    //    //curJoint.rotation = pose.rot * rot;
+                    //    //curJoint.rotation = cameraRigMat.rotation * curJoint.rotation;
 
-                        //*.Local rotation can record at initialize step, no need compute at update().
-                        //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);
-                        Vector3 localSkinNext = curJoint.InverseTransformPoint(nextJoint.position);
-                        Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
-                        curJoint.localRotation *= Quaternion.Inverse(Quaternion.LookRotation(localSkinDir));
-                    }
+                    //    //*.Local rotation can record at initialize step, no need compute at update().
+                    //    //Vector3 localSkinCur = curJoint.InverseTransformPoint(curJoint.position);                    
+                    //Vector3 localSkinNext = curJoint.InverseTransformPoint(nextPose.pos);//nextJoint's positin at curJoint
+                    //Vector3 localSkinDir = -(localSkinNext /*- localSkinCur*/).normalized;
+                    //curJoint.localRotation = Quaternion.LookRotation(localSkinDir);
+                    //}
 
                     countNode++;
                 }
                 nodeIndex += 4;//skip finger tip
             }
+
         }
 
         //Update debug bone
@@ -233,6 +269,21 @@ class VIUHandRenderer : MonoBehaviour
             _initRenderBone(wristNode);
             _updateRenderBone();
         }
+        else
+            _destroyRenderBone();
+    }
+
+    void _disableRenderBone()
+    {
+        if (points != null)
+            foreach (var p in points)
+                p.SetActive(false);
+        if (links != null)
+            foreach (var l in links)
+                l.SetActive(false);
+        if (axisList != null)
+            foreach (GameObject o in axisList)
+                o.SetActive(false);
     }
 
     void _destroyRenderBone()
@@ -266,8 +317,9 @@ class VIUHandRenderer : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Destroy(go.GetComponent<Collider>());
             go.name = "point" + i;
-            go.transform.parent = wristNode;
+            //go.transform.parent = wristNode;
             go.transform.localScale = Vector3.one * 0.006f;
             go.SetActive(false);
             Destroy(go.GetComponent<Collider>());
@@ -291,7 +343,7 @@ class VIUHandRenderer : MonoBehaviour
             {
                 GameObject axisObj = _createAxisPrefab();
                 axisObj.name = "axis" + i;
-                axisObj.transform.parent = wristNode;
+                //axisObj.transform.parent = wristNode;
                 axisObj.transform.localScale = Vector3.one * 0.006f;
                 axisObj.SetActive(false);
                 axisList.Add(axisObj);
@@ -303,9 +355,10 @@ class VIUHandRenderer : MonoBehaviour
         for (int i = 0; i < BoneRenderConnections.Length; i += 2)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Destroy(go.GetComponent<Collider>());
             go.name = "link" + i;
-            go.transform.parent = wristNode;
-            go.transform.localScale = Vector3.one * 0.004f;
+            //go.transform.parent = wristNode;
+            go.transform.localScale = Vector3.one * 0.008f;
             go.SetActive(false);
             Destroy(go.GetComponent<Collider>());
             links.Add(go);
@@ -360,7 +413,7 @@ class VIUHandRenderer : MonoBehaviour
                 //_convertWorlPoses[startIndex].rot * Vector3.forward
                 direction
                 );
-            link.transform.localScale = new Vector3(0.0005f, 0.0005f, len / 2f - 0.0051f);
+            link.transform.localScale = new Vector3(0.0005f, 0.0005f, len / 2f - 0.001f);
         }
     }
 

@@ -143,15 +143,15 @@ namespace HTC.UnityPlugin.Vive
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4, currState.GetButtonPress(VRModuleRawButton.Axis4));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4Touch, currState.GetButtonTouch(VRModuleRawButton.Axis4));
 
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.IndexPinch, currState.GetButtonTouch(VRModuleRawButton.GestureIndexPinch));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.MiddlePinch, currState.GetButtonTouch(VRModuleRawButton.GestureMiddlePinch));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.RingPinch, currState.GetButtonTouch(VRModuleRawButton.GestureRingPinch));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.PinkyPinch, currState.GetButtonTouch(VRModuleRawButton.GesturePinkyPinch));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Fist, currState.GetButtonTouch(VRModuleRawButton.GestureFist));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Five, currState.GetButtonTouch(VRModuleRawButton.GestureFive));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Ok, currState.GetButtonTouch(VRModuleRawButton.GestureOk));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.ThumbUp, currState.GetButtonTouch(VRModuleRawButton.GestureThumbUp));
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.IndexUp, currState.GetButtonTouch(VRModuleRawButton.GestureIndexUp));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.IndexPinch, currState.GetButtonPress(VRModuleRawButton.GestureIndexPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.MiddlePinch, currState.GetButtonPress(VRModuleRawButton.GestureMiddlePinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.RingPinch, currState.GetButtonPress(VRModuleRawButton.GestureRingPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.PinkyPinch, currState.GetButtonPress(VRModuleRawButton.GesturePinkyPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Fist, currState.GetButtonPress(VRModuleRawButton.GestureFist));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Five, currState.GetButtonPress(VRModuleRawButton.GestureFive));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Ok, currState.GetButtonPress(VRModuleRawButton.GestureOk));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.ThumbUp, currState.GetButtonPress(VRModuleRawButton.GestureThumbUp));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.IndexUp, currState.GetButtonPress(VRModuleRawButton.GestureIndexUp));
 
                 // update axis values
                 float currTriggerValue;
