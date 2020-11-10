@@ -78,16 +78,15 @@ namespace HTC.UnityPlugin.Vive
                 s_instance.m_bindingInterfaceObjectSource = Resources.Load<GameObject>(BINDING_INTERFACE_PREFAB_DEFAULT_RESOURCE_PATH);
 
                 if (s_instance.m_defaultDeviceModel == null) { s_instance.m_defaultDeviceModel = new DeviceModelArray(); }
-                var info = EnumUtils.GetDisplayInfo(typeof(VRModuleDeviceModel));
-                for (int i = 0, imax = info.rawNames.Length; i < imax; ++i)
+
+                foreach (var i in DeviceModelArray.BaseEnumKeys)
                 {
-                    var prefab = Resources.Load<GameObject>("Models/VIUModel" + info.rawNames[i]);
+                    var prefab = Resources.Load<GameObject>("Models/VIUModel" + i.ToString());
                     if (prefab != null)
                     {
-                        s_instance.m_defaultDeviceModel[info.rawValues[i]] = prefab;
+                        s_instance.m_defaultDeviceModel[i] = prefab;
                     }
                 }
-
             }
         }
 

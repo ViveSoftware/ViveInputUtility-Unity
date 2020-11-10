@@ -27,7 +27,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static readonly int sizeofGestureResult = Marshal.SizeOf(typeof(GestureResult));
 
         private GestureOption option = new GestureOption();
-        private GestureProvider provider;
         private bool isStarted;
         private int retryCount;
         private float nextRetryTime;

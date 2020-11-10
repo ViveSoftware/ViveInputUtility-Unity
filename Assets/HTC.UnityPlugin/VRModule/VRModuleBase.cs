@@ -503,9 +503,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             protected virtual void OnUpdateDeviceInput() { }
 
-            public abstract uint GetRightHandedIndex();
+            public virtual uint GetRightHandedIndex() { return INVALID_DEVICE_INDEX; }
 
-            public abstract uint GetLeftHandedIndex();
+            public virtual uint GetLeftHandedIndex() { return INVALID_DEVICE_INDEX; }
 
             protected uint GetDeviceStateLength()
             {

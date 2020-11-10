@@ -25,7 +25,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqFileNames = new string[] { "WaveVR.cs" },
             });
 
-            Add(new VRModuleManagerEditor.SymbolRequirement()
+            Add(new SymbolRequirement()
             {
                 symbol = "VIU_WAVEXR_ESSENCE_RENDERMODEL",
                 reqTypeNames = new string[] { "Wave.Essence.Controller.RenderModel", "Wave.Essence.Controller.ButtonEffect", "Wave.Essence.Controller.ShowIndicator" },
@@ -141,6 +141,27 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         typeName = "wvr.Interop",
                         name = "WVR_PostInit",
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_LEGACY_HAND_TRACKING",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.Native.Interop",
+                        name = "WVR_GetHandTrackingData",
+                        argTypeNames = new string[]
+                        {
+                            "Wave.Native.WVR_HandSkeletonData_t&",
+                            "Wave.Native.WVR_HandPoseData_t&",
+                            "Wave.Native.WVR_PoseOriginModel",
+                        },
                         bindingAttr = BindingFlags.Public | BindingFlags.Static,
                     }
                 },

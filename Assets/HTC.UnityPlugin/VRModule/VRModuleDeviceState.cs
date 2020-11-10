@@ -51,6 +51,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         IndexControllerRight,
         MagicLeapHMD,
         MagicLeapController,
+        WaveLegacyTrackedHandLeft,
+        WaveLegacyTrackedHandRight,
         WaveTrackedHandLeft,
         WaveTrackedHandRight,
         OculusTrackedHandLeft,
