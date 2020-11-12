@@ -17,8 +17,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Simulator = 1,
                 UnityNativeVR,
                 UnityXR,
-                WaveUnityXR,
-                OpenVRUnityXR,
                 SteamVR,
                 OculusVR,
                 DayDream,

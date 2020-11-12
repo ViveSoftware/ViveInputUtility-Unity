@@ -13,9 +13,6 @@ using UnityEngine.XR;
 #if VIU_XR_GENERAL_SETTINGS
 using UnityEngine.XR.Management;
 using UnityEngine.SpatialTracking;
-#if VIU_WAVEXR_ESSENCE_RENDERMODEL
-using Wave.Essence;
-#endif
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement

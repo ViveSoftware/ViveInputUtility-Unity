@@ -78,7 +78,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint uxrLeftIndex = INVALID_DEVICE_INDEX;
         private uint moduleRightIndex = INVALID_DEVICE_INDEX;
         private uint moduleLeftIndex = INVALID_DEVICE_INDEX;
-        private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection();
+        private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection(
+            new ViveHandTrackingSubmodule()
+            );
 
         protected VRModuleKnownXRLoader KnownActiveLoader { get { return knownActiveLoader; } }
         protected VRModuleKnownXRInputSubsystem KnownActiveInputSubsystem { get { return knownActiveInputSubsystem; } }
@@ -89,11 +91,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             knownActiveInputSubsystem = GetKnownActiveInputSubsystem();
             EnsureDeviceStateLength(8);
             UpdateTrackingSpaceType();
+            submodules.ActivateAllModules();
             Debug.Log("Activated XRLoader Name: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
         }
 
         public override void OnDeactivated()
         {
+            submodules.DeactivateAllModules();
             indexMap.Clear();
         }
 

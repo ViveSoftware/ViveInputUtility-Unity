@@ -58,25 +58,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             Add(new SymbolRequirement()
             {
-                symbol = "VIU_WAVEXR_ESSENCE_HAND",
-                reqTypeNames = new string[] { "Wave.Essence.Hand.HandManager+HandType" },
-                validateFunc = (req) =>
-                {
-                    Type handType;
-                    if (SymbolRequirement.s_foundTypes.TryGetValue("Wave.Essence.Hand.HandManager+HandType", out handType) && handType.IsEnum)
-                    {
-                        if (Enum.IsDefined(handType, "RIGHT") && Enum.IsDefined(handType, "LEFT"))
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-                reqFileNames = new string[] { "HandManager.cs" },
-            });
-
-            Add(new SymbolRequirement()
-            {
                 symbol = "VIU_WAVEVR_2_1_0_OR_NEWER",
                 reqTypeNames = new string[] { "wvr.WVR_InputId" },
                 validateFunc = (req) =>
