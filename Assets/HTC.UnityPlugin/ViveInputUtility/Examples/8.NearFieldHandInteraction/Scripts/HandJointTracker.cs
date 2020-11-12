@@ -29,11 +29,11 @@ namespace HTC.UnityPlugin.Vive
         {
             TrackedHandRole handRole = handness == Handness.LeftHand ? TrackedHandRole.LeftHand : TrackedHandRole.RightHand;
 
-            RigidPose pose;
-            if (VivePose.TryGetHandJointPoseEx(handRole, jointName, out pose))
+            JointPose jointPose;
+            if (VivePose.TryGetHandJointPoseEx(handRole, jointName, out jointPose))
             {
-                transform.localPosition = pose.pos;
-                transform.localRotation = pose.rot;
+                transform.localPosition = jointPose.pose.pos;
+                transform.localRotation = jointPose.pose.rot;
 
                 if (!m_isPoseValid)
                 {

@@ -111,19 +111,14 @@ namespace HTC.UnityPlugin.Vive
             SetPose(target, ViveRole.GetDeviceIndexEx(role), origin);
         }
 
-        public static bool TryGetHandJointPose(HandRole role, HandJointName jointName, out RigidPose pose)
+        public static bool TryGetHandJointPose(HandRole role, HandJointName jointName, out JointPose pose)
         {
             return TryGetHandJointPose(ViveRole.GetDeviceIndexEx(role), jointName, out pose);
         }
 
-        public static void GetAllHandJoints(HandRole role, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        public static JointEnumArray.IReadOnly GetAllHandJoints(HandRole role)
         {
-            GetAllHandJoints(ViveRole.GetDeviceIndexEx(role), outHandJoints, trimInvalidJoint);
-        }
-
-        public static void GetFingerJoints(HandRole role, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
-        {
-            GetFingerJoints(ViveRole.GetDeviceIndexEx(role), fingerName, outHandJoints, trimInvalidJoint);
+            return GetAllHandJoints(ViveRole.GetDeviceIndexEx(role));
         }
 
         public static int GetHandJointCount(HandRole role)
@@ -179,19 +174,14 @@ namespace HTC.UnityPlugin.Vive
             SetPose(target, role.GetDeviceIndex(), origin);
         }
 
-        public static bool TryGetHandJointPose(ViveRoleProperty role, HandJointName jointName, out RigidPose pose)
+        public static bool TryGetHandJointPose(ViveRoleProperty role, HandJointName jointName, out JointPose pose)
         {
             return TryGetHandJointPose(role.GetDeviceIndex(), jointName, out pose);
         }
 
-        public static void GetAllHandJoints(ViveRoleProperty role, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        public static JointEnumArray.IReadOnly GetAllHandJoints(ViveRoleProperty role)
         {
-            GetAllHandJoints(role.GetDeviceIndex(), outHandJoints, trimInvalidJoint);
-        }
-
-        public static void GetFingerJoints(ViveRoleProperty role, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
-        {
-            GetFingerJoints(role.GetDeviceIndex(), fingerName, outHandJoints, trimInvalidJoint);
+            return GetAllHandJoints(role.GetDeviceIndex());
         }
 
         public static int GetHandJointCount(ViveRoleProperty role)
@@ -331,19 +321,14 @@ namespace HTC.UnityPlugin.Vive
             SetPose(target, ViveRole.GetDeviceIndexEx(role), origin);
         }
 
-        public static bool TryGetHandJointPoseEx<TRole>(TRole role, HandJointName jointName, out RigidPose pose)
+        public static bool TryGetHandJointPoseEx<TRole>(TRole role, HandJointName jointName, out JointPose pose)
         {
             return TryGetHandJointPose(ViveRole.GetDeviceIndexEx(role), jointName, out pose);
         }
 
-        public static void GetAllHandJointsEx<TRole>(TRole role, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        public static JointEnumArray.IReadOnly GetAllHandJointsEx<TRole>(TRole role)
         {
-            GetAllHandJoints(ViveRole.GetDeviceIndexEx(role), outHandJoints, trimInvalidJoint);
-        }
-
-        public static void GetFingerJointsEx<TRole>(TRole role, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
-        {
-            GetFingerJoints(ViveRole.GetDeviceIndexEx(role), fingerName, outHandJoints, trimInvalidJoint);
+            return GetAllHandJoints(ViveRole.GetDeviceIndexEx(role));
         }
 
         public static int GetHandJointCountEx<TRole>(TRole role)
@@ -443,19 +428,14 @@ namespace HTC.UnityPlugin.Vive
             SetPose(target, ViveRole.GetDeviceIndexEx(roleType, roleValue), origin);
         }
 
-        public static bool TryGetHandJointPoseEx(Type roleType, int roleValue, HandJointName jointName, out RigidPose pose)
+        public static bool TryGetHandJointPoseEx(Type roleType, int roleValue, HandJointName jointName, out JointPose pose)
         {
             return TryGetHandJointPose(ViveRole.GetDeviceIndexEx(roleType, roleValue), jointName, out pose);
         }
 
-        public static void GetAllHandJointsEx(Type roleType, int roleValue, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        public static JointEnumArray.IReadOnly GetAllHandJointsEx(Type roleType, int roleValue)
         {
-            GetAllHandJoints(ViveRole.GetDeviceIndexEx(roleType, roleValue), outHandJoints, trimInvalidJoint);
-        }
-
-        public static void GetFingerJointsEx(Type roleType, int roleValue, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
-        {
-            GetFingerJoints(ViveRole.GetDeviceIndexEx(roleType, roleValue), fingerName, outHandJoints, trimInvalidJoint);
+            return GetAllHandJoints(ViveRole.GetDeviceIndexEx(roleType, roleValue));
         }
 
         public static int GetHandJointCountEx(Type roleType, int roleValue)
@@ -548,24 +528,19 @@ namespace HTC.UnityPlugin.Vive
             RigidPose.SetPose(target, GetPose(deviceIndex), origin);
         }
 
-        public static bool TryGetHandJointPose(uint deviceIndex, HandJointName jointName, out RigidPose pose)
+        public static bool TryGetHandJointPose(uint deviceIndex, HandJointName jointName, out JointPose pose)
         {
             return VRModule.GetCurrentDeviceState(deviceIndex).TryGetHandJointPose(jointName, out pose);
         }
 
-        public static void GetAllHandJoints(uint deviceIndex, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
+        public static JointEnumArray.IReadOnly GetAllHandJoints(uint deviceIndex)
         {
-            VRModule.GetCurrentDeviceState(deviceIndex).GetAllHandJoints(outHandJoints, trimInvalidJoint);
-        }
-
-        public static void GetFingerJoints(uint deviceIndex, FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
-        {
-            VRModule.GetCurrentDeviceState(deviceIndex).GetFingerJoints(fingerName, outHandJoints, trimInvalidJoint);
+            return VRModule.GetCurrentDeviceState(deviceIndex).GetAllHandJoints();
         }
 
         public static int GetHandJointCount(uint deviceIndex)
         {
-            return VRModule.GetCurrentDeviceState(deviceIndex).GetHandJointCount();
+            return VRModule.GetCurrentDeviceState(deviceIndex).GetValidHandJointCount();
         }
         #endregion base
     }

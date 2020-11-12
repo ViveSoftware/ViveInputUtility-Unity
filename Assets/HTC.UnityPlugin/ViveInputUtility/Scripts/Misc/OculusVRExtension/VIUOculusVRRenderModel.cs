@@ -806,7 +806,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             {
                 UInt64 dirtyMask = (ulong)1 << (int)i;
                 // We need to make sure that we fully update the initial position of
-                // Skinned mesh renderers, then, thereafter, we can only update dirty joints
+                // Skinned mesh renderers, then, thereafter, we can only update dirty handJoints
                 if ((firstSkinnedUpdate && i < bones.Length) ||
                     (dirtyMask & dirtyJoints) != 0)
                 {
