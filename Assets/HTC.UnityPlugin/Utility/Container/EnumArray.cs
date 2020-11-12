@@ -3,16 +3,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.Serialization;
-using System.Runtime.InteropServices;
 
 namespace HTC.UnityPlugin.Utility
 {
     [Serializable]
     public abstract class EnumArrayBase
     {
-        public const int LENGTH_LIMIT = 1024;
+        public const int DEFAULT_LENGTH_LIMIT = 1024;
 
         public abstract Type EnumType { get; }
         public abstract Type ElementType { get; }
@@ -25,22 +25,6 @@ namespace HTC.UnityPlugin.Utility
         public abstract void Clear();
         public abstract void FillCapacityToLength();
         public abstract void TrimCapacityToLength();
-
-        protected static void AssertSupportedRangeInt64(object e)
-        {
-            if (Convert.ToInt64(e) < 0L)
-            {
-                throw new Exception("Out of EnumArray supported long value, must larger then 0");
-            }
-        }
-
-        protected static void AssertSupportedRangeUInt64(object e)
-        {
-            if (Convert.ToUInt64(e) > uint.MaxValue)
-            {
-                throw new Exception("Out of EnumArray supported ulong value, must less then " + uint.MaxValue);
-            }
-        }
     }
 
     [Serializable]
@@ -96,7 +80,6 @@ namespace HTC.UnityPlugin.Utility
             }
         }
 
-        private static readonly bool needRearrangeHashCode;
         protected static readonly TEnum[] enums;
         protected static readonly bool[] enumIsDefined;
         public static readonly int DefinedMinInt;
@@ -111,70 +94,81 @@ namespace HTC.UnityPlugin.Utility
 #if !CSHARP_7_OR_LATER
             if (!BaseEnumType.IsEnum) { throw new Exception(BaseEnumType.Name + " is not enum type!"); }
 #endif
-            var underlyingeType = Enum.GetUnderlyingType(BaseEnumType);
-            if (underlyingeType == typeof(sbyte) || underlyingeType == typeof(short))
-            {
-                throw new Exception("Underlyinge type of " + BaseEnumType.Name + "(" + underlyingeType.Name + ") is not supported.");
-            }
-
-            Action<object> assertSupportedRange = null;
-            if (underlyingeType == typeof(uint))
-            {
-                needRearrangeHashCode = true;
-            }
-            else if (underlyingeType == typeof(long))
-            {
-                needRearrangeHashCode = true;
-                assertSupportedRange = AssertSupportedRangeInt64;
-            }
-            else if (underlyingeType == typeof(ulong))
-            {
-                needRearrangeHashCode = true;
-                assertSupportedRange = AssertSupportedRangeUInt64;
-            }
+            RangeCheckFunc rangeCheckFunc = null;
+            if (Enum.GetUnderlyingType(BaseEnumType) == typeof(ulong))
+            { rangeCheckFunc = RangeCheckFromUInt64; }
+            else
+            { rangeCheckFunc = RangeCheckFromInt64; }
 
             // find out min/max/length value in defined enum values
-            DefinedMinInt = int.MaxValue;
-            DefinedMaxInt = int.MinValue;
+            var min = int.MaxValue;
+            var max = int.MinValue;
             var enums = Enum.GetValues(BaseEnumType) as TEnum[];
             foreach (var e in enums)
             {
-                if (assertSupportedRange != null) { assertSupportedRange(e); }
-                var i = E2I(e);
-
-                if (i <= DefinedMinInt)
+                int i;
+                if (rangeCheckFunc(e, out i))
                 {
-                    DefinedMinInt = i;
-                    DefinedMin = e;
-                }
+                    if (i <= min)
+                    {
+                        DefinedMinInt = min = i;
+                        DefinedMin = e;
+                    }
 
-                if (i >= DefinedMaxInt)
-                {
-                    DefinedMaxInt = i;
-                    DefinedMax = e;
+                    if (i >= max)
+                    {
+                        DefinedMaxInt = max = i;
+                        DefinedMax = e;
+                    }
                 }
             }
 
-            if (DefinedMinInt < (int.MaxValue - LENGTH_LIMIT) && (DefinedMinInt + LENGTH_LIMIT) < DefinedMaxInt)
+            if (DefinedMinInt != min)
             {
-                var min = (long)DefinedMinInt;
-                var max = (long)DefinedMaxInt;
-                var len = max - min;
+                Debug.LogWarning("All defined value for " + BaseEnumType.Name + " out of int range, DefinedLength will be set to 1.");
                 DefinedMinInt = 0;
+                DefinedMin = default(TEnum);
                 DefinedMaxInt = 0;
-                throw new Exception("Defined length must less then " + LENGTH_LIMIT + ". min:" + DefinedMin + "(" + min + ") max:" + DefinedMax + "(" + max + ") len:" + len);
+                DefinedMax = default(TEnum);
+                DefinedLength = 1;
             }
+            else
+            {
+                if (DefinedMinInt < (int.MaxValue - DEFAULT_LENGTH_LIMIT) && (DefinedMinInt + DEFAULT_LENGTH_LIMIT) < DefinedMaxInt)
+                {
+                    Debug.LogWarning("DefinedLength for " + BaseEnumType.Name + " out of range, will be clamped to less then " + DEFAULT_LENGTH_LIMIT + ".");
+                    for (DefinedMaxInt = DefinedMinInt + DEFAULT_LENGTH_LIMIT; DefinedMaxInt > DefinedMinInt; --DefinedMaxInt)
+                    {
+                        if (Enum.IsDefined(BaseEnumType, DefinedMaxInt)) { break; }
+                    }
 
-            DefinedLength = DefinedMaxInt - DefinedMinInt + 1;
+                    DefinedMax = FromInt32(DefinedMaxInt);
+                }
+
+                DefinedLength = DefinedMaxInt - DefinedMinInt + 1;
+            }
 
             // create an int array with invalid enum values
             EnumArrayBase<TEnum>.enums = new TEnum[DefinedLength];
             enumIsDefined = new bool[DefinedLength];
             foreach (var e in enums)
             {
-                var i = E2I(e) - DefinedMinInt;
-                EnumArrayBase<TEnum>.enums[i] = e;
-                enumIsDefined[i] = true;
+                int i;
+                if (rangeCheckFunc(e, out i) && i >= DefinedMinInt && i <= DefinedMaxInt)
+                {
+                    var index = i - DefinedMinInt;
+                    EnumArrayBase<TEnum>.enums[index] = e;
+                    enumIsDefined[index] = true;
+                }
+            }
+
+            // resolve undefined enums
+            for (int i = 0, imax = DefinedLength; i < imax; ++i)
+            {
+                if (!enumIsDefined[i])
+                {
+                    EnumArrayBase<TEnum>.enums[i] = FromInt32(i + DefinedMinInt);
+                }
             }
         }
 
@@ -205,22 +199,85 @@ namespace HTC.UnityPlugin.Utility
 
         public static EnumKeyEnumerator BaseEnumKeysFrom(TEnum from, TEnum to) { return new EnumKeyEnumerator(from, to); }
 
-        public static int E2I(TEnum e)
+        protected static int E2I(TEnum e)
         {
-            var value = EqualityComparer<TEnum>.Default.GetHashCode(e);
-            if (needRearrangeHashCode)
-            {
-                if (value >= 0) { value -= int.MaxValue; }
-                else { value += int.MaxValue; }
-                --value;
-            }
-            return value;
+            return ToInt32(e);
         }
 
-        public static TEnum I2E(int ev)
+        protected static TEnum I2E(int ev)
         {
             return enums[ev - DefinedMinInt];
         }
+
+        private delegate bool RangeCheckFunc(TEnum e, out int v);
+
+        private static bool RangeCheckFromUInt64(TEnum e, out int v)
+        {
+            var l = ToUInt64(e);
+            if (l <= int.MaxValue)
+            {
+                v = (int)l;
+                return true;
+            }
+            else
+            {
+                v = int.MaxValue;
+                return false;
+            }
+        }
+
+        private static bool RangeCheckFromInt64(TEnum e, out int v)
+        {
+            var l = ToInt64(e);
+            if (l < int.MinValue)
+            {
+                v = int.MinValue;
+                return false;
+            }
+            else if (l <= int.MaxValue)
+            {
+                v = (int)l;
+                return true;
+            }
+            else
+            {
+                v = int.MaxValue;
+                return false;
+            }
+        }
+
+        //protected static readonly Func<byte, TEnum> FromByte = GenerateConvertToEnum<byte>();
+        //protected static readonly Func<sbyte, TEnum> FromSByte = GenerateConvertToEnum<sbyte>();
+        //protected static readonly Func<short, TEnum> FromInt16 = GenerateConvertToEnum<short>();
+        //protected static readonly Func<ushort, TEnum> FromUInt16 = GenerateConvertToEnum<ushort>();
+        protected static readonly Func<int, TEnum> FromInt32 = GenerateConvertToEnum<int>();
+        //protected static readonly Func<uint, TEnum> FromUInt32 = GenerateConvertToEnum<uint>();
+        //protected static readonly Func<long, TEnum> FromInt64 = GenerateConvertToEnum<long>();
+        //protected static readonly Func<ulong, TEnum> FromUInt64 = GenerateConvertToEnum<ulong>();
+
+        //protected static readonly Func<TEnum, byte> ToByte = GenerateConvertToValue<byte>();
+        //protected static readonly Func<TEnum, sbyte> ToSByte = GenerateConvertToValue<sbyte>();
+        //protected static readonly Func<TEnum, short> ToInt16 = GenerateConvertToValue<short>();
+        //protected static readonly Func<TEnum, ushort> ToUInt16 = GenerateConvertToValue<ushort>();
+        protected static readonly Func<TEnum, int> ToInt32 = GenerateConvertToValue<int>();
+        //protected static readonly Func<TEnum, uint> ToUInt32 = GenerateConvertToValue<uint>();
+        protected static readonly Func<TEnum, long> ToInt64 = GenerateConvertToValue<long>();
+        protected static readonly Func<TEnum, ulong> ToUInt64 = GenerateConvertToValue<ulong>();
+
+        private static Func<T, TEnum> GenerateConvertToEnum<T>()
+        {
+            var parameter = Expression.Parameter(typeof(T), "value");
+            var dynamicMethod = Expression.Lambda<Func<T, TEnum>>(Expression.Convert(parameter, typeof(TEnum)), parameter);
+            return dynamicMethod.Compile();
+        }
+
+        private static Func<TEnum, T> GenerateConvertToValue<T>()
+        {
+            var parameter = Expression.Parameter(typeof(TEnum), "value");
+            var dynamicMethod = Expression.Lambda<Func<TEnum, T>>(Expression.Convert(parameter, typeof(T)), parameter);
+            return dynamicMethod.Compile();
+        }
+
     }
 
     [Serializable]
