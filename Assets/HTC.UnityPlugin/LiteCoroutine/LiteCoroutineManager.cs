@@ -156,7 +156,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                             handle.isDone = false;
                             workingStacks.Add(newStack);
 
-                            if (runImmediate && TryGetOtherStageFromYieldInstruction(newStack.yieldInstruction, out var stageStacks))
+                            List<YieldStack> stageStacks;
+                            if (runImmediate && TryGetOtherStageFromYieldInstruction(newStack.yieldInstruction, out stageStacks))
                             {
                                 lock (stageStacks)
                                 {
@@ -193,7 +194,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                         }
                         else
                         {
-                            if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out var stageStacks))
+                            List<YieldStack> stageStacks;
+                            if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out stageStacks))
                             {
                                 lock (stageStacks)
                                 {
@@ -226,7 +228,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                             continue;
                         }
 
-                        if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out var stageStacks))
+                        List<YieldStack> stageStacks;
+                        if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out stageStacks))
                         {
                             lock (stageStacks)
                             {
@@ -286,7 +289,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                         continue;
                     }
 
-                    if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out var stageStacks))
+                    List<YieldStack> stageStacks;
+                    if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out stageStacks))
                     {
                         if (stageStacks != stacks)
                         {
