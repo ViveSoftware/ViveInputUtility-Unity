@@ -10,8 +10,12 @@ namespace HTC.UnityPlugin.Vive
     {
         public UnityEvent<Transform> moved;
 
+#pragma warning disable 0649
+
         [SerializeField] private float m_minX;
         [SerializeField] private float m_maxX;
+
+#pragma warning restore 0649
 
         private Rigidbody m_rigidbody;
 

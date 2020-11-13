@@ -10,6 +10,8 @@ namespace HTC.UnityPlugin.Vive
     {
         public UnityEvent triggered;
 
+#pragma warning disable 0649
+
         [SerializeField] private float m_minHeight;
         [SerializeField] private float m_maxHeight;
 
@@ -20,6 +22,8 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField] private float m_triggeredHeight = 0.0f;
 
         [SerializeField] private float m_recoverSpeed = 0.05f;
+
+#pragma warning restore 0649
 
         private Rigidbody m_rigidbody;
         private bool m_isRecovering;

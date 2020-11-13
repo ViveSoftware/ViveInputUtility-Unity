@@ -10,6 +10,8 @@ namespace HTC.UnityPlugin.Vive
     {
         public UnityEvent<float> valueChanged;
 
+#pragma warning disable 0649
+
         [SerializeField] private Transform m_baseTransform;
         [SerializeField] private Transform m_barTransform;
         [SerializeField] private Vector2 m_barPadding;
@@ -19,6 +21,8 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField] private float m_value = 1.0f;
 
         [SerializeField] private float m_maxLength;
+
+#pragma warning restore 0649
 
         public void SetValue(float value)
         {

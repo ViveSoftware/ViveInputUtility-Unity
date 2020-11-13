@@ -6,7 +6,11 @@ namespace HTC.UnityPlugin.Vive
 {
     public class ItemSpawner : MonoBehaviour
     {
+#pragma warning disable 0649
+
         [SerializeField] private GameObject m_itemPrefab;
+
+#pragma warning restore 0649
 
         private GameObject m_spawnedItem;
 

@@ -7,9 +7,13 @@ namespace HTC.UnityPlugin.Vive
 {
     public class FollowingPanel : MonoBehaviour
     {
+#pragma warning disable 0649
+
         [SerializeField] private float m_distance;
         [SerializeField] private float m_height;
         [SerializeField] private float m_speedCoef;
+
+#pragma warning restore 0649
 
         private Vector3 m_targetPosition;
 
