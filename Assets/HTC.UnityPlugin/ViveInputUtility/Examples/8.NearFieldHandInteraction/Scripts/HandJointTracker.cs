@@ -8,13 +8,13 @@ namespace HTC.UnityPlugin.Vive
 {
     public class HandJointTracker : MonoBehaviour
     {
-        public enum Handness
+        public enum Handedness
         {
             LeftHand,
             RightHand,
         }
 
-        public Handness handness;
+        public Handedness handedness;
         public HandJointName jointName;
         public UnityEvent<bool> poseStatusChanged;
 
@@ -27,7 +27,7 @@ namespace HTC.UnityPlugin.Vive
 
         protected virtual void Update()
         {
-            TrackedHandRole handRole = handness == Handness.LeftHand ? TrackedHandRole.LeftHand : TrackedHandRole.RightHand;
+            TrackedHandRole handRole = handedness == Handedness.LeftHand ? TrackedHandRole.LeftHand : TrackedHandRole.RightHand;
 
             JointPose jointPose;
             if (VivePose.TryGetHandJointPoseEx(handRole, jointName, out jointPose))
