@@ -415,7 +415,7 @@ namespace HTC.UnityPlugin.Vive
     }
     public static partial class VIUSettingsEditor
     {
-        public const string URL_OCULUS_VR_PLUGIN = "https://www.assetstore.unity3d.com/en/#!/content/82022";
+        public const string URL_OCULUS_VR_PLUGIN = "https://assetstore.unity.com/packages/tools/integration/oculus-integration-82022";
         private const string OCULUS_ANDROID_PACKAGE_NAME = "com.unity.xr.oculus.android";
 
         public static bool canSupportOculusGo
@@ -628,6 +628,20 @@ namespace HTC.UnityPlugin.Vive
                         {
                             EditorUtility.SetDirty(oculusProjectConfig);
                         }
+                        EditorGUILayout.EndHorizontal();
+#else
+                        EditorGUILayout.BeginHorizontal();
+
+                        EditorGUILayout.HelpBox("Hand tracking not supported. Please install Oculus Integration.", MessageType.Info);
+                        GUILayout.FlexibleSpace();
+
+                        s_warningHeight = Mathf.Max(s_warningHeight, GUILayoutUtility.GetLastRect().height);
+                        GUILayout.BeginVertical(GUILayout.Height(s_warningHeight));
+                        GUILayout.FlexibleSpace();
+                        ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN, "Get Oculus Integration");
+                        GUILayout.FlexibleSpace();
+                        GUILayout.EndVertical();
+
                         EditorGUILayout.EndHorizontal();
 #endif
 
