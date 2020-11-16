@@ -311,7 +311,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public bool TryGetHandJointPose(HandJointName jointName, out JointPose pose)
             {
-                if (m_handJoints == null || !m_handJoints.IsDefined(jointName) || !m_handJoints[jointName].isValid)
+                if (m_handJoints == null || !m_handJoints[jointName].isValid)
                 {
                     pose = default(JointPose);
                     return false;
