@@ -59,8 +59,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private const string RightHandSkeletonName = "RightHandSkeleton";
 
             private static readonly Quaternion WristFixupRotation = new Quaternion(0.0f, 1.0f, 0.0f, 0.0f);
-            private static readonly Quaternion LeftHandOpenXRFixRotation = Quaternion.Euler(0.0f, 90.0f, 180.0f);
-            private static readonly Quaternion RightHandOpenXRFixRotation = Quaternion.Euler(0.0f, -90.0f, 0.0f);
+            private static readonly Quaternion LeftHandOpenXRFixRotation = Quaternion.Euler(0.0f, -90.0f, 180.0f);
+            private static readonly Quaternion RightHandOpenXRFixRotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
 
             public readonly OVRPlugin.SkeletonType Handedness;
             public readonly Transform Root;
