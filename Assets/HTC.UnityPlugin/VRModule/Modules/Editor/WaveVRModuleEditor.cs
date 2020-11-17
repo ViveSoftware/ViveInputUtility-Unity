@@ -148,6 +148,29 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 },
                 reqFileNames = new string[] { "wvr.cs" },
             });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_HAND_TRACKING",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.Native.Interop",
+                        name = "WVR_GetHandTrackingData",
+                        argTypeNames = new string[]
+                        {
+                            "Wave.Native.WVR_HandTrackerType",
+                            "Wave.Native.WVR_HandModelType",
+                            "Wave.Native.WVR_PoseOriginModel",
+                            "Wave.Native.WVR_HandTrackingData_t&",
+                            "Wave.Native.WVR_HandPoseData_t&",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
         }
     }
 }
