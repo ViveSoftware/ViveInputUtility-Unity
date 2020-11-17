@@ -4,7 +4,7 @@ using HTC.UnityPlugin.Utility;
 using UnityEngine;
 using System.Runtime.InteropServices;
 using System;
-#if VIU_VIVE_HANDTRACKING
+#if VIU_VIVE_HAND_TRACKING
 using ViveHandTracking;
 #endif
 
@@ -12,7 +12,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public class ViveHandTrackingSubmodule : VRModule.SubmoduleBase
     {
-#if VIU_VIVE_HANDTRACKING
+#if VIU_VIVE_HAND_TRACKING && UNITY_STANDALONE
         private struct HandResultData
         {
             public bool isConnected;
@@ -37,7 +37,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint leftDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
         private uint rightDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
 
-        public override bool ShouldActiveModule() { return true; }
+        public override bool ShouldActiveModule() { return VRModule.isOpenVRSupported && VRModuleSettings.activateViveHandTrackingSubmodule; }
 
         protected override void OnActivated()
         {
@@ -80,16 +80,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             nextRetryTime = now + RETRY_INTERVAL;
                             if (retryCount >= 0)
                             {
-                                Debug.LogError("[ViveHandTrackingSubmodule] StartGestureDetection fail. Front camera function not found. retrying...");
+                                Debug.LogWarning("[ViveHandTrackingSubmodule] StartGestureDetection fail. Front camera function not found. retrying...");
                             }
                             else
                             {
-                                Debug.LogError("[ViveHandTrackingSubmodule] StartGestureDetection fail. Front camera function not found.");
+                                Debug.LogWarning("[ViveHandTrackingSubmodule] StartGestureDetection fail. Front camera function not found.");
                             }
                             break;
                         default:
                             retryCount = 0;
-                            Debug.LogError("[ViveHandTrackingSubmodule] StartGestureDetection fail. Front camera function not found. error:" + error);
+                            Debug.LogWarning("[ViveHandTrackingSubmodule] StartGestureDetection fail. error:" + error);
                             break;
 
                     }
@@ -293,14 +293,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.joints[HandJointIndex.Wrist] = new JointPose(roomSpaceWristPose);
             state.joints[HandJointIndex.Palm] = new JointPose(roomSpaceCamPose * new RigidPose((rawJoints[0] + rawJoints[9]) * 0.5f, camSpaceWristPose.rot));
 
-            var camSpaceThumbRight = camSpaceWristPose.rot * (isLeft ? new Vector3(-3f, -8f, -5f) : new Vector3(-3f, 8f, 5f));
             var camSpaceFingerRight = camSpaceWristPose.rot * Vector3.right;
             Quaternion camSpaceRot;
-            camSpaceRot = CalculateJointRot(rawJoints, 1, 2, camSpaceThumbRight);
+            camSpaceRot = CalculateJointRot(rawJoints, 1, 2, camSpaceWristPose.rot * (isLeft ? new Vector3(0.1f, -5.67f, -0.1f) : new Vector3(0.1f, 5.67f, 0.1f)));
             state.joints[HandJointIndex.ThumbMetacarpal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[1], camSpaceRot));
-            camSpaceRot = CalculateJointRot(rawJoints, 2, 3, camSpaceThumbRight);
+            camSpaceRot = CalculateJointRot(rawJoints, 2, 3, camSpaceWristPose.rot * (isLeft ? new Vector3(0.1f, -5.67f, -0.1f) : new Vector3(0.1f, 5.67f, 0.1f)));
             state.joints[HandJointIndex.ThumbProximal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[2], camSpaceRot));
-            camSpaceRot = CalculateJointRot(rawJoints, 3, 4, camSpaceThumbRight);
+            camSpaceRot = CalculateJointRot(rawJoints, 3, 4, camSpaceWristPose.rot * (isLeft ? new Vector3(1.72f, -5.67f, -3.55f) : new Vector3(1.72f, 5.67f, 3.55f)));
             state.joints[HandJointIndex.ThumbDistal] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[3], camSpaceRot));
             state.joints[HandJointIndex.ThumbTip] = new JointPose(roomSpaceCamPose * new RigidPose(rawJoints[4], camSpaceRot));
 
@@ -357,11 +356,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static class GestureInterface
         {
-#if (VIVEHANDTRACKING_WITH_WAVEVR || VIVEHANDTRACKING_WAVEXR_HAND) && UNITY_ANDROID && !UNITY_EDITOR
-            private const string DLLPath = "aristo_interface_wavevr";
-#else
             private const string DLLPath = "aristo_interface";
-#endif
 
             [DllImport(DLLPath)]
             internal static extern GestureFailure StartGestureDetection([In, Out] GestureOption option);

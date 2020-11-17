@@ -176,6 +176,16 @@ namespace HTC.UnityPlugin.Vive
             IndexHMD = VRModuleDeviceModel.IndexHMD,
             IndexControllerLeft = VRModuleDeviceModel.IndexControllerLeft,
             IndexControllerRight = VRModuleDeviceModel.IndexControllerRight,
+            MagicLeapHMD = VRModuleDeviceModel.MagicLeapHMD,
+            MagicLeapController = VRModuleDeviceModel.MagicLeapController,
+            ViveHandTrackingTrackedHandLeft = VRModuleDeviceModel.ViveHandTrackingTrackedHandLeft,
+            ViveHandTrackingTrackedHandRight = VRModuleDeviceModel.ViveHandTrackingTrackedHandRight,
+            WaveLegacyTrackedHandLeft = VRModuleDeviceModel.WaveLegacyTrackedHandLeft,
+            WaveLegacyTrackedHandRight = VRModuleDeviceModel.WaveLegacyTrackedHandRight,
+            WaveTrackedHandLeft = VRModuleDeviceModel.WaveTrackedHandLeft,
+            WaveTrackedHandRight = VRModuleDeviceModel.WaveTrackedHandRight,
+            OculusTrackedHandLeft = VRModuleDeviceModel.OculusTrackedHandLeft,
+            OculusTrackedHandRight = VRModuleDeviceModel.OculusTrackedHandRight,
         }
 
         [SerializeField]
@@ -190,6 +200,8 @@ namespace HTC.UnityPlugin.Vive
         private Shader m_overrideShader = null;
         [SerializeField]
         private Material m_overrideMaterial = null;
+        [SerializeField]
+        private VIUSettings.DeviceModelArray m_customModels = new VIUSettings.DeviceModelArray();
 
         private static readonly Type[] s_creatorTypes;
         private RenderModelCreator[] m_creators;
@@ -208,6 +220,8 @@ namespace HTC.UnityPlugin.Vive
         public Shader overrideShader { get { return m_overrideShader; } set { m_overrideShader = value; } }
 
         public Material overrideMaterial { get { return m_overrideMaterial; } set { m_overrideMaterial = value; } }
+
+        public VIUSettings.DeviceModelArray customModels { get { return m_customModels; } }
 
         static RenderModelHook()
         {
@@ -362,7 +376,8 @@ namespace HTC.UnityPlugin.Vive
             var lastActiveCustomModelObj = m_customModelObjs[m_activeCustomModel];
             var lastCustomModelActive = m_isCustomModelActivated;
             var shouldActiveCustomModelNum = deviceState.deviceModel;
-            var shouldActiveCustomModelPrefab = VIUSettings.GetOverrideDeviceModel(shouldActiveCustomModelNum);
+            var shouldActiveCustomModelPrefab = m_customModels[shouldActiveCustomModelNum];
+            if (shouldActiveCustomModelPrefab == null) { shouldActiveCustomModelPrefab = VIUSettings.GetOverrideDeviceModel(shouldActiveCustomModelNum); }
             var shouldActiveCustomModel = deviceState.isConnected && shouldActiveCustomModelPrefab != null;
 
             var lastCreatorActive = m_activeCreatorIndex >= 0;

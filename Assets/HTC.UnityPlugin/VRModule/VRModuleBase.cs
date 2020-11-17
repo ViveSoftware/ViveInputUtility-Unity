@@ -426,11 +426,29 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
 
+                public void UpdateAllModulesActivity()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        if (modules[i].isActivated)
+                        {
+                            if (!modules[i].ShouldActiveModule()) { modules[i].Deactivate(); }
+                        }
+                        else
+                        {
+                            if (modules[i].ShouldActiveModule()) { modules[i].Activate(); }
+                        }
+                    }
+                }
+
                 public void UpdateModulesDeviceConnectionAndPoses()
                 {
                     for (int i = 0, imax = modules.Count; i < imax; ++i)
                     {
-                        modules[i].OnUpdateDeviceConnectionAndPoses();
+                        if (modules[i].isActivated)
+                        {
+                            modules[i].OnUpdateDeviceConnectionAndPoses();
+                        }
                     }
                 }
 
@@ -438,7 +456,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     for (int i = 0, imax = modules.Count; i < imax; ++i)
                     {
-                        modules[i].OnUpdateDeviceInput();
+                        if (modules[i].isActivated)
+                        {
+                            modules[i].OnUpdateDeviceInput();
+                        }
                     }
                 }
 

@@ -340,6 +340,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+            m_submodules.UpdateAllModulesActivity();
             m_submodules.UpdateModulesDeviceInput();
 
             ProcessDeviceInputChanged();
@@ -425,6 +426,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+            m_submodules.UpdateAllModulesActivity();
             m_submodules.UpdateModulesDeviceConnectionAndPoses();
 
             // process hand role

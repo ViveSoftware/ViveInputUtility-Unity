@@ -415,7 +415,7 @@ namespace HTC.UnityPlugin.Vive
     }
     public static partial class VIUSettingsEditor
     {
-        public const string URL_OCULUS_VR_PLUGIN = "https://www.assetstore.unity3d.com/en/#!/content/82022";
+        public const string URL_OCULUS_VR_PLUGIN = "https://assetstore.unity.com/packages/slug/82022?";
         private const string OCULUS_ANDROID_PACKAGE_NAME = "com.unity.xr.oculus.android";
 
         public static bool canSupportOculusGo

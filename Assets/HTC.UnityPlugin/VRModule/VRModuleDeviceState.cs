@@ -51,18 +51,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
         IndexControllerRight,
         MagicLeapHMD,
         MagicLeapController,
+        ViveHandTrackingTrackedHandLeft,
+        ViveHandTrackingTrackedHandRight,
         WaveLegacyTrackedHandLeft,
         WaveLegacyTrackedHandRight,
         WaveTrackedHandLeft,
         WaveTrackedHandRight,
         OculusTrackedHandLeft,
         OculusTrackedHandRight,
-        WMRTrackedHandLeft,
-        WMRTrackedHandRight,
-        OpenVRTrackedHandLeft,
-        OpenVRTrackedHandRight,
-        ViveHandTrackingTrackedHandLeft,
-        ViveHandTrackingTrackedHandRight,
     }
 
     public enum VRModuleRawButton
@@ -463,7 +459,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (m_handJoints != null && state.m_handJoints != null) { Array.Copy(state.m_handJoints, m_handJoints, m_handJoints.Length); }
 
-                if (m_joints != null && state.m_joints != null) { m_joints.CopyFrom(state.m_joints); }
+                if (state.m_joints == null)
+                {
+                    m_joints = null;
+                }
+                else
+                {
+                    if (m_joints == null) { m_joints = new JointEnumArray(); }
+                    m_joints.CopyFrom(state.m_joints);
+                }
             }
 
             public void Reset()
@@ -506,11 +510,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveCosmosControllerRight:
                 case VRModuleDeviceModel.OculusQuestControllerRight:
                 case VRModuleDeviceModel.IndexControllerRight:
+                case VRModuleDeviceModel.ViveHandTrackingTrackedHandRight:
+                case VRModuleDeviceModel.WaveLegacyTrackedHandRight:
                 case VRModuleDeviceModel.WaveTrackedHandRight:
                 case VRModuleDeviceModel.OculusTrackedHandRight:
-                case VRModuleDeviceModel.WMRTrackedHandRight:
-                case VRModuleDeviceModel.OpenVRTrackedHandRight:
-                case VRModuleDeviceModel.ViveHandTrackingTrackedHandRight:
                     return true;
                 default:
                     return false;
@@ -527,11 +530,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveCosmosControllerLeft:
                 case VRModuleDeviceModel.OculusQuestControllerLeft:
                 case VRModuleDeviceModel.IndexControllerLeft:
+                case VRModuleDeviceModel.ViveHandTrackingTrackedHandLeft:
+                case VRModuleDeviceModel.WaveLegacyTrackedHandLeft:
                 case VRModuleDeviceModel.WaveTrackedHandLeft:
                 case VRModuleDeviceModel.OculusTrackedHandLeft:
-                case VRModuleDeviceModel.WMRTrackedHandLeft:
-                case VRModuleDeviceModel.OpenVRTrackedHandLeft:
-                case VRModuleDeviceModel.ViveHandTrackingTrackedHandLeft:
                     return true;
                 default:
                     return false;

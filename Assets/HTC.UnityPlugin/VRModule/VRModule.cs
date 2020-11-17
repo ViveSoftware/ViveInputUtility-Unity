@@ -134,13 +134,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public static IVRModuleDeviceState GetCurrentDeviceState(uint deviceIndex)
         {
-            if (!IsValidDeviceIndex(deviceIndex) || Instance == null || Instance.m_currStates == null) { return s_defaultState; }
+            if (Instance == null || Instance.m_currStates == null || !IsValidDeviceIndex(deviceIndex)) { return s_defaultState; }
             return Instance.m_currStates[deviceIndex] ?? s_defaultState;
         }
 
         public static IVRModuleDeviceState GetPreviousDeviceState(uint deviceIndex)
         {
-            if (!IsValidDeviceIndex(deviceIndex) || Instance == null || Instance.m_prevStates == null) { return s_defaultState; }
+            if (Instance == null || Instance.m_currStates == null || !IsValidDeviceIndex(deviceIndex)) { return s_defaultState; }
             return Instance.m_prevStates[deviceIndex] ?? s_defaultState;
         }
 
