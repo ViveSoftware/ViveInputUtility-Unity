@@ -44,7 +44,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override int moduleIndex { get { return (int)VRModuleSelectEnum.SteamVR; } }
 
-#if VIU_OPENVR_API
+#if VIU_OPENVR_API && UNITY_STANDALONE
         private class IndexMap
         {
             private uint[] tracked2module = new uint[OpenVR.k_unMaxTrackedDeviceCount];
