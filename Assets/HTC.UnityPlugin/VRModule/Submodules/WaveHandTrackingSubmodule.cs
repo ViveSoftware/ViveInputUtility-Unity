@@ -148,19 +148,28 @@ namespace HTC.UnityPlugin.VRModuleManagement
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
 
-            if (gestureActivator.isLeftValid && trackingActivator.isLeftValid)
+            if (gestureActivator.isLeftValid)
             {
                 EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
-
                 gestureActivator.UpdateGestureInput(currState, true);
-                trackingActivator.UpdateDeviceInput(currState, gestureActivator.gestureData, true);
             }
 
-            if (gestureActivator.isRightValid && trackingActivator.isRightValid)
+            if (gestureActivator.isRightValid)
             {
                 EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-
                 gestureActivator.UpdateGestureInput(currState, false);
+            }
+
+            if (trackingActivator.isLeftValid)
+            {
+                EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
+                trackingActivator.UpdateDeviceInput(currState, true);
+            }
+
+            if (trackingActivator.isRightValid)
+            {
+                EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
+                trackingActivator.UpdateDeviceInput(currState, false);
             }
         }
 
@@ -457,29 +466,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 state.pose = state.handJoints[HandJointName.Wrist].pose;
             }
 
-            public void UpdateDeviceInput(IVRModuleDeviceStateRW state, WVR_HandGestureData_t data, bool isLeft)
+            public void UpdateDeviceInput(IVRModuleDeviceStateRW state, bool isLeft)
             {
-                var confidence = isLeft ? trackingData.left.confidence : trackingData.left.confidence;
                 var pinch = isLeft ? pinchData.left : pinchData.right;
-                var gesture = isLeft ? data.left : data.right;
                 var pinched = pinch.pinch.strength >= 0.95f;
-                var gFist = gesture == WVR_HandGestureType.WVR_HandGestureType_Fist && confidence > 0.1f;
-                var gFive = gesture == WVR_HandGestureType.WVR_HandGestureType_Five && confidence > 0.1f;
-                var gOK = gesture == WVR_HandGestureType.WVR_HandGestureType_OK && confidence > 0.1f;
-                var gThumb = gesture == WVR_HandGestureType.WVR_HandGestureType_ThumbUp && confidence > 0.1f;
-                var gIndex = gesture == WVR_HandGestureType.WVR_HandGestureType_IndexUp && confidence > 0.1f;
+
                 state.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
                 state.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
-                state.SetButtonPress(VRModuleRawButton.GestureFist, gFist);
-                state.SetButtonTouch(VRModuleRawButton.GestureFist, gFist);
-                state.SetButtonPress(VRModuleRawButton.GestureFive, gFive);
-                state.SetButtonTouch(VRModuleRawButton.GestureFive, gFive);
-                state.SetButtonPress(VRModuleRawButton.GestureOk, gOK);
-                state.SetButtonTouch(VRModuleRawButton.GestureOk, gOK);
-                state.SetButtonPress(VRModuleRawButton.GestureThumbUp, gThumb);
-                state.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gThumb);
-                state.SetButtonPress(VRModuleRawButton.GestureIndexUp, gIndex);
-                state.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gIndex);
                 state.SetAxisValue(VRModuleRawAxis.Trigger, pinch.pinch.strength);
             }
 
