@@ -314,35 +314,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return true;
             }
 
-            public void GetFingerJoints(FingerName fingerName, IList<JointPose> outHandJoints)
-            {
-                outHandJoints.Clear();
-                if (outHandJoints == null || m_handJoints == null) { return; }
-
-                HandJointName startName;
-                HandJointName endName;
-                switch (fingerName)
-                {
-                    case FingerName.Thumb: startName = HandJointName.ThumbMetacarpal; endName = HandJointName.ThumbTip; break;
-                    case FingerName.Index: startName = HandJointName.IndexMetacarpal; endName = HandJointName.IndexTip; break;
-                    case FingerName.Middle: startName = HandJointName.MiddleMetacarpal; endName = HandJointName.MiddleTip; break;
-                    case FingerName.Ring: startName = HandJointName.RingMetacarpal; endName = HandJointName.RingTip; break;
-                    case FingerName.Pinky: startName = HandJointName.PinkyMetacarpal; endName = HandJointName.PinkyTip; break;
-                    default: return;
-                }
-
-                for (HandJointName i = startName, imax = endName; i <= imax; ++i)
-                {
-                    outHandJoints.Add(m_handJoints[i]);
-                }
-            }
-
             public int GetValidHandJointCount()
             {
                 int count = 0;
-                foreach (var handPose in m_handJoints)
+                if (m_handJoints != null)
                 {
-                    if (handPose.isValid) { ++count; }
+                    foreach (var handPose in m_handJoints)
+                    {
+                        if (handPose.isValid) { ++count; }
+                    }
                 }
                 return count;
             }
