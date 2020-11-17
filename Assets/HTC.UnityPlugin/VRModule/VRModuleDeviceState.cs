@@ -415,7 +415,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public int GetValidHandJointCount()
             {
                 int count = 0;
-                foreach (var handPose in m_joints.Elements)
+                foreach (var handPose in m_joints)
                 {
                     if (handPose.isValid) { ++count; }
                 }

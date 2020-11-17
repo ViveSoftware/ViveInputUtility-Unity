@@ -654,7 +654,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             IVRModuleDeviceStateRW currState;
             EVRInputError error;
             var current = default(ActionCollection<T>.EnumData);
-            foreach (var p in actionCollection.ActionHandles)
+            foreach (var p in actionCollection.ActionHandles.EnumValues)
             {
                 current.inputKey = p.Key;
                 current.actionHandle = p.Value;
@@ -740,7 +740,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public void ResolveHandles(CVRInput vrInput)
             {
-                foreach (var key in EnumArrayBase<T>.BaseEnumKeys)
+                foreach (var key in EnumArrayBase<T>.StaticEnums)
                 {
                     actionHandles[key] = SafeGetActionHandle(vrInput, actionPaths[key]);
                 }

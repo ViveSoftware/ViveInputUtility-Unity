@@ -79,7 +79,7 @@ namespace HTC.UnityPlugin.Vive
 
                 if (s_instance.m_defaultDeviceModel == null) { s_instance.m_defaultDeviceModel = new DeviceModelArray(); }
 
-                foreach (var i in DeviceModelArray.BaseEnumKeys)
+                foreach (var i in DeviceModelArray.StaticEnums)
                 {
                     var prefab = Resources.Load<GameObject>("Models/VIUModel" + i.ToString());
                     if (prefab != null)

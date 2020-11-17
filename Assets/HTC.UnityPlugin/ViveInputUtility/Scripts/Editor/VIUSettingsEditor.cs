@@ -788,7 +788,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.indentLevel += 1;
-                foreach (var e in EnumArrayBase<VRModuleDeviceModel>.BaseEnumKeys)
+                foreach (var e in EnumArrayBase<VRModuleDeviceModel>.StaticEnums)
                 {
                     EditorGUILayout.ObjectField(ObjectNames.NicifyVariableName(e.ToString()), VIUSettings.GetOverrideDeviceModel(e), typeof(GameObject), false);
                 }
