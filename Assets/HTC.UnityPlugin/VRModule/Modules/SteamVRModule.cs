@@ -1,13 +1,18 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
-#if VIU_STEAMVR && UNITY_STANDALONE
+#if UNITY_STANDALONE
+#if VIU_STEAMVR
 using HTC.UnityPlugin.Vive;
 using HTC.UnityPlugin.Vive.SteamVRExtension;
 using System.Text;
 using UnityEngine;
 using Valve.VR;
 using System;
+#elif VIU_XR_GENERAL_SETTINGS
+using Valve.VR;
+using System;
+#endif
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #elif UNITY_5_4_OR_NEWER
