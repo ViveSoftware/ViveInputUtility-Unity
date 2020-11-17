@@ -36,7 +36,6 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             static ManagerUpdater()
             {
                 stateLock = new object();
-                Application.quitting += OnQuitting;
             }
 
             private static void OnQuitting()
@@ -45,9 +44,6 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 {
                     isQuitting = true;
                     instance = null;
-#if UNITY_EDITOR
-                    Application.quitting -= OnQuitting;
-#endif
                 }
             }
 
@@ -131,6 +127,11 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                     yield return new WaitForEndOfFrame();
                     defaultManager.EndOfFrameUpdate();
                 }
+            }
+
+            private void OnApplicationQuit()
+            {
+                OnQuitting();
             }
         }
     }

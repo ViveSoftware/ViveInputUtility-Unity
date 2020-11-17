@@ -36,7 +36,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         public LiteCoroutine StartCoroutine(IEnumerator routine, bool runImmediate = true)
         {
             var handle = CreateHandle();
-            handle.StartCoroutine(routine, runImmediate);
+            handle.RestartCoroutine(routine, runImmediate);
             return handle;
         }
 
@@ -47,7 +47,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 handle = CreateHandle();
             }
 
-            handle.StartCoroutine(routine, runImmediate);
+            handle.RestartCoroutine(routine, runImmediate);
             return handle;
         }
     }

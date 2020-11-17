@@ -57,12 +57,16 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
 
         public static void WakeUp() { ManagerUpdater.WakeUp(); }
 
+        public static LiteCoroutine StartCoroutine(IEnumerator routine) { return StartCoroutine(routine, true, true); }
+
+        public static LiteCoroutine StartCoroutine(IEnumerator routine, bool runImmediate) { return StartCoroutine(routine, runImmediate, true); }
+
         /// <summary>
         /// Routine will start running until CoroutineSystem is enabled
         /// wakeSystem should only set to true in main thread call
         /// If StayAwake is false and IsSleeping is true, coroutine won't start if wakeSystem is set to false
         /// </summary>
-        public static LiteCoroutine StartCoroutine(IEnumerator routine, bool runImmediate = true, bool wakeSystem = true)
+        public static LiteCoroutine StartCoroutine(IEnumerator routine, bool runImmediate, bool wakeSystem)
         {
             if (!Initialize()) { return null; }
 
@@ -73,7 +77,11 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             return handle;
         }
 
-        public static LiteCoroutine StartCoroutine(ref LiteCoroutine handle, IEnumerator routine, bool runImmediate = true, bool wakeSystem = true)
+        public static LiteCoroutine StartCoroutine(ref LiteCoroutine handle, IEnumerator routine) { return StartCoroutine(ref handle, routine, true, true); }
+
+        public static LiteCoroutine StartCoroutine(ref LiteCoroutine handle, IEnumerator routine, bool runImmediate) { return StartCoroutine(ref handle, routine, runImmediate, true); }
+
+        public static LiteCoroutine StartCoroutine(ref LiteCoroutine handle, IEnumerator routine, bool runImmediate, bool wakeSystem)
         {
             if (!Initialize()) { return null; }
 

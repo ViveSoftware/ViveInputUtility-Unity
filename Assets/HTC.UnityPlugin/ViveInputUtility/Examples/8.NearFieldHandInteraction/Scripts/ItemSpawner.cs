@@ -36,7 +36,12 @@ namespace HTC.UnityPlugin.Vive
 
         private void Spawn()
         {
+#if UNITY_5_4_OR_NEWER
             GameObject obj = Instantiate(m_itemPrefab, transform);
+#else
+            GameObject obj = Instantiate(m_itemPrefab);
+            obj.transform.SetParent(transform, false);
+#endif
             m_spawnedItem = obj;
         }
     }

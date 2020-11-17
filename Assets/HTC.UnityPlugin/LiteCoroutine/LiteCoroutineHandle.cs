@@ -23,7 +23,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
 
         public abstract void Stop();
 
-        public abstract void StartCoroutine(IEnumerator routine, bool runImmediate = true);
+        public abstract void RestartCoroutine(IEnumerator routine, bool runImmediate = true);
 
         public object Current { get { return null; } }
 
@@ -61,7 +61,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 }
             }
 
-            public override void StartCoroutine(IEnumerator routine, bool runImmediate = true)
+            public override void RestartCoroutine(IEnumerator routine, bool runImmediate = true)
             {
                 manager.AddPendingYieldStack(this, routine, runImmediate);
             }
