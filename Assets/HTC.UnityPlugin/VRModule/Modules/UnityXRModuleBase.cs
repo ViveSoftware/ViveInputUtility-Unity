@@ -79,7 +79,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint moduleRightIndex = INVALID_DEVICE_INDEX;
         private uint moduleLeftIndex = INVALID_DEVICE_INDEX;
         private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection(
-            new ViveHandTrackingSubmodule()
+            new ViveHandTrackingSubmodule(),
+            new WaveHandTrackingSubmodule()
             );
 
         protected VRModuleKnownXRLoader KnownActiveLoader { get { return knownActiveLoader; } }

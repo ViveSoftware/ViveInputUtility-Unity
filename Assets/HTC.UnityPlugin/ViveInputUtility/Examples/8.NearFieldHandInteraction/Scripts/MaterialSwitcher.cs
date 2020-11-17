@@ -8,7 +8,11 @@ namespace HTC.UnityPlugin.Vive
 {
     public class MaterialSwitcher : MonoBehaviour
     {
+#pragma warning disable 0649
+
         [SerializeField] private List<Material> m_materials;
+
+#pragma warning restore 0649
 
         private Renderer m_renderer;
         private int m_materialIndex;

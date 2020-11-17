@@ -59,21 +59,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private const string RightHandSkeletonName = "RightHandSkeleton";
 
             private static readonly Quaternion WristFixupRotation = new Quaternion(0.0f, 1.0f, 0.0f, 0.0f);
-            private static readonly Quaternion LeftHandOpenXRFixRotation = Quaternion.Euler(0.0f, 90.0f, 180.0f);
-            private static readonly Quaternion RightHandOpenXRFixRotation = Quaternion.Euler(0.0f, -90.0f, 0.0f);
+            private static readonly Quaternion LeftHandOpenXRFixRotation = Quaternion.Euler(0.0f, -90.0f, 180.0f);
+            private static readonly Quaternion RightHandOpenXRFixRotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
 
-            public readonly OVRPlugin.SkeletonType Handness;
+            public readonly OVRPlugin.SkeletonType Handedness;
             public readonly Transform Root;
             public readonly Transform[] Bones = new Transform[(int) OVRPlugin.BoneId.Max];
 
-            public Skeleton(OVRPlugin.SkeletonType handness)
+            public Skeleton(OVRPlugin.SkeletonType handedness)
             {
-                Handness = handness;
+                Handedness = handedness;
 
-                string name = Handness == OVRPlugin.SkeletonType.HandLeft ? LeftHandSkeletonName : RightHandSkeletonName;
+                string name = Handedness == OVRPlugin.SkeletonType.HandLeft ? LeftHandSkeletonName : RightHandSkeletonName;
                 Root = new GameObject(name).transform;
                 OVRPlugin.Skeleton ovrSkeleton;
-                if (OVRPlugin.GetSkeleton(Handness, out ovrSkeleton))
+                if (OVRPlugin.GetSkeleton(Handedness, out ovrSkeleton))
                 {
                     for (int i = 0; i < (int) OVRSkeleton.BoneId.Max; i++)
                     {
@@ -102,7 +102,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
                 else
                 {
-                    Debug.LogWarning("OvrSkeleton not found: " + Handness);
+                    Debug.LogWarning("OvrSkeleton not found: " + Handedness);
                 }
             }
 
@@ -113,7 +113,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 Root.localScale = new Vector3(handState.HandScale, handState.HandScale, handState.HandScale);
 
                 OVRPlugin.Skeleton ovrSkeleton;
-                if (OVRPlugin.GetSkeleton(Handness, out ovrSkeleton))
+                if (OVRPlugin.GetSkeleton(Handedness, out ovrSkeleton))
                 {
                     for (int i = 0; i < (int) OVRSkeleton.BoneId.Max; i++)
                     {
@@ -132,7 +132,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public Quaternion GetOpenXRRotation(OVRPlugin.BoneId boneId)
             {
-                Quaternion fixQuat = Handness == OVRPlugin.SkeletonType.HandLeft ? LeftHandOpenXRFixRotation : RightHandOpenXRFixRotation;
+                Quaternion fixQuat = Handedness == OVRPlugin.SkeletonType.HandLeft ? LeftHandOpenXRFixRotation : RightHandOpenXRFixRotation;
                 return Bones[(int) boneId].rotation * fixQuat;
             }
         }
@@ -425,11 +425,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public override uint GetLeftControllerDeviceIndex()
         {
+            if (!OVRPlugin.GetNodePositionValid(OVRPlugin.Node.HandLeft) || !OVRPlugin.GetNodeOrientationValid(OVRPlugin.Node.HandLeft))
+            {
+                return INVALID_DEVICE_INDEX;
+            }
+
             return m_isLeftHandTracked ? s_leftHandIndex : s_leftControllerIndex;
         }
 
         public override uint GetRightControllerDeviceIndex()
         {
+            if (!OVRPlugin.GetNodePositionValid(OVRPlugin.Node.HandRight) || !OVRPlugin.GetNodeOrientationValid(OVRPlugin.Node.HandRight))
+            {
+                return INVALID_DEVICE_INDEX;
+            }
+
             return m_isRightHandTracked ? s_rightHandIndex : s_rightControllerIndex;
         }
 
@@ -656,11 +666,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             Skeleton skeleton = node == OVRPlugin.Node.HandLeft ? leftHandSkeleton : rightHandSkeleton;
                             skeleton.Update(handState);
 
-                            HandJointPose[] joints = currState.handJoints;
+                            JointEnumArray jointArray = currState.handJoints;
                             for (int j = 0; j < (int) OVRPlugin.BoneId.Max; j++)
                             {
                                 Transform joint = skeleton.Bones[j];
-                                HandJointPose.AssignToArray(joints, s_ovrBoneIdToHandJointName[j], joint.position, skeleton.GetOpenXRRotation((OVRPlugin.BoneId) j));
+                                jointArray[s_ovrBoneIdToHandJointName[j]] = new JointPose(joint.position, skeleton.GetOpenXRRotation((OVRPlugin.BoneId) j));
                             }
 
                             currState.pose = new RigidPose(currState.pose.pos, skeleton.GetOpenXRRotation(OVRPlugin.BoneId.Hand_WristRoot));

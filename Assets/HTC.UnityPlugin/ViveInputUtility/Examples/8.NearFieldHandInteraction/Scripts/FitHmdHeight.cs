@@ -7,8 +7,12 @@ namespace HTC.UnityPlugin.Vive
 {
     public class FitHmdHeight : MonoBehaviour, INewPoseListener
     {
+#pragma warning disable 0649
+
         [SerializeField] private float m_distance;
         [SerializeField] private float m_height;
+
+#pragma warning restore 0649
 
         public void BeforeNewPoses()
         {

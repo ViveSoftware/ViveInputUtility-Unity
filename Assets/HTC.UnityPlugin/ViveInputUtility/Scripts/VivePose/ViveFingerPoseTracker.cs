@@ -31,7 +31,7 @@ public class ViveFingerPoseTracker : VivePoseTracker
     {
         var devicesState = VRModule.GetDeviceState(deviceIndex);
         RigidPose fingerPose = default(RigidPose);
-        RigidPose pokeJoint;
+        JointPose pokeJoint;
         if (VivePose.TryGetHandJointPose(viveRole, this.pokeJoint, out pokeJoint))
         {
             string deviceName = devicesState.deviceModel.ToString().ToLower();
@@ -40,7 +40,7 @@ public class ViveFingerPoseTracker : VivePoseTracker
             //    hmdPose.rot * Vector3.right * ((deviceName.Contains("right")) ? 0.3f : -0.3f);
             //Vector3 hitDir = (pokeJoint.pos - bodyPos).normalized;
             Vector3 hitDir = hmdPose.rot * Vector3.forward;
-            fingerPose.pos = pokeJoint.pos + hitDir * -HitOffset;
+            fingerPose.pos = pokeJoint.pose.pos + hitDir * -HitOffset;
             fingerPose.rot = Quaternion.LookRotation(hitDir);
         }
 

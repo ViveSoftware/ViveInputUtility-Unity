@@ -162,8 +162,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         Vector3 position { get; set; }
         Quaternion rotation { get; set; }
         RigidPose pose { get; set; }
-        [Obsolete] HandJointPose[] handJoints { get; }
-        JointEnumArray joints { get; }
+        JointEnumArray handJoints { get; }
 
         ulong buttonPressed { get; set; }
         ulong buttonTouched { get; set; }
@@ -208,17 +207,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
         bool GetButtonTouch(VRModuleRawButton button);
         float GetAxisValue(VRModuleRawAxis axis);
 
-        JointEnumArray.IReadOnly _handJoints { get; }
+        JointEnumArray.IReadOnly readOnlyHandJoints { get; }
+
         int GetValidHandJointCount();
-        void GetFingerJoints(FingerName fingerName, IList<JointPose> outHandJoints);
-        [Obsolete] bool TryGetHandJointPose(HandJointName jointName, out RigidPose pose);
-        [Obsolete] void GetAllHandJoints(IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true);
-        [Obsolete] void GetFingerJoints(FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true);
-        [Obsolete] int GetHandJointCount();
+        bool TryGetHandJointPose(HandJointName jointName, out JointPose pose);
     }
 
     [Serializable]
-    public class JointEnumArray : EnumArray<HandJointIndex, JointPose> { }
+    public class JointEnumArray : EnumArray<HandJointName, JointPose> { }
 
     public partial class VRModule : SingletonBehaviour<VRModule>
     {
@@ -257,9 +253,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [SerializeField]
             private Quaternion m_rotation;
             [SerializeField]
-            private HandJointPose[] m_handJoints;
-            [SerializeField]
-            private JointEnumArray m_joints;
+            private JointEnumArray m_handJoints;
 
             // device property, changed only when connected or disconnected
             public uint deviceIndex { get; private set; }
@@ -281,30 +275,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public Quaternion rotation { get { return m_rotation; } set { m_rotation = value; } }
             public RigidPose pose { get { return new RigidPose(m_position, m_rotation); } set { m_position = value.pos; m_rotation = value.rot; } }
 
-            [Obsolete]
-            public HandJointPose[] handJoints
+            public JointEnumArray handJoints
             {
                 get
                 {
-                    if (m_handJoints == null)
-                    {
-                        m_handJoints = new HandJointPose[HandJointPose.GetMaxCount()];
-                    }
-
+                    if (m_handJoints == null) { m_handJoints = new JointEnumArray(); }
                     return m_handJoints;
                 }
             }
 
-            public JointEnumArray joints
-            {
-                get
-                {
-                    if (m_joints == null) { m_joints = new JointEnumArray(); }
-                    return m_joints;
-                }
-            }
-
-            public JointEnumArray.IReadOnly _handJoints { get { return joints.ReadOnly; } }
+            public JointEnumArray.IReadOnly readOnlyHandJoints { get { return handJoints != null ? handJoints.ReadOnly : null; } }
 
             // device input state
             [SerializeField]
@@ -322,100 +302,45 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public bool GetButtonTouch(VRModuleRawButton button) { return EnumUtils.GetFlag(m_buttonTouched, (int)button); }
             public float GetAxisValue(VRModuleRawAxis axis) { return m_axisValue[(int)axis]; }
 
-            public bool TryGetHandJointPose(HandJointName jointName, out RigidPose pose)
+            public bool TryGetHandJointPose(HandJointName jointName, out JointPose pose)
             {
-                if (m_handJoints == null)
+                if (m_handJoints == null || !m_handJoints[jointName].isValid)
                 {
-                    pose = default(RigidPose);
+                    pose = default(JointPose);
                     return false;
                 }
 
-                if (m_handJoints != null)
-                {
-                    var handPose = m_handJoints[HandJointPose.NameToIndex(jointName)];
-                    if (handPose.IsValid())
-                    {
-                        pose = handPose.pose;
-                        return true;
-                    }
-                }
-
-                pose = default(RigidPose);
-                return false;
-            }
-
-            public void GetAllHandJoints(IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
-            {
-                if (outHandJoints == null || m_handJoints == null) { return; }
-
-                foreach (var handPose in m_handJoints)
-                {
-                    if (trimInvalidJoint && !handPose.IsValid()) { continue; }
-                    outHandJoints.Add(handPose);
-                }
-            }
-
-            public void GetFingerJoints(FingerName fingerName, IList<HandJointPose> outHandJoints, bool trimInvalidJoint = true)
-            {
-                if (outHandJoints == null || m_handJoints == null) { return; }
-
-                HandJointName startIndex;
-                HandJointName endIndex;
-                switch (fingerName)
-                {
-                    case FingerName.Thumb: startIndex = HandJointName.ThumbMetacarpal; endIndex = HandJointName.ThumbTip; break;
-                    case FingerName.Index: startIndex = HandJointName.IndexMetacarpal; endIndex = HandJointName.IndexTip; break;
-                    case FingerName.Middle: startIndex = HandJointName.MiddleMetacarpal; endIndex = HandJointName.MiddleTip; break;
-                    case FingerName.Ring: startIndex = HandJointName.RingMetacarpal; endIndex = HandJointName.RingTip; break;
-                    case FingerName.Pinky: startIndex = HandJointName.PinkyMetacarpal; endIndex = HandJointName.PinkyTip; break;
-                    default: return;
-                }
-
-                for (HandJointName i = startIndex, imax = endIndex; i <= imax; ++i)
-                {
-                    var index = HandJointPose.NameToIndex(i);
-                    if (trimInvalidJoint && !m_handJoints[index].IsValid()) { continue; }
-                    outHandJoints.Add(m_handJoints[index]);
-                }
-            }
-
-            public int GetHandJointCount()
-            {
-                int count = 0;
-                foreach (var handPose in m_handJoints)
-                {
-                    if (handPose.IsValid()) { ++count; }
-                }
-                return count;
+                pose = m_handJoints[jointName];
+                return true;
             }
 
             public void GetFingerJoints(FingerName fingerName, IList<JointPose> outHandJoints)
             {
                 outHandJoints.Clear();
-                if (outHandJoints == null || m_joints == null) { return; }
+                if (outHandJoints == null || m_handJoints == null) { return; }
 
-                HandJointIndex startIndex;
-                HandJointIndex endIndex;
+                HandJointName startName;
+                HandJointName endName;
                 switch (fingerName)
                 {
-                    case FingerName.Thumb: startIndex = HandJointIndex.ThumbMetacarpal; endIndex = HandJointIndex.ThumbTip; break;
-                    case FingerName.Index: startIndex = HandJointIndex.IndexMetacarpal; endIndex = HandJointIndex.IndexTip; break;
-                    case FingerName.Middle: startIndex = HandJointIndex.MiddleMetacarpal; endIndex = HandJointIndex.MiddleTip; break;
-                    case FingerName.Ring: startIndex = HandJointIndex.RingMetacarpal; endIndex = HandJointIndex.RingTip; break;
-                    case FingerName.Pinky: startIndex = HandJointIndex.PinkyMetacarpal; endIndex = HandJointIndex.PinkyTip; break;
+                    case FingerName.Thumb: startName = HandJointName.ThumbMetacarpal; endName = HandJointName.ThumbTip; break;
+                    case FingerName.Index: startName = HandJointName.IndexMetacarpal; endName = HandJointName.IndexTip; break;
+                    case FingerName.Middle: startName = HandJointName.MiddleMetacarpal; endName = HandJointName.MiddleTip; break;
+                    case FingerName.Ring: startName = HandJointName.RingMetacarpal; endName = HandJointName.RingTip; break;
+                    case FingerName.Pinky: startName = HandJointName.PinkyMetacarpal; endName = HandJointName.PinkyTip; break;
                     default: return;
                 }
 
-                for (HandJointIndex i = startIndex, imax = endIndex; i <= imax; ++i)
+                for (HandJointName i = startName, imax = endName; i <= imax; ++i)
                 {
-                    outHandJoints.Add(m_joints[i]);
+                    outHandJoints.Add(m_handJoints[i]);
                 }
             }
 
             public int GetValidHandJointCount()
             {
                 int count = 0;
-                foreach (var handPose in m_joints)
+                foreach (var handPose in m_handJoints)
                 {
                     if (handPose.isValid) { ++count; }
                 }
@@ -430,7 +355,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public DeviceState(uint deviceIndex)
             {
                 this.deviceIndex = deviceIndex;
-                this.m_axisValue = new float[EnumUtils.GetMaxValue(typeof(VRModuleRawAxis)) + 1];
+                this.m_axisValue = new float[EnumArrayBase<VRModuleRawAxis>.StaticLength];
                 Reset();
             }
 
@@ -457,16 +382,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonTouched = state.m_buttonTouched;
                 Array.Copy(state.m_axisValue, m_axisValue, m_axisValue.Length);
 
-                if (m_handJoints != null && state.m_handJoints != null) { Array.Copy(state.m_handJoints, m_handJoints, m_handJoints.Length); }
-
-                if (state.m_joints == null)
+                if (state.m_handJoints == null)
                 {
-                    m_joints = null;
+                    m_handJoints = null;
                 }
                 else
                 {
-                    if (m_joints == null) { m_joints = new JointEnumArray(); }
-                    m_joints.CopyFrom(state.m_joints);
+                    if (m_handJoints == null) { m_handJoints = new JointEnumArray(); }
+                    m_handJoints.CopyFrom(state.m_handJoints);
                 }
             }
 
@@ -491,9 +414,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_buttonTouched = 0ul;
                 ResetAxisValues();
 
-                if (m_handJoints != null) { Array.Clear(m_handJoints, 0, m_handJoints.Length); }
-
-                if (m_joints != null) { m_joints.Clear(); }
+                if (m_handJoints != null) { m_handJoints.Clear(); }
             }
         }
     }

@@ -25,7 +25,7 @@ namespace HTC.UnityPlugin.Vive
         }
 
         [Serializable]
-        public class JointTransArray : EnumArray<HandJointIndex, Transform> { }
+        public class JointTransArray : EnumArray<HandJointName, Transform> { }
 
         [SerializeField]
         private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
@@ -61,7 +61,7 @@ namespace HTC.UnityPlugin.Vive
         public bool CalculateModelSpaceAndLength()
         {
             // findout model front/up axis
-            var wrist = m_modelJoints[HandJointIndex.Wrist];
+            var wrist = m_modelJoints[HandJointName.Wrist];
             var furthest = FindFurthestFingerTip();
             var thinnest = FindMostThinnestFingerTip();
             var thickest = FindMostThickestFingerTip();
@@ -96,9 +96,9 @@ namespace HTC.UnityPlugin.Vive
         private float CalculateModelLength()
         {
             var len = 0f;
-            var wrist = m_modelJoints[HandJointIndex.Wrist];
+            var wrist = m_modelJoints[HandJointName.Wrist];
             var lastPos = Vector3.zero;
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.MiddleMetacarpal, HandJointIndex.MiddleTip))
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.MiddleMetacarpal, HandJointName.MiddleTip))
             {
                 if (t != null)
                 {
@@ -130,31 +130,31 @@ namespace HTC.UnityPlugin.Vive
 
         private Transform FindFurthestFingerTip()
         {
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.MiddleTip, HandJointIndex.MiddleMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.IndexTip, HandJointIndex.IndexMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.RingTip, HandJointIndex.RingMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.PinkyTip, HandJointIndex.PinkyMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.ThumbTip, HandJointIndex.ThumbTrapezium)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.MiddleTip, HandJointName.MiddleMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.IndexTip, HandJointName.IndexMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.RingTip, HandJointName.RingMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.PinkyTip, HandJointName.PinkyMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.ThumbTip, HandJointName.ThumbTrapezium)) { if (t != null) { return t; } }
             return null;
         }
 
         private Transform FindMostThinnestFingerTip()
         {
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.PinkyTip, HandJointIndex.PinkyMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.RingTip, HandJointIndex.RingMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.MiddleTip, HandJointIndex.MiddleMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.IndexTip, HandJointIndex.IndexMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.ThumbTip, HandJointIndex.ThumbTrapezium)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.PinkyTip, HandJointName.PinkyMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.RingTip, HandJointName.RingMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.MiddleTip, HandJointName.MiddleMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.IndexTip, HandJointName.IndexMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.ThumbTip, HandJointName.ThumbTrapezium)) { if (t != null) { return t; } }
             return null;
         }
 
         private Transform FindMostThickestFingerTip()
         {
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.ThumbTip, HandJointIndex.ThumbTrapezium)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.IndexTip, HandJointIndex.IndexMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.MiddleTip, HandJointIndex.MiddleMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.RingTip, HandJointIndex.RingMetacarpal)) { if (t != null) { return t; } }
-            foreach (var t in m_modelJoints.ValuesFrom(HandJointIndex.PinkyTip, HandJointIndex.PinkyMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.ThumbTip, HandJointName.ThumbTrapezium)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.IndexTip, HandJointName.IndexMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.MiddleTip, HandJointName.MiddleMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.RingTip, HandJointName.RingMetacarpal)) { if (t != null) { return t; } }
+            foreach (var t in m_modelJoints.ValuesFrom(HandJointName.PinkyTip, HandJointName.PinkyMetacarpal)) { if (t != null) { return t; } }
             return null;
         }
 
@@ -168,9 +168,9 @@ namespace HTC.UnityPlugin.Vive
             VRModule.onNewPoses -= UpdatePoses;
         }
 
-        private void UpdateFingerJoints(JointEnumArray.IReadOnly roomSpaceJoints, Transform parentTransform, RigidPose roomSpaceParentPoseInverse, HandJointIndex startJoint, HandJointIndex endJoint)
+        private void UpdateFingerJoints(JointEnumArray.IReadOnly roomSpaceJoints, Transform parentTransform, RigidPose roomSpaceParentPoseInverse, HandJointName startJoint, HandJointName endJoint)
         {
-            foreach (var index in EnumArrayBase<HandJointIndex>.StaticEnumsFrom(startJoint, endJoint))
+            foreach (var index in EnumArrayBase<HandJointName>.StaticEnumsFrom(startJoint, endJoint))
             {
                 var jointTrans = m_modelJoints[index];
                 if (jointTrans == null) { continue; }
@@ -233,37 +233,37 @@ namespace HTC.UnityPlugin.Vive
             var deviceState = VRModule.GetCurrentDeviceState(deviceIndex);
             if (deviceState.GetValidHandJointCount() <= 0) { return; }
 
-            var roomSpaceJoints = deviceState._handJoints;
-            var roomSpaceWristPoseInverse = roomSpaceJoints[HandJointIndex.Wrist].pose.GetInverse();
-            var wristTransform = m_modelJoints[HandJointIndex.Wrist];
+            var roomSpaceJoints = deviceState.readOnlyHandJoints;
+            var roomSpaceWristPoseInverse = roomSpaceJoints[HandJointName.Wrist].pose.GetInverse();
+            var wristTransform = m_modelJoints[HandJointName.Wrist];
             wristTransform.localPosition = Vector3.zero;
             wristTransform.localRotation = m_modelOffsetInverse.rot;
             wristTransform.localScale = Vector3.one;
 
-            var palmTransform = m_modelJoints[HandJointIndex.Palm];
+            var palmTransform = m_modelJoints[HandJointName.Palm];
             if (palmTransform != null)
             {
-                var data = roomSpaceJoints[HandJointIndex.Palm];
+                var data = roomSpaceJoints[HandJointName.Palm];
                 if (data.isValid)
                 {
                     UpdateJointTransformLocal(wristTransform, palmTransform, roomSpaceWristPoseInverse * data.pose);
                 }
             }
 
-            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.ThumbTrapezium, HandJointIndex.ThumbTip);
-            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.IndexMetacarpal, HandJointIndex.IndexTip);
-            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.MiddleMetacarpal, HandJointIndex.MiddleTip);
-            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.RingMetacarpal, HandJointIndex.RingTip);
-            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointIndex.PinkyMetacarpal, HandJointIndex.PinkyTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointName.ThumbTrapezium, HandJointName.ThumbTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointName.IndexMetacarpal, HandJointName.IndexTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointName.MiddleMetacarpal, HandJointName.MiddleTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointName.RingMetacarpal, HandJointName.RingTip);
+            UpdateFingerJoints(roomSpaceJoints, wristTransform, roomSpaceWristPoseInverse, HandJointName.PinkyMetacarpal, HandJointName.PinkyTip);
 
             if (m_rigMode == RigMode.RotateAndScale)
             {
-                wristTransform.localScale = Vector3.one * (CalculateJointLength(deviceState._handJoints) / m_modelLength);
+                wristTransform.localScale = Vector3.one * (CalculateJointLength(deviceState.readOnlyHandJoints) / m_modelLength);
             }
 
             if (m_debugJoint != null)
             {
-                foreach (var joint in deviceState._handJoints.EnumValues)
+                foreach (var joint in deviceState.readOnlyHandJoints.EnumValues)
                 {
                     var index = joint.Key;
                     var poseData = joint.Value;
@@ -288,8 +288,8 @@ namespace HTC.UnityPlugin.Vive
         private static float CalculateJointLength(JointEnumArray.IReadOnly joints)
         {
             var len = 0f;
-            var lastPos = joints[HandJointIndex.Wrist].pose.pos;
-            foreach (var jointPose in joints.ValuesFrom(HandJointIndex.MiddleMetacarpal, HandJointIndex.MiddleTip))
+            var lastPos = joints[HandJointName.Wrist].pose.pos;
+            foreach (var jointPose in joints.ValuesFrom(HandJointName.MiddleMetacarpal, HandJointName.MiddleTip))
             {
                 if (jointPose.isValid)
                 {

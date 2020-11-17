@@ -184,7 +184,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: jointName
-      value: 27
+      value: 26
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: handness
@@ -304,7 +304,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: jointName
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
@@ -570,7 +570,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: jointName
-      value: 22
+      value: 21
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
@@ -640,7 +640,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: jointName
-      value: 27
+      value: 26
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
@@ -1007,7 +1007,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: jointName
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: handness
@@ -1253,7 +1253,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: jointName
-      value: 17
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
@@ -1328,7 +1328,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: jointName
-      value: 17
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: handness
@@ -1422,6 +1422,10 @@ PrefabInstance:
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: handness
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
+      propertyPath: jointName
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8806342697010756459, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: m_viveRole.m_roleValueName
@@ -1581,7 +1585,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: jointName
-      value: 22
+      value: 21
       objectReference: {fileID: 0}
     - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: handness
@@ -1656,6 +1660,10 @@ PrefabInstance:
     - target: {fileID: 1902134348032013502, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1902134348032013503, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
+      propertyPath: jointName
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8806342697010756459, guid: fb33f4a3bcce8654a95d7c487c8f414b, type: 3}
       propertyPath: m_buttonTrigger

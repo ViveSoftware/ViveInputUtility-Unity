@@ -629,6 +629,20 @@ namespace HTC.UnityPlugin.Vive
                             EditorUtility.SetDirty(oculusProjectConfig);
                         }
                         EditorGUILayout.EndHorizontal();
+#else
+                        EditorGUILayout.BeginHorizontal();
+
+                        EditorGUILayout.HelpBox("Hand tracking not supported. Please install Oculus Integration.", MessageType.Info);
+                        GUILayout.FlexibleSpace();
+
+                        s_warningHeight = Mathf.Max(s_warningHeight, GUILayoutUtility.GetLastRect().height);
+                        GUILayout.BeginVertical(GUILayout.Height(s_warningHeight));
+                        GUILayout.FlexibleSpace();
+                        ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN, "Get Oculus Integration");
+                        GUILayout.FlexibleSpace();
+                        GUILayout.EndVertical();
+
+                        EditorGUILayout.EndHorizontal();
 #endif
 
                         // Custom Android manifest
