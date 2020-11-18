@@ -826,7 +826,7 @@ namespace HTC.UnityPlugin.Vive
                 VRModuleManagerEditor.UpdateScriptingDefineSymbols();
             }
 
-            if (!string.IsNullOrEmpty(viuSettingsAssetPath))
+            if (!string.IsNullOrEmpty(viuSettingsAssetPath) || !string.IsNullOrEmpty(moduleSettingsAssetPath))
             {
                 GUILayout.Space(10);
 
@@ -834,6 +834,7 @@ namespace HTC.UnityPlugin.Vive
                 if (GUILayout.Button("Use Default Settings"))
                 {
                     AssetDatabase.DeleteAsset(viuSettingsAssetPath);
+                    AssetDatabase.DeleteAsset(moduleSettingsAssetPath);
                     foreach (var ps in s_platformSettings)
                     {
                         ps.support = ps.canSupport;
