@@ -26,21 +26,11 @@ namespace HTC.UnityPlugin.Vive
         public class DeviceModelArray : EnumArray<VRModuleDeviceModel, GameObject> { }
 
         [SerializeField]
-        private DeviceModelArray m_defaultDeviceModel = new DeviceModelArray();
-        [SerializeField]
         private DeviceModelArray m_overrideDeviceModel = new DeviceModelArray();
 
         public static bool autoCheckNewVIUVersion { get { return Instance == null ? AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE : s_instance.m_autoCheckNewVIUVersion; } set { if (Instance != null) { Instance.m_autoCheckNewVIUVersion = value; } } }
         public static float virtualDPadDeadZone { get { return Instance == null ? VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE : s_instance.m_virtualDPadDeadZone; } set { if (Instance != null) { Instance.m_virtualDPadDeadZone = value; } } }
         public static bool individualTouchpadJoystickValue { get { return Instance == null ? INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE : s_instance.m_individualTouchpadJoystickValue; } set { if (Instance != null) { Instance.m_individualTouchpadJoystickValue = value; } } }
-
-        public static GameObject GetDefaultDeviceModel(VRModuleDeviceModel model) { return Instance == null || s_instance.m_defaultDeviceModel == null ? null : s_instance.m_defaultDeviceModel[model]; }
-        public static void SetDefaultDeviceModel(VRModuleDeviceModel model, GameObject obj)
-        {
-            if (Instance == null) { return; }
-            if (s_instance.m_defaultDeviceModel == null) { return; }
-            s_instance.m_defaultDeviceModel[model] = obj;
-        }
 
         public static GameObject GetOverrideDeviceModel(VRModuleDeviceModel model) { return Instance == null || s_instance.m_overrideDeviceModel == null ? null : s_instance.m_overrideDeviceModel[model]; }
         public static void SetOverrideDeviceModel(VRModuleDeviceModel model, GameObject obj)
@@ -76,17 +66,6 @@ namespace HTC.UnityPlugin.Vive
             {
                 s_instance = CreateInstance<VIUSettings>();
                 s_instance.m_bindingInterfaceObjectSource = Resources.Load<GameObject>(BINDING_INTERFACE_PREFAB_DEFAULT_RESOURCE_PATH);
-
-                if (s_instance.m_defaultDeviceModel == null) { s_instance.m_defaultDeviceModel = new DeviceModelArray(); }
-
-                foreach (var i in DeviceModelArray.StaticEnums)
-                {
-                    var prefab = Resources.Load<GameObject>("Models/VIUModel" + i.ToString());
-                    if (prefab != null)
-                    {
-                        s_instance.m_defaultDeviceModel[i] = prefab;
-                    }
-                }
             }
         }
 

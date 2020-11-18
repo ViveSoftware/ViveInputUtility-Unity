@@ -48,6 +48,14 @@ namespace HTC.UnityPlugin.Vive
         [CreatorPriorityAttirbute(10)]
         public class DefaultRenderModelCreator : RenderModelCreator
         {
+            private struct DefaultModelData
+            {
+                public bool isLoaded;
+                public GameObject model;
+            }
+
+            private static EnumArray<VRModuleDeviceModel, DefaultModelData> s_defaultModels = new EnumArray<VRModuleDeviceModel, DefaultModelData>();
+
             private bool m_isModelActivated;
             private EnumArray<VRModuleDeviceModel, GameObject> m_modelObjs = new EnumArray<VRModuleDeviceModel, GameObject>();
             private VRModuleDeviceModel m_activeModel;
@@ -57,6 +65,23 @@ namespace HTC.UnityPlugin.Vive
 
             public override bool shouldActive { get { return true; } }
 
+            public static GameObject GetDefaultDeviceModelPrefab(VRModuleDeviceModel modelNum)
+            {
+                if (modelNum < s_defaultModels.Min || modelNum > s_defaultModels.Max) { return null; }
+
+                var modelData = s_defaultModels[modelNum];
+                if (!modelData.isLoaded)
+                {
+                    s_defaultModels[modelNum] = modelData = new DefaultModelData()
+                    {
+                        isLoaded = true,
+                        model = Resources.Load<GameObject>("Models/VIUModel" + modelNum.ToString()),
+                    };
+                }
+
+                return modelData.model;
+            }
+
             public override void UpdateRenderModel()
             {
                 var deviceState = VRModule.GetDeviceState(hook.GetModelDeviceIndex());
@@ -65,7 +90,7 @@ namespace HTC.UnityPlugin.Vive
                 var lastActiveCustomModelObj = m_modelObjs[m_activeModel];
                 var lastCustomModelActive = m_isModelActivated;
                 var shouldActiveCustomModelNum = deviceState.deviceModel;
-                var shouldActiveCustomModelPrefab = VIUSettings.GetDefaultDeviceModel(shouldActiveCustomModelNum);
+                var shouldActiveCustomModelPrefab = GetDefaultDeviceModelPrefab(shouldActiveCustomModelNum);
                 var shouldActiveCustomModel = deviceState.isConnected && shouldActiveCustomModelPrefab != null;
 
                 if (lastCustomModelActive)
