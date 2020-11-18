@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+#pragma warning disable 0649
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
@@ -45,6 +46,8 @@ namespace HTC.UnityPlugin.Vive
         public JointTransArray modelJoints { get { return m_modelJoints; } }
 
         public Handed modelHanded { get { return m_modelHanded; } set { m_modelHanded = value; } }
+
+        public bool isModelValid { get { return m_isValidModel; } }
 
         private bool m_isValidModel;
         private RigidPose m_modelOffset;
