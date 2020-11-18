@@ -814,8 +814,9 @@ namespace HTC.UnityPlugin.Vive
 
                 if (string.IsNullOrEmpty(moduleSettingsAssetPath))
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(defaultAssetPath));
-                    AssetDatabase.CreateAsset(VRModuleSettings.Instance, defaultAssetPath);
+                    const string defaultModuleSettingsAssetPath = "Assets/VIUSettings/Resources/VRModuleSettings.asset";
+                    Directory.CreateDirectory(Path.GetDirectoryName(defaultModuleSettingsAssetPath));
+                    AssetDatabase.CreateAsset(VRModuleSettings.Instance, defaultModuleSettingsAssetPath);
                 }
 
                 EditorUtility.SetDirty(VRModuleSettings.Instance);
