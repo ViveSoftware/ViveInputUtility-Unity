@@ -12,6 +12,8 @@ namespace HTC.UnityPlugin.Vive
     {
         private static readonly string logPrefix = "[" + typeof(HandJointUpdater).Name + "] ";
 
+        private static JointEnumArray s_lastJointPoses = new JointEnumArray();
+
         public enum Handed
         {
             Right,
@@ -34,6 +36,10 @@ namespace HTC.UnityPlugin.Vive
         private RigMode m_rigMode;
         [SerializeField]
         private Handed m_modelHanded;
+        [SerializeField]
+        private float m_stabilizerAngleThreshold;
+        [SerializeField]
+        private float m_stabilizerSlerpSpeedCoef;
         [SerializeField]
         private GameObject m_debugJoint;
         [SerializeField]
@@ -236,6 +242,19 @@ namespace HTC.UnityPlugin.Vive
             var deviceState = VRModule.GetCurrentDeviceState(deviceIndex);
             if (deviceState.GetValidHandJointCount() <= 0) { return; }
 
+            // Store last pose
+            foreach (var pair in m_modelJoints.EnumValues)
+            {
+                if (pair.Value)
+                {
+                    s_lastJointPoses[pair.Key] = new JointPose(pair.Value.position, pair.Value.rotation);
+                }
+                else
+                {
+                    s_lastJointPoses[pair.Key] = default(JointPose);
+                }
+            }
+
             var roomSpaceJoints = deviceState.readOnlyHandJoints;
             var roomSpaceWristPoseInverse = roomSpaceJoints[HandJointName.Wrist].pose.GetInverse();
             var wristTransform = m_modelJoints[HandJointName.Wrist];
@@ -262,6 +281,37 @@ namespace HTC.UnityPlugin.Vive
             if (m_rigMode == RigMode.RotateAndScale)
             {
                 wristTransform.localScale = Vector3.one * (CalculateJointLength(deviceState.readOnlyHandJoints) / m_modelLength);
+            }
+            
+            // Stabilize
+            if (m_stabilizerAngleThreshold > 0)
+            {
+                foreach (var pair in m_modelJoints.EnumValues)
+                {
+                    if (!pair.Value)
+                    {
+                        continue;
+                    }
+
+                    Quaternion lastRotation = s_lastJointPoses[pair.Key].pose.rot;
+                    Quaternion currentRotation = pair.Value.rotation;
+                    float diffAngle = Quaternion.Angle(lastRotation, currentRotation);
+                    if (diffAngle < m_stabilizerAngleThreshold)
+                    {
+                        if (m_stabilizerSlerpSpeedCoef > 0)
+                        {
+                            pair.Value.rotation = Quaternion.Slerp(lastRotation, currentRotation, m_stabilizerSlerpSpeedCoef * Time.deltaTime);
+                        }
+                        else
+                        {
+                            pair.Value.rotation = lastRotation;
+                        }
+                    }
+                    else
+                    {
+                        pair.Value.rotation = Quaternion.RotateTowards(currentRotation, lastRotation, m_stabilizerAngleThreshold);
+                    }
+                }
             }
 
             if (m_debugJoint != null)
