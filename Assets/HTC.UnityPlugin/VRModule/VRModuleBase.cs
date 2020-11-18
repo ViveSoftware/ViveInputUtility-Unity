@@ -26,19 +26,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [Obsolete("Module should set their own MAX_DEVICE_COUNT, use EnsureDeviceStateLength to set, VRModule.GetDeviceStateCount() to get")]
             protected const uint MAX_DEVICE_COUNT = VRModule.MAX_DEVICE_COUNT;
             protected const uint INVALID_DEVICE_INDEX = VRModule.INVALID_DEVICE_INDEX;
-            protected const RegexOptions REGES_OPTIONS = RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline;
+            protected const RegexOptions REGEX_OPTIONS = RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline;
 
-            private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", REGES_OPTIONS);
-            private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", REGES_OPTIONS);
-            private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", REGES_OPTIONS);
-            private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGES_OPTIONS);
-            private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", REGES_OPTIONS);
-            private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGES_OPTIONS);
-            private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", REGES_OPTIONS);
-            private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", REGES_OPTIONS);
-            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", REGES_OPTIONS);
-            private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", REGES_OPTIONS);
-            private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", REGES_OPTIONS);
+            private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", REGEX_OPTIONS);
+            private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", REGEX_OPTIONS);
+            private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", REGEX_OPTIONS);
+            private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGEX_OPTIONS);
+            private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", REGEX_OPTIONS);
+            private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGEX_OPTIONS);
+            private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", REGEX_OPTIONS);
+            private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", REGEX_OPTIONS);
+            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", REGEX_OPTIONS);
+            private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", REGEX_OPTIONS);
+            private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", REGEX_OPTIONS);
 
             private struct WVRCtrlProfile
             {

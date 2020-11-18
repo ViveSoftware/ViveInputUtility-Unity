@@ -55,20 +55,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static List<XRLoaderProfile> loaderProfiles = new List<XRLoaderProfile>()
         {
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.OpenVR, matchNameRgx = new Regex("openvr", REGES_OPTIONS) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.Oculus, matchNameRgx = new Regex("oculus", REGES_OPTIONS) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WindowsXR, matchNameRgx = new Regex("windows", REGES_OPTIONS) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.MagicLeap, matchNameRgx = new Regex("magicleap", REGES_OPTIONS) },
-            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WaveXR, matchNameRgx = new Regex("wave", REGES_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.OpenVR, matchNameRgx = new Regex("openvr", REGEX_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.Oculus, matchNameRgx = new Regex("oculus", REGEX_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WindowsXR, matchNameRgx = new Regex("windows", REGEX_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.MagicLeap, matchNameRgx = new Regex("magicleap", REGEX_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WaveXR, matchNameRgx = new Regex("wave", REGEX_OPTIONS) },
         };
 
         private static List<XRInputSubsystemProfile> inputSubsystemProfiles = new List<XRInputSubsystemProfile>()
         {
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.OpenVR, matchNameRgx = new Regex("openvr", REGES_OPTIONS) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.Oculus, matchNameRgx = new Regex("oculus", REGES_OPTIONS) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WindowsXR, matchNameRgx = new Regex("windows", REGES_OPTIONS) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.MagicLeap, matchNameRgx = new Regex("magicleap", REGES_OPTIONS) },
-            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WaveXR, matchNameRgx = new Regex("wave", REGES_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.OpenVR, matchNameRgx = new Regex("openvr", REGEX_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.Oculus, matchNameRgx = new Regex("oculus", REGEX_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WindowsXR, matchNameRgx = new Regex("windows", REGEX_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.MagicLeap, matchNameRgx = new Regex("magicleap", REGEX_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WaveXR, matchNameRgx = new Regex("wave", REGEX_OPTIONS) },
         };
 
         private VRModuleKnownXRLoader knownActiveLoader;
@@ -108,9 +108,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (VRModule.trackingSpaceType)
             {
                 case VRModuleTrackingSpaceType.Stationary: originFlag = TrackingOriginModeFlags.Device; break;
-                case VRModuleTrackingSpaceType.RoomScale: originFlag = TrackingOriginModeFlags.Floor; break;
+                //case VRModuleTrackingSpaceType.RoomScale: originFlag = TrackingOriginModeFlags.Floor; break;
+                case VRModuleTrackingSpaceType.RoomScale: originFlag = TrackingOriginModeFlags.TrackingReference; break;
                 default: return;
             }
+            Debug.Log("UpdateTrackingSpaceType " + originFlag);
             SetAllXRInputSubsystemTrackingOriginMode(originFlag);
         }
 
