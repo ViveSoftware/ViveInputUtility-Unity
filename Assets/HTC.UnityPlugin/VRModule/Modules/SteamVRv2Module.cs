@@ -609,7 +609,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public ulong GetPathHandleByTrackedIndex(uint trackedIndex)
             {
-                return index2PathHandle[trackedIndex];
+                return trackedIndex < index2PathHandle.Length ? index2PathHandle[trackedIndex] : OpenVR.k_ulInvalidPathHandle;
             }
 
             public EVRInputError TryGetOriginData(CVRInput vrInput, ulong originHandle, out OriginData originData)

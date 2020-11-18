@@ -126,10 +126,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        private class RenderModelCreator : RenderModelHook.RenderModelCreator
+        [RenderModelHook.CreatorPriorityAttirbute(0)]
+        private class RenderModelCreator : RenderModelHook.DefaultRenderModelCreator
         {
             private uint m_index = INVALID_DEVICE_INDEX;
-            private VIUSteamVRRenderModel m_model;
+            private VIUSteamVRRenderModel m_renderModelComp;
 
             public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
 
@@ -139,35 +140,49 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (VRModule.IsValidDeviceIndex(m_index))
                 {
-                    // create object for render model
-                    if (m_model == null)
+                    if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand)
                     {
-                        var go = new GameObject("Model");
-                        go.transform.SetParent(hook.transform, false);
-                        m_model = go.AddComponent<VIUSteamVRRenderModel>();
+                        // VIUSteamVRRenderModel currently doesn't support tracked hand
+                        // Fallback to default model instead
+                        UpdateDefaultRenderModel(true);
                     }
+                    else
+                    {
+                        UpdateDefaultRenderModel(false);
 
-                    // set render model index
-                    m_model.gameObject.SetActive(true);
-                    m_model.shaderOverride = hook.overrideShader;
-                    m_model.SetDeviceIndex(m_index);
+                        // create object for render model
+                        if (m_renderModelComp == null)
+                        {
+                            var go = new GameObject("Model");
+                            go.transform.SetParent(hook.transform, false);
+                            m_renderModelComp = go.AddComponent<VIUSteamVRRenderModel>();
+                        }
+
+                        // set render model index
+                        m_renderModelComp.gameObject.SetActive(true);
+                        m_renderModelComp.shaderOverride = hook.overrideShader;
+                        m_renderModelComp.SetDeviceIndex(m_index);
+                    }
                 }
                 else
                 {
+                    UpdateDefaultRenderModel(false);
                     // deacitvate object for render model
-                    if (m_model != null)
+                    if (m_renderModelComp != null)
                     {
-                        m_model.gameObject.SetActive(false);
+                        m_renderModelComp.gameObject.SetActive(false);
                     }
                 }
             }
 
             public override void CleanUpRenderModel()
             {
-                if (m_model != null)
+                base.CleanUpRenderModel();
+
+                if (m_renderModelComp != null)
                 {
-                    UnityEngine.Object.Destroy(m_model.gameObject);
-                    m_model = null;
+                    UnityEngine.Object.Destroy(m_renderModelComp.gameObject);
+                    m_renderModelComp = null;
                     m_index = INVALID_DEVICE_INDEX;
                 }
             }

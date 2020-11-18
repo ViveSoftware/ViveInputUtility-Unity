@@ -148,74 +148,47 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 resultPtr = IntPtr.Add(resultPtr, sizeofGestureResult);
             }
 
+            UpdateDeviceConnectionAndPoses(ref leftResult, ref leftDeviceIndex, true);
+            UpdateDeviceConnectionAndPoses(ref rightResult, ref rightDeviceIndex, false);
+        }
+
+        private void UpdateDeviceConnectionAndPoses(ref HandResultData resultData, ref uint index, bool isLeft)
+        {
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
             // update connection/pose for left hand devices
-            if (leftResult.isConnected)
+            if (resultData.isConnected)
             {
-                if (leftDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
+                if (index != VRModule.INVALID_DEVICE_INDEX)
                 {
-                    EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
+                    EnsureValidDeviceState(index, out prevState, out currState);
                 }
                 else
                 {
-                    leftDeviceIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+                    index = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+
+                    var name = isLeft ? "ViveHandTrackingLeft" : "ViveHandTrackingRight";
+                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
+                    currState.serialNumber = name;
+                    currState.modelNumber = name;
+                    currState.renderModelName = name;
 
                     currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.serialNumber = "ViveHandTrackingLeft";
-                    currState.modelNumber = "ViveHandTrackingLeft";
-                    currState.renderModelName = "ViveHandTrackingLeft";
-
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.deviceModel = VRModuleDeviceModel.ViveHandTrackingTrackedHandLeft;
+                    currState.deviceModel = isLeft ? VRModuleDeviceModel.ViveHandTrackingTrackedHandLeft : VRModuleDeviceModel.ViveHandTrackingTrackedHandRight;
                     currState.input2DType = VRModuleInput2DType.None;
                 }
 
                 currState.isConnected = true;
                 currState.isPoseValid = true;
-                UpdateDeviceJoints(currState, leftResult.joints, true);
+                UpdateDeviceJoints(currState, resultData.joints, isLeft);
             }
             else
             {
-                if (leftDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
+                if (index != VRModule.INVALID_DEVICE_INDEX)
                 {
-                    EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
+                    EnsureValidDeviceState(index, out prevState, out currState);
                     currState.Reset();
-                    leftDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
-                }
-            }
-
-            if (rightResult.isConnected)
-            {
-                if (rightDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
-                {
-                    EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-                }
-                else
-                {
-                    rightDeviceIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
-
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.serialNumber = "ViveHandTrackingRight";
-                    currState.modelNumber = "ViveHandTrackingRight";
-                    currState.renderModelName = "ViveHandTrackingRight";
-
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
-                    currState.deviceModel = VRModuleDeviceModel.ViveHandTrackingTrackedHandRight;
-                    currState.input2DType = VRModuleInput2DType.None;
-                }
-
-                currState.isConnected = true;
-                currState.isPoseValid = true;
-                UpdateDeviceJoints(currState, rightResult.joints, false);
-            }
-            else
-            {
-                if (rightDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
-                {
-                    EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-                    currState.Reset();
-                    rightDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
+                    index = VRModule.INVALID_DEVICE_INDEX;
                 }
             }
         }
@@ -224,58 +197,39 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (!isStarted) { return; }
 
+            UpdateDeviceInput(ref leftResult, leftDeviceIndex);
+            UpdateDeviceInput(ref rightResult, rightDeviceIndex);
+        }
+
+        private void UpdateDeviceInput(ref HandResultData resultData, uint index)
+        {
+            if (!resultData.isConnected) { return; }
+
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
 
-            if (leftResult.isConnected)
-            {
-                EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
+            EnsureValidDeviceState(index, out prevState, out currState);
 
-                var pinched = leftResult.pinchLevel >= 0.95f;
-                var gFist = leftResult.gesture == GestureType.Fist && leftResult.confidence > 0.1f;
-                var gFive = leftResult.gesture == GestureType.Five && leftResult.confidence > 0.1f;
-                var gOK = leftResult.gesture == GestureType.OK && leftResult.confidence > 0.1f;
-                var gLike = leftResult.gesture == GestureType.Like && leftResult.confidence > 0.1f;
-                var gPoint = leftResult.gesture == GestureType.Point && leftResult.confidence > 0.1f;
-                currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
-                currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
-                currState.SetButtonPress(VRModuleRawButton.GestureFist, gFist);
-                currState.SetButtonTouch(VRModuleRawButton.GestureFist, gFist);
-                currState.SetButtonPress(VRModuleRawButton.GestureFive, gFive);
-                currState.SetButtonTouch(VRModuleRawButton.GestureFive, gFive);
-                currState.SetButtonPress(VRModuleRawButton.GestureOk, gOK);
-                currState.SetButtonTouch(VRModuleRawButton.GestureOk, gOK);
-                currState.SetButtonPress(VRModuleRawButton.GestureThumbUp, gLike);
-                currState.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gLike);
-                currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, gPoint);
-                currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gPoint);
-                currState.SetAxisValue(VRModuleRawAxis.Trigger, leftResult.pinchLevel);
-            }
-
-            if (rightResult.isConnected)
-            {
-                EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-
-                var pinched = rightResult.pinchLevel >= 0.95f;
-                var gFist = rightResult.gesture == GestureType.Fist && rightResult.confidence > 0.1f;
-                var gFive = rightResult.gesture == GestureType.Five && rightResult.confidence > 0.1f;
-                var gOK = rightResult.gesture == GestureType.OK && rightResult.confidence > 0.1f;
-                var gLike = rightResult.gesture == GestureType.Like && rightResult.confidence > 0.1f;
-                var gPoint = rightResult.gesture == GestureType.Point && rightResult.confidence > 0.1f;
-                currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
-                currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
-                currState.SetButtonPress(VRModuleRawButton.GestureFist, gFist);
-                currState.SetButtonTouch(VRModuleRawButton.GestureFist, gFist);
-                currState.SetButtonPress(VRModuleRawButton.GestureFive, gFive);
-                currState.SetButtonTouch(VRModuleRawButton.GestureFive, gFive);
-                currState.SetButtonPress(VRModuleRawButton.GestureOk, gOK);
-                currState.SetButtonTouch(VRModuleRawButton.GestureOk, gOK);
-                currState.SetButtonPress(VRModuleRawButton.GestureThumbUp, gLike);
-                currState.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gLike);
-                currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, gPoint);
-                currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gPoint);
-                currState.SetAxisValue(VRModuleRawAxis.Trigger, rightResult.pinchLevel);
-            }
+            var pinched = resultData.pinchLevel >= 0.95f;
+            var gFist = resultData.gesture == GestureType.Fist && resultData.confidence > 0.1f;
+            var gFive = resultData.gesture == GestureType.Five && resultData.confidence > 0.1f;
+            var gOK = resultData.gesture == GestureType.OK && resultData.confidence > 0.1f;
+            var gLike = resultData.gesture == GestureType.Like && resultData.confidence > 0.1f;
+            var gPoint = resultData.gesture == GestureType.Point && resultData.confidence > 0.1f;
+            currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
+            currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
+            currState.SetButtonPress(VRModuleRawButton.GestureFist, gFist);
+            currState.SetButtonTouch(VRModuleRawButton.GestureFist, gFist);
+            currState.SetButtonPress(VRModuleRawButton.GestureFive, gFive);
+            currState.SetButtonTouch(VRModuleRawButton.GestureFive, gFive);
+            currState.SetButtonPress(VRModuleRawButton.GestureOk, gOK);
+            currState.SetButtonTouch(VRModuleRawButton.GestureOk, gOK);
+            currState.SetButtonPress(VRModuleRawButton.GestureThumbUp, gLike);
+            currState.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gLike);
+            currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, gPoint);
+            currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gPoint);
+            currState.SetButtonPress(VRModuleRawButton.Grip, gFist);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, resultData.pinchLevel);
         }
 
         private static void UpdateDeviceJoints(IVRModuleDeviceStateRW state, Vector3[] rawJoints, bool isLeft)
