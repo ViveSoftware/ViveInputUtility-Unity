@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using System;
 using HTC.UnityPlugin.Utility;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,9 +15,11 @@ namespace HTC.UnityPlugin.Vive
             RightHand,
         }
 
+        [Serializable] public class PoseStatusChangeEvent : UnityEvent<bool> {}
+
         public Handedness handedness;
         public HandJointName jointName;
-        public UnityEvent<bool> poseStatusChanged;
+        public PoseStatusChangeEvent poseStatusChanged;
 
         private bool m_isPoseValid;
 

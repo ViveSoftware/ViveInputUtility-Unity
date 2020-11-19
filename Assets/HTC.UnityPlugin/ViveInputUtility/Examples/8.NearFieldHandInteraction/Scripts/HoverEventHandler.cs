@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using System;
 using System.Collections.Generic;
 using HTC.UnityPlugin.ColliderEvent;
 using UnityEngine;
@@ -10,9 +11,13 @@ namespace HTC.UnityPlugin.Vive
 {
     public class HoverEventHandler : MonoBehaviour, IColliderEventHoverEnterHandler, IColliderEventHoverExitHandler
     {
-        public UnityEvent<ColliderHoverEventData> hoverEntered;
-        public UnityEvent<Transform> hoverStaying;
-        public UnityEvent<ColliderHoverEventData> hoverExited;
+        [Serializable] public class HoverEnterEvent : UnityEvent<ColliderHoverEventData> {}
+        [Serializable] public class HoverStayEvent : UnityEvent<Transform> {}
+        [Serializable] public class HoverExitEvent : UnityEvent<ColliderHoverEventData> {}
+
+        public HoverEnterEvent hoverEntered;
+        public HoverStayEvent hoverStaying;
+        public HoverExitEvent hoverExited;
 
         private Dictionary<ViveRoleProperty, int> m_stayingRoleCounts = new Dictionary<ViveRoleProperty, int>();
         private Transform m_stayingTransform;

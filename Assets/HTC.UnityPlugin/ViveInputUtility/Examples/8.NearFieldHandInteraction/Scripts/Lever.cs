@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
@@ -8,7 +9,9 @@ namespace HTC.UnityPlugin.Vive
 {
     public class Lever : MonoBehaviour
     {
-        public UnityEvent<Transform> moved;
+        [Serializable] public class MoveEvent : UnityEvent<Transform> {}
+
+        public MoveEvent moved;
 
 #pragma warning disable 0649
 

@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
@@ -8,7 +9,9 @@ namespace HTC.UnityPlugin.Vive
 {
     public class CubeSlider : MonoBehaviour
     {
-        public UnityEvent<float> valueChanged;
+        [Serializable] public class ValueChangeEvent : UnityEvent<float> {}
+
+        public ValueChangeEvent valueChanged;
 
 #pragma warning disable 0649
 
