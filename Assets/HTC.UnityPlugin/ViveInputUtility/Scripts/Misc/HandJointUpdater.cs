@@ -36,9 +36,9 @@ namespace HTC.UnityPlugin.Vive
         private RigMode m_rigMode;
         [SerializeField]
         private Handed m_modelHanded;
-        [SerializeField]
+        //[SerializeField]
         private float m_stabilizerAngleThreshold;
-        [SerializeField]
+        //[SerializeField]
         private float m_stabilizerSlerpSpeedCoef;
         [SerializeField]
         private GameObject m_debugJoint;
