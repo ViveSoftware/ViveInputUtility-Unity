@@ -452,7 +452,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var data = isLeft ? trackingData.left : trackingData.right;
                 var pose = isLeft ? s_NaturalHandJointsPoseLeft : s_NaturalHandJointsPoseRight;
 
-                foreach (var i in EnumArrayBase<HandJointName>.BaseEnumKeys)
+                foreach (var i in EnumArrayBase<HandJointName>.StaticEnums)
                 {
                     var index = jointIndex[i];
 

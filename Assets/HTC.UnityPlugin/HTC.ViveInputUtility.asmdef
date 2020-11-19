@@ -12,7 +12,8 @@
         "Wave.Native",
         "Controller",
         "Hand",
-        "HTC.ViveHandTracking"
+        "HTC.ViveHandTracking",
+        "Wave.Essence.Controller.Model"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

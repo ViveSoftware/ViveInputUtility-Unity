@@ -112,7 +112,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleTrackingSpaceType.RoomScale: originFlag = TrackingOriginModeFlags.TrackingReference; break;
                 default: return;
             }
-            Debug.Log("UpdateTrackingSpaceType " + originFlag);
+
             SetAllXRInputSubsystemTrackingOriginMode(originFlag);
         }
 
