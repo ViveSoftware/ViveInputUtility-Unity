@@ -97,15 +97,46 @@ namespace HTC.UnityPlugin.Utility
 #endif
             var underlyingType = Enum.GetUnderlyingType(StaticEnumType);
             var rangeCheckFunc = default(RangeCheckFunc);
-            if (underlyingType == typeof(ulong))
-            { rangeCheckFunc = RangeCheckFromUInt64; }
-            else
-            { rangeCheckFunc = RangeCheckFromInt64; }
-
             if (underlyingType == typeof(int))
-            { funcE2I = EqualityComparer<TEnum>.Default.GetHashCode; }
-            else
-            { funcE2I = (e) => (int)(object)e; }
+            {
+                funcE2I = EqualityComparer<TEnum>.Default.GetHashCode;
+                rangeCheckFunc = RangeCheckFromInt32;
+            }
+            else if (underlyingType == typeof(uint))
+            {
+                funcE2I = e => (int)(uint)(object)e;
+                rangeCheckFunc = RangeCheckFromUInt32;
+            }
+            else if (underlyingType == typeof(long))
+            {
+                funcE2I = e => (int)(long)(object)e;
+                rangeCheckFunc = RangeCheckFromInt64;
+            }
+            else if (underlyingType == typeof(ulong))
+            {
+                funcE2I = e => (int)(ulong)(object)e;
+                rangeCheckFunc = RangeCheckFromUInt64;
+            }
+            else if (underlyingType == typeof(byte))
+            {
+                funcE2I = e => (byte)(object)e;
+                rangeCheckFunc = RangeCheckFromUInt8;
+            }
+            else if (underlyingType == typeof(sbyte))
+            {
+                funcE2I = e => (sbyte)(object)e;
+                rangeCheckFunc = RangeCheckFromInt8;
+            }
+            else if (underlyingType == typeof(short))
+            {
+                funcE2I = e => (short)(object)e;
+                rangeCheckFunc = RangeCheckFromInt16;
+            }
+            else if (underlyingType == typeof(ushort))
+            {
+                funcE2I = e => (ushort)(object)e;
+                rangeCheckFunc = RangeCheckFromUInt16;
+            }
 
             // find out min/max/length value in defined enum values
             var min = int.MaxValue;
@@ -219,9 +250,15 @@ namespace HTC.UnityPlugin.Utility
 
         private delegate bool RangeCheckFunc(TEnum e, out int ei);
 
-        private static bool RangeCheckFromUInt64(TEnum e, out int ei)
+        private static bool RangeCheckFromUInt8(TEnum e, out int ei) { ei = (byte)(object)e; return true; }
+        private static bool RangeCheckFromInt8(TEnum e, out int ei) { ei = (sbyte)(object)e; return true; }
+        private static bool RangeCheckFromInt16(TEnum e, out int ei) { ei = (short)(object)e; return true; }
+        private static bool RangeCheckFromUInt16(TEnum e, out int ei) { ei = (ushort)(object)e; return true; }
+        private static bool RangeCheckFromInt32(TEnum e, out int ei) { ei = EqualityComparer<TEnum>.Default.GetHashCode(e); return true; }
+
+        private static bool RangeCheckFromUInt32(TEnum e, out int ei)
         {
-            var l = (ulong)(object)e;
+            var l = (uint)(object)e;
             if (l <= int.MaxValue)
             {
                 ei = (int)l;
@@ -243,6 +280,21 @@ namespace HTC.UnityPlugin.Utility
                 return false;
             }
             else if (l <= int.MaxValue)
+            {
+                ei = (int)l;
+                return true;
+            }
+            else
+            {
+                ei = int.MaxValue;
+                return false;
+            }
+        }
+
+        private static bool RangeCheckFromUInt64(TEnum e, out int ei)
+        {
+            var l = (ulong)(object)e;
+            if (l <= int.MaxValue)
             {
                 ei = (int)l;
                 return true;
