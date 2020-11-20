@@ -26,176 +26,39 @@ namespace HTC.UnityPlugin.VRModuleManagement
     {
         public const string OPENVR_XR_LOADER_NAME = "Open VR Loader";
         public const string OPENVR_XR_LOADER_CLASS_NAME = "OpenVRLoader";
-
-#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
-        public class ActionArray<T> where T : struct
-        {
-            private static readonly EnumUtils.EnumDisplayInfo s_enumInfo;
-            private static readonly T[] s_enums;
-            private static readonly ulong[] s_actionOrigins;
-            public static readonly int Len;
-
-            private string m_pathPrefix;
-            private string m_dataType;
-            private string[] m_aliases;
-            private string[] m_paths;
-            private ulong[] m_handles;
-
-            private int m_iterator = -1;
-            private int m_originIterator = -1;
-
-            static ActionArray()
-            {
-                s_enumInfo = EnumUtils.GetDisplayInfo(typeof(T));
-                Len = s_enumInfo.maxValue - s_enumInfo.minValue + 1;
-
-                var ints = new int[Len];
-                for (int i = 0; i < Len; ++i)
-                {
-                    ints[i] = s_enumInfo.minValue + i;
-                }
-
-                s_enums = ints as T[];
-
-                s_actionOrigins = new ulong[OpenVR.k_unMaxActionOriginCount];
-            }
-
-            public ActionArray(string pathPrefix, string dataType)
-            {
-                m_pathPrefix = pathPrefix;
-                m_dataType = dataType;
-
-                m_aliases = new string[Len];
-                m_paths = new string[Len];
-                m_handles = new ulong[Len];
-
-            }
-
-            public string DataType { get { return m_dataType; } }
-            public T Current { get { return s_enums[m_iterator]; } }
-            public string CurrentAlias { get { return m_aliases[m_iterator]; } }
-            public string CurrentPath { get { return m_paths[m_iterator]; } }
-            public ulong CurrentHandle { get { return m_handles[m_iterator]; } }
-            public void MoveNext() { ++m_iterator; }
-            public bool IsCurrentValid() { return m_iterator >= 0 && m_iterator < Len; }
-            public void Reset() { m_iterator = 0; }
-
-            public ulong CurrentOrigin { get { return s_actionOrigins[m_originIterator]; } }
-            public void MoveNextOrigin() { ++m_originIterator; }
-            public bool IsCurrentOriginValid() { return m_originIterator >= 0 && m_originIterator < s_actionOrigins.Length && s_actionOrigins[m_originIterator] != OpenVR.k_ulInvalidInputValueHandle; }
-            public void ResetOrigins(CVRInput vrInput)
-            {
-                if (CurrentHandle == OpenVR.k_ulInvalidActionHandle)
-                {
-                    m_originIterator = -1;
-                    return;
-                }
-
-                m_originIterator = 0;
-                var error = vrInput.GetActionOrigins(s_actionSetHandle, CurrentHandle, s_actionOrigins);
-                if (error != EVRInputError.None)
-                {
-                    Debug.LogError("GetActionOrigins failed! action=" + CurrentPath + " error=" + error);
-                }
-            }
-
-            public bool TryGetCurrentDigitalData(CVRInput vrInput, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState, ref InputDigitalActionData_t data)
-            {
-                ulong originDevicePath;
-                if (!TryGetCurrentOriginDataAndDeviceState(vrInput, out prevState, out currState, out originDevicePath)) { return false; }
-
-                var error = vrInput.GetDigitalActionData(CurrentHandle, ref data, s_moduleInstance.m_digitalDataSize, originDevicePath);
-                if (error != EVRInputError.None)
-                {
-                    Debug.LogError("GetDigitalActionData failed! action=" + CurrentPath + " error=" + error);
-                    return false;
-                }
-
-                return true;
-            }
-
-            public bool TryGetCurrentAnalogData(CVRInput vrInput, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState, ref InputAnalogActionData_t data)
-            {
-                ulong originDevicePath;
-                if (!TryGetCurrentOriginDataAndDeviceState(vrInput, out prevState, out currState, out originDevicePath)) { return false; }
-
-                var error = vrInput.GetAnalogActionData(CurrentHandle, ref data, s_moduleInstance.m_analogDataSize, originDevicePath);
-                if (error != EVRInputError.None)
-                {
-                    Debug.LogError("GetAnalogActionData failed! action=" + CurrentPath + " error=" + error);
-                    return false;
-                }
-
-                return true;
-            }
-
-            private bool TryGetCurrentOriginDataAndDeviceState(CVRInput vrInput, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState, out ulong originDevicePath)
-            {
-                OriginData originData;
-                EVRInputError error;
-                if (!s_moduleInstance.TryGetDeviceIndexFromOrigin(vrInput, CurrentOrigin, out originData, out error))
-                {
-                    Debug.LogError("GetOriginTrackedDeviceInfo failed! error=" + error + " action=" + pressActions.CurrentPath);
-                    prevState = null;
-                    currState = null;
-                    originDevicePath = 0ul;
-                    return false;
-                }
-
-                originDevicePath = originData.devicePath;
-                return s_moduleInstance.TryGetValidDeviceState(originData.deviceIndex, out prevState, out currState) && currState.isConnected;
-            }
-
-            public void Set(T e, string pathName, string alias)
-            {
-                var index = EqualityComparer<T>.Default.GetHashCode(e) - s_enumInfo.minValue;
-                m_aliases[index] = alias;
-                m_paths[index] = ACTION_SET_PATH + m_pathPrefix + pathName;
-            }
-
-            public void InitiateHandles(CVRInput vrInput)
-            {
-                for (int i = 0; i < Len; ++i)
-                {
-                    m_handles[i] = SafeGetActionHandle(vrInput, m_paths[i]);
-                }
-            }
-        }
-
-        public enum HapticStruct { Haptic }
-
         public const string ACTION_SET_NAME = "htc_viu";
         public const string ACTION_SET_PATH = "/actions/" + ACTION_SET_NAME;
+
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
+        public enum HapticStruct { Haptic }
 
         private static bool s_pathInitialized;
         private static bool s_actionInitialized;
 
-        public static ActionArray<VRModuleRawButton> pressActions { get; private set; }
-        public static ActionArray<VRModuleRawButton> touchActions { get; private set; }
-        public static ActionArray<VRModuleRawAxis> v1Actions { get; private set; }
-        public static ActionArray<VRModuleRawAxis> v2Actions { get; private set; }
-        public static ActionArray<HapticStruct> vibrateActions { get; private set; }
+        public static ActionCollection<VRModuleRawButton> pressActions { get; private set; }
+        public static ActionCollection<VRModuleRawButton> touchActions { get; private set; }
+        public static ActionCollection<VRModuleRawAxis> v1Actions { get; private set; }
+        public static ActionCollection<VRModuleRawAxis> v2Actions { get; private set; }
+        public static ActionCollection<HapticStruct> vibrateActions { get; private set; }
 
-        private static ulong[] s_devicePathHandles;
         private static ulong s_actionSetHandle;
 
         private uint m_digitalDataSize;
         private uint m_analogDataSize;
-        private uint m_originInfoSize;
 
         private ETrackingUniverseOrigin m_prevTrackingSpace;
         private bool m_hasInputFocus = true;
         private TrackedDevicePose_t[] m_poses;
         private TrackedDevicePose_t[] m_gamePoses;
-        private VRActiveActionSet_t[] m_activeActionSets;
 
-        private struct OriginData
-        {
-            public ulong devicePath;
-            public uint deviceIndex;
-        }
-
-        private Dictionary<ulong, OriginData> m_originDataCache;
+        private OriginDataCache m_originDataCache = new OriginDataCache();
+        private IndexMap m_indexMap = new IndexMap();
+        private VRModule.SubmoduleBase.Collection m_submodules = new VRModule.SubmoduleBase.Collection(new ViveHandTrackingSubmodule());
+        private bool m_openvrCtrlRoleDirty;
+        private uint m_openvrRightIndex;
+        private uint m_openvrLeftIndex;
+        private uint m_moduleRightIndex;
+        private uint m_moduleLeftIndex;
 
         private static ETrackingUniverseOrigin trackingSpace
         {
@@ -230,7 +93,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (s_pathInitialized) { return; }
             s_pathInitialized = true;
 
-            pressActions = new ActionArray<VRModuleRawButton>("/in/viu_press_", "boolean");
+            pressActions = new ActionCollection<VRModuleRawButton>("/in/viu_press_", "boolean");
             pressActions.Set(VRModuleRawButton.System, "00", "Press00 (System)");
             pressActions.Set(VRModuleRawButton.ApplicationMenu, "01", "Press01 (ApplicationMenu)");
             pressActions.Set(VRModuleRawButton.Grip, "02", "Press02 (Grip)");
@@ -245,7 +108,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             pressActions.Set(VRModuleRawButton.CapSenseGrip, "34", "Press34 (CapSenseGrip)");
             pressActions.Set(VRModuleRawButton.Bumper, "35", "Press35 (Bumper)");
 
-            touchActions = new ActionArray<VRModuleRawButton>("/in/viu_touch_", "boolean");
+            touchActions = new ActionCollection<VRModuleRawButton>("/in/viu_touch_", "boolean");
             touchActions.Set(VRModuleRawButton.System, "00", "Touch00 (System)");
             touchActions.Set(VRModuleRawButton.ApplicationMenu, "01", "Touch01 (ApplicationMenu)");
             touchActions.Set(VRModuleRawButton.Grip, "02", "Touch02 (Grip)");
@@ -260,7 +123,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             touchActions.Set(VRModuleRawButton.CapSenseGrip, "34", "Touch34 (CapSenseGrip)");
             touchActions.Set(VRModuleRawButton.Bumper, "35", "Touch35 (Bumper)");
 
-            v1Actions = new ActionArray<VRModuleRawAxis>("/in/viu_axis_", "vector1");
+            v1Actions = new ActionCollection<VRModuleRawAxis>("/in/viu_axis_", "vector1");
             v1Actions.Set(VRModuleRawAxis.Axis0X, "0x", "Axis0 X (TouchpadX)");
             v1Actions.Set(VRModuleRawAxis.Axis0Y, "0y", "Axis0 Y (TouchpadY)");
             v1Actions.Set(VRModuleRawAxis.Axis1X, "1x", "Axis1 X (Trigger)");
@@ -272,14 +135,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             v1Actions.Set(VRModuleRawAxis.Axis4X, "4x", "Axis4 X (RingCurl)");
             v1Actions.Set(VRModuleRawAxis.Axis4Y, "4y", "Axis4 Y (PinkyCurl)");
 
-            v2Actions = new ActionArray<VRModuleRawAxis>("/in/viu_axis_", "vector2");
+            v2Actions = new ActionCollection<VRModuleRawAxis>("/in/viu_axis_", "vector2");
             v2Actions.Set(VRModuleRawAxis.Axis0X, "0xy", "Axis0 X&Y (Touchpad)");
             v2Actions.Set(VRModuleRawAxis.Axis1X, "1xy", "Axis1 X&Y");
             v2Actions.Set(VRModuleRawAxis.Axis2X, "2xy", "Axis2 X&Y (Thumbstick)");
             v2Actions.Set(VRModuleRawAxis.Axis3X, "3xy", "Axis3 X&Y");
             v2Actions.Set(VRModuleRawAxis.Axis4X, "4xy", "Axis4 X&Y");
 
-            vibrateActions = new ActionArray<HapticStruct>("/out/viu_vib_", "vibration");
+            vibrateActions = new ActionCollection<HapticStruct>("/out/viu_vib_", "vibration");
             vibrateActions.Set(HapticStruct.Haptic, "01", "Vibration");
         }
 
@@ -306,13 +169,371 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return;
             }
 
-            pressActions.InitiateHandles(vrInput);
-            touchActions.InitiateHandles(vrInput);
-            v1Actions.InitiateHandles(vrInput);
-            v2Actions.InitiateHandles(vrInput);
-            vibrateActions.InitiateHandles(vrInput);
+            pressActions.ResolveHandles(vrInput);
+            touchActions.ResolveHandles(vrInput);
+            v1Actions.ResolveHandles(vrInput);
+            v2Actions.ResolveHandles(vrInput);
+            vibrateActions.ResolveHandles(vrInput);
 
             s_actionSetHandle = SafeGetActionSetHandle(vrInput, ACTION_SET_PATH);
+        }
+
+        public static ulong GetInputSourceHandleForDevice(uint deviceIndex)
+        {
+            return s_moduleInstance.m_originDataCache.GetPathHandleByTrackedIndex(s_moduleInstance.m_indexMap.Module2TrackedIndex(deviceIndex));
+        }
+
+        public override bool ShouldActiveModule()
+        {
+#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
+            return VIUSettings.activateSteamVRModule && (UnityXRModule.HasActiveLoader(OPENVR_XR_LOADER_NAME) ||
+                (XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR"));
+#elif UNITY_5_4_OR_NEWER
+            return VIUSettings.activateSteamVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR";
+#else
+            return VIUSettings.activateSteamVRModule && SteamVR.enabled;
+#endif
+        }
+
+        public override void OnActivated()
+        {
+            m_digitalDataSize = (uint)Marshal.SizeOf(new InputDigitalActionData_t());
+            m_analogDataSize = (uint)Marshal.SizeOf(new InputAnalogActionData_t());
+
+            m_poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+            m_gamePoses = new TrackedDevicePose_t[0];
+
+            InitializeHandles();
+
+#if VIU_STEAMVR_2_1_0_OR_NEWER
+            SteamVR_Input.GetActionSet(ACTION_SET_NAME).Activate(SteamVR_Input_Sources.Any, 0, false);
+#else
+            var actionSet = SteamVR_Input.GetActionSetFromPath(ACTION_SET_PATH);
+            if (actionSet != null)
+            {
+                actionSet.ActivatePrimary();
+            }
+#endif
+
+#if VIU_STEAMVR_2_2_0_OR_NEWER
+            SteamVR_Input.onNonVisualActionsUpdated += UpdateDeviceInput;
+            SteamVR_Input.onPosesUpdated += UpdateDeviceConnectionAndPose;
+#else
+            SteamVR_Input.OnNonVisualActionsUpdated += UpdateDeviceInput;
+            SteamVR_Input.OnPosesUpdated += UpdateDeviceConnectionAndPose;
+#endif
+
+            //s_devicePathHandles = new ulong[OpenVR.k_unMaxTrackedDeviceCount];
+            EnsureDeviceStateLength(8);
+
+            // preserve previous tracking space
+            m_prevTrackingSpace = trackingSpace;
+
+            m_hasInputFocus = inputFocus;
+
+            SteamVR_Events.InputFocus.AddListener(OnInputFocus);
+            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
+
+            s_moduleInstance = this;
+
+            m_submodules.ActivateAllModules();
+        }
+
+        public override void OnDeactivated()
+        {
+            m_submodules.DeactivateAllModules();
+
+            SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
+            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
+
+#if VIU_STEAMVR_2_2_0_OR_NEWER
+            SteamVR_Input.onNonVisualActionsUpdated -= UpdateDeviceInput;
+            SteamVR_Input.onPosesUpdated -= UpdateDeviceConnectionAndPose;
+#else
+            SteamVR_Input.OnNonVisualActionsUpdated -= UpdateDeviceInput;
+            SteamVR_Input.OnPosesUpdated -= UpdateDeviceConnectionAndPose;
+#endif
+            m_originDataCache.ClearCache();
+            m_indexMap.Clear();
+            trackingSpace = m_prevTrackingSpace;
+
+            s_moduleInstance = null;
+        }
+
+        private void UpdateDeviceInput()
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            var vrInput = OpenVR.Input;
+            if (vrInput == null)
+            {
+                for (uint i = 0, iMax = GetDeviceStateLength(); i < iMax; ++i)
+                {
+                    if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
+                    {
+                        currState.buttonPressed = 0ul;
+                        currState.buttonTouched = 0ul;
+                        currState.ResetAxisValues();
+                    }
+                }
+            }
+            else
+            {
+                m_originDataCache.ClearCache();
+
+                foreach (var actionDeviceData in AllActionDevicePath(vrInput, pressActions))
+                {
+                    bool digitValue;
+                    var error = TryGetDigitalValue(vrInput, actionDeviceData.actionHandle, actionDeviceData.devicePathHandle, out digitValue);
+                    if (error == EVRInputError.None)
+                    {
+                        actionDeviceData.currState.SetButtonPress(actionDeviceData.inputKey, digitValue);
+                    }
+                    else
+                    {
+                        Debug.LogError("[SteamVRv2Module] CVRInput.GetDigitalActionData fail. action=" + pressActions.ActionPaths[actionDeviceData.inputKey] + " error=" + error);
+                    }
+                }
+
+                foreach (var actionDeviceData in AllActionDevicePath(vrInput, touchActions))
+                {
+                    bool value;
+                    var error = TryGetDigitalValue(vrInput, actionDeviceData.actionHandle, actionDeviceData.devicePathHandle, out value);
+                    if (error == EVRInputError.None)
+                    {
+                        actionDeviceData.currState.SetButtonPress(actionDeviceData.inputKey, value);
+                    }
+                    else
+                    {
+                        Debug.LogError("[SteamVRv2Module] CVRInput.GetDigitalActionData fail. action=" + touchActions.ActionPaths[actionDeviceData.inputKey] + " error=" + error);
+                    }
+                }
+
+                foreach (var actionDeviceData in AllActionDevicePath(vrInput, v1Actions))
+                {
+                    Vector3 value;
+                    var error = TryGetAnalogValue(vrInput, actionDeviceData.actionHandle, actionDeviceData.devicePathHandle, out value);
+                    if (error == EVRInputError.None)
+                    {
+                        actionDeviceData.currState.SetAxisValue(actionDeviceData.inputKey, value.x);
+                    }
+                    else
+                    {
+                        Debug.LogError("[SteamVRv2Module] CVRInput.GetAnalogActionData fail. action=" + v1Actions.ActionPaths[actionDeviceData.inputKey] + " error=" + error);
+                    }
+                }
+
+                foreach (var actionDeviceData in AllActionDevicePath(vrInput, v2Actions))
+                {
+                    Vector3 value;
+                    var error = TryGetAnalogValue(vrInput, actionDeviceData.actionHandle, actionDeviceData.devicePathHandle, out value);
+                    if (error == EVRInputError.None)
+                    {
+                        actionDeviceData.currState.SetAxisValue(actionDeviceData.inputKey, value.x);
+                        actionDeviceData.currState.SetAxisValue(actionDeviceData.inputKey + 1, value.y);
+                    }
+                    else
+                    {
+                        Debug.LogError("[SteamVRv2Module] CVRInput.GetAnalogActionData fail. action=" + v2Actions.ActionPaths[actionDeviceData.inputKey] + " error=" + error);
+                    }
+                }
+            }
+
+            m_submodules.UpdateAllModulesActivity();
+            m_submodules.UpdateModulesDeviceInput();
+
+            ProcessDeviceInputChanged();
+        }
+
+        private void UpdateDeviceConnectionAndPose(bool obj)
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            FlushDeviceState();
+
+            var vrSystem = OpenVR.System;
+            var vrCompositor = OpenVR.Compositor;
+            if (vrSystem == null || vrCompositor == null)
+            {
+                m_openvrCtrlRoleDirty = true;
+                // clear all device states if OpenVR disabled
+                for (uint i = 0, imax = GetDeviceStateLength(); i < imax; ++i)
+                {
+                    if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
+                    {
+                        currState.Reset();
+                    }
+                }
+            }
+            else
+            {
+                vrCompositor.GetLastPoses(m_poses, m_gamePoses);
+
+                for (uint i = 0u, imax = (uint)m_poses.Length; i < imax; ++i)
+                {
+                    if (!m_poses[i].bDeviceIsConnected)
+                    {
+                        m_openvrCtrlRoleDirty = true;
+                        uint moduleIndex;
+                        if (m_indexMap.TryGetModuleIndex(i, out moduleIndex))
+                        {
+                            m_indexMap.UnmapTracked(i);
+                            if (TryGetValidDeviceState(moduleIndex, out prevState, out currState))
+                            {
+                                currState.Reset();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        uint moduleIndex;
+                        if (!m_indexMap.TryGetModuleIndex(i, out moduleIndex))
+                        {
+                            moduleIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+                            m_indexMap.Map(i, moduleIndex);
+                        }
+                        else
+                        {
+                            EnsureValidDeviceState(moduleIndex, out prevState, out currState);
+                        }
+
+                        if (!prevState.isConnected)
+                        {
+                            m_openvrCtrlRoleDirty = true;
+                            currState.isConnected = true;
+                            currState.deviceClass = (VRModuleDeviceClass)vrSystem.GetTrackedDeviceClass(i);
+                            currState.serialNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_SerialNumber_String);
+                            currState.modelNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_ModelNumber_String);
+                            currState.renderModelName = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_RenderModelName_String);
+
+                            SetupKnownDeviceModel(currState);
+                        }
+
+                        // update device status
+                        currState.isPoseValid = m_poses[i].bPoseIsValid;
+                        currState.isOutOfRange = m_poses[i].eTrackingResult == ETrackingResult.Running_OutOfRange || m_poses[i].eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
+                        currState.isCalibrating = m_poses[i].eTrackingResult == ETrackingResult.Calibrating_InProgress || m_poses[i].eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
+                        currState.isUninitialized = m_poses[i].eTrackingResult == ETrackingResult.Uninitialized;
+                        currState.velocity = new Vector3(m_poses[i].vVelocity.v0, m_poses[i].vVelocity.v1, -m_poses[i].vVelocity.v2);
+                        currState.angularVelocity = new Vector3(-m_poses[i].vAngularVelocity.v0, -m_poses[i].vAngularVelocity.v1, m_poses[i].vAngularVelocity.v2);
+
+                        var rigidTransform = new SteamVR_Utils.RigidTransform(m_poses[i].mDeviceToAbsoluteTracking);
+                        currState.position = rigidTransform.pos;
+                        currState.rotation = rigidTransform.rot;
+                    }
+                }
+            }
+
+            m_submodules.UpdateAllModulesActivity();
+            m_submodules.UpdateModulesDeviceConnectionAndPoses();
+
+            // process hand role
+            if (m_openvrCtrlRoleDirty)
+            {
+                m_openvrCtrlRoleDirty = false;
+                if (vrSystem == null)
+                {
+                    m_openvrRightIndex = INVALID_DEVICE_INDEX;
+                    m_openvrLeftIndex = INVALID_DEVICE_INDEX;
+                }
+                else
+                {
+                    var right = vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+                    var left = vrSystem.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
+                    m_indexMap.TryGetModuleIndex(right, out m_openvrRightIndex);
+                    m_indexMap.TryGetModuleIndex(left, out m_openvrLeftIndex);
+                }
+            }
+
+            var moduleRight = m_openvrRightIndex != INVALID_DEVICE_INDEX ? m_openvrRightIndex : m_submodules.GetFirstRightHandedIndex();
+            var moduleLeft = m_openvrLeftIndex != INVALID_DEVICE_INDEX ? m_openvrLeftIndex : m_submodules.GetFirstLeftHandedIndex();
+            var roleChanged = ChangeProp.Set(ref m_moduleRightIndex, moduleRight);
+            roleChanged |= ChangeProp.Set(ref m_moduleLeftIndex, moduleLeft);
+            if (roleChanged)
+            {
+                InvokeControllerRoleChangedEvent();
+            }
+
+            ProcessConnectedDeviceChanged();
+            ProcessDevicePoseChanged();
+        }
+
+        public override void Update()
+        {
+            if (SteamVR.active)
+            {
+                SteamVR_Settings.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
+            }
+        }
+
+        public override void UpdateTrackingSpaceType()
+        {
+            switch (VRModule.trackingSpaceType)
+            {
+                case VRModuleTrackingSpaceType.RoomScale:
+                    trackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
+                    break;
+                case VRModuleTrackingSpaceType.Stationary:
+                    trackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
+                    break;
+            }
+        }
+
+        private void OnInputFocus(bool value)
+        {
+            m_hasInputFocus = value;
+            InvokeInputFocusEvent(value);
+        }
+
+        public override bool HasInputFocus() { return m_hasInputFocus; }
+
+        private void OnTrackedDeviceRoleChanged(VREvent_t arg) { m_openvrCtrlRoleDirty = true; }
+
+        public override uint GetLeftControllerDeviceIndex() { return m_moduleLeftIndex; }
+
+        public override uint GetRightControllerDeviceIndex() { return m_moduleRightIndex; }
+
+        private StringBuilder m_sb;
+        private string QueryDeviceStringProperty(CVRSystem system, uint deviceIndex, ETrackedDeviceProperty prop)
+        {
+            var error = default(ETrackedPropertyError);
+            var capacity = (int)system.GetStringTrackedDeviceProperty(deviceIndex, prop, null, 0, ref error);
+            if (capacity <= 1 || capacity > 128) { return string.Empty; }
+
+            if (m_sb == null) { m_sb = new StringBuilder(capacity); }
+            else { m_sb.EnsureCapacity(capacity); }
+
+            system.GetStringTrackedDeviceProperty(deviceIndex, prop, m_sb, (uint)m_sb.Capacity, ref error);
+            if (error != ETrackedPropertyError.TrackedProp_Success) { return string.Empty; }
+
+            var result = m_sb.ToString();
+            m_sb.Length = 0;
+
+            return result;
+        }
+
+        public override void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500)
+        {
+            TriggerHapticVibration(deviceIndex, 0.01f, 85f, Mathf.InverseLerp(0, 4000, durationMicroSec), 0f);
+        }
+
+        public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
+        {
+            var trackedIndex = m_indexMap.Module2TrackedIndex(deviceIndex);
+            var handle = GetInputSourceHandleForDevice(trackedIndex);
+            if (handle == OpenVR.k_ulInvalidDriverHandle) { return; }
+
+            var vrInput = OpenVR.Input;
+            if (vrInput != null)
+            {
+                var error = vrInput.TriggerHapticVibrationAction(vibrateActions.ActionHandles[HapticStruct.Haptic], startSecondsFromNow, durationSeconds, frequency, amplitude, handle);
+                if (error != EVRInputError.None)
+                {
+                    Debug.LogError("TriggerViveControllerHaptic failed! error=" + error);
+                }
+            }
         }
 
         private static ulong SafeGetActionSetHandle(CVRInput vrInput, string path)
@@ -349,361 +570,179 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        public static ulong GetInputSourceHandleForDevice(uint deviceIndex)
+        private EVRInputError TryGetDigitalValue(CVRInput vrInput, ulong actionHandle, ulong devicePathHandle, out bool value)
         {
-            if (s_devicePathHandles == null || deviceIndex >= s_devicePathHandles.Length)
-            {
-                return OpenVR.k_ulInvalidInputValueHandle;
-            }
-            else
-            {
-                return s_devicePathHandles[deviceIndex];
-            }
+            var data = default(InputDigitalActionData_t);
+            var error = vrInput.GetDigitalActionData(actionHandle, ref data, m_digitalDataSize, devicePathHandle);
+
+            value = data.bState;
+            return error;
         }
 
-        public override bool ShouldActiveModule()
+        private EVRInputError TryGetAnalogValue(CVRInput vrInput, ulong actionHandle, ulong devicePathHandle, out Vector3 value)
         {
-#if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
-            return VIUSettings.activateSteamVRModule && (UnityXRModule.HasActiveLoader(OPENVR_XR_LOADER_NAME) ||
-                (XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR"));
-#elif UNITY_5_4_OR_NEWER
-            return VIUSettings.activateSteamVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR";
-#else
-            return VIUSettings.activateSteamVRModule && SteamVR.enabled;
-#endif
+            var data = default(InputAnalogActionData_t);
+            var error = vrInput.GetAnalogActionData(actionHandle, ref data, m_analogDataSize, devicePathHandle);
+
+            value.x = data.x;
+            value.y = data.y;
+            value.z = data.z;
+            return error;
+        }
+        private struct OriginData
+        {
+            public ulong devicePathHandle;
+            public uint deviceIndex;
         }
 
-        public override void OnActivated()
+        private class OriginDataCache
         {
-            m_digitalDataSize = (uint)Marshal.SizeOf(new InputDigitalActionData_t());
-            m_analogDataSize = (uint)Marshal.SizeOf(new InputAnalogActionData_t());
-            m_originInfoSize = (uint)Marshal.SizeOf(new InputOriginInfo_t());
+            private static readonly uint originInfoSize = (uint)Marshal.SizeOf(new InputOriginInfo_t());
+            private readonly Dictionary<ulong, OriginData> cache = new Dictionary<ulong, OriginData>();
+            private readonly ulong[] index2PathHandle = new ulong[OpenVR.k_unMaxTrackedDeviceCount];
 
-
-            m_poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-            m_gamePoses = new TrackedDevicePose_t[0];
-            m_originDataCache = new Dictionary<ulong, OriginData>((int)OpenVR.k_unMaxActionOriginCount);
-
-            InitializeHandles();
-
-#if VIU_STEAMVR_2_1_0_OR_NEWER
-            SteamVR_Input.GetActionSet(ACTION_SET_NAME).Activate(SteamVR_Input_Sources.Any, 0, false);
-#else
-            var actionSet = SteamVR_Input.GetActionSetFromPath(ACTION_SET_PATH);
-            if (actionSet != null)
+            public void ClearCache()
             {
-                actionSet.ActivatePrimary();
-            }
-#endif
-
-#if !VIU_STEAMVR_2_1_0_OR_NEWER
-            m_activeActionSets = new VRActiveActionSet_t[1] { new VRActiveActionSet_t() { ulActionSet = s_actionSetHandle, } };
-#endif
-
-#if VIU_STEAMVR_2_2_0_OR_NEWER
-            SteamVR_Input.onNonVisualActionsUpdated += UpdateDeviceInput;
-            SteamVR_Input.onPosesUpdated += UpdateDevicePose;
-#else
-            SteamVR_Input.OnNonVisualActionsUpdated += UpdateDeviceInput;
-            SteamVR_Input.OnPosesUpdated += UpdateDevicePose;
-#endif
-
-            s_devicePathHandles = new ulong[OpenVR.k_unMaxTrackedDeviceCount];
-            EnsureDeviceStateLength(OpenVR.k_unMaxTrackedDeviceCount);
-
-            // preserve previous tracking space
-            m_prevTrackingSpace = trackingSpace;
-
-            m_hasInputFocus = inputFocus;
-
-            SteamVR_Events.InputFocus.AddListener(OnInputFocus);
-            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).AddListener(OnTrackedDeviceRoleChanged);
-
-            s_moduleInstance = this;
-        }
-
-        public override void OnDeactivated()
-        {
-            SteamVR_Events.InputFocus.RemoveListener(OnInputFocus);
-            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).RemoveListener(OnTrackedDeviceRoleChanged);
-
-#if VIU_STEAMVR_2_2_0_OR_NEWER
-            SteamVR_Input.onNonVisualActionsUpdated -= UpdateDeviceInput;
-            SteamVR_Input.onPosesUpdated -= UpdateDevicePose;
-#else
-            SteamVR_Input.OnNonVisualActionsUpdated -= UpdateDeviceInput;
-            SteamVR_Input.OnPosesUpdated -= UpdateDevicePose;
-#endif
-
-            trackingSpace = m_prevTrackingSpace;
-
-            s_moduleInstance = null;
-        }
-
-        private void UpdateDeviceInput()
-        {
-            IVRModuleDeviceState prevState;
-            IVRModuleDeviceStateRW currState;
-
-            var vrInput = OpenVR.Input;
-            if (vrInput == null)
-            {
-                for (uint i = 0, iMax = GetDeviceStateLength(); i < iMax; ++i)
-                {
-                    if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
-                    {
-                        currState.buttonPressed = 0ul;
-                        currState.buttonTouched = 0ul;
-                        currState.ResetAxisValues();
-                    }
-                }
-            }
-            else
-            {
-                m_originDataCache.Clear();
-
-                for (pressActions.Reset(); pressActions.IsCurrentValid(); pressActions.MoveNext())
-                {
-                    for (pressActions.ResetOrigins(vrInput); pressActions.IsCurrentOriginValid(); pressActions.MoveNextOrigin())
-                    {
-                        var data = default(InputDigitalActionData_t);
-                        if (pressActions.TryGetCurrentDigitalData(vrInput, out prevState, out currState, ref data))
-                        {
-                            currState.SetButtonPress(pressActions.Current, data.bState);
-                        }
-                    }
-                }
-
-                for (touchActions.Reset(); touchActions.IsCurrentValid(); touchActions.MoveNext())
-                {
-                    for (touchActions.ResetOrigins(vrInput); touchActions.IsCurrentOriginValid(); touchActions.MoveNextOrigin())
-                    {
-                        var data = default(InputDigitalActionData_t);
-                        if (touchActions.TryGetCurrentDigitalData(vrInput, out prevState, out currState, ref data))
-                        {
-                            currState.SetButtonTouch(touchActions.Current, data.bState);
-                        }
-                    }
-                }
-
-                for (v1Actions.Reset(); v1Actions.IsCurrentValid(); v1Actions.MoveNext())
-                {
-                    for (v1Actions.ResetOrigins(vrInput); v1Actions.IsCurrentOriginValid(); v1Actions.MoveNextOrigin())
-                    {
-                        var data = default(InputAnalogActionData_t);
-                        if (v1Actions.TryGetCurrentAnalogData(vrInput, out prevState, out currState, ref data))
-                        {
-                            currState.SetAxisValue(v1Actions.Current, data.x);
-                        }
-                    }
-                }
-
-                for (v2Actions.Reset(); v2Actions.IsCurrentValid(); v2Actions.MoveNext())
-                {
-                    for (v2Actions.ResetOrigins(vrInput); v2Actions.IsCurrentOriginValid(); v2Actions.MoveNextOrigin())
-                    {
-                        var data = default(InputAnalogActionData_t);
-                        if (v2Actions.TryGetCurrentAnalogData(vrInput, out prevState, out currState, ref data))
-                        {
-                            currState.SetAxisValue(v2Actions.Current, data.x);
-                            currState.SetAxisValue(v2Actions.Current + 1, data.y);
-                        }
-                    }
-                }
+                Array.Clear(index2PathHandle, 0, (int)OpenVR.k_unMaxTrackedDeviceCount);
+                cache.Clear();
             }
 
-            ProcessDeviceInputChanged();
-        }
-
-        private void UpdateDevicePose(bool obj)
-        {
-            IVRModuleDeviceState prevState;
-            IVRModuleDeviceStateRW currState;
-
-            FlushDeviceState();
-
-            var vrSystem = OpenVR.System;
-            var vrCompositor = OpenVR.Compositor;
-            if (vrSystem == null || vrCompositor == null)
+            public ulong GetPathHandleByTrackedIndex(uint trackedIndex)
             {
-                for (uint i = 0, imax = GetDeviceStateLength(); i < imax; ++i)
-                {
-                    if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
-                    {
-                        currState.Reset();
-                    }
-                }
-
-                return;
+                return trackedIndex < index2PathHandle.Length ? index2PathHandle[trackedIndex] : OpenVR.k_ulInvalidPathHandle;
             }
 
-            vrCompositor.GetLastPoses(m_poses, m_gamePoses);
-
-            for (uint i = 0u, imax = (uint)m_poses.Length; i < imax; ++i)
+            public EVRInputError TryGetOriginData(CVRInput vrInput, ulong originHandle, out OriginData originData)
             {
-                if (!m_poses[i].bDeviceIsConnected)
+                if (cache.TryGetValue(originHandle, out originData)) { return EVRInputError.None; }
+
+                var info = default(InputOriginInfo_t);
+                var error = vrInput.GetOriginTrackedDeviceInfo(originHandle, ref info, originInfoSize);
+                if (error == EVRInputError.None)
                 {
-                    if (TryGetValidDeviceState(i, out prevState, out currState) && prevState.isConnected)
+                    cache.Add(originHandle, originData = new OriginData()
                     {
-                        s_devicePathHandles[i] = OpenVR.k_ulInvalidInputValueHandle;
-                        currState.Reset();
-                    }
+                        devicePathHandle = info.devicePath,
+                        deviceIndex = info.trackedDeviceIndex,
+                    });
+                    index2PathHandle[originData.deviceIndex] = originData.devicePathHandle;
                 }
                 else
                 {
-                    EnsureValidDeviceState(i, out prevState, out currState);
+                    originData = default(OriginData);
+                }
 
-                    if (!prevState.isConnected)
+                return error;
+            }
+        }
+
+        private ActionCollection<T>.Enumerable AllActionDevicePath<T>(CVRInput vrInput, ActionCollection<T> actionCollection)
+#if CSHARP_7_OR_LATER
+            where T : Enum
+#endif
+        {
+            return new ActionCollection<T>.Enumerable(AllActionDevicePathEnumerator(vrInput, actionCollection));
+        }
+
+        private static readonly ulong[] outActionOrigins = new ulong[OpenVR.k_unMaxActionOriginCount];
+        private IEnumerator<ActionCollection<T>.EnumData> AllActionDevicePathEnumerator<T>(CVRInput vrInput, ActionCollection<T> actionCollection)
+#if CSHARP_7_OR_LATER
+            where T : Enum
+#endif
+        {
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+            EVRInputError error;
+            var current = default(ActionCollection<T>.EnumData);
+            foreach (var p in actionCollection.ActionHandles.EnumValues)
+            {
+                current.inputKey = p.Key;
+                current.actionHandle = p.Value;
+                if (current.actionHandle == OpenVR.k_ulInvalidActionHandle)
+                {
+                    continue;
+                }
+
+                Array.Clear(outActionOrigins, 0, (int)OpenVR.k_unMaxActionOriginCount);
+                error = vrInput.GetActionOrigins(s_actionSetHandle, current.actionHandle, outActionOrigins);
+                if (error != EVRInputError.None)
+                {
+                    Debug.LogError("[SteamVRv2Module] CVRInput.GetActionOrigins fail. input=" + p.Key + " action=" + actionCollection.ActionPaths[p.Key] + " error=" + error);
+                    continue;
+                }
+
+                foreach (var originHandle in outActionOrigins)
+                {
+                    if (originHandle == 0ul) { break; }
+
+                    OriginData data;
+                    error = m_originDataCache.TryGetOriginData(vrInput, originHandle, out data);
+                    if (error != EVRInputError.None)
                     {
-                        currState.isConnected = true;
-                        currState.deviceClass = (VRModuleDeviceClass)vrSystem.GetTrackedDeviceClass(i);
-                        currState.serialNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_SerialNumber_String);
-                        currState.modelNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_ModelNumber_String);
-                        currState.renderModelName = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_RenderModelName_String);
-
-                        SetupKnownDeviceModel(currState);
-
-                        m_originDataCache.Clear();
+                        Debug.LogError("[SteamVRv2Module] CVRInput.GetOriginTrackedDeviceInfo fail. input=" + p.Key + " action=" + actionCollection.ActionPaths[p.Key] + " originHandle=" + originHandle + " error=" + error);
+                        continue;
                     }
 
-                    // update device status
-                    currState.isPoseValid = m_poses[i].bPoseIsValid;
-                    currState.isOutOfRange = m_poses[i].eTrackingResult == ETrackingResult.Running_OutOfRange || m_poses[i].eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
-                    currState.isCalibrating = m_poses[i].eTrackingResult == ETrackingResult.Calibrating_InProgress || m_poses[i].eTrackingResult == ETrackingResult.Calibrating_OutOfRange;
-                    currState.isUninitialized = m_poses[i].eTrackingResult == ETrackingResult.Uninitialized;
-                    currState.velocity = new Vector3(m_poses[i].vVelocity.v0, m_poses[i].vVelocity.v1, -m_poses[i].vVelocity.v2);
-                    currState.angularVelocity = new Vector3(-m_poses[i].vAngularVelocity.v0, -m_poses[i].vAngularVelocity.v1, m_poses[i].vAngularVelocity.v2);
+                    current.devicePathHandle = data.devicePathHandle;
+                    uint moduleIndex;
+                    if (!m_indexMap.TryGetModuleIndex(data.deviceIndex, out moduleIndex)) { continue; }
+                    if (!TryGetValidDeviceState(moduleIndex, out prevState, out currState)) { continue; }
 
-                    var rigidTransform = new SteamVR_Utils.RigidTransform(m_poses[i].mDeviceToAbsoluteTracking);
-                    currState.position = rigidTransform.pos;
-                    currState.rotation = rigidTransform.rot;
+                    current.currState = currState;
+                    yield return current;
                 }
             }
-
-            ProcessConnectedDeviceChanged();
-            ProcessDevicePoseChanged();
         }
 
-        public override void Update()
+        public class ActionCollection<T>
+#if CSHARP_7_OR_LATER
+            where T : Enum
+#endif
         {
-            if (SteamVR.active)
+            public struct EnumData
             {
-                SteamVR_Settings.instance.lockPhysicsUpdateRateToRenderFrequency = VRModule.lockPhysicsUpdateRateToRenderFrequency;
+                public T inputKey;
+                public ulong actionHandle;
+                public ulong devicePathHandle;
+                public IVRModuleDeviceStateRW currState;
             }
-        }
 
-        public override void UpdateTrackingSpaceType()
-        {
-            switch (VRModule.trackingSpaceType)
+            public struct Enumerable
             {
-                case VRModuleTrackingSpaceType.RoomScale:
-                    trackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
-                    break;
-                case VRModuleTrackingSpaceType.Stationary:
-                    trackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
-                    break;
+                private IEnumerator<EnumData> enumerator;
+                public Enumerable(IEnumerator<EnumData> enumerator) { this.enumerator = enumerator; }
+                public IEnumerator<EnumData> GetEnumerator() { return enumerator; }
             }
-        }
 
-        private bool TryGetDeviceIndexFromOrigin(CVRInput vrInput, ulong origin, out OriginData originData, out EVRInputError error)
-        {
-            if (!m_originDataCache.TryGetValue(origin, out originData))
+            private readonly string pathPrefix;
+            private readonly string dataTypeName;
+            private readonly EnumArray<T, string> actionPaths = new EnumArray<T, string>();
+            private readonly EnumArray<T, string> actionAlias = new EnumArray<T, string>();
+            private readonly EnumArray<T, ulong> actionHandles = new EnumArray<T, ulong>();
+
+            public string PathPrefix { get { return pathPrefix; } }
+            public string DataTypeName { get { return dataTypeName; } }
+            public EnumArray<T, string>.IReadOnly ActionPaths { get { return actionPaths.ReadOnly; } }
+            public EnumArray<T, string>.IReadOnly ActionAlias { get { return actionAlias.ReadOnly; } }
+            public EnumArray<T, ulong>.IReadOnly ActionHandles { get { return actionHandles.ReadOnly; } }
+
+            public ActionCollection(string pathPrefix, string dataTypeName)
             {
-                var originInfo = default(InputOriginInfo_t);
-                error = vrInput.GetOriginTrackedDeviceInfo(origin, ref originInfo, m_originInfoSize);
-                if (error != EVRInputError.None)
+                this.pathPrefix = pathPrefix;
+                this.dataTypeName = dataTypeName;
+            }
+
+            public void Set(T key, string pathName, string alias)
+            {
+                actionPaths[key] = ACTION_SET_PATH + pathPrefix + pathName;
+                actionAlias[key] = alias;
+            }
+
+            public void ResolveHandles(CVRInput vrInput)
+            {
+                foreach (var key in EnumArrayBase<T>.StaticEnums)
                 {
-                    originData = new OriginData()
-                    {
-                        devicePath = OpenVR.k_ulInvalidInputValueHandle,
-                        deviceIndex = OpenVR.k_unTrackedDeviceIndexInvalid,
-                    };
-                    return false;
-                }
-                else
-                {
-                    originData = new OriginData()
-                    {
-                        devicePath = originInfo.devicePath,
-                        deviceIndex = originInfo.trackedDeviceIndex,
-                    };
-
-                    s_devicePathHandles[originInfo.trackedDeviceIndex] = originInfo.devicePath;
-                    //Debug.Log("Set device path " + originInfo.trackedDeviceIndex + " to " + originInfo.devicePath);
-                    m_originDataCache.Add(origin, originData);
-                    return true;
-                }
-            }
-            else
-            {
-                error = EVRInputError.None;
-                return true;
-            }
-        }
-
-        private void OnInputFocus(bool value)
-        {
-            m_hasInputFocus = value;
-            InvokeInputFocusEvent(value);
-        }
-
-        public override bool HasInputFocus() { return m_hasInputFocus; }
-
-        private void OnTrackedDeviceRoleChanged(VREvent_t arg)
-        {
-            InvokeControllerRoleChangedEvent();
-        }
-
-        public override uint GetLeftControllerDeviceIndex()
-        {
-            var system = OpenVR.System;
-            return system == null ? INVALID_DEVICE_INDEX : system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
-        }
-
-        public override uint GetRightControllerDeviceIndex()
-        {
-            var system = OpenVR.System;
-            return system == null ? INVALID_DEVICE_INDEX : system.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
-        }
-
-        private StringBuilder m_sb;
-        private string QueryDeviceStringProperty(CVRSystem system, uint deviceIndex, ETrackedDeviceProperty prop)
-        {
-            var error = default(ETrackedPropertyError);
-            var capacity = (int)system.GetStringTrackedDeviceProperty(deviceIndex, prop, null, 0, ref error);
-            if (capacity <= 1 || capacity > 128) { return string.Empty; }
-
-            if (m_sb == null) { m_sb = new StringBuilder(capacity); }
-            else { m_sb.EnsureCapacity(capacity); }
-
-            system.GetStringTrackedDeviceProperty(deviceIndex, prop, m_sb, (uint)m_sb.Capacity, ref error);
-            if (error != ETrackedPropertyError.TrackedProp_Success) { return string.Empty; }
-
-            var result = m_sb.ToString();
-            m_sb.Length = 0;
-
-            return result;
-        }
-
-        public override void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500)
-        {
-            TriggerHapticVibration(deviceIndex, 0.01f, 85f, Mathf.InverseLerp(0, 4000, durationMicroSec), 0f);
-        }
-
-        public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
-        {
-            var handle = GetInputSourceHandleForDevice(deviceIndex);
-            if (handle == OpenVR.k_ulInvalidDriverHandle) { return; }
-
-            var vrInput = OpenVR.Input;
-            if (vrInput != null)
-            {
-                vibrateActions.Reset();
-
-                var error = vrInput.TriggerHapticVibrationAction(vibrateActions.CurrentHandle, startSecondsFromNow, durationSeconds, frequency, amplitude, handle);
-                if (error != EVRInputError.None)
-                {
-                    Debug.LogError("TriggerViveControllerHaptic failed! error=" + error);
+                    actionHandles[key] = SafeGetActionHandle(vrInput, actionPaths[key]);
                 }
             }
         }

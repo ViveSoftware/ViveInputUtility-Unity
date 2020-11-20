@@ -7,7 +7,13 @@
         "Oculus.VR",
         "Oculus.Platform",
         "UnityEngine.SpatialTracking",
-        "Unity.XR.OpenVR"
+        "Unity.XR.OpenVR",
+        "Wave.Essence",
+        "Wave.Native",
+        "Controller",
+        "Hand",
+        "HTC.ViveHandTracking",
+        "Wave.Essence.Controller.Model"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

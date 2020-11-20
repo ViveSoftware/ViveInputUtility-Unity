@@ -108,6 +108,17 @@ namespace HTC.UnityPlugin.Vive
 
         DPadCenter = 36,
         DPadCenterTouch = 37,
+
+        // Gestures
+        IndexPinch,
+        MiddlePinch,
+        RingPinch,
+        PinkyPinch,
+        Fist,
+        Five,
+        Ok,
+        ThumbUp,
+        IndexUp,
     }
 
     public enum ControllerAxis
@@ -126,6 +137,12 @@ namespace HTC.UnityPlugin.Vive
 
         JoystickX,
         JoystickY,
+
+        // Gestures
+        IndexPinch,
+        MiddlePinch,
+        RingPinch,
+        PinkyPinch,
     }
 
     public enum ScrollType

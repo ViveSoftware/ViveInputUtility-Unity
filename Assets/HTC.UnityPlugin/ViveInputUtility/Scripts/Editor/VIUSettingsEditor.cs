@@ -266,6 +266,18 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
+            public void ShowFoldoutWithLabel(GUIContent content)
+            {
+                GUILayout.BeginHorizontal();
+                ShowFoldoutButton();
+                if (GUILayout.Button(content, EditorStyles.label))
+                {
+                    isExpended = !isExpended;
+                }
+                //EditorGUILayout.LabelField(content);
+                GUILayout.EndHorizontal();
+            }
+
             public bool ShowFoldoutButtonOnToggleEnabled(GUIContent content, bool toggleValue)
             {
                 GUILayout.BeginHorizontal();
@@ -477,6 +489,7 @@ namespace HTC.UnityPlugin.Vive
 
         private static Foldouter s_autoBindFoldouter = new Foldouter();
         private static Foldouter s_bindingUIFoldouter = new Foldouter();
+        private static Foldouter s_overrideModelFoldouter = new Foldouter();
 
         static VIUSettingsEditor()
         {
@@ -765,14 +778,33 @@ namespace HTC.UnityPlugin.Vive
                 if (supportAnyStandaloneVR && VIUSettings.enableBindingInterfaceSwitch) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
             }
 
+            GUILayout.Space(5);
+
+            EditorGUILayout.LabelField("<b>Other</b>", s_labelStyle);
+            GUILayout.Space(5);
+
+            s_overrideModelFoldouter.ShowFoldoutWithLabel(new GUIContent("Globel Custom Render Model", "Override model object created by RenderModelHook with custom render model"));
+            if (s_overrideModelFoldouter.isExpended)
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.indentLevel += 1;
+                foreach (var e in EnumArrayBase<VRModuleDeviceModel>.StaticEnums)
+                {
+                    EditorGUILayout.ObjectField(ObjectNames.NicifyVariableName(e.ToString()), VIUSettings.GetOverrideDeviceModel(e), typeof(GameObject), false);
+                }
+                EditorGUI.indentLevel -= 1;
+                s_guiChanged |= EditorGUI.EndChangeCheck();
+            }
+
             //Foldouter.ApplyChanges();
             ApplySDKChanges();
 
-            var assetPath = AssetDatabase.GetAssetPath(VIUSettings.Instance);
-            
+            var viuSettingsAssetPath = AssetDatabase.GetAssetPath(VIUSettings.Instance);
+            var moduleSettingsAssetPath = AssetDatabase.GetAssetPath(VRModuleSettings.Instance);
+
             if (s_guiChanged)
             {
-                if (string.IsNullOrEmpty(assetPath))
+                if (string.IsNullOrEmpty(viuSettingsAssetPath))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(defaultAssetPath));
                     AssetDatabase.CreateAsset(VIUSettings.Instance, defaultAssetPath);
@@ -780,19 +812,29 @@ namespace HTC.UnityPlugin.Vive
 
                 EditorUtility.SetDirty(VIUSettings.Instance);
 
+                if (string.IsNullOrEmpty(moduleSettingsAssetPath))
+                {
+                    const string defaultModuleSettingsAssetPath = "Assets/VIUSettings/Resources/VRModuleSettings.asset";
+                    Directory.CreateDirectory(Path.GetDirectoryName(defaultModuleSettingsAssetPath));
+                    AssetDatabase.CreateAsset(VRModuleSettings.Instance, defaultModuleSettingsAssetPath);
+                }
+
+                EditorUtility.SetDirty(VRModuleSettings.Instance);
+
                 VIUVersionCheck.UpdateIgnoredNotifiedSettingsCount(false);
 
                 VRModuleManagerEditor.UpdateScriptingDefineSymbols();
             }
 
-            if (!string.IsNullOrEmpty(assetPath))
+            if (!string.IsNullOrEmpty(viuSettingsAssetPath) || !string.IsNullOrEmpty(moduleSettingsAssetPath))
             {
                 GUILayout.Space(10);
 
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("Use Default Settings"))
                 {
-                    AssetDatabase.DeleteAsset(assetPath);
+                    AssetDatabase.DeleteAsset(viuSettingsAssetPath);
+                    AssetDatabase.DeleteAsset(moduleSettingsAssetPath);
                     foreach (var ps in s_platformSettings)
                     {
                         ps.support = ps.canSupport;

@@ -20,6 +20,7 @@ namespace HTC.UnityPlugin.Vive
         public readonly static DeviceRoleHandler DefaultDeviceRoleHandler = new DeviceRoleHandler();
         public readonly static HandRoleHandler DefaultHandRoleHandler = new HandRoleHandler();
         public readonly static TrackerRoleHandler DefaultTrackerRoleHandler = new TrackerRoleHandler();
+        public readonly static TrackedHandRoleHandler DefaultTrackedHandRoleHandler = new TrackedHandRoleHandler();
         public readonly static BodyRoleHandler DefaultBodyRoleHandler = new BodyRoleHandler();
 
         private static bool s_initialized = false;
@@ -57,6 +58,7 @@ namespace HTC.UnityPlugin.Vive
             AssignMapHandler(DefaultDeviceRoleHandler);
             AssignMapHandler(DefaultHandRoleHandler);
             AssignMapHandler(DefaultTrackerRoleHandler);
+            AssignMapHandler(DefaultTrackedHandRoleHandler);
             AssignMapHandler(DefaultBodyRoleHandler);
         }
 

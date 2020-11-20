@@ -58,12 +58,6 @@ variables:
     - find './Assets/HTC.UnityPlugin/' -type f -name '*.asmref*' -delete
     - *unity_activate
 
-editor:5.6.3-asset:
-  <<: *no_asmdef_unity_template
-  stage: editor
-  variables:
-    IMAGE_TAG: '5.6.3f1'
-
 editor:2017.4-asset:
   <<: *no_asmdef_unity_template
   stage: editor

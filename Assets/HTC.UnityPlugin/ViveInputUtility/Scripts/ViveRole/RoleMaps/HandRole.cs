@@ -88,13 +88,23 @@ namespace HTC.UnityPlugin.Vive
             return deviceClass == VRModuleDeviceClass.GenericTracker;
         }
 
+        private bool IsTrackedHand(uint deviceIndex)
+        {
+            return IsTrackedHand(VRModule.GetCurrentDeviceState(deviceIndex).deviceClass);
+        }
+
+        private bool IsTrackedHand(VRModuleDeviceClass deviceClass)
+        {
+            return deviceClass == VRModuleDeviceClass.TrackedHand;
+        }
+
         public override void OnAssignedAsCurrentMapHandler() { Refresh(); }
 
         public override void OnTrackedDeviceRoleChanged() { Refresh(); }
 
         public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
         {
-            if (!RoleMap.IsDeviceBound(deviceSN) && !IsController(deviceClass) && !IsTracker(deviceClass)) { return; }
+            if (!RoleMap.IsDeviceBound(deviceSN) && !IsController(deviceClass) && !IsTracker(deviceClass) && !IsTrackedHand(deviceClass)) { return; }
 
             Refresh();
         }

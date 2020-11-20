@@ -1,5 +1,8 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.VRModuleManagement;
+using System;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
@@ -19,9 +22,23 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField, Tooltip(INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_TOOLTIP)]
         private bool m_individualTouchpadJoystickValue = INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE;
 
+        [Serializable]
+        public class DeviceModelArray : EnumArray<VRModuleDeviceModel, GameObject> { }
+
+        [SerializeField]
+        private DeviceModelArray m_overrideDeviceModel = new DeviceModelArray();
+
         public static bool autoCheckNewVIUVersion { get { return Instance == null ? AUTO_CHECK_NEW_VIU_VERSION_DEFAULT_VALUE : s_instance.m_autoCheckNewVIUVersion; } set { if (Instance != null) { Instance.m_autoCheckNewVIUVersion = value; } } }
         public static float virtualDPadDeadZone { get { return Instance == null ? VIRTUAL_DPAD_DEAD_ZONE_DEFAULT_VALUE : s_instance.m_virtualDPadDeadZone; } set { if (Instance != null) { Instance.m_virtualDPadDeadZone = value; } } }
         public static bool individualTouchpadJoystickValue { get { return Instance == null ? INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE : s_instance.m_individualTouchpadJoystickValue; } set { if (Instance != null) { Instance.m_individualTouchpadJoystickValue = value; } } }
+
+        public static GameObject GetOverrideDeviceModel(VRModuleDeviceModel model) { return Instance == null || s_instance.m_overrideDeviceModel == null ? null : s_instance.m_overrideDeviceModel[model]; }
+        public static void SetOverrideDeviceModel(VRModuleDeviceModel model, GameObject obj)
+        {
+            if (Instance == null) { return; }
+            if (s_instance.m_overrideDeviceModel == null) { return; }
+            s_instance.m_overrideDeviceModel[model] = obj;
+        }
 
         private static VIUSettings s_instance = null;
 

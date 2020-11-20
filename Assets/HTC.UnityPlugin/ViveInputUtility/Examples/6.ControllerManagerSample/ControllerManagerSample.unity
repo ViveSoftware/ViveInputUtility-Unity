@@ -1464,7 +1464,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Normal: {fileID: 2100000, guid: 041d9bdcafbd02b40946f96a381b16d5, type: 2}
-  Heightlight: {fileID: 2100000, guid: 38c5f53e7f1806a4a9fc159718f63db0, type: 2}
+  Hovered: {fileID: 2100000, guid: 38c5f53e7f1806a4a9fc159718f63db0, type: 2}
   Pressed: {fileID: 2100000, guid: 9cdad01e44871fc419f9f98ca8e08ec9, type: 2}
   dragged: {fileID: 0}
   heighlightButton: 0
@@ -2289,6 +2289,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   posOffset: {x: 0, y: 0, z: 0}
   rotOffset: {x: 0, y: 0, z: 0}
+  stickyGrabbable: {fileID: 0}
   alignPosition: 0
   alignRotation: 0
   alignPositionOffset: {x: 0, y: 0, z: 0}
@@ -2296,6 +2297,9 @@ MonoBehaviour:
   m_followingDuration: 0.04
   m_overrideMaxAngularVelocity: 1
   m_unblockableGrab: 1
+  m_singleItemGrab: 0
+  m_primaryGrabButton: 0
+  m_secondaryGrabButton: 1
   m_grabButton: 0
   m_allowMultipleGrabbers: 1
   m_afterGrabbed:
@@ -3089,11 +3093,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f753025abc16bb45bbc83939f863bfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 676368209}
+  target: {fileID: 511087344}
   pivot: {fileID: 1804374876}
   fadeDuration: 0.3
+  primaryTeleportButton: 0
+  secondaryTeleportButton: 2
+  _teleportButton: 1
+  triggeredType: 0
   m_reticleMaterial: {fileID: 2100000, guid: 3320905fb6f6bd54297f26399d87c525, type: 2}
-  teleportButton: 1
+  rotateToHitObjectFront: 0
+  teleportToHitObjectPivot: 0
+  useSteamVRFade: 1
+  onBeforeTeleport:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: HTC.UnityPlugin.Vive.Teleportable+UnityEventTeleport, Assembly-CSharp,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  onAfterTeleport:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: HTC.UnityPlugin.Vive.Teleportable+UnityEventTeleport, Assembly-CSharp,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1001 &1804374875
 Prefab:
   m_ObjectHideFlags: 0
@@ -3409,7 +3429,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Normal: {fileID: 2100000, guid: 041d9bdcafbd02b40946f96a381b16d5, type: 2}
-  Heightlight: {fileID: 2100000, guid: 38c5f53e7f1806a4a9fc159718f63db0, type: 2}
+  Hovered: {fileID: 2100000, guid: 38c5f53e7f1806a4a9fc159718f63db0, type: 2}
   Pressed: {fileID: 2100000, guid: 9cdad01e44871fc419f9f98ca8e08ec9, type: 2}
   dragged: {fileID: 2100000, guid: 926919ce7f495aa44b10ce012bb13b43, type: 2}
   heighlightButton: 0

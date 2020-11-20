@@ -348,7 +348,7 @@ namespace HTC.UnityPlugin.Vive
 
     public static partial class VIUSettingsEditor
     {
-        public const string URL_STEAM_VR_PLUGIN = "https://assetstore.unity.com/packages/tools/integration/steamvr-plugin-32647";
+        public const string URL_STEAM_VR_PLUGIN = "https://assetstore.unity.com/packages/slug/32647?";
 
         private const string OPENVR_PACKAGE_NAME = "com.unity.xr.openvr.standalone";
         private const string OPENVR_XR_PACKAGE_NAME_OLD = "com.valve.openvr";
@@ -523,53 +523,73 @@ namespace HTC.UnityPlugin.Vive
 
                 if (support && m_foldouter.isExpended)
                 {
-                    if (support && VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                    EditorGUI.indentLevel += 2;
+
+                    // Vive Hand Tracking Submodule
+                    const string vhtSdkUrl = "https://developer.vive.com/resources/vive-sense/sdk/vive-hand-tracking-sdk/";
+                    const string vhtTitle = "Enable Vive Hand Tracking";
+                    if (!VRModule.isViveHandTrackingDetected)
                     {
-                        EditorGUI.indentLevel += 2;
-
-                        VIUSettings.autoLoadExternalCameraConfigOnStart = EditorGUILayout.ToggleLeft(new GUIContent("Load Config and Enable External Camera on Start", "You can also load config by calling ExternalCameraHook.LoadConfigFromFile(path) in script."), VIUSettings.autoLoadExternalCameraConfigOnStart);
-                        if (!VIUSettings.autoLoadExternalCameraConfigOnStart && support) { GUI.enabled = false; }
-                        {
-                            EditorGUI.indentLevel++;
-
-                            EditorGUI.BeginChangeCheck();
-                            VIUSettings.externalCameraConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("Config Path"), VIUSettings.externalCameraConfigFilePath);
-                            if (string.IsNullOrEmpty(VIUSettings.externalCameraConfigFilePath))
-                            {
-                                VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
-                                EditorGUI.EndChangeCheck();
-                            }
-                            else if (EditorGUI.EndChangeCheck() && VIUSettings.externalCameraConfigFilePath.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-                            {
-                                VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
-                            }
-                            // Create button that writes default config file
-                            if (VIUSettings.autoLoadExternalCameraConfigOnStart && support && !File.Exists(VIUSettings.externalCameraConfigFilePath))
-                            {
-                                if (support && VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); }
-                                ShowCreateExCamCfgButton();
-                                if (support && VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); }
-                            }
-
-                            EditorGUI.indentLevel--;
-                        }
-                        if (!VIUSettings.autoLoadExternalCameraConfigOnStart && support) { GUI.enabled = true; }
-
-                        VIUSettings.enableExternalCameraSwitch = EditorGUILayout.ToggleLeft(new GUIContent("Enable External Camera Switch", VIUSettings.EX_CAM_UI_SWITCH_TOOLTIP), VIUSettings.enableExternalCameraSwitch);
-                        if (!VIUSettings.enableExternalCameraSwitch && support) { GUI.enabled = false; }
-                        {
-                            EditorGUI.indentLevel++;
-
-                            VIUSettings.externalCameraSwitchKey = (KeyCode)EditorGUILayout.EnumPopup("Switch Key", VIUSettings.externalCameraSwitchKey);
-                            VIUSettings.externalCameraSwitchKeyModifier = (KeyCode)EditorGUILayout.EnumPopup("Switch Key Modifier", VIUSettings.externalCameraSwitchKeyModifier);
-
-                            EditorGUI.indentLevel--;
-                        }
-                        if (!VIUSettings.enableExternalCameraSwitch && support) { GUI.enabled = true; }
-
-                        EditorGUI.indentLevel -= 2;
+                        GUILayout.BeginHorizontal();
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(vhtTitle, "Vive Hand Tracking SDK required"), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowUrlLinkButton(vhtSdkUrl);
+                        GUILayout.EndHorizontal();
                     }
-                    if (support && VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
+                    else
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        VRModuleSettings.activateViveHandTrackingSubmodule = EditorGUILayout.ToggleLeft(new GUIContent(vhtTitle, "Vive, VIVE Pro, Vive Pro Eye, VIVE Cosmos, VIVE Cosmos XR and Valve Index"), VRModuleSettings.activateViveHandTrackingSubmodule);
+                        s_guiChanged |= EditorGUI.EndChangeCheck();
+                    }
+
+                    if (VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+
+                    VIUSettings.autoLoadExternalCameraConfigOnStart = EditorGUILayout.ToggleLeft(new GUIContent("Load Config and Enable External Camera on Start", "You can also load config by calling ExternalCameraHook.LoadConfigFromFile(path) in script."), VIUSettings.autoLoadExternalCameraConfigOnStart);
+                    if (!VIUSettings.autoLoadExternalCameraConfigOnStart) { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel++;
+
+                        EditorGUI.BeginChangeCheck();
+                        VIUSettings.externalCameraConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("Config Path"), VIUSettings.externalCameraConfigFilePath);
+                        if (string.IsNullOrEmpty(VIUSettings.externalCameraConfigFilePath))
+                        {
+                            VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+                            EditorGUI.EndChangeCheck();
+                        }
+                        else if (EditorGUI.EndChangeCheck() && VIUSettings.externalCameraConfigFilePath.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                        {
+                            VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+                        }
+                        // Create button that writes default config file
+                        if (VIUSettings.autoLoadExternalCameraConfigOnStart && !File.Exists(VIUSettings.externalCameraConfigFilePath))
+                        {
+                            if (VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); }
+                            ShowCreateExCamCfgButton();
+                            if (VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); }
+                        }
+
+                        EditorGUI.indentLevel--;
+                    }
+                    if (!VIUSettings.autoLoadExternalCameraConfigOnStart) { GUI.enabled = true; }
+
+                    VIUSettings.enableExternalCameraSwitch = EditorGUILayout.ToggleLeft(new GUIContent("Enable External Camera Switch", VIUSettings.EX_CAM_UI_SWITCH_TOOLTIP), VIUSettings.enableExternalCameraSwitch);
+                    if (!VIUSettings.enableExternalCameraSwitch) { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel++;
+
+                        VIUSettings.externalCameraSwitchKey = (KeyCode)EditorGUILayout.EnumPopup("Switch Key", VIUSettings.externalCameraSwitchKey);
+                        VIUSettings.externalCameraSwitchKeyModifier = (KeyCode)EditorGUILayout.EnumPopup("Switch Key Modifier", VIUSettings.externalCameraSwitchKeyModifier);
+
+                        EditorGUI.indentLevel--;
+                    }
+                    if (!VIUSettings.enableExternalCameraSwitch) { GUI.enabled = true; }
+
+                    EditorGUI.indentLevel -= 2;
+
+                    if (VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
                 }
 
                 if (support && !VRModule.isSteamVRPluginDetected)

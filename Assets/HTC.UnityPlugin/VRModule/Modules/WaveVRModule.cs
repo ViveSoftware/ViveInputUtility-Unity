@@ -2,6 +2,7 @@
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.Vive.WaveVRExtension;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -35,6 +36,78 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override int moduleOrder { get { return (int)DefaultModuleOrder.WaveVR; } }
 
         public override int moduleIndex { get { return (int)VRModuleSelectEnum.WaveVR; } }
+
+        [RenderModelHook.CreatorPriorityAttirbute(0)]
+        private class XRRenderModelCreator : RenderModelHook.DefaultRenderModelCreator
+        {
+            private uint m_index = INVALID_DEVICE_INDEX;
+            private VIUWaveVRRenderModel m_renderModelComp;
+
+            public override bool shouldActive
+            {
+                get
+                {
+#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
+                    return true;
+#else
+                    return false;
+#endif
+                }
+            }
+
+            public override void UpdateRenderModel()
+            {
+                if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
+
+                if (VRModule.IsValidDeviceIndex(m_index))
+                {
+                    if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand)
+                    {
+                        // VIUSteamVRRenderModel currently doesn't support tracked hand
+                        // Fallback to default model instead
+                        UpdateDefaultRenderModel(true);
+                    }
+                    else
+                    {
+                        UpdateDefaultRenderModel(false);
+
+                        // create object for render model
+                        if (m_renderModelComp == null)
+                        {
+                            var go = new GameObject("Model");
+                            go.transform.SetParent(hook.transform, false);
+                            m_renderModelComp = go.AddComponent<VIUWaveVRRenderModel>();
+                        }
+
+                        // set render model index
+                        m_renderModelComp.gameObject.SetActive(true);
+                        m_renderModelComp.shaderOverride = hook.overrideShader;
+                        m_renderModelComp.SetDeviceIndex(m_index);
+                    }
+                }
+                else
+                {
+                    UpdateDefaultRenderModel(false);
+                    // deacitvate object for render model
+                    if (m_renderModelComp != null)
+                    {
+                        m_renderModelComp.gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            public override void CleanUpRenderModel()
+            {
+                base.CleanUpRenderModel();
+
+                if (m_renderModelComp != null)
+                {
+                    UnityEngine.Object.Destroy(m_renderModelComp.gameObject);
+                    m_renderModelComp = null;
+                    m_index = INVALID_DEVICE_INDEX;
+                }
+            }
+        }
 
 #if VIU_WAVEVR && UNITY_ANDROID
         private class CameraCreator : VRCameraHook.CameraCreator

@@ -3,6 +3,7 @@
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.Vive
@@ -15,7 +16,7 @@ namespace HTC.UnityPlugin.Vive
 
         private interface ICtrlState
         {
-            bool Update(); // return true if  frame skipped
+            bool Update(); // return true if frame skipped
             void AddListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click);
             void RemoveListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click);
             void AddListener(ControllerButton button, RoleValueEventListener listener, ButtonEventType type = ButtonEventType.Click);
@@ -36,7 +37,7 @@ namespace HTC.UnityPlugin.Vive
 
         private class CtrlState : ICtrlState
         {
-            public virtual bool Update() { return true; } // return true if  frame skipped
+            public virtual bool Update() { return true; } // return true if frame skipped
             public virtual void AddListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void RemoveListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void AddListener(ControllerButton button, RoleValueEventListener listener, ButtonEventType type = ButtonEventType.Click) { }
@@ -142,6 +143,16 @@ namespace HTC.UnityPlugin.Vive
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4, currState.GetButtonPress(VRModuleRawButton.Axis4));
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Axis4Touch, currState.GetButtonTouch(VRModuleRawButton.Axis4));
 
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.IndexPinch, currState.GetButtonPress(VRModuleRawButton.GestureIndexPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.MiddlePinch, currState.GetButtonPress(VRModuleRawButton.GestureMiddlePinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.RingPinch, currState.GetButtonPress(VRModuleRawButton.GestureRingPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.PinkyPinch, currState.GetButtonPress(VRModuleRawButton.GesturePinkyPinch));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Fist, currState.GetButtonPress(VRModuleRawButton.GestureFist));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Five, currState.GetButtonPress(VRModuleRawButton.GestureFive));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Ok, currState.GetButtonPress(VRModuleRawButton.GestureOk));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.ThumbUp, currState.GetButtonPress(VRModuleRawButton.GestureThumbUp));
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.IndexUp, currState.GetButtonPress(VRModuleRawButton.GestureIndexUp));
+
                 // update axis values
                 float currTriggerValue;
                 currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
@@ -152,6 +163,10 @@ namespace HTC.UnityPlugin.Vive
                 currAxisValue[(int)ControllerAxis.MiddleCurl] = currState.GetAxisValue(VRModuleRawAxis.MiddleCurl);
                 currAxisValue[(int)ControllerAxis.RingCurl] = currState.GetAxisValue(VRModuleRawAxis.RingCurl);
                 currAxisValue[(int)ControllerAxis.PinkyCurl] = currState.GetAxisValue(VRModuleRawAxis.PinkyCurl);
+                currAxisValue[(int)ControllerAxis.IndexPinch] = currState.GetAxisValue(VRModuleRawAxis.IndexPinch);
+                currAxisValue[(int)ControllerAxis.MiddlePinch] = currState.GetAxisValue(VRModuleRawAxis.MiddlePinch);
+                currAxisValue[(int)ControllerAxis.RingPinch] = currState.GetAxisValue(VRModuleRawAxis.RingPinch);
+                currAxisValue[(int)ControllerAxis.PinkyPinch] = currState.GetAxisValue(VRModuleRawAxis.PinkyPinch);
 
                 switch (currentInput2DType)
                 {
@@ -530,7 +545,7 @@ namespace HTC.UnityPlugin.Vive
 
         private class GCtrlState<TRole> : ICtrlState<TRole>
         {
-            public virtual bool Update() { return true; } // return true if  frame skipped
+            public virtual bool Update() { return true; } // return true if frame skipped
             public virtual void AddListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void RemoveListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void AddListener(ControllerButton button, RoleValueEventListener listener, ButtonEventType type = ButtonEventType.Click) { }
@@ -576,7 +591,7 @@ namespace HTC.UnityPlugin.Vive
                 m_role = role;
             }
 
-            // return true if  frame skipped
+            // return true if frame skipped
             public override bool Update()
             {
                 if (m_state.Update()) { return true; }

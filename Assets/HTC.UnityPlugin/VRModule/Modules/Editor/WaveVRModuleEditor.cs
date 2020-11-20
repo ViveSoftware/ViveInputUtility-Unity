@@ -25,11 +25,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqFileNames = new string[] { "WaveVR.cs" },
             });
 
-            Add(new VRModuleManagerEditor.SymbolRequirement()
+            Add(new SymbolRequirement()
             {
                 symbol = "VIU_WAVEXR_ESSENCE_RENDERMODEL",
                 reqTypeNames = new string[] { "Wave.Essence.Controller.RenderModel", "Wave.Essence.Controller.ButtonEffect", "Wave.Essence.Controller.ShowIndicator" },
                 reqFileNames = new string[] { "RenderModel.cs", "ButtonEffect.cs", "ShowIndicator.cs" },
+            });
+
+            Add(new SymbolRequirement()
+{
+                symbol = "VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL",
+                reqTypeNames = new string[] { "Wave.Essence.Controller.Model.RenderModel", "Wave.Essence.Controller.Model.ButtonEffect", "Wave.Essence.Controller.Model.ControllerTips" },
+                reqFileNames = new string[] { "RenderModel.cs", "ButtonEffect.cs", "ControllerTips.cs" },
             });
 
             Add(new SymbolRequirement()
@@ -122,6 +129,71 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         typeName = "wvr.Interop",
                         name = "WVR_PostInit",
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_LEGACY_HAND_TRACKING",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.Native.Interop",
+                        name = "WVR_GetHandTrackingData",
+                        argTypeNames = new string[]
+                        {
+                            "Wave.Native.WVR_HandSkeletonData_t&",
+                            "Wave.Native.WVR_HandPoseData_t&",
+                            "Wave.Native.WVR_PoseOriginModel",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_HAND_TRACKING",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.Native.Interop",
+                        name = "WVR_GetHandTrackingData",
+                        argTypeNames = new string[]
+                        {
+                            "Wave.Native.WVR_HandTrackerType",
+                            "Wave.Native.WVR_HandModelType",
+                            "Wave.Native.WVR_PoseOriginModel",
+                            "Wave.Native.WVR_HandTrackingData_t&",
+                            "Wave.Native.WVR_HandPoseData_t&",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_CONTROLLER_RENDERMODEL",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.Native.Interop",
+                        name = "WVR_GetCurrentControllerModel",
+                        argTypeNames = new string[]
+                        {
+                            "Wave.Native.WVR_DeviceType",
+                            "System.IntPtr&",
+                            "System.Boolean",
+                        },
                         bindingAttr = BindingFlags.Public | BindingFlags.Static,
                     }
                 },

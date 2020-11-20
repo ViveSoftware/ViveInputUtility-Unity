@@ -27,17 +27,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             protected const uint MAX_DEVICE_COUNT = VRModule.MAX_DEVICE_COUNT;
             protected const uint INVALID_DEVICE_INDEX = VRModule.INVALID_DEVICE_INDEX;
 
-            private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", RegexOptions.IgnoreCase);
-            private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", RegexOptions.IgnoreCase);
+            protected const RegexOptions REGEX_OPTIONS = RegexOptions.IgnoreCase | RegexOptions.Singleline
+#if NET_STANDARD_2_0
+                                                                                 | RegexOptions.Compiled
+
+#endif
+                ;
+
+            private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", REGEX_OPTIONS);
+            private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", REGEX_OPTIONS);
+            private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", REGEX_OPTIONS);
+            private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGEX_OPTIONS);
+            private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", REGEX_OPTIONS);
+            private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGEX_OPTIONS);
+            private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", REGEX_OPTIONS);
+            private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", REGEX_OPTIONS);
+            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", REGEX_OPTIONS);
+            private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", REGEX_OPTIONS);
+            private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", REGEX_OPTIONS);
 
             private struct WVRCtrlProfile
             {
@@ -86,7 +93,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [Obsolete]
             public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState) { }
 
-            public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { }
+            public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { TriggerHapticVibration(deviceIndex, 1000000f * (float)durationMicroSec); }
 
             public virtual void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f) { }
 
@@ -118,6 +125,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             protected void EnsureValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
             {
                 Instance.EnsureValidDeviceState(index, out prevState, out currState);
+            }
+
+            // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+            protected uint FindAndEnsureUnusedNotHMDDeviceState(out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                return Instance.FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
             }
 
             protected void FlushDeviceState()
@@ -369,6 +382,176 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private sealed class DefaultModule : ModuleBase
         {
             public override int moduleIndex { get { return (int)VRModuleActiveEnum.None; } }
+        }
+
+        public abstract class SubmoduleBase
+        {
+            public class Collection
+            {
+                private List<SubmoduleBase> modules = new List<SubmoduleBase>();
+
+                public Collection(params SubmoduleBase[] modules)
+                {
+                    if (modules != null && modules.Length > 0)
+                    {
+                        foreach (var m in modules)
+                        {
+                            if (m != null) { this.modules.Add(m); }
+                        }
+                    }
+                }
+
+                public void AddModule(SubmoduleBase module, params SubmoduleBase[] modules)
+                {
+                    if (module != null) { this.modules.Add(module); }
+                    if (modules != null && modules.Length > 0)
+                    {
+                        foreach (var m in modules)
+                        {
+                            if (m != null) { this.modules.Add(module); }
+                        }
+                    }
+                }
+
+                public void ActivateAllModules()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        if (modules[i].ShouldActiveModule())
+                        {
+                            modules[i].Activate();
+                        }
+                    }
+                }
+
+                public void DeactivateAllModules()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        modules[i].Deactivate();
+                    }
+                }
+
+                public void UpdateAllModulesActivity()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        if (modules[i].isActivated)
+                        {
+                            if (!modules[i].ShouldActiveModule()) { modules[i].Deactivate(); }
+                        }
+                        else
+                        {
+                            if (modules[i].ShouldActiveModule()) { modules[i].Activate(); }
+                        }
+                    }
+                }
+
+                public void UpdateModulesDeviceConnectionAndPoses()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        if (modules[i].isActivated)
+                        {
+                            modules[i].OnUpdateDeviceConnectionAndPoses();
+                        }
+                    }
+                }
+
+                public void UpdateModulesDeviceInput()
+                {
+                    for (int i = 0, imax = modules.Count; i < imax; ++i)
+                    {
+                        if (modules[i].isActivated)
+                        {
+                            modules[i].OnUpdateDeviceInput();
+                        }
+                    }
+                }
+
+                public uint GetFirstRightHandedIndex()
+                {
+                    if (modules.Count > 0)
+                    {
+                        var indexMax = Instance.GetDeviceStateLength();
+                        for (int i = 0, imax = modules.Count; i < imax; ++i)
+                        {
+                            var index = modules[i].GetRightHandedIndex();
+                            if (index < indexMax) { return index; }
+                        }
+                    }
+                    return INVALID_DEVICE_INDEX;
+                }
+
+                public uint GetFirstLeftHandedIndex()
+                {
+                    if (modules.Count > 0)
+                    {
+                        var indexMax = Instance.GetDeviceStateLength();
+                        for (int i = 0, imax = modules.Count; i < imax; ++i)
+                        {
+                            var index = modules[i].GetLeftHandedIndex();
+                            if (index < indexMax) { return index; }
+                        }
+                    }
+                    return INVALID_DEVICE_INDEX;
+                }
+            }
+
+            public bool isActivated { get; private set; }
+
+            public virtual bool ShouldActiveModule() { return false; }
+
+            public void Activate()
+            {
+                if (!isActivated)
+                {
+                    isActivated = true;
+                    OnActivated();
+                }
+            }
+
+            public void Deactivate()
+            {
+                if (isActivated)
+                {
+                    isActivated = false;
+                    OnDeactivated();
+                }
+            }
+
+            protected virtual void OnActivated() { }
+
+            protected virtual void OnDeactivated() { }
+
+            protected virtual void OnUpdateDeviceConnectionAndPoses() { }
+
+            protected virtual void OnUpdateDeviceInput() { }
+
+            public virtual uint GetRightHandedIndex() { return INVALID_DEVICE_INDEX; }
+
+            public virtual uint GetLeftHandedIndex() { return INVALID_DEVICE_INDEX; }
+
+            protected uint GetDeviceStateLength()
+            {
+                return Instance.GetDeviceStateLength();
+            }
+
+            protected bool TryGetValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                return Instance.TryGetValidDeviceState(index, out prevState, out currState);
+            }
+
+            protected void EnsureValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                Instance.EnsureValidDeviceState(index, out prevState, out currState);
+            }
+
+            // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+            protected uint FindAndEnsureUnusedNotHMDDeviceState(out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+            {
+                return Instance.FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
+            }
         }
     }
 }
