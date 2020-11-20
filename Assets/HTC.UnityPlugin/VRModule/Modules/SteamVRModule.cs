@@ -145,6 +145,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         // VIUSteamVRRenderModel currently doesn't support tracked hand
                         // Fallback to default model instead
                         UpdateDefaultRenderModel(true);
+
+                        if (m_renderModelComp != null)
+                        {
+                            m_renderModelComp.gameObject.SetActive(false);
+                        }
                     }
                     else
                     {
