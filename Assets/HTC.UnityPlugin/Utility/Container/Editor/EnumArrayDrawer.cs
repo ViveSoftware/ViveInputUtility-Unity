@@ -11,7 +11,7 @@ namespace HTC.UnityPlugin.Utility
     [CustomPropertyDrawer(typeof(EnumArrayBase), true)]
     public class EnumArrayDrawer : PropertyDrawer
     {
-        private const float LINE_SPACE = 2f;
+        private float verticalSpacing { get { return EditorGUIUtility.standardVerticalSpacing; } }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -43,22 +43,22 @@ namespace HTC.UnityPlugin.Utility
                 const float btnPadding = 2f;
                 var btnRect = new Rect()
                 {
-                    x = position.x + EditorGUIUtility.labelWidth + LINE_SPACE + btnPadding,
+                    x = position.x + EditorGUIUtility.labelWidth + verticalSpacing + btnPadding,
                     y = position.y + btnPadding,
-                    width = position.width - EditorGUIUtility.labelWidth - LINE_SPACE - btnPadding * 2f,
+                    width = position.width - EditorGUIUtility.labelWidth - verticalSpacing - btnPadding * 2f,
                     height = position.height - btnPadding * 2f,
                 };
 
                 // paint trim button 
                 if (arrayLen > target.Length)
                 {
-                    btnRect.width = (btnRect.width - LINE_SPACE - btnPadding * 2f) * 0.5f;
+                    btnRect.width = (btnRect.width - verticalSpacing - btnPadding * 2f) * 0.5f;
                     if (GUI.Button(btnRect, "Trim(+" + (arrayLen - target.Length) + ")"))
                     {
                         Undo.RecordObject(property.serializedObject.targetObject, "EnumArray.Trim");
                         arrayProp.arraySize = arrayLen = target.Length;
                     }
-                    btnRect.x += btnRect.width + LINE_SPACE + btnPadding * 2f;
+                    btnRect.x += btnRect.width + verticalSpacing + btnPadding * 2f;
                 }
 
                 if (GUI.Button(btnRect, "Clear"))
@@ -69,7 +69,7 @@ namespace HTC.UnityPlugin.Utility
 
                 // paint foldout title
                 newExpanded = EditorGUI.Foldout(position, true, label, true);
-                position.y += position.height + LINE_SPACE;
+                position.y += position.height + verticalSpacing;
 
                 // paint elements
                 EditorGUI.indentLevel += 1;
@@ -85,7 +85,7 @@ namespace HTC.UnityPlugin.Utility
 
                             position.height = EditorGUI.GetPropertyHeight(element, GUIContent.none, true);
                             EditorGUI.PropertyField(position, element, new GUIContent(enumName), true);
-                            position.y += position.height + LINE_SPACE;
+                            position.y += position.height + verticalSpacing;
                         }
                     }
                 }
@@ -113,7 +113,7 @@ namespace HTC.UnityPlugin.Utility
                 {
                     if (target.IsDefined(i + target.MinInt))
                     {
-                        result += LINE_SPACE + EditorGUI.GetPropertyHeight(arrayProp.GetArrayElementAtIndex(i), GUIContent.none, true);
+                        result += verticalSpacing + EditorGUI.GetPropertyHeight(arrayProp.GetArrayElementAtIndex(i), GUIContent.none, true);
                     }
                 }
             }
