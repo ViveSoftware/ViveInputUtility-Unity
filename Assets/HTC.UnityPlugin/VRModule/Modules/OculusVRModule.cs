@@ -659,6 +659,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             currState.SetAxisValue(VRModuleRawAxis.MiddlePinch, handState.PinchStrength[(int) HandFinger.Middle]);
                             currState.SetAxisValue(VRModuleRawAxis.RingPinch, handState.PinchStrength[(int) HandFinger.Ring]);
                             currState.SetAxisValue(VRModuleRawAxis.PinkyPinch, handState.PinchStrength[(int) HandFinger.Pinky]);
+
+                            // Map index pinch to trigger
+                            currState.SetButtonPress(VRModuleRawButton.Trigger, currState.GetButtonPress(VRModuleRawButton.GestureIndexPinch));
+                            currState.SetButtonTouch(VRModuleRawButton.Trigger, currState.GetButtonTouch(VRModuleRawButton.GestureIndexPinch));
+                            currState.SetAxisValue(VRModuleRawAxis.Trigger, currState.GetAxisValue(VRModuleRawAxis.IndexPinch));
                         }
                         
                         if (isHandTracked)
