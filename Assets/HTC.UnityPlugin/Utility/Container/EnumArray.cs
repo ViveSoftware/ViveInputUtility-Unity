@@ -82,6 +82,7 @@ namespace HTC.UnityPlugin.Utility
 
         protected static readonly TEnum[] enums;
         protected static readonly bool[] enumIsDefined;
+        protected static Func<TEnum, int> funcE2I;
         public static readonly int StaticMinInt;
         public static readonly TEnum StaticMin;
         public static readonly int StaticMaxInt;
@@ -94,11 +95,17 @@ namespace HTC.UnityPlugin.Utility
 #if !CSHARP_7_OR_LATER
             if (!StaticEnumType.IsEnum) { throw new Exception(StaticEnumType.Name + " is not enum type!"); }
 #endif
-            RangeCheckFunc rangeCheckFunc = null;
-            if (Enum.GetUnderlyingType(StaticEnumType) == typeof(ulong))
+            var underlyingType = Enum.GetUnderlyingType(StaticEnumType);
+            var rangeCheckFunc = default(RangeCheckFunc);
+            if (underlyingType == typeof(ulong))
             { rangeCheckFunc = RangeCheckFromUInt64; }
             else
             { rangeCheckFunc = RangeCheckFromInt64; }
+
+            if (underlyingType == typeof(int))
+            { funcE2I = EqualityComparer<TEnum>.Default.GetHashCode; }
+            else
+            { funcE2I = (e) => (int)(object)e; }
 
             // find out min/max/length value in defined enum values
             var min = int.MaxValue;
@@ -142,7 +149,7 @@ namespace HTC.UnityPlugin.Utility
                         if (Enum.IsDefined(StaticEnumType, StaticMaxInt)) { break; }
                     }
 
-                    StaticMax = FromInt32(StaticMaxInt);
+                    StaticMax = (TEnum)(object)StaticMaxInt;
                 }
 
                 StaticLength = StaticMaxInt - StaticMinInt + 1;
@@ -167,7 +174,7 @@ namespace HTC.UnityPlugin.Utility
             {
                 if (!enumIsDefined[i])
                 {
-                    EnumArrayBase<TEnum>.enums[i] = FromInt32(i + StaticMinInt);
+                    EnumArrayBase<TEnum>.enums[i] = (TEnum)(object)(i + StaticMinInt);
                 }
             }
         }
@@ -197,7 +204,12 @@ namespace HTC.UnityPlugin.Utility
 
         public static int E2I(TEnum e)
         {
-            return ToInt32(e);
+            return funcE2I(e);
+        }
+
+        public static void SetEnumToInt32Resolver(Func<TEnum, int> func)
+        {
+            if (func != null) { funcE2I = func; }
         }
 
         public static TEnum I2E(int ei)
@@ -209,7 +221,7 @@ namespace HTC.UnityPlugin.Utility
 
         private static bool RangeCheckFromUInt64(TEnum e, out int ei)
         {
-            var l = ToUInt64(e);
+            var l = (ulong)(object)e;
             if (l <= int.MaxValue)
             {
                 ei = (int)l;
@@ -224,7 +236,7 @@ namespace HTC.UnityPlugin.Utility
 
         private static bool RangeCheckFromInt64(TEnum e, out int ei)
         {
-            var l = ToInt64(e);
+            var l = (long)(object)e;
             if (l < int.MinValue)
             {
                 ei = int.MinValue;
@@ -241,39 +253,6 @@ namespace HTC.UnityPlugin.Utility
                 return false;
             }
         }
-
-        //private static readonly Func<byte, TEnum> FromByte = GenerateConvertToEnum<byte>();
-        //private static readonly Func<sbyte, TEnum> FromSByte = GenerateConvertToEnum<sbyte>();
-        //private static readonly Func<short, TEnum> FromInt16 = GenerateConvertToEnum<short>();
-        //private static readonly Func<ushort, TEnum> FromUInt16 = GenerateConvertToEnum<ushort>();
-        private static readonly Func<int, TEnum> FromInt32 = GenerateConvertToEnum<int>();
-        //private static readonly Func<uint, TEnum> FromUInt32 = GenerateConvertToEnum<uint>();
-        //private static readonly Func<long, TEnum> FromInt64 = GenerateConvertToEnum<long>();
-        //private static readonly Func<ulong, TEnum> FromUInt64 = GenerateConvertToEnum<ulong>();
-
-        //private static readonly Func<TEnum, byte> ToByte = GenerateConvertToValue<byte>();
-        //private static readonly Func<TEnum, sbyte> ToSByte = GenerateConvertToValue<sbyte>();
-        //private static readonly Func<TEnum, short> ToInt16 = GenerateConvertToValue<short>();
-        //private static readonly Func<TEnum, ushort> ToUInt16 = GenerateConvertToValue<ushort>();
-        private static readonly Func<TEnum, int> ToInt32 = GenerateConvertToValue<int>();
-        //private static readonly Func<TEnum, uint> ToUInt32 = GenerateConvertToValue<uint>();
-        private static readonly Func<TEnum, long> ToInt64 = GenerateConvertToValue<long>();
-        private static readonly Func<TEnum, ulong> ToUInt64 = GenerateConvertToValue<ulong>();
-
-        private static Func<T, TEnum> GenerateConvertToEnum<T>()
-        {
-            var parameter = Expression.Parameter(typeof(T), "value");
-            var dynamicMethod = Expression.Lambda<Func<T, TEnum>>(Expression.Convert(parameter, typeof(TEnum)), parameter);
-            return dynamicMethod.Compile();
-        }
-
-        private static Func<TEnum, T> GenerateConvertToValue<T>()
-        {
-            var parameter = Expression.Parameter(typeof(TEnum), "value");
-            var dynamicMethod = Expression.Lambda<Func<TEnum, T>>(Expression.Convert(parameter, typeof(T)), parameter);
-            return dynamicMethod.Compile();
-        }
-
     }
 
     [Serializable]
@@ -462,7 +441,11 @@ namespace HTC.UnityPlugin.Utility
 
         public EnumArray() { elements = new TValue[Length]; }
 
+        public EnumArray(Func<TEnum, int> resolver) : this() { SetEnumToInt32Resolver(resolver); }
+
         public EnumArray(TValue initValue) : this() { Clear(initValue); }
+
+        public EnumArray(Func<TEnum, int> resolver, TValue initValue) : this(resolver) { Clear(initValue); }
 
         public override Type ElementType { get { return StaticElementType; } }
 

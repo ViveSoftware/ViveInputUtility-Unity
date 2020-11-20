@@ -28,7 +28,10 @@ namespace HTC.UnityPlugin.Vive
         }
 
         [Serializable]
-        public class JointTransArray : EnumArray<HandJointName, Transform> { }
+        public class JointTransArray : EnumArray<HandJointName, Transform>
+        {
+            static JointTransArray() { SetEnumToInt32Resolver(e => (int)e); }
+        }
 
         [SerializeField]
         private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
@@ -282,7 +285,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 wristTransform.localScale = Vector3.one * (CalculateJointLength(deviceState.readOnlyHandJoints) / m_modelLength);
             }
-            
+
             // Stabilize
             if (m_stabilizerAngleThreshold > 0)
             {

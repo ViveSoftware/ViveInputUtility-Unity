@@ -214,7 +214,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
     }
 
     [Serializable]
-    public class JointEnumArray : EnumArray<HandJointName, JointPose> { }
+    public class JointEnumArray : EnumArray<HandJointName, JointPose>
+    {
+        static JointEnumArray() { SetEnumToInt32Resolver(e => (int)e); }
+    }
 
     public partial class VRModule : SingletonBehaviour<VRModule>
     {

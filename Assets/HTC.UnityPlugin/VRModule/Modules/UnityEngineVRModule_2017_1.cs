@@ -42,6 +42,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         static UnityEngineVRModule()
         {
+            EnumArrayBase<XRNode>.SetEnumToInt32Resolver(e => (int)e);
             s_nodeType2DeviceClass = new EnumArray<XRNode, VRModuleDeviceClass>(VRModuleDeviceClass.Invalid);
             s_nodeType2DeviceClass[XRNode.Head] = VRModuleDeviceClass.HMD;
             s_nodeType2DeviceClass[XRNode.RightHand] = VRModuleDeviceClass.Controller;

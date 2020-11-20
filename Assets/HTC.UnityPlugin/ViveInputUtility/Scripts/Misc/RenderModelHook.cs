@@ -259,6 +259,8 @@ namespace HTC.UnityPlugin.Vive
 
         static RenderModelHook()
         {
+            EnumArrayBase<VRModuleDeviceModel>.SetEnumToInt32Resolver(e => (int)e);
+
             try
             {
                 var creatorTypes = new List<Type>();
@@ -352,7 +354,7 @@ namespace HTC.UnityPlugin.Vive
         }
 
         private bool m_isCustomModelActivated;
-        private EnumArray<VRModuleDeviceModel, GameObject> m_customModelObjs = new EnumArray<VRModuleDeviceModel, GameObject>();
+        private EnumArray<VRModuleDeviceModel, GameObject> m_customModelObjs = new EnumArray<VRModuleDeviceModel, GameObject>((e) => (int)e);
         private VRModuleDeviceModel m_activeCustomModel;
 
         public EnumArray<VRModuleDeviceModel, GameObject>.IReadOnly loadedCuustomModels { get { return m_customModelObjs.ReadOnly; } }
