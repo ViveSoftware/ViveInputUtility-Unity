@@ -53,7 +53,9 @@ namespace HTC.UnityPlugin.PoseTracker
 
         [Obsolete]
         public virtual void ModifyPose(ref Pose pose, Transform origin) { }
-
+        [Obsolete]
         public virtual void ModifyPose(ref RigidPose pose, Transform origin) { }
+
+        public virtual void ModifyPose(ref RigidPose pose, bool useLocal) { }
     }
 }

@@ -12,6 +12,8 @@ namespace HTC.UnityPlugin.PoseTracker
         int priority { get; set; }
         [Obsolete]
         void ModifyPose(ref Pose pose, Transform origin);
+        [Obsolete]
         void ModifyPose(ref RigidPose pose, Transform origin);
+        void ModifyPose(ref RigidPose pose, bool useLocal);
     }
 }

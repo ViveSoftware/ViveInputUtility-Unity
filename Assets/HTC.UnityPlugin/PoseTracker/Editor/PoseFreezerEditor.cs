@@ -36,43 +36,71 @@ namespace HTC.UnityPlugin.PoseTracker
             
             EditorGUILayout.PropertyField(priorityProp);
 
-            var fieldWidth = (EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth) / 3f;
+            const float toggleLabelWidth = 12f;
+            var fieldWidth = (EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth + 2f) / 3f;
+            var toggleFieldWidth = fieldWidth - toggleLabelWidth;
 
             // freeze position
             layoutRect = EditorGUILayout.GetControlRect();
 
             layoutRect.width = EditorGUIUtility.labelWidth;
             EditorGUI.LabelField(layoutRect, "Freeze Position");
+            layoutRect.x += layoutRect.width + 2f;
+
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "X");
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.freezePositionX = EditorGUI.ToggleLeft(layoutRect, "X", script.freezePositionX);
+            layoutRect.width = toggleFieldWidth;
+            script.freezePositionX = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionX);
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.freezePositionY = EditorGUI.ToggleLeft(layoutRect, "Y", script.freezePositionY);
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "Y");
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.freezePositionZ = EditorGUI.ToggleLeft(layoutRect, "Z", script.freezePositionZ);
+            layoutRect.width = toggleFieldWidth;
+            script.freezePositionY = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionY);
+            layoutRect.x += layoutRect.width;
+
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "Z");
+            layoutRect.x += layoutRect.width;
+
+            layoutRect.width = toggleFieldWidth;
+            script.freezePositionZ = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionZ);
+            layoutRect.x += layoutRect.width;
 
             // freeze rotation
             layoutRect = EditorGUILayout.GetControlRect();
 
             layoutRect.width = EditorGUIUtility.labelWidth;
             EditorGUI.LabelField(layoutRect, "Freeze Rotation");
+            layoutRect.x += layoutRect.width + 2f;
+
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "X");
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.freezeRotationX = EditorGUI.ToggleLeft(layoutRect, "X", script.freezeRotationX);
+            layoutRect.width = toggleFieldWidth;
+            script.freezeRotationX = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationX);
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.freezeRotationY = EditorGUI.ToggleLeft(layoutRect, "Y", script.freezeRotationY);
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "Y");
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.freezeRotationZ = EditorGUI.ToggleLeft(layoutRect, "Z", script.freezeRotationZ);
+            layoutRect.width = toggleFieldWidth;
+            script.freezeRotationY = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationY);
+            layoutRect.x += layoutRect.width;
+
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "Z");
+            layoutRect.x += layoutRect.width;
+
+            layoutRect.width = toggleFieldWidth;
+            script.freezeRotationZ = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationZ);
+            layoutRect.x += layoutRect.width;
 
             if (EditorGUI.EndChangeCheck())
             {

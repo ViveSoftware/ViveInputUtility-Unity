@@ -109,7 +109,16 @@ namespace HTC.UnityPlugin.Vive
 
             if (isValid)
             {
-                TrackPose(VivePose.GetPose(deviceIndex), origin);
+                var pose = VivePose.GetPose(deviceIndex);
+                if (origin != null && origin != transform.parent)
+                {
+                    pose = new RigidPose(origin.transform) * pose;
+                    TrackPose(pose, false);
+                }
+                else
+                {
+                    TrackPose(pose, true);
+                }
             }
 
             SetIsValid(isValid);

@@ -145,7 +145,7 @@ namespace HTC.UnityPlugin.Vive
         protected void OnGrabRigidbody()
         {
             var targetPose = currentGrabber.grabberOrigin * currentGrabber.grabOffset;
-            ModifyPose(ref targetPose, null);
+            ModifyPose(ref targetPose, true);
 
             RigidPose.SetRigidbodyVelocity(grabRigidbody, grabRigidbody.position, targetPose.pos, followingDuration);
             RigidPose.SetRigidbodyAngularVelocity(grabRigidbody, grabRigidbody.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
@@ -154,7 +154,7 @@ namespace HTC.UnityPlugin.Vive
         protected virtual void OnGrabTransform()
         {
             var targetPose = currentGrabber.grabberOrigin * currentGrabber.grabOffset;
-            ModifyPose(ref targetPose, null);
+            ModifyPose(ref targetPose, true);
 
             if (grabRigidbody != null)
             {

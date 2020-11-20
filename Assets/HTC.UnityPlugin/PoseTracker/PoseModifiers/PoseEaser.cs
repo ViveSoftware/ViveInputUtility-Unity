@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.PoseTracker
             ResetFirstPose();
         }
 
-        public override void ModifyPose(ref RigidPose pose, Transform origin)
+        public override void ModifyPose(ref RigidPose pose, bool useLocal)
         {
             if (firstPose)
             {
