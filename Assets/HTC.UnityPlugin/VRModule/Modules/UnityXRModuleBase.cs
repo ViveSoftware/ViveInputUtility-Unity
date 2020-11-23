@@ -108,8 +108,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (VRModule.trackingSpaceType)
             {
                 case VRModuleTrackingSpaceType.Stationary: originFlag = TrackingOriginModeFlags.Device; break;
-                //case VRModuleTrackingSpaceType.RoomScale: originFlag = TrackingOriginModeFlags.Floor; break;
-                case VRModuleTrackingSpaceType.RoomScale: originFlag = TrackingOriginModeFlags.TrackingReference; break;
+                case VRModuleTrackingSpaceType.RoomScale: originFlag = TrackingOriginModeFlags.Floor; break;
                 default: return;
             }
 
