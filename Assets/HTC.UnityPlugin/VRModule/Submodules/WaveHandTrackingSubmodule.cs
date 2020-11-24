@@ -148,28 +148,34 @@ namespace HTC.UnityPlugin.VRModuleManagement
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
 
-            if (gestureActivator.isLeftValid)
+            if (leftDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
             {
-                EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
-                gestureActivator.UpdateGestureInput(currState, true);
+                if (gestureActivator.isLeftValid)
+                {
+                    EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
+                    gestureActivator.UpdateGestureInput(currState, true);
+                }
+
+                if (trackingActivator.isLeftValid)
+                {
+                    EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
+                    trackingActivator.UpdateDeviceInput(currState, true);
+                }
             }
 
-            if (gestureActivator.isRightValid)
+            if (rightDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
             {
-                EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-                gestureActivator.UpdateGestureInput(currState, false);
-            }
+                if (gestureActivator.isRightValid)
+                {
+                    EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
+                    gestureActivator.UpdateGestureInput(currState, false);
+                }
 
-            if (trackingActivator.isLeftValid)
-            {
-                EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
-                trackingActivator.UpdateDeviceInput(currState, true);
-            }
-
-            if (trackingActivator.isRightValid)
-            {
-                EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-                trackingActivator.UpdateDeviceInput(currState, false);
+                if (trackingActivator.isRightValid)
+                {
+                    EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
+                    trackingActivator.UpdateDeviceInput(currState, false);
+                }
             }
         }
 
@@ -405,16 +411,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         count);
                     var trackerInfoResult = Interop.WVR_GetHandTrackerInfo(WVR_HandTrackerType.WVR_HandTrackerType_Natural, ref trackerInfo);
                     var hasTrackerInfo = ExtractHandTrackerInfo(trackerInfo, ref s_NaturalHandJoints, ref s_NaturalHandJointsFlag);
-                    if (hasTrackerInfo)
-                    {
-                        for (int i = 0; i < trackerInfo.jointCount; i++)
-                        {
-                            Debug.Log("GetHandTrackerInfo() "
-                                + "joint count: " + trackerInfo.jointCount
-                                + ", s_NaturalHandJoints[" + i + "] = " + s_NaturalHandJoints[i]
-                                + ", s_NaturalHandJointsFlag[" + i + "] = " + s_NaturalHandJointsFlag[i]);
-                        }
-                    }
+                    //if (hasTrackerInfo)
+                    //{
+                    //    for (int i = 0; i < trackerInfo.jointCount; i++)
+                    //    {
+                    //        Debug.Log("GetHandTrackerInfo() "
+                    //            + "joint count: " + trackerInfo.jointCount
+                    //            + ", s_NaturalHandJoints[" + i + "] = " + s_NaturalHandJoints[i]
+                    //            + ", s_NaturalHandJointsFlag[" + i + "] = " + s_NaturalHandJointsFlag[i]);
+                    //    }
+                    //}
                     return default(WVR_Result);
                 };
             }

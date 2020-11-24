@@ -47,7 +47,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 get
                 {
-#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
+#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL && UNITY_ANDROID
                     return true;
 #else
                     return false;
@@ -66,6 +66,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         // VIUSteamVRRenderModel currently doesn't support tracked hand
                         // Fallback to default model instead
                         UpdateDefaultRenderModel(true);
+
+                        if (m_renderModelComp != null)
+                        {
+                            m_renderModelComp.gameObject.SetActive(false);
+                        }
                     }
                     else
                     {

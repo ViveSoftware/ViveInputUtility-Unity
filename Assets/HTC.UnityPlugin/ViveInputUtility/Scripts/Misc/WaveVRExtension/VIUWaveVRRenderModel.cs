@@ -172,9 +172,8 @@ namespace HTC.UnityPlugin.Vive.WaveVRExtension
         {
             if (m_updateDynamically)
             {
-#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
+#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL && UNITY_ANDROID
                 updateBatteryLevel();
-
                 CollectEffectObjects();
 
                 var deviceState = VRModule.GetDeviceState(m_deviceIndex);
@@ -981,7 +980,7 @@ namespace HTC.UnityPlugin.Vive.WaveVRExtension
                         if (batteryMR != null)
                         {
                             batteryMR.material.mainTexture = currentBattery.batteryTexture;
-                            Debug.Log("[DEBUG] updateBatteryLevel battery level to " + currentBattery.level + ", battery percent: " + batteryP);
+                            //Debug.Log("[DEBUG] updateBatteryLevel battery level to " + currentBattery.level + ", battery percent: " + batteryP);
                             batteryGO.SetActive(true);
                         }
                         else
