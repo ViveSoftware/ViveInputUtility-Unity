@@ -648,7 +648,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return new ActionCollection<T>.Enumerable(AllActionDevicePathEnumerator(vrInput, actionCollection));
         }
 
-        private static readonly ulong[] outActionOrigins = new ulong[OpenVR.k_unMaxActionOriginCount];
+        private static ulong[] outActionOrigins = new ulong[OpenVR.k_unMaxActionOriginCount];
         private IEnumerator<ActionCollection<T>.EnumData> AllActionDevicePathEnumerator<T>(CVRInput vrInput, ActionCollection<T> actionCollection)
 #if CSHARP_7_OR_LATER
             where T : Enum
@@ -667,8 +667,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     continue;
                 }
 
-                Array.Clear(outActionOrigins, 0, (int)OpenVR.k_unMaxActionOriginCount);
+                Array.Clear(outActionOrigins, 0, outActionOrigins.Length);
                 error = vrInput.GetActionOrigins(s_actionSetHandle, current.actionHandle, outActionOrigins);
+
+                while (error == EVRInputError.BufferTooSmall && outActionOrigins.Length <= 4096)
+                {
+                    Array.Resize(ref outActionOrigins, outActionOrigins.Length * 2);
+                    Debug.LogWarning("Expanding outActionOrigins size to " + outActionOrigins.Length);
+                    error = vrInput.GetActionOrigins(s_actionSetHandle, current.actionHandle, outActionOrigins);
+                }
+
                 if (error != EVRInputError.None)
                 {
                     Debug.LogError("[SteamVRv2Module] CVRInput.GetActionOrigins fail. input=" + p.Key + " action=" + actionCollection.ActionPaths[p.Key] + " error=" + error);
