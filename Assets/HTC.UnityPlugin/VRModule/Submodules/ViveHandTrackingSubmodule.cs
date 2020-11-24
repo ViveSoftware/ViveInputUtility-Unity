@@ -145,7 +145,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         pinchLevel = result.pinchLevel,
                     };
                 }
+#if NET_4_6
                 resultPtr = IntPtr.Add(resultPtr, sizeofGestureResult);
+#else
+                resultPtr = new IntPtr(resultPtr.ToInt64() + sizeofGestureResult);
+#endif
             }
 
             UpdateDeviceConnectionAndPoses(ref leftResult, ref leftDeviceIndex, true);
@@ -327,5 +331,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             internal static extern void SetCameraTransform(Vector3 position, Quaternion rotation);
         }
 #endif
-    }
-}
+            }
+        }
