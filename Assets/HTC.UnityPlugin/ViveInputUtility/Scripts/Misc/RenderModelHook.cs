@@ -115,6 +115,7 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
 
+                m_activeModel = shouldActiveModelNum;
                 if (shouldActiveModel)
                 {
                     var shouldActiveModelObj = m_modelObjs[shouldActiveModelNum];
@@ -125,7 +126,6 @@ namespace HTC.UnityPlugin.Vive
                         shouldActiveModelObj.transform.position = Vector3.zero;
                         shouldActiveModelObj.transform.rotation = Quaternion.identity;
                         shouldActiveModelObj.transform.SetParent(hook.transform, false);
-                        m_activeModel = shouldActiveModelNum;
                         m_modelObjs[shouldActiveModelNum] = shouldActiveModelObj;
                         m_isModelActivated = false;
                         SendAfterModelCreatedMessage(shouldActiveModelObj, hook);
