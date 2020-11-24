@@ -131,7 +131,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             deviceIndex = 0u;
             for (var len = GetDeviceStateLength(); deviceIndex < len; ++deviceIndex)
             {
-                if (TryGetValidDeviceState(deviceIndex++, out prevState, out currState))
+                if (TryGetValidDeviceState(deviceIndex, out prevState, out currState))
                 {
                     currState.isConnected = false;
                 }
@@ -186,7 +186,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     EnsureValidDeviceState(deviceIndex, out prevState, out currState);
                 }
-
                 currState.isConnected = true;
                 // update device Poses
                 currState.isPoseValid = GetDeviceFeatureValueOrDefault(device, CommonUsages.isTracked);
