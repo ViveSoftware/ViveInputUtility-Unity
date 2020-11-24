@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 #pragma warning disable 0649
+#pragma warning disable 0414
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
@@ -8,7 +9,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+
+#if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
+#endif
+
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
 using Wave.Native;
 #endif
