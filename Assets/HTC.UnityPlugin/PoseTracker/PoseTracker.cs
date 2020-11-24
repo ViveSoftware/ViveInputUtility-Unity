@@ -11,7 +11,14 @@ namespace HTC.UnityPlugin.PoseTracker
 
         protected virtual void LateUpdate()
         {
-            TrackPose(new RigidPose(target), false);
+            if (target == null)
+            {
+                TrackPose(RigidPose.identity, true);
+            }
+            else
+            {
+                TrackPose(new RigidPose(target), false);
+            }
         }
     }
 }
