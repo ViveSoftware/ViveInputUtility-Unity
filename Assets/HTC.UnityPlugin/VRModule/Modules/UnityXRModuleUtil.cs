@@ -23,7 +23,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private InputDevice[] index2Device = new InputDevice[VRModule.MAX_DEVICE_COUNT];
             public IndexMap() { Clear(); }
 
-            private bool IsValidDevice(InputDevice device) { return device.isValid; }
+            private bool IsValidDevice(InputDevice device) { return device != default(InputDevice); }
             private bool IsValidIndex(uint index) { return index < index2Device.Length; }
 
             public uint Device2Index(InputDevice device)
@@ -415,7 +415,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return defaultValue;
         }
 #endif
-        
+
 #else
 
         public static bool HasActiveLoader() { return false; }

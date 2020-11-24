@@ -129,9 +129,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             // therefore, if a device should stay alive in this frame
             // should be set as connected in the next stage
             deviceIndex = 0u;
-            while (TryGetValidDeviceState(deviceIndex++, out prevState, out currState))
+            for (var len = GetDeviceStateLength(); deviceIndex < len; ++deviceIndex)
             {
-                currState.isConnected = false;
+                if (TryGetValidDeviceState(deviceIndex++, out prevState, out currState))
+                {
+                    currState.isConnected = false;
+                }
             }
 
             InputDevices.GetDevices(connectedDevices);
