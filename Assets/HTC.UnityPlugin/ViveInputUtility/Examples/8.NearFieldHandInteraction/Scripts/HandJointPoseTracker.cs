@@ -1,13 +1,13 @@
 ﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
 
 using System;
+using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
-using UnityEngine;
 using UnityEngine.Events;
 
 namespace HTC.UnityPlugin.Vive
 {
-    public class HandJointTracker : MonoBehaviour
+    public class HandJointPoseTracker : BasePoseTracker
     {
         public enum Handedness
         {
@@ -35,8 +35,7 @@ namespace HTC.UnityPlugin.Vive
             JointPose jointPose;
             if (VivePose.TryGetHandJointPoseEx(handRole, jointName, out jointPose))
             {
-                transform.localPosition = jointPose.pose.pos;
-                transform.localRotation = jointPose.pose.rot;
+                TrackPose(jointPose.pose, true);
 
                 if (!m_isPoseValid)
                 {
