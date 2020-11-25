@@ -15,9 +15,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public partial class VRModule : SingletonBehaviour<VRModule>
     {
-        private static readonly DeviceState s_defaultState;
-        private static readonly SimulatorVRModule s_simulator;
-        private static readonly Dictionary<string, uint> s_deviceSerialNumberTable;
+        private static DeviceState s_defaultState;
+        private static SimulatorVRModule s_simulator;
+        private static Dictionary<string, uint> s_deviceSerialNumberTable;
 
         [SerializeField]
         private bool m_dontDestroyOnLoad = true;
@@ -51,15 +51,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private DeviceState[] m_prevStates;
         private DeviceState[] m_currStates;
 
-        static VRModule()
-        {
-            SetDefaultInitGameObjectGetter(GetDefaultInitGameObject);
-
-            s_defaultState = new DeviceState(INVALID_DEVICE_INDEX);
-            s_simulator = new SimulatorVRModule();
-            s_deviceSerialNumberTable = new Dictionary<string, uint>(16);
-        }
-
         private static GameObject GetDefaultInitGameObject()
         {
             return new GameObject("[ViveInputUtility]");
@@ -76,6 +67,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 DontDestroyOnLoad(gameObject);
             }
+
+            SetDefaultInitGameObjectGetter(GetDefaultInitGameObject);
+
+            s_defaultState = new DeviceState(INVALID_DEVICE_INDEX);
+            s_simulator = new SimulatorVRModule();
+            s_deviceSerialNumberTable = new Dictionary<string, uint>(16);
 
             m_activatedModule = VRModuleActiveEnum.Uninitialized;
             m_activatedModuleBase = null;

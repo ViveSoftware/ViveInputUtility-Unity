@@ -23,10 +23,7 @@ namespace HTC.UnityPlugin.Vive
         private bool m_individualTouchpadJoystickValue = INDIVIDUAL_TOUCHPAD_JOYSTICK_VALUE_DEFAULT_VALUE;
 
         [Serializable]
-        public class DeviceModelArray : EnumArray<VRModuleDeviceModel, GameObject>
-        {
-            static DeviceModelArray() { SetEnumToInt32Resolver((e) => (int)e); }
-        }
+        public class DeviceModelArray : EnumArray<VRModuleDeviceModel, GameObject> { }
 
         [SerializeField]
         private DeviceModelArray m_overrideDeviceModel = new DeviceModelArray();

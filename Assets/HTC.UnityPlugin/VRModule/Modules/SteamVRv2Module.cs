@@ -31,6 +31,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
 #if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
         public enum HapticStruct { Haptic }
+        private class HapticStructReslver : EnumArrayBase<HapticStruct>.Resolver { public override int Resolve(HapticStruct e) { return (int)e; } }
 
         private static bool s_pathInitialized;
         private static bool s_actionInitialized;
@@ -92,10 +93,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             if (s_pathInitialized) { return; }
             s_pathInitialized = true;
-
-            EnumArrayBase<VRModuleRawButton>.SetEnumToInt32Resolver(e => (int)e);
-            EnumArrayBase<VRModuleRawAxis>.SetEnumToInt32Resolver(e => (int)e);
-            EnumArrayBase<HapticStruct>.SetEnumToInt32Resolver(e => (int)e);
 
             pressActions = new ActionCollection<VRModuleRawButton>("/in/viu_press_", "boolean");
             pressActions.Set(VRModuleRawButton.System, "00", "Press00 (System)");

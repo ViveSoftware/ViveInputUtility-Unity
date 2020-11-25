@@ -45,7 +45,6 @@ namespace HTC.UnityPlugin.Vive
             public abstract void CleanUpRenderModel();
         }
 
-        [CreatorPriorityAttirbute(10)]
         public class DefaultRenderModelCreator : RenderModelCreator
         {
             private struct DefaultModelData
@@ -237,7 +236,7 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField]
         private VIUSettings.DeviceModelArray m_customModels = new VIUSettings.DeviceModelArray();
 
-        private static readonly Type[] s_creatorTypes;
+        private static Type[] s_creatorTypes;
         private RenderModelCreator[] m_creators;
         private int m_activeCreatorIndex = -1;
         private int m_defaultCreatorIndex = -1;
@@ -257,31 +256,64 @@ namespace HTC.UnityPlugin.Vive
 
         public VIUSettings.DeviceModelArray customModels { get { return m_customModels; } }
 
-        static RenderModelHook()
+        private static void FindAllRenderModelCreatorTypes()
         {
-            EnumArrayBase<VRModuleDeviceModel>.SetEnumToInt32Resolver(e => (int)e);
+            if (s_creatorTypes != null) { return; }
 
+            var defaultCreatorType = typeof(DefaultRenderModelCreator);
             try
             {
+                var creatorBaseType = typeof(RenderModelCreator);
                 var creatorTypes = new List<Type>();
-                foreach (var type in Assembly.GetAssembly(typeof(RenderModelCreator)).GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(RenderModelCreator))))
+                var currentAsm = creatorBaseType.Assembly;
+                var currentAsmName = currentAsm.GetName().Name;
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    creatorTypes.Add(type);
-                }
-                s_creatorTypes = creatorTypes.OrderBy(t =>
-                {
-                    foreach (var at in t.GetCustomAttributes(typeof(CreatorPriorityAttirbute), true))
+                    var referencingCurrentAsm = false;
+
+                    if (asm == currentAsm)
                     {
-                        return ((CreatorPriorityAttirbute)at).priority;
+                        referencingCurrentAsm = true;
                     }
-                    return 0;
-                }).ToArray();
+                    else
+                    {
+                        foreach (var asmref in asm.GetReferencedAssemblies())
+                        {
+                            if (asmref.Name == currentAsmName)
+                            {
+                                referencingCurrentAsm = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (referencingCurrentAsm)
+                    {
+                        foreach (var type in asm.GetTypes().Where(t => t.IsSubclassOf(creatorBaseType) && !t.IsAbstract && t != defaultCreatorType))
+                        {
+                            creatorTypes.Add(type);
+                        }
+                    }
+                }
+
+                creatorTypes.Sort((x, y) => GetCreatorPriority(x) - GetCreatorPriority(y));
+                creatorTypes.Add(defaultCreatorType);
+                s_creatorTypes = creatorTypes.ToArray();
             }
             catch (Exception e)
             {
-                s_creatorTypes = new Type[] { typeof(DefaultRenderModelCreator) };
+                s_creatorTypes = new Type[] { defaultCreatorType };
                 Debug.LogError(e);
             }
+        }
+
+        private static int GetCreatorPriority(Type t, int defaultValue = 0)
+        {
+            foreach (var at in t.GetCustomAttributes(typeof(CreatorPriorityAttirbute), true))
+            {
+                return ((CreatorPriorityAttirbute)at).priority;
+            }
+            return defaultValue;
         }
 
 #if UNITY_EDITOR
@@ -295,6 +327,8 @@ namespace HTC.UnityPlugin.Vive
 #endif
         private void Awake()
         {
+            FindAllRenderModelCreatorTypes();
+
             m_creators = new RenderModelCreator[s_creatorTypes.Length];
             for (int i = s_creatorTypes.Length - 1; i >= 0; --i)
             {
@@ -354,7 +388,7 @@ namespace HTC.UnityPlugin.Vive
         }
 
         private bool m_isCustomModelActivated;
-        private EnumArray<VRModuleDeviceModel, GameObject> m_customModelObjs = new EnumArray<VRModuleDeviceModel, GameObject>((e) => (int)e);
+        private EnumArray<VRModuleDeviceModel, GameObject> m_customModelObjs = new EnumArray<VRModuleDeviceModel, GameObject>();
         private VRModuleDeviceModel m_activeCustomModel;
 
         public EnumArray<VRModuleDeviceModel, GameObject>.IReadOnly loadedCuustomModels { get { return m_customModelObjs.ReadOnly; } }

@@ -32,4 +32,6 @@ namespace HTC.UnityPlugin.Utility
         PinkyDistal,
         PinkyTip,
     }
+
+    internal class HandJointNameReslver : EnumArrayBase<HandJointName>.Resolver { public override int Resolve(HandJointName e) { return (int)e; } }
 }

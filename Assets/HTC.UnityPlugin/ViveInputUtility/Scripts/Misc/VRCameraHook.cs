@@ -28,26 +28,54 @@ namespace HTC.UnityPlugin.Vive
             public abstract void CreateCamera(VRCameraHook hook);
         }
 
-        private static readonly Type[] s_creatorTypes;
+        private static Type[] s_creatorTypes;
         private CameraCreator[] m_creators;
 
-        static VRCameraHook()
+        private static void FindAllCameraCreatorTypes()
         {
+            if (s_creatorTypes != null) { return; }
+
             try
             {
+                var creatorBaseType = typeof(CameraCreator);
                 var creatorTypes = new List<Type>();
-                foreach (var type in Assembly.GetAssembly(typeof(CameraCreator)).GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(CameraCreator))))
+                var currentAsm = creatorBaseType.Assembly;
+                var currentAsmName = currentAsm.GetName().Name;
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    creatorTypes.Add(type);
-                }
-                s_creatorTypes = creatorTypes.OrderBy(t =>
-                {
-                    foreach (var at in t.GetCustomAttributes(typeof(CreatorPriorityAttirbute), true))
+                    var referencingCurrentAsm = false;
+
+                    if (asm == currentAsm)
                     {
-                        return ((CreatorPriorityAttirbute)at).priority;
+                        referencingCurrentAsm = true;
                     }
-                    return 0;
-                }).ToArray();
+                    else
+                    {
+                        foreach (var asmref in asm.GetReferencedAssemblies())
+                        {
+                            if (asmref.Name == currentAsmName)
+                            {
+                                referencingCurrentAsm = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (referencingCurrentAsm)
+                    {
+                        foreach (var type in asm.GetTypes().Where(t => t.IsSubclassOf(creatorBaseType) && !t.IsAbstract))
+                        {
+                            creatorTypes.Add(type);
+                        }
+                    }
+                }
+
+                creatorTypes.Sort((x, y) => GetCreatorPriority(x) - GetCreatorPriority(y));
+                s_creatorTypes = creatorTypes.ToArray();
+                foreach (var t in s_creatorTypes)
+                {
+                    Debug.Log(t.FullName);
+                }
             }
             catch (Exception e)
             {
@@ -56,8 +84,19 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
+        private static int GetCreatorPriority(Type t, int defaultValue = 0)
+        {
+            foreach (var at in t.GetCustomAttributes(typeof(CreatorPriorityAttirbute), true))
+            {
+                return ((CreatorPriorityAttirbute)at).priority;
+            }
+            return defaultValue;
+        }
+
         private void Awake()
         {
+            FindAllCameraCreatorTypes();
+
             m_creators = new CameraCreator[s_creatorTypes.Length];
             for (int i = s_creatorTypes.Length - 1; i >= 0; --i)
             {

@@ -25,9 +25,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
 #if UNITY_2017_1_OR_NEWER && !UNITY_2020_1_OR_NEWER
+        private class XRNodeReslver : EnumArrayBase<XRNode>.Resolver { public override int Resolve(XRNode e) { return (int)e; } }
+
         private static readonly Regex m_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);
-        private static readonly EnumArray<XRNode, VRModuleDeviceClass> s_nodeType2DeviceClass;
+        private static EnumArray<XRNode, VRModuleDeviceClass> s_nodeType2DeviceClass;
 
         private uint m_leftIndex = INVALID_DEVICE_INDEX;
         private uint m_rightIndex = INVALID_DEVICE_INDEX;
@@ -40,18 +42,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private TrackingSpaceType m_prevTrackingSpace;
 
-        static UnityEngineVRModule()
-        {
-            EnumArrayBase<XRNode>.SetEnumToInt32Resolver(e => (int)e);
-            s_nodeType2DeviceClass = new EnumArray<XRNode, VRModuleDeviceClass>(VRModuleDeviceClass.Invalid);
-            s_nodeType2DeviceClass[XRNode.Head] = VRModuleDeviceClass.HMD;
-            s_nodeType2DeviceClass[XRNode.RightHand] = VRModuleDeviceClass.Controller;
-            s_nodeType2DeviceClass[XRNode.LeftHand] = VRModuleDeviceClass.Controller;
-            s_nodeType2DeviceClass[XRNode.GameController] = VRModuleDeviceClass.Controller;
-            s_nodeType2DeviceClass[XRNode.HardwareTracker] = VRModuleDeviceClass.GenericTracker;
-            s_nodeType2DeviceClass[XRNode.TrackingReference] = VRModuleDeviceClass.TrackingReference;
-        }
-
         public override void OnActivated()
         {
             m_prevTrackingSpace = XRDevice.GetTrackingSpaceType();
@@ -61,6 +51,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
             m_index2nodeID = new ulong[GetDeviceStateLength()];
             m_index2nodeValidity = new bool[GetDeviceStateLength()];
             m_index2nodeTouched = new bool[GetDeviceStateLength()];
+
+            if (s_nodeType2DeviceClass == null)
+            {
+                s_nodeType2DeviceClass = new EnumArray<XRNode, VRModuleDeviceClass>(VRModuleDeviceClass.Invalid);
+                s_nodeType2DeviceClass[XRNode.Head] = VRModuleDeviceClass.HMD;
+                s_nodeType2DeviceClass[XRNode.RightHand] = VRModuleDeviceClass.Controller;
+                s_nodeType2DeviceClass[XRNode.LeftHand] = VRModuleDeviceClass.Controller;
+                s_nodeType2DeviceClass[XRNode.GameController] = VRModuleDeviceClass.Controller;
+                s_nodeType2DeviceClass[XRNode.HardwareTracker] = VRModuleDeviceClass.GenericTracker;
+                s_nodeType2DeviceClass[XRNode.TrackingReference] = VRModuleDeviceClass.TrackingReference;
+            }
         }
 
         public override void OnDeactivated()

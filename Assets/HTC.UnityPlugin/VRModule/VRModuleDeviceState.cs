@@ -142,6 +142,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         JoystickOnly = ThumbstickOnly,
     }
 
+    internal class VRModuleDeviceClassReslver : EnumArrayBase<VRModuleDeviceClass>.Resolver { public override int Resolve(VRModuleDeviceClass e) { return (int)e; } }
+    internal class VRModuleDeviceModelReslver : EnumArrayBase<VRModuleDeviceModel>.Resolver { public override int Resolve(VRModuleDeviceModel e) { return (int)e; } }
+    internal class VRModuleRawButtonReslver : EnumArrayBase<VRModuleRawButton>.Resolver { public override int Resolve(VRModuleRawButton e) { return (int)e; } }
+    internal class VRModuleRawAxisReslver : EnumArrayBase<VRModuleRawAxis>.Resolver { public override int Resolve(VRModuleRawAxis e) { return (int)e; } }
+    internal class VRModuleInput2DTypeReslver : EnumArrayBase<VRModuleInput2DType>.Resolver { public override int Resolve(VRModuleInput2DType e) { return (int)e; } }
+
     public interface IVRModuleDeviceStateRW
     {
         uint deviceIndex { get; }
@@ -214,10 +220,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     }
 
     [Serializable]
-    public class JointEnumArray : EnumArray<HandJointName, JointPose>
-    {
-        static JointEnumArray() { SetEnumToInt32Resolver(e => (int)e); }
-    }
+    public class JointEnumArray : EnumArray<HandJointName, JointPose> { }
 
     public partial class VRModule : SingletonBehaviour<VRModule>
     {

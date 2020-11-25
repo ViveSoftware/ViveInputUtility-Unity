@@ -28,10 +28,7 @@ namespace HTC.UnityPlugin.Vive
         }
 
         [Serializable]
-        public class JointTransArray : EnumArray<HandJointName, Transform>
-        {
-            static JointTransArray() { SetEnumToInt32Resolver(e => (int)e); }
-        }
+        public class JointTransArray : EnumArray<HandJointName, Transform> { }
 
         [SerializeField]
         private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
