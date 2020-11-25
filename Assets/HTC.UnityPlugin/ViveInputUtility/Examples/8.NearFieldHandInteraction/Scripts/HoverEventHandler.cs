@@ -91,7 +91,7 @@ namespace HTC.UnityPlugin.Vive
 
         private void InvokeStayEvent(Transform transform)
         {
-            if (hoverEntered != null)
+            if (hoverStaying != null)
             {
                 hoverStaying.Invoke(transform);
             }
@@ -99,7 +99,7 @@ namespace HTC.UnityPlugin.Vive
 
         private void InvokeExitEvent(ColliderHoverEventData eventData)
         {
-            if (hoverEntered != null)
+            if (hoverExited != null)
             {
                 hoverExited.Invoke(eventData);
             }
