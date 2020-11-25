@@ -540,7 +540,7 @@ namespace HTC.UnityPlugin.Utility
 
         public readonly static Type StaticElementType = typeof(TValue);
 
-        public EnumArray() { elements = new TValue[Length]; }
+        public EnumArray() { elements = new TValue[StaticLength]; }
 
         public EnumArray(TValue initValue) : this() { Clear(initValue); }
 
@@ -641,11 +641,11 @@ namespace HTC.UnityPlugin.Utility
         {
             if (elements == null)
             {
-                elements = new TValue[Length];
+                elements = new TValue[StaticLength];
                 return;
             }
 
-            var len = Length;
+            var len = StaticLength;
             if (elements.Length < len)
             {
                 Array.Resize(ref elements, len);
@@ -659,7 +659,7 @@ namespace HTC.UnityPlugin.Utility
                 return;
             }
 
-            var len = Length;
+            var len = StaticLength;
             if (elements.Length > len)
             {
                 Array.Resize(ref elements, len);
