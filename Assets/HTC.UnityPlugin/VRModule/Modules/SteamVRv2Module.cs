@@ -376,11 +376,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     if (!m_poses[i].bDeviceIsConnected)
                     {
-                        m_openvrCtrlRoleDirty = true;
                         uint moduleIndex;
-                        if (m_indexMap.TryGetModuleIndex(i, out moduleIndex))
+                        if (m_indexMap.UnmapTracked(i, out moduleIndex))
                         {
-                            m_indexMap.UnmapTracked(i);
+                            m_openvrCtrlRoleDirty = true;
                             if (TryGetValidDeviceState(moduleIndex, out prevState, out currState))
                             {
                                 currState.Reset();
@@ -452,13 +451,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var moduleLeft = m_openvrLeftIndex != INVALID_DEVICE_INDEX ? m_openvrLeftIndex : m_submodules.GetFirstLeftHandedIndex();
             var roleChanged = ChangeProp.Set(ref m_moduleRightIndex, moduleRight);
             roleChanged |= ChangeProp.Set(ref m_moduleLeftIndex, moduleLeft);
+
+            ProcessConnectedDeviceChanged();
+            ProcessDevicePoseChanged();
+        
             if (roleChanged)
             {
                 InvokeControllerRoleChangedEvent();
             }
-
-            ProcessConnectedDeviceChanged();
-            ProcessDevicePoseChanged();
         }
 
         public override void Update()
@@ -523,7 +523,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f)
         {
             var trackedIndex = m_indexMap.Module2TrackedIndex(deviceIndex);
-            var handle = GetInputSourceHandleForDevice(trackedIndex);
+            var handle = m_originDataCache.GetPathHandleByTrackedIndex(trackedIndex);
             if (handle == OpenVR.k_ulInvalidDriverHandle) { return; }
 
             var vrInput = OpenVR.Input;

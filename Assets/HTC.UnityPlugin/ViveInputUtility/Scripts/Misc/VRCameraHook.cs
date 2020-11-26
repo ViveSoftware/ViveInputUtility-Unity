@@ -72,10 +72,6 @@ namespace HTC.UnityPlugin.Vive
 
                 creatorTypes.Sort((x, y) => GetCreatorPriority(x) - GetCreatorPriority(y));
                 s_creatorTypes = creatorTypes.ToArray();
-                foreach (var t in s_creatorTypes)
-                {
-                    Debug.Log(t.FullName);
-                }
             }
             catch (Exception e)
             {
