@@ -103,7 +103,9 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "Windows MR";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "Windows MR"), support);
+                    var wasSupported = support;
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "Windows MR"), wasSupported);
+                    s_symbolChanged |= wasSupported != support;
                 }
                 else
                 {

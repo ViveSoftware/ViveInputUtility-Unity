@@ -565,7 +565,9 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "Oculus Android";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "Oculus Go, Oculus Quest"), support);
+                    var wasSupported = support;
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "Oculus Go, Oculus Quest"), wasSupported);
+                    s_symbolChanged |= wasSupported != support;
                 }
                 else
                 {

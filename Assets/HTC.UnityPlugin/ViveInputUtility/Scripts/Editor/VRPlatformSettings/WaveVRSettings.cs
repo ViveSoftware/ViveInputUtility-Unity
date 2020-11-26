@@ -193,7 +193,9 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "WaveVR";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE Focus, VIVE Focus Plus"), support);
+                    var wasSupported = support;
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE Focus, VIVE Focus Plus"), wasSupported);
+                    s_symbolChanged |= wasSupported != support;
                 }
                 else
                 {

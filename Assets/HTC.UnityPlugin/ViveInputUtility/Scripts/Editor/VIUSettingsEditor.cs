@@ -484,6 +484,7 @@ namespace HTC.UnityPlugin.Vive
         private static float s_warningHeight;
         private static GUIStyle s_labelStyle;
         private static bool s_guiChanged;
+        private static bool s_symbolChanged;
         private static string s_defaultAssetPath;
         private static string s_VIUPackageName = null;
 
@@ -651,6 +652,7 @@ namespace HTC.UnityPlugin.Vive
             Foldouter.Initialize();
 
             s_guiChanged = false;
+            s_symbolChanged = false;
 
             s_scrollValue = EditorGUILayout.BeginScrollView(s_scrollValue);
 
@@ -822,8 +824,6 @@ namespace HTC.UnityPlugin.Vive
                 EditorUtility.SetDirty(VRModuleSettings.Instance);
 
                 VIUVersionCheck.UpdateIgnoredNotifiedSettingsCount(false);
-
-                VRModuleManagerEditor.UpdateScriptingDefineSymbols();
             }
 
             if (!string.IsNullOrEmpty(viuSettingsAssetPath) || !string.IsNullOrEmpty(moduleSettingsAssetPath))
@@ -837,7 +837,11 @@ namespace HTC.UnityPlugin.Vive
                     AssetDatabase.DeleteAsset(moduleSettingsAssetPath);
                     foreach (var ps in s_platformSettings)
                     {
-                        ps.support = ps.canSupport;
+                        if (ps.canSupport && !ps.support)
+                        {
+                            ps.support = true;
+                            s_symbolChanged |= ps.support;
+                        }
                     }
 
                     VRSDKSettings.ApplyChanges();
@@ -849,10 +853,15 @@ namespace HTC.UnityPlugin.Vive
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(new GUIContent("Repair Define Symbols", "Repair symbols that handled by VIU.")))
             {
-                VRModuleManagerEditor.UpdateScriptingDefineSymbols();
+                s_symbolChanged = true;
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+
+            if (s_symbolChanged)
+            {
+                VRModuleManagerEditor.UpdateScriptingDefineSymbols();
+            }
 
             //if (GUILayout.Button("Create Partial Action Set", GUILayout.ExpandWidth(false)))
             //{

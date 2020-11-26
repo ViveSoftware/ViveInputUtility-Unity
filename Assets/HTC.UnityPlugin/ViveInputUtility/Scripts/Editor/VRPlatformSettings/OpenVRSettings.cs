@@ -464,7 +464,9 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "OpenVR";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE, VIVE Pro, VIVE Pro Eye, VIVE Cosmos\nOculus Rift, Oculus Rift S, Windows MR"), support);
+                    var wasSupported = support;
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE, VIVE Pro, VIVE Pro Eye, VIVE Cosmos\nOculus Rift, Oculus Rift S, Windows MR"), wasSupported);
+                    s_symbolChanged |= wasSupported != support;
                 }
                 else
                 {
