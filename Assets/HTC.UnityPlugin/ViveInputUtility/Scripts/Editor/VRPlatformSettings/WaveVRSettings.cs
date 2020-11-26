@@ -252,6 +252,35 @@ namespace HTC.UnityPlugin.Vive
                     if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
                     {
                         EditorGUI.indentLevel += 2;
+
+                        // Wave Hand Tracking Submodule
+                        const string whtTitle = "Enable Wave Hand Tracking";
+                        const string whgTitle = "Enable Wave Hand Gesture";
+                        if (!VRModule.isWaveHandTrackingDetected)
+                        {
+                            GUI.enabled = false;
+                            EditorGUILayout.ToggleLeft(new GUIContent(whtTitle, "Wave Hand Tracking SDK required"), false, GUILayout.Width(230f));
+                            GUI.enabled = true;
+                        }
+                        else
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            VRModuleSettings.activateWaveHandTrackingSubmodule = EditorGUILayout.ToggleLeft(new GUIContent(whtTitle, "VIVE Focus, VIVE Focus Plus"), VRModuleSettings.activateWaveHandTrackingSubmodule);
+                            EditorGUI.indentLevel++;
+                            if (VRModuleSettings.activateWaveHandTrackingSubmodule)
+                            {
+                                VRModuleSettings.enableWaveHandGesture = EditorGUILayout.ToggleLeft(new GUIContent(whgTitle, "VIVE Focus, VIVE Focus Plus"), VRModuleSettings.enableWaveHandGesture);
+                            }
+                            else
+                            {
+                                GUI.enabled = false;
+                                EditorGUILayout.ToggleLeft(new GUIContent(whgTitle, "Wave Hand Tracking SDK required"), VRModuleSettings.enableWaveHandGesture, GUILayout.Width(230f));
+                                GUI.enabled = true;
+                            }
+                            EditorGUI.indentLevel--;
+                            s_guiChanged |= EditorGUI.EndChangeCheck();
+                        }
+
                         EditorGUILayout.BeginHorizontal();
 
                         EditorGUIUtility.labelWidth = 230;

@@ -58,7 +58,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         protected override void OnUpdateDeviceConnectionAndPoses()
         {
-            trackingActivator.SetActive(VRModuleSettings.enableWaveHandTracking);
+            trackingActivator.SetActive(VRModuleSettings.activateWaveHandTrackingSubmodule);
 
             if (VRModule.trackingSpaceType == VRModuleTrackingSpaceType.RoomScale)
             {
