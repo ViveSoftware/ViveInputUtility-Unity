@@ -13,6 +13,8 @@ namespace HTC.UnityPlugin.Pointer3D
     {
         private static readonly IndexedSet<ICanvasRaycastTarget> canvases = new IndexedSet<ICanvasRaycastTarget>();
 
+        public static IIndexedSetReadOnly<ICanvasRaycastTarget> TargetCanvases { get { return canvases.ReadOnly; } }
+
         public static bool AddTarget(ICanvasRaycastTarget obj) { return obj == null ? false : canvases.AddUnique(obj); }
 
         public static bool RemoveTarget(ICanvasRaycastTarget obj) { return obj == null ? false : canvases.Remove(obj); }

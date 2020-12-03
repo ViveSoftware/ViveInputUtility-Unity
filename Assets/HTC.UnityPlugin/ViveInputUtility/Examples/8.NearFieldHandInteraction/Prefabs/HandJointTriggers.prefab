@@ -878,9 +878,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 0
-  jointName: 21
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: LeftHand
+    m_roleValueInt: 1
+  m_joint: 21
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 104542}
@@ -894,7 +900,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11410086
 MonoBehaviour:
@@ -907,9 +913,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 1
-  jointName: 21
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: RightHand
+    m_roleValueInt: 0
+  m_joint: 21
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 130296}
@@ -923,7 +935,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11410220
 MonoBehaviour:
@@ -982,9 +994,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 1
-  jointName: 26
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: RightHand
+    m_roleValueInt: 0
+  m_joint: 26
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 198720}
@@ -998,7 +1016,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11420010
 MonoBehaviour:
@@ -1011,9 +1029,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 0
-  jointName: 11
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: LeftHand
+    m_roleValueInt: 1
+  m_joint: 11
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 106986}
@@ -1027,7 +1051,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11429116
 MonoBehaviour:
@@ -1086,9 +1110,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 0
-  jointName: 6
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: LeftHand
+    m_roleValueInt: 1
+  m_joint: 6
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 133406}
@@ -1102,7 +1132,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11445654
 MonoBehaviour:
@@ -1115,9 +1145,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 1
-  jointName: 11
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: RightHand
+    m_roleValueInt: 0
+  m_joint: 11
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 107874}
@@ -1131,7 +1167,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11453486
 MonoBehaviour:
@@ -1167,9 +1203,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 1
-  jointName: 16
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: RightHand
+    m_roleValueInt: 0
+  m_joint: 16
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 101862}
@@ -1183,7 +1225,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11459506
 MonoBehaviour:
@@ -1196,9 +1238,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 1
-  jointName: 6
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: RightHand
+    m_roleValueInt: 0
+  m_joint: 6
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 155178}
@@ -1212,7 +1260,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11460248
 MonoBehaviour:
@@ -1248,9 +1296,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 0
-  jointName: 26
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: LeftHand
+    m_roleValueInt: 1
+  m_joint: 26
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 194090}
@@ -1264,7 +1318,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11479766
 MonoBehaviour:
@@ -1277,9 +1331,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba41add75de4d841964b1a2821e1b70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handedness: 0
-  jointName: 16
-  poseStatusChanged:
+  posOffset: {x: 0, y: 0, z: 0}
+  rotOffset: {x: 0, y: 0, z: 0}
+  m_origin: {fileID: 0}
+  m_viveRole:
+    m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
+    m_roleValueName: LeftHand
+    m_roleValueInt: 1
+  m_joint: 16
+  m_onIsValidChanged:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 188038}
@@ -1293,7 +1353,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: HTC.UnityPlugin.Vive.HandJointTracker+PoseStatusChangeEvent, Assembly-CSharp,
+    m_TypeName: HTC.UnityPlugin.Vive.HandJointPoseTracker+UnityEventBool, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11499992
 MonoBehaviour:

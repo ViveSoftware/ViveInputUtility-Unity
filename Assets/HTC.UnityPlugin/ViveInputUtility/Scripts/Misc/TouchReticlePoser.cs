@@ -1,51 +1,119 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+
+#pragma warning disable 0649
+using HTC.UnityPlugin.Pointer3D;
+using HTC.UnityPlugin.Utility;
+using System;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
-public class TouchReticlePoser : ReticlePoser
+namespace HTC.UnityPlugin.Vive
 {
-    [SerializeField]
-    float MaxDistance = 0.15f;
-    //[SerializeField]
-    //int reticleSizePixelMin = 0;
-    [SerializeField]
-    int reticleSizePixelMax = 3000;
-    [SerializeField]
-    float reticleAlphaFar = 0.3f;
-    //[SerializeField]
-    //float reticleAlphaNear = 0;
-
-    protected override void LateUpdate()
+    public class TouchReticlePoser : MonoBehaviour
     {
-        base.LateUpdate();
+        [Serializable]
+        public class UnityEventFloat : UnityEvent<float> { }
 
-        if (hitTarget == null)
-            return;
+        [SerializeField]
+        private TouchPointerRaycaster raycaster;
+        [SerializeField]
+        private Transform reticleRoot;
+        [SerializeField]
+        private Transform approachReticle;
+        [SerializeField]
+        private Transform touchedReticle;
+        [SerializeField]
+        private float approachDistance;
+        [SerializeField]
+        private float floatingDistance = 0.002f;
+        [SerializeField]
+        private UnityEventFloat onApproach;
 
-        float ratio = (hitDistance - ViveFingerPoseTracker.HitOffset) / MaxDistance;
-        if (ratio > 1)
+        private bool lastResultIsValid;
+        private bool lastApproaching;
+        private bool lastTouched;
+#if UNITY_EDITOR
+        protected virtual void Reset()
         {
-            if (reticleForDefaultRay != null) { reticleForDefaultRay.gameObject.SetActive(false); }
-            if (reticleForCurvedRay != null) { reticleForCurvedRay.gameObject.SetActive(false); }
-            return;
+            for (var tr = transform; raycaster == null && tr != null; tr = tr.parent)
+            {
+                raycaster = tr.GetComponentInChildren<TouchPointerRaycaster>(true);
+            }
         }
-
-        autoScaleReticle = true;
-        sizeInPixels = (int)Mathf.Lerp(0, reticleSizePixelMax, ratio);
-
-        float alpha = Mathf.Lerp(reticleAlphaFar, 0, ratio);
-        setReticleMaterialAlpha(alpha);
-    }
-
-    private void setReticleMaterialAlpha(float alpha)
-    {
-        if (reticleRenderer == null || reticleRenderer.Length == 0) { return; }
-
-        foreach (MeshRenderer mr in reticleRenderer)
+#endif
+        private void LateUpdate()
         {
-            Color color = mr.material.color;
-            color.a = alpha;
-            mr.material.color = color;
+            var result = raycaster.FirstRaycastResult();
+
+            if (!result.isValid)
+            {
+                if (lastResultIsValid)
+                {
+                    if (reticleRoot != null) { reticleRoot.gameObject.SetActive(false); }
+                    lastResultIsValid = false;
+                }
+            }
+            else
+            {
+                var touchDist = Mathf.Max(raycaster.MouseButtonLeftRange, raycaster.MouseButtonRightRange, raycaster.MouseButtonMiddleRange);
+
+                if (reticleRoot != null)
+                {
+                    reticleRoot.rotation = Quaternion.LookRotation(-result.worldNormal, raycaster.transform.up);
+                    reticleRoot.position = result.worldPosition + result.worldNormal * floatingDistance;
+
+                    if (!lastResultIsValid)
+                    {
+                        reticleRoot.gameObject.SetActive(true);
+                        lastResultIsValid = true;
+                    }
+                }
+
+                if (approachReticle != null)
+                {
+                    var approach = Mathf.InverseLerp(approachDistance, touchDist, result.distance);
+                    if (approach <= 0f || approach >= 1f)
+                    {
+                        if (lastApproaching)
+                        {
+                            approachReticle.gameObject.SetActive(false);
+                            lastApproaching = false;
+                        }
+                    }
+                    else
+                    {
+                        approachReticle.transform.localScale = Vector3.one * approach;
+
+                        if (!lastApproaching)
+                        {
+                            approachReticle.gameObject.SetActive(true);
+                            lastApproaching = true;
+                        }
+                    }
+                }
+
+                if (touchedReticle != null)
+                {
+                    if (result.distance <= touchDist)
+                    {
+                        if (!lastTouched)
+                        {
+                            touchedReticle.gameObject.SetActive(true);
+                            lastTouched = true;
+                        }
+                    }
+                    else
+                    {
+                        if (lastTouched)
+                        {
+                            touchedReticle.gameObject.SetActive(false);
+                            lastTouched = false;
+                        }
+                    }
+                }
+            }
         }
     }
 }

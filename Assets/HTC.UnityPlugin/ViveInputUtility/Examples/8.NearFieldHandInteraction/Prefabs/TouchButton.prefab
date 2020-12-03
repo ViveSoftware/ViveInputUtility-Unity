@@ -212,6 +212,11 @@ MonoBehaviour:
         m_CallState: 2
     m_TypeName: HTC.UnityPlugin.Vive.HoverEventHandler+HoverEnterEvent, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  everyHoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: HTC.UnityPlugin.Vive.HoverEventHandler+EveryHoverEnterEvent, Assembly-CSharp,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   hoverStaying:
     m_PersistentCalls:
       m_Calls: []
@@ -221,6 +226,11 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
     m_TypeName: HTC.UnityPlugin.Vive.HoverEventHandler+HoverExitEvent, Assembly-CSharp,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  everyHoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: HTC.UnityPlugin.Vive.HoverEventHandler+EveryHoverExitEvent, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!1001 &100100000
 Prefab:
