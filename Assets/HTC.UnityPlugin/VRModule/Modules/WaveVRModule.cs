@@ -72,7 +72,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                         if (m_modelObj != null)
                         {
-                            m_modelObj.gameObject.SetActive(false);
+                            m_modelObj.SetActive(false);
                         }
                     }
                     else
@@ -80,6 +80,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         UpdateDefaultRenderModel(false);
 
                         m_modelObj = new GameObject("Model");
+                        m_modelObj.SetActive(false);
                         m_modelObj.transform.SetParent(hook.transform, false);
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
                         m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
@@ -88,6 +89,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
                         m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
 #endif
+                        m_modelObj.SetActive(true);
                     }
                 }
                 else if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetLeftControllerDeviceIndex())
@@ -100,7 +102,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                         if (m_modelObj != null)
                         {
-                            m_modelObj.gameObject.SetActive(false);
+                            m_modelObj.SetActive(false);
                         }
                     }
                     else
@@ -108,26 +110,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         UpdateDefaultRenderModel(false);
 
                         m_modelObj = new GameObject("Model");
+                        m_modelObj.SetActive(false);
                         m_modelObj.transform.SetParent(hook.transform, false);
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
                         var rm = m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
-                        rm.transform.gameObject.SetActive(false);
                         rm.WhichHand = XR_Hand.NonDominant;
-                        rm.transform.gameObject.SetActive(true);
                         var be = m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
-                        be.transform.gameObject.SetActive(false);
                         be.HandType = XR_Hand.NonDominant;
-                        be.transform.gameObject.SetActive(true);
 #elif VIU_WAVEXR_ESSENCE_RENDERMODEL
                         var rm = m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
-                        rm.transform.gameObject.SetActive(false);
                         rm.WhichHand = XR_Hand.NonDominant;
-                        rm.transform.gameObject.SetActive(true);
                         var be = m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
-                        be.transform.gameObject.SetActive(false);
                         be.HandType = XR_Hand.NonDominant;
-                        be.transform.gameObject.SetActive(true);
 #endif
+                        m_modelObj.SetActive(true);
                     }
                 }
                 else
@@ -136,7 +132,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     // deacitvate object for render model
                     if (m_modelObj != null)
                     {
-                        m_modelObj.gameObject.SetActive(false);
+                        m_modelObj.SetActive(false);
                     }
                 }
             }
@@ -147,7 +143,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (m_modelObj != null)
                 {
-                    UnityEngine.Object.Destroy(m_modelObj.gameObject);
+                    UnityEngine.Object.Destroy(m_modelObj);
                     m_modelObj = null;
                     m_index = INVALID_DEVICE_INDEX;
                 }

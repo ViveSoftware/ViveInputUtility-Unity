@@ -431,24 +431,28 @@ namespace HTC.UnityPlugin.VRModuleManagement
             bool secondaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryButton);
             bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
             bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
+            bool triggerTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerTouch"));
             bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
+            bool gripTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("GripTouch"));
             float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
             float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip);
             Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
             Vector2 secondary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxis);
             Vector2 dPad = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<Vector2>("DPad"));
 
-            state.SetButtonPress(VRModuleRawButton.Touchpad, secondary2DAxisClick);
-            state.SetButtonTouch(VRModuleRawButton.Touchpad, secondary2DAxisTouch);
+            state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
+            state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
             state.SetButtonPress(VRModuleRawButton.A, primaryButton);
             state.SetButtonPress(VRModuleRawButton.ApplicationMenu, secondaryButton);
             state.SetButtonPress(VRModuleRawButton.System, menuButton);
             state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
+            state.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
             state.SetButtonPress(VRModuleRawButton.Grip, gripButton);
+            state.SetButtonTouch(VRModuleRawButton.Grip, gripTouch);
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
-            state.SetAxisValue(VRModuleRawAxis.TouchpadX, secondary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.TouchpadY, secondary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
         }
 
         private void UpdateViveFocusChirpControllerState(IVRModuleDeviceStateRW state, InputDevice device)

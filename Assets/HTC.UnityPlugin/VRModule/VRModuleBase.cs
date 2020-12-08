@@ -55,6 +55,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 { "WVR_CONTROLLER_FINCH3DOF_2_0", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusFinch, input2D = VRModuleInput2DType.TouchpadOnly } },
                 { "WVR_CONTROLLER_ASPEN_MI6_1", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusChirp, input2D = VRModuleInput2DType.TouchpadOnly } },
+                { "WVR_CR_Right_001", new WVRCtrlProfile() { model = VRModuleDeviceModel.Unknown, input2D = VRModuleInput2DType.JoystickOnly } },
+                { "WVR_CR_Left_001", new WVRCtrlProfile() { model = VRModuleDeviceModel.Unknown, input2D = VRModuleInput2DType.JoystickOnly } },
             };
 
             public bool isActivated { get; private set; }
@@ -93,7 +95,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             [Obsolete]
             public virtual void UpdateDeviceState(IVRModuleDeviceState[] prevState, IVRModuleDeviceStateRW[] currState) { }
 
-            public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { TriggerHapticVibration(deviceIndex, 1000000f * (float)durationMicroSec); }
+            public virtual void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500) { TriggerHapticVibration(deviceIndex, 0.000001f * (float)durationMicroSec); }
 
             public virtual void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85f, float amplitude = 0.125f, float startSecondsFromNow = 0f) { }
 

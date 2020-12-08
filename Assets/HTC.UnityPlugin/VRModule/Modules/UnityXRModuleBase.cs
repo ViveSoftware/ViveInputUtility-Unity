@@ -354,7 +354,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 var now = Time.unscaledTime;
                 var newMaxIndex = 0u;
-                for (uint i = 0, imax = maxHapticStateIndex; i < imax; ++i)
+                for (uint i = 0, imax = maxHapticStateIndex; i <= imax; ++i)
                 {
                     InputDevice device;
                     if (now <= hapticStates[i].endTime)
