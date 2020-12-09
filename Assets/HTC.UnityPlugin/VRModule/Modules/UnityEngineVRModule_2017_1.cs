@@ -25,7 +25,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
     public sealed partial class UnityEngineVRModule : VRModule.ModuleBase
     {
 #if UNITY_2017_1_OR_NEWER && !UNITY_2020_1_OR_NEWER
-        private class XRNodeReslver : EnumArrayBase<XRNode>.Resolver { public override int Resolve(XRNode e) { return (int)e; } }
+        private class XRNodeReslver : EnumToIntResolver<XRNode> { public override int Resolve(XRNode e) { return (int)e; } }
 
         private static readonly Regex m_leftRgx = new Regex("^.*left.*$", RegexOptions.IgnoreCase);
         private static readonly Regex m_rightRgx = new Regex("^.*right.*$", RegexOptions.IgnoreCase);

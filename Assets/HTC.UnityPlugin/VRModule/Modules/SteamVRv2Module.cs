@@ -31,7 +31,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
 #if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
         public enum HapticStruct { Haptic }
-        private class HapticStructReslver : EnumArrayBase<HapticStruct>.Resolver { public override int Resolve(HapticStruct e) { return (int)e; } }
+        private class HapticStructReslver : EnumToIntResolver<HapticStruct> { public override int Resolve(HapticStruct e) { return (int)e; } }
 
         private static bool s_pathInitialized;
         private static bool s_actionInitialized;

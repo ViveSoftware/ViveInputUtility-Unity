@@ -142,11 +142,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         JoystickOnly = ThumbstickOnly,
     }
 
-    internal class VRModuleDeviceClassReslver : EnumArrayBase<VRModuleDeviceClass>.Resolver { public override int Resolve(VRModuleDeviceClass e) { return (int)e; } }
-    internal class VRModuleDeviceModelReslver : EnumArrayBase<VRModuleDeviceModel>.Resolver { public override int Resolve(VRModuleDeviceModel e) { return (int)e; } }
-    internal class VRModuleRawButtonReslver : EnumArrayBase<VRModuleRawButton>.Resolver { public override int Resolve(VRModuleRawButton e) { return (int)e; } }
-    internal class VRModuleRawAxisReslver : EnumArrayBase<VRModuleRawAxis>.Resolver { public override int Resolve(VRModuleRawAxis e) { return (int)e; } }
-    internal class VRModuleInput2DTypeReslver : EnumArrayBase<VRModuleInput2DType>.Resolver { public override int Resolve(VRModuleInput2DType e) { return (int)e; } }
+    internal class VRModuleDeviceClassReslver : EnumToIntResolver<VRModuleDeviceClass> { public override int Resolve(VRModuleDeviceClass e) { return (int)e; } }
+    internal class VRModuleDeviceModelReslver : EnumToIntResolver<VRModuleDeviceModel> { public override int Resolve(VRModuleDeviceModel e) { return (int)e; } }
+    internal class VRModuleRawButtonReslver : EnumToIntResolver<VRModuleRawButton> { public override int Resolve(VRModuleRawButton e) { return (int)e; } }
+    internal class VRModuleRawAxisReslver : EnumToIntResolver<VRModuleRawAxis> { public override int Resolve(VRModuleRawAxis e) { return (int)e; } }
+    internal class VRModuleInput2DTypeReslver : EnumToIntResolver<VRModuleInput2DType> { public override int Resolve(VRModuleInput2DType e) { return (int)e; } }
 
     public interface IVRModuleDeviceStateRW
     {
