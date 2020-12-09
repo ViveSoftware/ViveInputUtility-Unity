@@ -11,7 +11,7 @@ using UnityEngine;
 using wvr;
 using Object = UnityEngine.Object;
 #endif
-#if (VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL) && UNITY_ANDROID
+#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL
 using Wave.Essence;
 #endif
 
