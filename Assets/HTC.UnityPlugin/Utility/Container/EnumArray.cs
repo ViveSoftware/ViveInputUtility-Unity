@@ -13,10 +13,26 @@ namespace HTC.UnityPlugin.Utility
     public abstract class EnumToIntResolver { }
 
     /// <summary>
-    /// resolver should provide faster function to convert TEnum to int value
-    /// most common & fasteast conversion is to directly cast in the script like "return (int)enumValue;"
-    /// In this EnumArrayBase<TEnum> generic constructor, we can only provide slower convert function like "(int)(object)enumValue" or "EqualityComparer<TEnum>.Default.GetHashCode(enumValue)"
+    /// A base generic class that provide function that converts Enum value into int value.
+    /// 
     /// </summary>
+    /// <remarks>
+    /// Resolver should provide faster function to convert from TEnum into int value
+    /// If not defined, EnumArrayBase<TEnum> static constructor can only provide slower convert function like "(int)(object)enumValue" or "EqualityComparer<TEnum>.Default.GetHashCode(enumValue)"
+    /// 
+    /// <example>
+    /// <code>
+    /// class MyEnumResolver : EnumToIntResolver<MyEnum>
+    /// {
+    ///     public override int Resolve(MyEnum e) { return (int)e; }
+    /// }
+    /// </code>
+    /// </example>
+    ///
+    /// Define custom resolver class for each enum type in your project, EnumToIntResolverCache will find it and instantiate/cache their instance
+    /// </remarks>
+    /// <seealso cref="EnumArray{TEnum, TValue}"/>
+    /// <seealso cref="EnumToIntResolverCache"/>
     public abstract class EnumToIntResolver<TEnum> : EnumToIntResolver
 #if CSHARP_7_OR_LATER
         where TEnum : Enum
@@ -122,7 +138,7 @@ namespace HTC.UnityPlugin.Utility
                             {
                                 outDict[typeParam] = type;
                                 ++count;
-                                //Debug.Log("Found reslover type (" + type.Name + ") for " + typeParam.Name);
+                                //Debug.Log("Found reslover type (" + type.FullName + ") for " + typeParam.Name);
                             }
                             break;
                         }
@@ -229,6 +245,10 @@ namespace HTC.UnityPlugin.Utility
             {
                 funcE2I = resolver.Resolve;
             }
+            else
+            {
+                WarnBoxingResolver();
+            }
 
             var underlyingType = Enum.GetUnderlyingType(StaticEnumType);
             var rangeCheckFunc = default(RangeCheckFunc);
@@ -239,37 +259,37 @@ namespace HTC.UnityPlugin.Utility
             }
             else if (underlyingType == typeof(uint))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(uint)(object)e; WarnBoxingResolver(); }
+                if (funcE2I == null) { funcE2I = e => (int)(uint)(object)e; }
                 rangeCheckFunc = RangeCheckFromUInt32;
             }
             else if (underlyingType == typeof(long))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(long)(object)e; WarnBoxingResolver(); }
+                if (funcE2I == null) { funcE2I = e => (int)(long)(object)e; }
                 rangeCheckFunc = RangeCheckFromInt64;
             }
             else if (underlyingType == typeof(ulong))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(ulong)(object)e; WarnBoxingResolver(); }
+                if (funcE2I == null) { funcE2I = e => (int)(ulong)(object)e; }
                 rangeCheckFunc = RangeCheckFromUInt64;
             }
             else if (underlyingType == typeof(byte))
             {
-                if (funcE2I == null) { funcE2I = e => (byte)(object)e; WarnBoxingResolver(); }
+                if (funcE2I == null) { funcE2I = e => (byte)(object)e; }
                 rangeCheckFunc = RangeCheckFromUInt8;
             }
             else if (underlyingType == typeof(sbyte))
             {
-                if (funcE2I == null) { funcE2I = e => (sbyte)(object)e; WarnBoxingResolver(); }
+                if (funcE2I == null) { funcE2I = e => (sbyte)(object)e; }
                 rangeCheckFunc = RangeCheckFromInt8;
             }
             else if (underlyingType == typeof(short))
             {
-                if (funcE2I == null) { funcE2I = e => (short)(object)e; WarnBoxingResolver(); }
+                if (funcE2I == null) { funcE2I = e => (short)(object)e; }
                 rangeCheckFunc = RangeCheckFromInt16;
             }
             else if (underlyingType == typeof(ushort))
             {
-                if (funcE2I == null) { funcE2I = e => (ushort)(object)e; WarnBoxingResolver(); }
+                if (funcE2I == null) { funcE2I = e => (ushort)(object)e; }
                 rangeCheckFunc = RangeCheckFromUInt16;
             }
 
