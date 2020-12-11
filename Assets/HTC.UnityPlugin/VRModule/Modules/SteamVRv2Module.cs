@@ -9,7 +9,6 @@ using Valve.VR;
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
-using System.Collections;
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 #elif UNITY_5_4_OR_NEWER
@@ -30,8 +29,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public const string ACTION_SET_PATH = "/actions/" + ACTION_SET_NAME;
 
 #if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
+
         public enum HapticStruct { Haptic }
         private class HapticStructReslver : EnumToIntResolver<HapticStruct> { public override int Resolve(HapticStruct e) { return (int)e; } }
+
+        private static readonly Quaternion s_leftSkeletonWristFixRotation = Quaternion.Euler(0.0f, 0.0f, 90.0f);
+        private static readonly Quaternion s_rightSkeletonWristFixRotation = Quaternion.Euler(0.0f, 0.0f, -90.0f);
+        private static readonly Quaternion s_leftSkeletonFixRotation = Quaternion.Euler(180.0f, 90.0f, 0.0f);
+        private static readonly Quaternion s_rightSkeletonFixRotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
 
         private static bool s_pathInitialized;
         private static bool s_actionInitialized;
@@ -41,8 +46,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public static ActionCollection<VRModuleRawAxis> v1Actions { get; private set; }
         public static ActionCollection<VRModuleRawAxis> v2Actions { get; private set; }
         public static ActionCollection<HapticStruct> vibrateActions { get; private set; }
+        public static ulong skeletonActionHandleLeft { get; private set; }
+        public static ulong skeletonActionHandleRight { get; private set; }
 
         private static ulong s_actionSetHandle;
+        private static VRBoneTransform_t[] s_tempBoneTransforms = new VRBoneTransform_t[SteamVR_Action_Skeleton.numBones];
 
         private uint m_digitalDataSize;
         private uint m_analogDataSize;
@@ -177,6 +185,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
             vibrateActions.ResolveHandles(vrInput);
 
             s_actionSetHandle = SafeGetActionSetHandle(vrInput, ACTION_SET_PATH);
+
+            skeletonActionHandleLeft = SafeGetActionHandle(vrInput, ACTION_SET_PATH + "/in/viu_skeleton_left");
+            skeletonActionHandleRight = SafeGetActionHandle(vrInput, ACTION_SET_PATH + "/in/viu_skeleton_right");
+
+            if (skeletonActionHandleLeft == OpenVR.k_ulInvalidActionHandle)
+            {
+                Debug.LogWarning("Skeleton action for left hand is not found: " + ACTION_SET_PATH + "/in/viu_skeleton_left");
+            }
+
+            if (skeletonActionHandleRight == OpenVR.k_ulInvalidActionHandle)
+            {
+                Debug.LogWarning("Skeleton action for right hand is not found: " + ACTION_SET_PATH + "/in/viu_skeleton_right");
+            }
         }
 
         public static ulong GetInputSourceHandleForDevice(uint deviceIndex)
@@ -452,9 +473,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var roleChanged = ChangeProp.Set(ref m_moduleRightIndex, moduleRight);
             roleChanged |= ChangeProp.Set(ref m_moduleLeftIndex, moduleLeft);
 
+            UpdateHandJoints(m_openvrLeftIndex, skeletonActionHandleLeft, true);
+            UpdateHandJoints(m_openvrRightIndex, skeletonActionHandleRight, false);
+
             ProcessConnectedDeviceChanged();
             ProcessDevicePoseChanged();
-        
+
             if (roleChanged)
             {
                 InvokeControllerRoleChangedEvent();
@@ -480,6 +504,91 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     trackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
                     break;
             }
+        }
+
+        private void UpdateHandJoints(uint deviceIndex, ulong actionHandle, bool isLeft)
+        {
+            if (deviceIndex == INVALID_DEVICE_INDEX || actionHandle == OpenVR.k_ulInvalidActionHandle)
+            {
+                return;
+            }
+
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+            if (TryGetValidDeviceState(deviceIndex, out prevState, out currState))
+            {
+                RigidPose fixedHandPose = currState.pose;
+                fixedHandPose.rot *= SteamVR_Action_Skeleton.steamVRFixUpRotation;
+
+                EVRInputError boneError = OpenVR.Input.GetSkeletalBoneData(actionHandle, EVRSkeletalTransformSpace.Model, (EVRSkeletalMotionRange)VIUSettings.steamVRSkeletonType, s_tempBoneTransforms);
+
+                if (boneError == EVRInputError.None)
+                {
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.Wrist, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.wrist);
+
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.ThumbMetacarpal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.thumbMetacarpal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.ThumbProximal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.thumbProximal);
+                    //AssignHandJoint(handPose, isLeft, currState.handJoints, HandJointName.ThumbIntermediate, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.thumbMiddle);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.ThumbDistal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.thumbDistal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.ThumbTip, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.thumbTip);
+
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.IndexMetacarpal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.indexMetacarpal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.IndexProximal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.indexProximal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.IndexIntermediate, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.indexMiddle);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.IndexDistal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.indexDistal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.IndexTip, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.indexTip);
+
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.MiddleMetacarpal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.middleMetacarpal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.MiddleProximal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.middleProximal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.MiddleIntermediate, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.middleMiddle);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.MiddleDistal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.middleDistal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.MiddleTip, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.middleTip);
+
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.RingMetacarpal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.ringMetacarpal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.RingProximal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.ringProximal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.RingIntermediate, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.ringMiddle);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.RingDistal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.ringDistal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.RingTip, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.ringTip);
+
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.PinkyMetacarpal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.pinkyMetacarpal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.PinkyProximal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.pinkyProximal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.PinkyIntermediate, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.pinkyMiddle);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.PinkyDistal, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.pinkyDistal);
+                    AssignHandJoint(fixedHandPose, isLeft, currState.handJoints, HandJointName.PinkyTip, s_tempBoneTransforms, SteamVR_Skeleton_JointIndexes.pinkyTip);
+                }
+            }
+        }
+
+        private void AssignHandJoint(RigidPose handPose, bool isLeft, JointEnumArray joints, HandJointName jointName, VRBoneTransform_t[] boneTransforms, int steamBoneIndex)
+        {
+            VRBoneTransform_t bone = boneTransforms[steamBoneIndex];
+            Vector3 position = new Vector3(-bone.position.v0, bone.position.v1, bone.position.v2);
+            Quaternion rotation = new Quaternion(bone.orientation.x, -bone.orientation.y, -bone.orientation.z, bone.orientation.w);
+
+            if (steamBoneIndex == SteamVR_Skeleton_JointIndexes.wrist)
+            {
+                if (isLeft)
+                {
+                    rotation *= s_leftSkeletonWristFixRotation;
+                }
+                else
+                {
+                    rotation *= s_rightSkeletonWristFixRotation;
+                }
+            }
+            else
+            {
+                if (isLeft)
+                {
+                    rotation *= s_leftSkeletonFixRotation;
+                }
+                else
+                {
+                    rotation *= s_rightSkeletonFixRotation;
+                }
+            }
+
+            joints[jointName] = new JointPose(handPose * new RigidPose(position, rotation));
         }
 
         private void OnInputFocus(bool value)
@@ -590,6 +699,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             value.z = data.z;
             return error;
         }
+
         private struct OriginData
         {
             public ulong devicePathHandle;

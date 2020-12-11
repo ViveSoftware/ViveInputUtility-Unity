@@ -549,6 +549,9 @@ namespace HTC.UnityPlugin.Vive
 
                     if (VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
 
+                    // Skeleton mode
+                    VIUSettings.steamVRSkeletonType = (VIUSettings.SteamVRSkeletonType)EditorGUILayout.EnumPopup("Skeleton Type", VIUSettings.steamVRSkeletonType);
+
                     VIUSettings.autoLoadExternalCameraConfigOnStart = EditorGUILayout.ToggleLeft(new GUIContent("Load Config and Enable External Camera on Start", "You can also load config by calling ExternalCameraHook.LoadConfigFromFile(path) in script."), VIUSettings.autoLoadExternalCameraConfigOnStart);
                     if (!VIUSettings.autoLoadExternalCameraConfigOnStart) { GUI.enabled = false; }
                     {

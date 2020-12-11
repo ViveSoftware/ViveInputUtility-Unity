@@ -256,11 +256,15 @@ namespace HTC.UnityPlugin.Vive
             }
 
             var roomSpaceJoints = deviceState.readOnlyHandJoints;
-            var roomSpaceWristPoseInverse = roomSpaceJoints[HandJointName.Wrist].pose.GetInverse();
+            var roomSpaceWristPose = roomSpaceJoints[HandJointName.Wrist].pose;
+            var roomSpaceWristPoseInverse = roomSpaceWristPose.GetInverse();
+            var roomSpaceHandPoseInverse = deviceState.pose.GetInverse();
             var wristTransform = m_modelJoints[HandJointName.Wrist];
-            wristTransform.localPosition = Vector3.zero;
-            wristTransform.localRotation = m_modelOffsetInverse.rot;
             wristTransform.localScale = Vector3.one;
+            
+            RigidPose wristLocalPose = roomSpaceHandPoseInverse * roomSpaceWristPose * m_modelOffsetInverse;
+            wristTransform.localPosition = wristLocalPose.pos;
+            wristTransform.localRotation = wristLocalPose.rot;
 
             var palmTransform = m_modelJoints[HandJointName.Palm];
             if (palmTransform != null)
@@ -332,7 +336,7 @@ namespace HTC.UnityPlugin.Vive
                             m_debugJoints[index] = debugJointTransform = obj.transform;
                         }
 
-                        RigidPose.SetPose(debugJointTransform, roomSpaceWristPoseInverse * poseData.pose);
+                        RigidPose.SetPose(debugJointTransform, roomSpaceHandPoseInverse * poseData.pose);
                     }
                 }
             }

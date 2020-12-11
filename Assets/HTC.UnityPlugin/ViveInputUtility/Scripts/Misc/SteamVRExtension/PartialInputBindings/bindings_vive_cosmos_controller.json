@@ -181,6 +181,16 @@
           "output": "/actions/htc_viu/out/viu_vib_01",
           "path": "/user/hand/right/output/haptic"
         }
+      ],
+      "skeleton": [
+        {
+          "output": "/actions/htc_viu/in/viu_skeleton_left",
+          "path": "/user/hand/left/input/skeleton/left"
+        },
+        {
+          "output": "/actions/htc_viu/in/viu_skeleton_right",
+          "path": "/user/hand/right/input/skeleton/right"
+        }
       ]
     }
   }
