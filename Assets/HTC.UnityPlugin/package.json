@@ -72,8 +72,5 @@
       "path": "ViveInputUtility/Examples/8.NearFieldHandInteraction"
     }
   ],
-  "unity": "2019.3",
-  "publishConfig": {
-    "registry": "https://npm-registry.vive.com"
-  }
+  "unity": "2019.3"
 }
