@@ -784,7 +784,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Wedgits
+  m_Text: Widgets
 --- !u!222 &186538113
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6808,7 +6808,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   raycaster: {fileID: 1629050510}
-  reticleForDefaultRay: {fileID: 336874484}
+  reticleForStraightRay: {fileID: 336874484}
   reticleForCurvedRay: {fileID: 1800559194}
   showOnHitOnly: 1
   hitTarget: {fileID: 0}
@@ -6819,6 +6819,21 @@ MonoBehaviour:
   - {fileID: 1087685106}
   autoScaleReticle: 0
   sizeInPixels: 50
+  onShowReticleForStraightRay:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+  onShowReticleForCurvedRay:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+  onHideReticle:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
 --- !u!1 &1309747668
 GameObject:
   m_ObjectHideFlags: 0
@@ -7802,7 +7817,7 @@ GameObject:
   - 224: {fileID: 1515966020}
   - 222: {fileID: 1515966022}
   m_Layer: 5
-  m_Name: ButtonFronPanel
+  m_Name: ButtonFrontPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7984,7 +7999,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   raycaster: {fileID: 2025033846}
-  reticleForDefaultRay: {fileID: 526386589}
+  reticleForStraightRay: {fileID: 526386589}
   reticleForCurvedRay: {fileID: 1627150715}
   showOnHitOnly: 1
   hitTarget: {fileID: 0}
@@ -7995,6 +8010,21 @@ MonoBehaviour:
   - {fileID: 69751220}
   autoScaleReticle: 0
   sizeInPixels: 50
+  onShowReticleForStraightRay:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+  onShowReticleForCurvedRay:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+  onHideReticle:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
 --- !u!1 &1581396071
 GameObject:
   m_ObjectHideFlags: 0
