@@ -192,7 +192,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 m_skeletonObj.transform.localRotation = Quaternion.identity;
                             }
 
-                            if (VIUSettings.steamVRSkeletonType == VIUSettings.SteamVRSkeletonType.WithoutController)
+                            VIUSettings.SteamVRSkeletonType skeletonType = IsLeft() ? VIUSettings.steamVRLeftSkeletonType : VIUSettings.steamVRRightSkeletonType;
+                            if (skeletonType == VIUSettings.SteamVRSkeletonType.WithoutController)
                             {
                                 m_renderModelComp.gameObject.SetActive(false);
                             }
