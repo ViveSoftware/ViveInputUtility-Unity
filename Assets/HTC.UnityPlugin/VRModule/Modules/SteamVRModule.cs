@@ -146,8 +146,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public override void UpdateRenderModel()
             {
-                if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
-
+                m_index = hook.GetModelDeviceIndex();
                 if (VRModule.IsValidDeviceIndex(m_index))
                 {
                     if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand)
