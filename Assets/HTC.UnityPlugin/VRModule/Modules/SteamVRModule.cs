@@ -8,6 +8,7 @@ using HTC.UnityPlugin.Vive;
 using HTC.UnityPlugin.Vive.SteamVRExtension;
 using UnityEngine;
 using System;
+using System.Text;
 
 #if VIU_OPENVR_API
 using Valve.VR;
