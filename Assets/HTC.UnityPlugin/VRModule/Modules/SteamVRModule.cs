@@ -179,7 +179,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         m_renderModelComp.SetDeviceIndex(m_index);
                         m_renderModelComp.gameObject.SetActive(true);
 
-                        if (IsHand() && IsSkeletonActionValid())
+                        bool isSkeletonValid = IsSkeletonValid();
+                        if (isSkeletonValid)
                         {
                             // Create skeleton object
                             if (m_skeletonObj == null)
@@ -195,8 +196,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             {
                                 m_renderModelComp.gameObject.SetActive(false);
                             }
+                        }
 
-                            m_skeletonObj.SetActive(IsSkeletonValid());
+                        if (m_skeletonObj)
+                        {
+                            m_skeletonObj.SetActive(isSkeletonValid);
                         }
                     }
                 }
@@ -228,21 +232,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            private bool IsHand()
-            {
-                if (s_moduleInstance == null)
-                {
-                    Debug.LogWarning("s_moduleInstance is null.");
-                    return false;
-                }
-
-                uint index = hook.GetModelDeviceIndex();
-                uint left = s_moduleInstance.GetLeftControllerDeviceIndex();
-                uint right = s_moduleInstance.GetRightControllerDeviceIndex();
-
-                return index == left || index == right;
-            }
-
             private bool IsLeft()
             {
                 if (s_moduleInstance == null)
@@ -251,25 +240,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     return false;
                 }
 
-                uint index = hook.GetModelDeviceIndex();
-                uint left = s_moduleInstance.GetLeftControllerDeviceIndex();
-
-                return index == left;
-            }
-
-            private bool IsSkeletonActionValid()
-            {
-                ulong actionHandle = IsLeft() ? skeletonActionHandleLeft : skeletonActionHandleRight;
-
-                return actionHandle != OpenVR.k_ulInvalidActionHandle;
+                return m_index == s_moduleInstance.GetLeftControllerDeviceIndex();
             }
 
             private bool IsSkeletonValid()
             {
-                ulong actionHandle = IsLeft() ? skeletonActionHandleLeft : skeletonActionHandleRight;
-                EVRInputError error = OpenVR.Input.GetSkeletalBoneData(actionHandle, EVRSkeletalTransformSpace.Model, EVRSkeletalMotionRange.WithController, s_tempBoneTransforms);
-
-                return error == EVRInputError.None;
+                return VRModule.GetDeviceState(m_index).GetValidHandJointCount() > 0;
             }
         }
 
