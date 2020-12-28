@@ -266,7 +266,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                         foreach (var profile in inputSubsystemProfiles)
                         {
-                            if (string.IsNullOrEmpty(profile.fixedName) || profile.fixedName != subsysName) { continue; }
+                            if (!string.IsNullOrEmpty(profile.fixedName) && profile.fixedName != subsysName) { continue; }
                             if (profile.matchNameRgx == null || !profile.matchNameRgx.IsMatch(subsysName)) { continue; }
                             return profile.subsystem;
                         }

@@ -115,10 +115,12 @@ namespace HTC.UnityPlugin.Vive
 
             if (VIUSettings.enableBindingInterfaceSwitch)
             {
+#if ENABLE_LEGACY_INPUT_MANAGER
                 if (Input.GetKeyDown(VIUSettings.bindingInterfaceSwitchKey) && (VIUSettings.bindingInterfaceSwitchKeyModifier == KeyCode.None || Input.GetKey(VIUSettings.bindingInterfaceSwitchKeyModifier)))
                 {
                     ToggleBindingInterface();
                 }
+#endif
             }
         }
 

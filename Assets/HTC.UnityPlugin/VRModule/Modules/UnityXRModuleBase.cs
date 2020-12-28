@@ -24,6 +24,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         WindowsXR,
         MagicLeap,
         WaveXR,
+        OpenXR,
     }
 
     public enum VRModuleKnownXRInputSubsystem
@@ -34,6 +35,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         WindowsXR,
         MagicLeap,
         WaveXR,
+        OpenXR,
     }
 
     public abstract partial class UnityXRModuleBase : VRModule.ModuleBase
@@ -60,6 +62,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WindowsXR, matchNameRgx = new Regex("windows", REGEX_OPTIONS) },
             new XRLoaderProfile() { loader = VRModuleKnownXRLoader.MagicLeap, matchNameRgx = new Regex("magicleap", REGEX_OPTIONS) },
             new XRLoaderProfile() { loader = VRModuleKnownXRLoader.WaveXR, matchNameRgx = new Regex("wave", REGEX_OPTIONS) },
+            new XRLoaderProfile() { loader = VRModuleKnownXRLoader.OpenXR, matchNameRgx = new Regex("open xr", REGEX_OPTIONS) },
         };
 
         private static List<XRInputSubsystemProfile> inputSubsystemProfiles = new List<XRInputSubsystemProfile>()
@@ -69,6 +72,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WindowsXR, matchNameRgx = new Regex("windows", REGEX_OPTIONS) },
             new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.MagicLeap, matchNameRgx = new Regex("magicleap", REGEX_OPTIONS) },
             new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.WaveXR, matchNameRgx = new Regex("wave", REGEX_OPTIONS) },
+            new XRInputSubsystemProfile() { subsystem = VRModuleKnownXRInputSubsystem.OpenXR, matchNameRgx = new Regex("openxr", REGEX_OPTIONS) },
         };
 
         private VRModuleKnownXRLoader knownActiveLoader;
@@ -118,6 +122,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private List<InputDevice> connectedDevices = new List<InputDevice>();
         public sealed override void BeforeRenderUpdate()
         {
+            if (knownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.Unknown)
+            {
+                knownActiveInputSubsystem = GetKnownActiveInputSubsystem();
+            }
+
             // update device connection and poses
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
@@ -158,7 +167,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
                     currState.serialNumber = device.name + " " + device.serialNumber + " " + (int)device.characteristics;
                     currState.modelNumber = device.name;
-                    currState.renderModelName = device.name;
+                    currState.renderModelName = device.name + " ("+ device.characteristics + ")";
 
                     SetupKnownDeviceModel(currState);
 
