@@ -192,6 +192,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
             state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
+
+            if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenXR)
+            {
+                bool systemButton = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("SystemButton")); // Always false
+                float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip); // 0 or 1
+                
+                state.SetButtonPress(VRModuleRawButton.System, systemButton);
+                state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
+            }
         }
 
         private void UpdateViveCosmosControllerState(IVRModuleDeviceStateRW state, InputDevice device)
