@@ -166,7 +166,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
                     currState.serialNumber = device.name + " " + device.serialNumber + " " + (int)device.characteristics;
-                    currState.modelNumber = device.name;
+                    currState.modelNumber = device.name + " ("+ device.characteristics + ")";
                     currState.renderModelName = device.name + " ("+ device.characteristics + ")";
 
                     SetupKnownDeviceModel(currState);
