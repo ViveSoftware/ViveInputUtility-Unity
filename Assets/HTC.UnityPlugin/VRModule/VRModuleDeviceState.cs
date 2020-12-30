@@ -59,6 +59,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         WaveTrackedHandRight,
         OculusTrackedHandLeft,
         OculusTrackedHandRight,
+        KhronosSimpleController,
     }
 
     public enum VRModuleRawButton

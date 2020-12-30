@@ -40,9 +40,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGEX_OPTIONS);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", REGEX_OPTIONS);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGEX_OPTIONS);
-            private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", REGEX_OPTIONS);
+            private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr|windows).*(mr|$))|spatial", REGEX_OPTIONS);
             private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", REGEX_OPTIONS);
             private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", REGEX_OPTIONS);
+            private static readonly Regex s_khrRgx = new Regex("^.*(khr).*$", REGEX_OPTIONS);
             private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", REGEX_OPTIONS);
             private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", REGEX_OPTIONS);
 
@@ -368,6 +369,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     return;
                                 }
                             }
+                            break;
+                    }
+                }
+                else if (s_khrRgx.IsMatch(deviceState.modelNumber))
+                {
+                    switch (deviceState.deviceClass)
+                    {
+                        case VRModuleDeviceClass.Controller:
+                            deviceState.deviceModel = VRModuleDeviceModel.KhronosSimpleController;
                             break;
                     }
                 }

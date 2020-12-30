@@ -110,6 +110,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveFocusFinch:
                     updateFunc = UpdateViveFocusFinchControllerState;
                     break;
+                case VRModuleDeviceModel.KhronosSimpleController:
+                    updateFunc = UpdateKhronosSimpleControllerState;
+                    break;
                 case VRModuleDeviceModel.Unknown:
                     updateFunc = UpdateViveFocusUnknownControllerState;
                     break;
@@ -492,6 +495,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
             state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
+        }
+
+        private void UpdateKhronosSimpleControllerState(IVRModuleDeviceStateRW state, InputDevice device)
+        {
+            bool primaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryButton);
+            bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+
+            state.SetButtonPress(VRModuleRawButton.A, primaryButton);
+            state.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuButton);
+
+            // Unused
+            // [Vector3] PointerPosition
+            // [Quaternion] PointerRotation
+            // [Vector3] PointerVelocity
+            // [Vector3] PointerAngularVelocity
         }
 
         private void UpdateViveFocusUnknownControllerState(IVRModuleDeviceStateRW state, InputDevice device)
