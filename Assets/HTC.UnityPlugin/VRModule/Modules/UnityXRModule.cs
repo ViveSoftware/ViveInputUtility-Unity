@@ -304,6 +304,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenVR)
             {
                 bool triggerTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerTouch"));
+
                 state.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
             }
             else if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.Oculus)
@@ -320,6 +321,25 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
                     state.SetButtonPress(VRModuleRawButton.System, menuButton);
                 }
+            }
+            else if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenXR)
+            {
+                bool triggerTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerTouch"));
+
+                state.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
+
+                if ((device.characteristics & InputDeviceCharacteristics.Left) != 0)
+                {
+                    bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+
+                    state.SetButtonPress(VRModuleRawButton.System, menuButton);
+                }
+
+                // Unused
+                // [Vector3] PointerPosition
+                // [Quaternion] PointerRotation
+                // [Vector3] PointerVelocity
+                // [Vector3] PointerAngularVelocity
             }
         }
 
