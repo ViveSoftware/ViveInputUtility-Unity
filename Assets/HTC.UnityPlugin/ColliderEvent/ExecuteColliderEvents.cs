@@ -18,6 +18,18 @@ namespace HTC.UnityPlugin.ColliderEvent
             handler.OnColliderEventHoverExit(ExecuteEvents.ValidateEventData<ColliderHoverEventData>(eventData));
         }
 
+        public static readonly ExecuteEvents.EventFunction<IColliderEventLastHoverEnterHandler> LastHoverEnterHandler = Execute;
+        private static void Execute(IColliderEventLastHoverEnterHandler handler, BaseEventData eventData)
+        {
+            handler.OnColliderEventLastHoverEnter(ExecuteEvents.ValidateEventData<ColliderHoverEventData>(eventData));
+        }
+
+        public static readonly ExecuteEvents.EventFunction<IColliderEventLastHoverExitHandler> LastHoverExitHandler = Execute;
+        private static void Execute(IColliderEventLastHoverExitHandler handler, BaseEventData eventData)
+        {
+            handler.OnColliderEventLastHoverExit(ExecuteEvents.ValidateEventData<ColliderHoverEventData>(eventData));
+        }
+
         public static readonly ExecuteEvents.EventFunction<IColliderEventPressDownHandler> PressDownHandler = Execute;
         private static void Execute(IColliderEventPressDownHandler handler, BaseEventData eventData)
         {

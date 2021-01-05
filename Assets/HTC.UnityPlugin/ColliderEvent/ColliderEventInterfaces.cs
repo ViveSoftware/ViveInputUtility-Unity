@@ -14,6 +14,16 @@ namespace HTC.UnityPlugin.ColliderEvent
         void OnColliderEventHoverExit(ColliderHoverEventData eventData);
     }
 
+    public interface IColliderEventLastHoverEnterHandler : IEventSystemHandler
+    {
+        void OnColliderEventLastHoverEnter(ColliderHoverEventData eventData);
+    }
+
+    public interface IColliderEventLastHoverExitHandler : IEventSystemHandler
+    {
+        void OnColliderEventLastHoverExit(ColliderHoverEventData eventData);
+    }
+
     public interface IColliderEventPressDownHandler : IEventSystemHandler
     {
         void OnColliderEventPressDown(ColliderButtonEventData eventData);
