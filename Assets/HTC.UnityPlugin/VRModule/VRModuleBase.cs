@@ -2,6 +2,7 @@
 
 using HTC.UnityPlugin.Utility;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -34,9 +35,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr).*(mr|$))|spatial", RegexOptions.IgnoreCase);
             private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", RegexOptions.IgnoreCase);
-            private static readonly Regex s_viveFocusRgx = new Regex("^.*(wvr).*$", RegexOptions.IgnoreCase);
+            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", RegexOptions.IgnoreCase);
             private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", RegexOptions.IgnoreCase);
+
+            private struct WVRCtrlProfile
+            {
+                public VRModuleDeviceModel model;
+                public VRModuleInput2DType input2D;
+            }
+            private static Dictionary<string, WVRCtrlProfile> m_wvrModels = new Dictionary<string, WVRCtrlProfile>
+            {
+                { "WVR_CONTROLLER_FINCH3DOF_2_0", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusFinch, input2D = VRModuleInput2DType.TouchpadOnly } },
+                { "WVR_CONTROLLER_ASPEN_MI6_1", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusChirp, input2D = VRModuleInput2DType.TouchpadOnly } },
+            };
 
             public bool isActivated { get; private set; }
 
@@ -324,8 +336,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             return;
                     }
                 }
-
-                else if (s_viveFocusRgx.IsMatch(deviceState.modelNumber))
+                else if (s_waveVrRgx.IsMatch(deviceState.modelNumber))
                 {
                     switch (deviceState.deviceClass)
                     {
@@ -333,9 +344,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.ViveFocusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
-                            deviceState.deviceModel = VRModuleDeviceModel.ViveFocusChirp;
-                            return;
+                            {
+                                WVRCtrlProfile profile;
+                                if (m_wvrModels.TryGetValue(deviceState.modelNumber, out profile))
+                                {
+                                    deviceState.deviceModel = profile.model;
+                                    deviceState.input2DType = profile.input2D;
+                                    return;
+                                }
+                            }
+                            break;
                     }
                 }
 

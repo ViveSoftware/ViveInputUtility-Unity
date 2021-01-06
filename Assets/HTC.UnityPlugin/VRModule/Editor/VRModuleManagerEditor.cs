@@ -606,7 +606,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     continue;
                 }
 
-                string[] fileNamesInPackage = Directory.GetFiles(package.resolvedPath, fileName, SearchOption.AllDirectories);
+                var resolvedPath = package.resolvedPath.Trim();
+                if (string.IsNullOrEmpty(resolvedPath))
+                {
+                    continue;
+                }
+
+                string[] fileNamesInPackage = Directory.GetFiles(resolvedPath, fileName, SearchOption.AllDirectories);
                 if (fileNamesInPackage != null && fileNamesInPackage.Length > 0)
                 {
                     return true;

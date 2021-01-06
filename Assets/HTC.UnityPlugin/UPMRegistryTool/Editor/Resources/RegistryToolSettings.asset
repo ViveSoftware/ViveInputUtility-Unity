@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: RegistryToolSettings
   m_EditorClassIdentifier: 
   ProjectManifestPath: Packages/manifest.json
-  LicenseResourcePath: LICENSE
-  ViveRegistry:
-    name: VIVE
-    url: https://npm-registry.vive.com
-    scopes:
+  AutoCheckEnabled: 1
+  Registry:
+    Name: VIVE
+    Url: https://npm-registry.vive.com
+    Scopes:
     - com.htc.upm
