@@ -209,40 +209,70 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private void UpdateViveCosmosControllerState(IVRModuleDeviceStateRW state, InputDevice device)
         {
             bool primaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryButton); // X/A
-            bool primaryTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryTouch); // X/A
-
             bool secondaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryButton); // Y/B
-            bool secondaryTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryTouch); // Y/B
-
-            bool primaryAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisClick);
+            bool primary2DAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisClick);
             bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch);
-
-            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
-            bool triggerTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerTouch"));
-
-            bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
-            bool bumperButton = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("BumperButton"));
-
             float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
             Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
 
             state.SetButtonPress(VRModuleRawButton.A, primaryButton);
             state.SetButtonPress(VRModuleRawButton.ApplicationMenu, secondaryButton);
-            state.SetButtonPress(VRModuleRawButton.Touchpad, primaryAxisClick);
-            state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
-            state.SetButtonPress(VRModuleRawButton.Grip, gripButton);
-            state.SetButtonPress(VRModuleRawButton.Bumper, bumperButton);
+            state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
 
-            state.SetButtonTouch(VRModuleRawButton.A, primaryTouch);
-            state.SetButtonTouch(VRModuleRawButton.ApplicationMenu, secondaryTouch);
             state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
-            state.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
-            state.SetButtonTouch(VRModuleRawButton.Grip, gripButton);
-            state.SetButtonTouch(VRModuleRawButton.Bumper, bumperButton);
 
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
             state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
+
+            if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenVR)
+            {
+                bool primaryTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryTouch); // X/A
+                bool secondaryTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryTouch); // Y/B
+                bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
+                bool bumperButton = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("BumperButton"));
+                bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
+                bool triggerTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerTouch"));
+
+                state.SetButtonPress(VRModuleRawButton.Grip, gripButton);
+                state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
+                state.SetButtonPress(VRModuleRawButton.Bumper, bumperButton);
+
+                state.SetButtonTouch(VRModuleRawButton.A, primaryTouch);
+                state.SetButtonTouch(VRModuleRawButton.ApplicationMenu, secondaryTouch);
+                state.SetButtonTouch(VRModuleRawButton.Grip, gripButton);
+                state.SetButtonTouch(VRModuleRawButton.Bumper, bumperButton);
+                state.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
+            }
+            else if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenXR)
+            {
+                bool gripPressed = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("GripPressed"));
+                bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+                bool triggerPressed = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerPressed"));
+                bool shoulderButton = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("ShoulderButton"));
+                float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip);
+
+                state.SetButtonPress(VRModuleRawButton.Grip, gripPressed);
+                state.SetButtonPress(VRModuleRawButton.Trigger, triggerPressed);
+                state.SetButtonPress(VRModuleRawButton.Bumper, shoulderButton);
+
+                state.SetButtonTouch(VRModuleRawButton.A, primaryButton);
+                state.SetButtonTouch(VRModuleRawButton.ApplicationMenu, secondaryButton);
+                state.SetButtonTouch(VRModuleRawButton.Grip, gripPressed);
+                state.SetButtonTouch(VRModuleRawButton.Bumper, shoulderButton);
+                state.SetButtonTouch(VRModuleRawButton.Trigger, triggerPressed);
+
+                // conflict with JoystickX
+                //state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
+
+                // menuButton conflicts with secondaryButton
+
+                // Unused
+                // [Vector3] PointerPosition
+                // [Quaternion] PointerRotation
+                // [Vector3] PointerVelocity
+                // [Vector3] PointerAngularVelocity
+            }
         }
 
         private void UpdateViveTrackerState(IVRModuleDeviceStateRW state, InputDevice device)
