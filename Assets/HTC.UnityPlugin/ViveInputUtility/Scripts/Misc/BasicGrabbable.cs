@@ -16,7 +16,6 @@ namespace HTC.UnityPlugin.Vive
         , IColliderEventDragFixedUpdateHandler
         , IColliderEventDragUpdateHandler
         , IColliderEventDragEndHandler
-        , IColliderEventPressUpHandler
     {
         [Serializable]
         public class UnityEventGrabbable : UnityEvent<BasicGrabbable> { }
@@ -55,8 +54,7 @@ namespace HTC.UnityPlugin.Vive
 
             public RigidPose grabOffset { get; set; }
         }
-		[Tooltip("StickyGrabbable grabbing this BasicGrabbable")]
-        public StickyGrabbable stickyGrabbable;
+
         private IndexedTable<ColliderButtonEventData, Grabber> m_eventGrabberSet;
 
         public bool alignPosition;
@@ -74,8 +72,6 @@ namespace HTC.UnityPlugin.Vive
         [FormerlySerializedAs("unblockableGrab")]
         [SerializeField]
         private bool m_unblockableGrab = true;
-        [SerializeField]
-        private bool m_singleItemGrab = false;
         [SerializeField]
         [FlagsFromEnum(typeof(ControllerButton))]
         private ulong m_primaryGrabButton = 0ul;
@@ -102,8 +98,6 @@ namespace HTC.UnityPlugin.Vive
         public override bool overrideMaxAngularVelocity { get { return m_overrideMaxAngularVelocity; } set { m_overrideMaxAngularVelocity = value; } }
 
         public bool unblockableGrab { get { return m_unblockableGrab; } set { m_unblockableGrab = value; } }
-
-        public bool singleItemGrab { get { return m_singleItemGrab; } set { m_singleItemGrab = value; } }
 
         public UnityEventGrabbable afterGrabbed { get { return m_afterGrabbed; } }
 
@@ -172,8 +166,7 @@ namespace HTC.UnityPlugin.Vive
 
         protected virtual void OnDisable()
         {
-        	if (!m_allowMultipleGrabbers)
-            	ClearGrabbers(true);
+            ClearGrabbers(true);
             ClearEventGrabberSet();
         }
 
@@ -203,10 +196,7 @@ namespace HTC.UnityPlugin.Vive
         public virtual void OnColliderEventDragStart(ColliderButtonEventData eventData)
         {
             if (!IsValidGrabButton(eventData)) { return; }
-            if(singleItemGrab) {
-            	ViveColliderEventCaster caster = eventData.eventCaster as ViveColliderEventCaster;
-            	if (!caster.canGrab) { return; }
-        	}
+
             if (!m_allowMultipleGrabbers)
             {
                 ClearGrabbers(false);
@@ -221,12 +211,6 @@ namespace HTC.UnityPlugin.Vive
 
             if (m_eventGrabberSet == null) { m_eventGrabberSet = new IndexedTable<ColliderButtonEventData, Grabber>(); }
             m_eventGrabberSet.Add(eventData, grabber);
-
-            if (singleItemGrab)
-            {
-                ViveColliderEventCaster caster = eventData.eventCaster as ViveColliderEventCaster;
-                caster.canGrab = false;
-            }
 
             AddGrabber(grabber);
         }
@@ -251,43 +235,13 @@ namespace HTC.UnityPlugin.Vive
         public virtual void OnColliderEventDragEnd(ColliderButtonEventData eventData)
         {
             if (m_eventGrabberSet == null) { return; }
-			if (!IsValidGrabButton(eventData)) { return; }
+
             Grabber grabber;
             if (!m_eventGrabberSet.TryGetValue(eventData, out grabber)) { return; }
 
             RemoveGrabber(grabber);
             m_eventGrabberSet.Remove(eventData);
             Grabber.Release(grabber);
-            if(singleItemGrab) {
-            	ViveColliderEventCaster caster = eventData.eventCaster as ViveColliderEventCaster;
-            	caster.canGrab = true;
-        	}
-        }
-        public void ForceRelease()
-        {
-            ClearEventGrabberSet();
-            m_beforeRelease.Invoke(this);
-        }
-
-        public void OnColliderEventPressUp(ColliderButtonEventData eventData)
-        {
-            if (stickyGrabbable!=null && stickyGrabbable.isGrabbed)
-            {
-                ForceRelease();
-            }
-            if(singleItemGrab) {
-            	if (!IsValidGrabButton(eventData)) { return; }
-            	ViveColliderEventCaster caster = eventData.eventCaster as ViveColliderEventCaster;
-            	if (isGrabbed)
-            	{
-                	caster.canGrab = true;
-                    if (m_onDrop != null)
-                    {
-                        m_onDrop.Invoke(this);
-                    }
-            	}
-            	caster.canGrab = true;
-        	}
         }
     }
 }
