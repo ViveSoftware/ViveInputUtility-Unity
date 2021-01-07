@@ -75,7 +75,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 OVRPlugin.Skeleton ovrSkeleton;
                 if (OVRPlugin.GetSkeleton(Handedness, out ovrSkeleton))
                 {
-                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Max; i++)
+                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Hand_End; i++)
                     {
                         OVRSkeleton.BoneId id = (OVRSkeleton.BoneId) ovrSkeleton.Bones[i].Id;
                         GameObject boneObj = new GameObject(id.ToString());
@@ -87,7 +87,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         Bones[i].localRotation = rot;
                     }
 
-                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Max; i++)
+                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Hand_End; i++)
                     {
                         int parentIndex = ovrSkeleton.Bones[i].ParentBoneIndex;
                         if (parentIndex == (int) OVRPlugin.BoneId.Invalid)
@@ -115,7 +115,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 OVRPlugin.Skeleton ovrSkeleton;
                 if (OVRPlugin.GetSkeleton(Handedness, out ovrSkeleton))
                 {
-                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Max; i++)
+                    for (int i = 0; i < (int) OVRSkeleton.BoneId.Hand_End; i++)
                     {
                         Vector3 pos = ovrSkeleton.Bones[i].Pose.Position.FromFlippedXVector3f();
                         Quaternion rot = handState.BoneRotations[i].FromFlippedXQuatf();
@@ -672,7 +672,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             skeleton.Update(handState);
 
                             JointEnumArray jointArray = currState.handJoints;
-                            for (int j = 0; j < (int) OVRPlugin.BoneId.Max; j++)
+                            for (int j = 0; j < (int) OVRPlugin.BoneId.Hand_End; j++)
                             {
                                 Transform joint = skeleton.Bones[j];
                                 jointArray[s_ovrBoneIdToHandJointName[j]] = new JointPose(joint.position, skeleton.GetOpenXRRotation((OVRPlugin.BoneId) j));

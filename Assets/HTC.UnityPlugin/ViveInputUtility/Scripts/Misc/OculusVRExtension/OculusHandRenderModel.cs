@@ -33,8 +33,14 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 FieldInfo updateRootPoseField = m_ovrSkeleton.GetType().GetField("_updateRootPose", BindingFlags.NonPublic | BindingFlags.Instance);
                 updateRootPoseField.SetValue(m_ovrSkeleton, true);
 
+                MethodInfo skeletonInitializeMethod = m_ovrSkeleton.GetType().GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
+                skeletonInitializeMethod.Invoke(m_ovrSkeleton, new object[] { });
+
                 m_ovrMesh = gameObject.AddComponent<OVRMesh>();
                 UpdateOvrMesh();
+
+                MethodInfo meshInitializeMethod = m_ovrMesh.GetType().GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
+                meshInitializeMethod.Invoke(m_ovrMesh, new object[] { m_isLeftHand ? OVRMesh.MeshType.HandLeft : OVRMesh.MeshType.HandRight });
 
                 gameObject.AddComponent<OVRMeshRenderer>();
 
