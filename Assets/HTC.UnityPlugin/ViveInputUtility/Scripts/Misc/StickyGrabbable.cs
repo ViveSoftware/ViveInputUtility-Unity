@@ -68,6 +68,7 @@ namespace HTC.UnityPlugin.Vive
         // and redeayForRelease flag(remove grabber from m_eventGrabberSet one frame later) to avoid redundant grabbing in OnColliderEventPressDown()
         private IndexedTable<ColliderButtonEventData, ButtonProcessedState> m_buttonProcessedFrame = new IndexedTable<ColliderButtonEventData, ButtonProcessedState>();
         private LiteCoroutine m_updateCoroutine;
+        private LiteCoroutine m_physicsCoroutine;
 
         public bool alignPosition;
         public bool alignRotation;
@@ -251,14 +252,41 @@ namespace HTC.UnityPlugin.Vive
                 if (m_updateCoroutine.IsNullOrDone())
                 {
                     LiteCoroutine.StartCoroutine(ref m_updateCoroutine, GrabUpdate(), false);
+
+                    if (moveByVelocity)
+                    {
+                        LiteCoroutine.StartCoroutine(ref m_physicsCoroutine, PhysicsGrabUpdate(), false);
+                    }
                 }
             }
         }
 
-        private IEnumerator GrabUpdate()
+        private IEnumerator PhysicsGrabUpdate()
         {
+            yield return new WaitForFixedUpdate();
+
             while (isGrabbed)
             {
+                OnGrabRigidbody();
+
+                yield return new WaitForFixedUpdate();
+            }
+
+            yield break;
+        }
+
+        private IEnumerator GrabUpdate()
+        {
+            yield return null;
+
+            while (isGrabbed)
+            {
+                if (!moveByVelocity)
+                {
+                    RecordLatestPosesForDrop(Time.time, 0.05f);
+                    OnGrabTransform();
+                }
+
                 if (toggleToRelease && m_buttonProcessedFrame.Count > 0)
                 {
                     var currentFrame = Time.frameCount;
@@ -291,19 +319,6 @@ namespace HTC.UnityPlugin.Vive
                             }
                         }
                     }
-
-                    if (!isGrabbed) { break; }
-                }
-
-                if (moveByVelocity)
-                {
-                    yield return new WaitForFixedUpdate();
-                    if (isGrabbed) { OnGrabRigidbody(); }
-                }
-                else
-                {
-                    RecordLatestPosesForDrop(Time.time, 0.05f);
-                    OnGrabTransform();
                 }
 
                 yield return null;

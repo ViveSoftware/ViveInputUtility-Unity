@@ -75,6 +75,9 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
         }
     }
 
+    private LiteCoroutine m_updateCoroutine;
+    private LiteCoroutine m_physicsCoroutine;
+
     [FormerlySerializedAs("initGrabDistance")]
     [SerializeField]
     private float m_initGrabDistance = 0.5f;
@@ -126,8 +129,6 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
 
     public float scrollingSpeed { get { return m_scrollingSpeed; } set { m_scrollingSpeed = value; } }
 
-    private LiteCoroutine m_updateCoroutine;
-
     protected override void Awake()
     {
         base.Awake();
@@ -141,7 +142,6 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
 
     protected override Grabber CreateGrabber(PointerEventData eventData)
     {
-        var grabber = Grabber.Get(eventData);
         var hitResult = eventData.pointerPressRaycast;
         float distance;
         switch (eventData.button)
@@ -151,11 +151,13 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
                 distance = Mathf.Min(hitResult.distance, initGrabDistance);
                 break;
             case PointerEventData.InputButton.Left:
-            default:
                 distance = hitResult.distance;
                 break;
+            default:
+                return null;
         }
 
+        var grabber = Grabber.Get(eventData);
         grabber.grabber2hit = new RigidPose(new Vector3(0f, 0f, distance), Quaternion.identity);
         grabber.hit2pivot = RigidPose.FromToPose(new RigidPose(hitResult.worldPosition, hitResult.module.eventCamera.transform.rotation), new RigidPose(transform));
         return grabber;
@@ -178,26 +180,43 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
             if (m_updateCoroutine.IsNullOrDone())
             {
                 LiteCoroutine.StartCoroutine(ref m_updateCoroutine, DragUpdate(), false);
+
+                if (moveByVelocity)
+                {
+                    LiteCoroutine.StartCoroutine(ref m_physicsCoroutine, PhysicsGrabUpdate(), false);
+                }
             }
         }
     }
 
-    private IEnumerator DragUpdate()
+    private IEnumerator PhysicsGrabUpdate()
     {
+        yield return new WaitForFixedUpdate();
+
         while (isGrabbed)
         {
-            var scrollDelta = currentGrabber.eventData.scrollDelta * m_scrollingSpeed;
+            OnGrabRigidbody();
+
+            yield return new WaitForFixedUpdate();
+        }
+
+        yield break;
+    }
+
+    private IEnumerator DragUpdate()
+    {
+        yield return null;
+
+        while (isGrabbed)
+        {
+            var grabber = currentGrabber;
+            var scrollDelta = grabber.eventData.scrollDelta * m_scrollingSpeed;
             if (scrollDelta != Vector2.zero)
             {
-                currentGrabber.hitDistance = Mathf.Max(0f, currentGrabber.hitDistance + scrollDelta.y);
+                grabber.hitDistance = Mathf.Max(0f, grabber.hitDistance + scrollDelta.y);
             }
 
-            if (moveByVelocity)
-            {
-                yield return new WaitForFixedUpdate();
-                if (isGrabbed) { OnGrabRigidbody(); }
-            }
-            else
+            if (!moveByVelocity)
             {
                 RecordLatestPosesForDrop(Time.time, 0.05f);
                 OnGrabTransform();

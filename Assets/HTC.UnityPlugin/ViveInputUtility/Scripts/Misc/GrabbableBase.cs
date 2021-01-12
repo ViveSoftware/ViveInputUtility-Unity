@@ -108,6 +108,7 @@ namespace HTC.UnityPlugin.Vive
     {
         private OrderedIndexedTable<TEventData, TGrabber> m_grabbers = new OrderedIndexedTable<TEventData, TGrabber>();
 
+        public IIndexedTableReadOnly<TEventData, TGrabber> allGrabbers { get { return m_grabbers.ReadOnly; } }
         public TGrabber currentGrabber { get { return m_grabbers.Count > 0 ? m_grabbers.GetLastValue() : null; } }
         public sealed override GrabberBase currentGrabberBase { get { return currentGrabber; } }
         public sealed override bool isGrabbed { get { return m_grabbers.Count > 0; } }
@@ -140,7 +141,8 @@ namespace HTC.UnityPlugin.Vive
             try
             {
                 var newGrabber = CreateGrabber(eventData);
-                Debug.Assert(newGrabber != null && newGrabber.eventData == eventData);
+                if (newGrabber == null) { return false; }
+                Debug.Assert(newGrabber.eventData == eventData);
 
                 if (isGrabbed) { beforeGrabberReleased(); }
                 m_grabbers.Add(eventData, newGrabber);
