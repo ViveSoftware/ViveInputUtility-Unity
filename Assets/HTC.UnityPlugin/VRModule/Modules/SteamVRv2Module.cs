@@ -321,7 +321,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     var error = TryGetDigitalValue(vrInput, actionDeviceData.actionHandle, actionDeviceData.devicePathHandle, out value);
                     if (error == EVRInputError.None)
                     {
-                        actionDeviceData.currState.SetButtonPress(actionDeviceData.inputKey, value);
+                        actionDeviceData.currState.SetButtonTouch(actionDeviceData.inputKey, value);
                     }
                     else
                     {
