@@ -35,6 +35,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         public const string WAVE_XR_LOADER_NAME = "Wave XR Loader";
         public const string WAVE_XR_LOADER_CLASS_NAME = "WaveXRLoader";
+        public const string OPENXR_LOADER_NAME = "Open XR Loader";
+        public const string OPENXR_LOADER_CLASS_NAME = "OpenXRLoader";
 
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
         private class CameraCreator : VRCameraHook.CameraCreator

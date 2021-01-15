@@ -477,6 +477,7 @@ namespace HTC.UnityPlugin.Vive
         private static VRPlatformSetting[] s_platformSettings;
 
         public const string URL_VIU_GITHUB_RELEASE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
+        public const string OPENXR_PLUGIN_PACKAGE_NAME = "com.unity.xr.openxr";
 
         private const string DEFAULT_ASSET_PATH = "Assets/VIUSettings/Resources/VIUSettings.asset";
 
