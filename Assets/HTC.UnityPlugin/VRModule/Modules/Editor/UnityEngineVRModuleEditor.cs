@@ -120,6 +120,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqTypeNames = new string[] { "UnityEditor.XR.Management.Metadata.XRPackageMetadataStore" },
                 reqFileNames = new string[] { "XRPackageMetadata.cs" },
             });
+
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "VIU_OPENXR",
+                reqTypeNames = new string[]
+                {
+                    "UnityEditor.XR.OpenXR.OpenXRProjectValidation",
+                    "UnityEditor.XR.OpenXR.OpenXRProjectValidationWindow",
+                    "UnityEngine.XR.OpenXR.OpenXRSettings",
+                    "UnityEngine.XR.OpenXR.Features.OpenXRFeature",
+                },
+                reqFileNames = new string[]
+                {
+                    "OpenXRProjectValidation.cs",
+                    "OpenXRProjectValidationWindow.cs",
+                    "OpenXRFeature.cs",
+                },
+            });
         }
     }
 }

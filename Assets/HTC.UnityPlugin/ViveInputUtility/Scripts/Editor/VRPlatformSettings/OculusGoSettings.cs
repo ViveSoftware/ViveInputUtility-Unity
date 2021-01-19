@@ -514,8 +514,9 @@ namespace HTC.UnityPlugin.Vive
 #else
                     if (!VIUSettings.activateOculusVRModule) { return false; }
                     if (!OculusSDK.enabled) { return false; }
-#endif
+
                     return true;
+#endif
                 }
                 set
                 {
