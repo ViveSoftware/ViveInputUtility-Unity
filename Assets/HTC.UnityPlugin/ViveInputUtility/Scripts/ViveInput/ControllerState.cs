@@ -241,8 +241,9 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 // update hair trigger
+                var rawTriggerPressed = currState.GetButtonPress(VRModuleRawButton.Trigger);
                 var prevTriggerPressed = GetPress(ControllerButton.Trigger, true);
-                var currTriggerPressed = prevTriggerPressed ? currTriggerValue >= 0.45f : currTriggerValue >= 0.55f;
+                var currTriggerPressed = currTriggerValue == 0f ? rawTriggerPressed : (prevTriggerPressed ? currTriggerValue >= 0.45f : currTriggerValue >= 0.55f);
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Trigger, currTriggerPressed);
 
                 var prevTriggerTouch = GetPress(ControllerButton.TriggerTouch, true);
