@@ -562,8 +562,12 @@ namespace HTC.UnityPlugin.Vive
                     if (VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
 
                     // Skeleton mode
-                    VIUSettings.steamVRLeftSkeletonType = (VIUSettings.SteamVRSkeletonType)EditorGUILayout.EnumPopup("Skeleton Type (Left)", VIUSettings.steamVRLeftSkeletonType);
-                    VIUSettings.steamVRRightSkeletonType = (VIUSettings.SteamVRSkeletonType)EditorGUILayout.EnumPopup("Skeleton Type (Right)", VIUSettings.steamVRRightSkeletonType);
+                    VIUSettings.steamVRLeftSkeletonSetting.type = (SteamVRSkeletonType) EditorGUILayout.EnumPopup("Skeleton Type (Left)", VIUSettings.steamVRLeftSkeletonSetting.type);
+                    VIUSettings.steamVRLeftSkeletonSetting.showController = EditorGUILayout.ToggleLeft("Show Controller (Left)", VIUSettings.steamVRLeftSkeletonSetting.showController);
+                    VIUSettings.steamVRLeftSkeletonSetting.showHand = EditorGUILayout.ToggleLeft("Show Hand (Left)", VIUSettings.steamVRLeftSkeletonSetting.showHand);
+                    VIUSettings.steamVRRightSkeletonSetting.type = (SteamVRSkeletonType) EditorGUILayout.EnumPopup("Skeleton Type (Right)", VIUSettings.steamVRRightSkeletonSetting.type);
+                    VIUSettings.steamVRRightSkeletonSetting.showController = EditorGUILayout.ToggleLeft("Show Controller (Right)", VIUSettings.steamVRRightSkeletonSetting.showController);
+                    VIUSettings.steamVRRightSkeletonSetting.showHand = EditorGUILayout.ToggleLeft("Show Hand (Right)", VIUSettings.steamVRRightSkeletonSetting.showHand);
 
                     VIUSettings.autoLoadExternalCameraConfigOnStart = EditorGUILayout.ToggleLeft(new GUIContent("Load Config and Enable External Camera on Start", "You can also load config by calling ExternalCameraHook.LoadConfigFromFile(path) in script."), VIUSettings.autoLoadExternalCameraConfigOnStart);
                     if (!VIUSettings.autoLoadExternalCameraConfigOnStart) { GUI.enabled = false; }

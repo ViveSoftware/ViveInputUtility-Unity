@@ -179,8 +179,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         m_renderModelComp.SetDeviceIndex(m_index);
                         m_renderModelComp.gameObject.SetActive(true);
 
+                        SteamVRSkeletonSetting skeletonSetting = IsLeft() ? VIUSettings.steamVRLeftSkeletonSetting : VIUSettings.steamVRRightSkeletonSetting;
                         bool isSkeletonValid = IsSkeletonValid();
-                        if (isSkeletonValid)
+                        bool shouldShowHand = isSkeletonValid && skeletonSetting.showHand;
+                        if (shouldShowHand)
                         {
                             // Create skeleton object
                             if (m_skeletonObj == null)
@@ -191,17 +193,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 m_skeletonObj.transform.localPosition = Vector3.zero;
                                 m_skeletonObj.transform.localRotation = Quaternion.identity;
                             }
+                        }
 
-                            VIUSettings.SteamVRSkeletonType skeletonType = IsLeft() ? VIUSettings.steamVRLeftSkeletonType : VIUSettings.steamVRRightSkeletonType;
-                            if (skeletonType == VIUSettings.SteamVRSkeletonType.WithoutController)
-                            {
-                                m_renderModelComp.gameObject.SetActive(false);
-                            }
+                        if (m_renderModelComp)
+                        {
+                            m_renderModelComp.gameObject.SetActive(skeletonSetting.showController);
                         }
 
                         if (m_skeletonObj)
                         {
-                            m_skeletonObj.SetActive(isSkeletonValid);
+                            m_skeletonObj.SetActive(shouldShowHand);
                         }
                     }
                 }
