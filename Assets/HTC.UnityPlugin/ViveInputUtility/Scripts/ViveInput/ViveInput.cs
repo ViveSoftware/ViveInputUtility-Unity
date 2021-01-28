@@ -159,6 +159,8 @@ namespace HTC.UnityPlugin.Vive
         public readonly float[] axisValue = new float[ViveInput.CONTROLLER_AXIS_COUNT];
     }
 
+    internal class ControllerButtonReslver : EnumToIntResolver<ControllerButton> { public override int Resolve(ControllerButton e) { return (int)e; } }
+
     /// <summary>
     /// Singleton that manage and update controllers input
     /// </summary>

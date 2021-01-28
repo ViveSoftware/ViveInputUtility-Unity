@@ -75,10 +75,17 @@ namespace HTC.UnityPlugin.Vive
                 var modelData = s_defaultModels[modelNum];
                 if (!modelData.isLoaded)
                 {
+                    GameObject modelPrefab = null;
+                    int modelNameIndex;
+                    var info = EnumUtils.GetDisplayInfo(typeof(VRModuleDeviceModel));
+                    if (info.value2displayedIndex.TryGetValue((int)modelNum, out modelNameIndex))
+                    {
+                        modelPrefab = Resources.Load<GameObject>("Models/VIUModel" + info.displayedNames[modelNameIndex]);
+                    }
                     s_defaultModels[modelNum] = modelData = new DefaultModelData()
                     {
                         isLoaded = true,
-                        model = Resources.Load<GameObject>("Models/VIUModel" + modelNum.ToString()),
+                        model = modelPrefab,
                     };
                 }
 

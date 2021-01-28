@@ -223,7 +223,7 @@ namespace HTC.UnityPlugin.Utility
 
         protected static readonly TEnum[] enums;
         protected static readonly bool[] enumIsDefined;
-        private static readonly Func<TEnum, int> funcE2I;
+        private static Func<TEnum, int> funcE2I;
         public static readonly int StaticMinInt;
         public static readonly TEnum StaticMin;
         public static readonly int StaticMaxInt;
@@ -236,60 +236,38 @@ namespace HTC.UnityPlugin.Utility
 #if !CSHARP_7_OR_LATER
             if (!StaticEnumType.IsEnum) { throw new Exception(StaticEnumType.Name + " is not enum type!"); }
 #endif
-            // Find first found custom resolver
-            // resolver should provide faster function to convert TEnum to int value
-            // most common & fasteast converting is to directly cast in the script like "return (int)enumValue;"
-            // In this generic constructor, we can only use slower converting function like "(int)(object)enumValue" or "EqualityComparer<TEnum>.Default.GetHashCode(enumValue)"
-            EnumToIntResolver<TEnum> resolver;
-            if (EnumToIntResolverCache.TryGetCachedResolverInstance(out resolver))
-            {
-                funcE2I = resolver.Resolve;
-            }
-            else
-            {
-                WarnBoxingResolver();
-            }
-
             var underlyingType = Enum.GetUnderlyingType(StaticEnumType);
             var rangeCheckFunc = default(RangeCheckFunc);
             if (underlyingType == typeof(int))
             {
-                if (funcE2I == null) { funcE2I = EqualityComparer<TEnum>.Default.GetHashCode; }
                 rangeCheckFunc = RangeCheckFromInt32;
             }
             else if (underlyingType == typeof(uint))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(uint)(object)e; }
                 rangeCheckFunc = RangeCheckFromUInt32;
             }
             else if (underlyingType == typeof(long))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(long)(object)e; }
                 rangeCheckFunc = RangeCheckFromInt64;
             }
             else if (underlyingType == typeof(ulong))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(ulong)(object)e; }
                 rangeCheckFunc = RangeCheckFromUInt64;
             }
             else if (underlyingType == typeof(byte))
             {
-                if (funcE2I == null) { funcE2I = e => (byte)(object)e; }
                 rangeCheckFunc = RangeCheckFromUInt8;
             }
             else if (underlyingType == typeof(sbyte))
             {
-                if (funcE2I == null) { funcE2I = e => (sbyte)(object)e; }
                 rangeCheckFunc = RangeCheckFromInt8;
             }
             else if (underlyingType == typeof(short))
             {
-                if (funcE2I == null) { funcE2I = e => (short)(object)e; }
                 rangeCheckFunc = RangeCheckFromInt16;
             }
             else if (underlyingType == typeof(ushort))
             {
-                if (funcE2I == null) { funcE2I = e => (ushort)(object)e; }
                 rangeCheckFunc = RangeCheckFromUInt16;
             }
 
@@ -388,8 +366,62 @@ namespace HTC.UnityPlugin.Utility
 
         public static EnumEnumerator StaticEnumsFrom(TEnum from, TEnum to) { return new EnumEnumerator(from, to); }
 
+        public static void InitializeFuncE2I()
+        {
+            if (funcE2I != null) { return; }
+
+            // Find first found custom resolver
+            // resolver should provide faster function to convert TEnum to int value
+            // most common & fasteast converting is to directly cast in the script like "return (int)enumValue;"
+            // In this generic constructor, we can only use slower converting function like "(int)(object)enumValue" or "EqualityComparer<TEnum>.Default.GetHashCode(enumValue)"
+            EnumToIntResolver<TEnum> resolver;
+            if (EnumToIntResolverCache.TryGetCachedResolverInstance(out resolver))
+            {
+                funcE2I = resolver.Resolve;
+            }
+            else
+            {
+                WarnBoxingResolver();
+            }
+
+            var underlyingType = Enum.GetUnderlyingType(StaticEnumType);
+            if (underlyingType == typeof(int))
+            {
+                if (funcE2I == null) { funcE2I = EqualityComparer<TEnum>.Default.GetHashCode; }
+            }
+            else if (underlyingType == typeof(uint))
+            {
+                if (funcE2I == null) { funcE2I = e => (int)(uint)(object)e; }
+            }
+            else if (underlyingType == typeof(long))
+            {
+                if (funcE2I == null) { funcE2I = e => (int)(long)(object)e; }
+            }
+            else if (underlyingType == typeof(ulong))
+            {
+                if (funcE2I == null) { funcE2I = e => (int)(ulong)(object)e; }
+            }
+            else if (underlyingType == typeof(byte))
+            {
+                if (funcE2I == null) { funcE2I = e => (byte)(object)e; }
+            }
+            else if (underlyingType == typeof(sbyte))
+            {
+                if (funcE2I == null) { funcE2I = e => (sbyte)(object)e; }
+            }
+            else if (underlyingType == typeof(short))
+            {
+                if (funcE2I == null) { funcE2I = e => (short)(object)e; }
+            }
+            else if (underlyingType == typeof(ushort))
+            {
+                if (funcE2I == null) { funcE2I = e => (ushort)(object)e; }
+            }
+        }
+
         public static int E2I(TEnum e)
         {
+            InitializeFuncE2I();
             return funcE2I(e);
         }
 
