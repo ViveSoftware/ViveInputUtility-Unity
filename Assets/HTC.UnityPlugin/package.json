@@ -1,6 +1,6 @@
 {
   "name": "com.htc.upm.vive-input-utility",
-  "version": "1.13.0-preview.6",
+  "version": "1.13.0-preview.7",
   "displayName": "VIVE Input Utility",
   "description": "The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity, especially with the VIVE/VIVE Pro but also targeting many platforms from a common code base including Oculus Rift, Rift S Go, Quest, Google Daydream, VIVE Wave SDK (e.g. VIVE Focus standalone) and additional VR platforms as supported by Unity such as Microsoft's 'Mixed Reality' VR headsets and more.\n\nCompatible with SteamVR 2.4.0+ and Oculus Integration 16.0+.\n\nView license:\nhttps://github.com/ViveSoftware/ViveInputUtility-Unity/blob/develop/LICENSE.md",
   "keywords": [
@@ -70,6 +70,16 @@
       "displayName": "8. Near-Field Hand Interaction",
       "description": "Demonstration of near-field hand interaction.",
       "path": "ViveInputUtility/Examples/8.NearFieldHandInteraction"
+    },
+    {
+      "displayName": "9. Tracked Hand UGUI Interaction",
+      "description": "Demonstration of UGUI hand interaction.",
+      "path": "ViveInputUtility/Examples/9.TrackedHandUGUIInteraction"
+    },
+    {
+      "displayName": "10. Controller Tooltips",
+      "description": "",
+      "path": "ViveInputUtility/Examples/10.ControllerTooltips"
     }
   ],
   "unity": "2019.3"
