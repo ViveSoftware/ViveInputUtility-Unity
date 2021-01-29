@@ -56,8 +56,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 { "WVR_CONTROLLER_FINCH3DOF_2_0", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusFinch, input2D = VRModuleInput2DType.TouchpadOnly } },
                 { "WVR_CONTROLLER_ASPEN_MI6_1", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusChirp, input2D = VRModuleInput2DType.TouchpadOnly } },
-                { "WVR_CR_Right_001", new WVRCtrlProfile() { model = VRModuleDeviceModel.Unknown, input2D = VRModuleInput2DType.JoystickOnly } },
-                { "WVR_CR_Left_001", new WVRCtrlProfile() { model = VRModuleDeviceModel.Unknown, input2D = VRModuleInput2DType.JoystickOnly } },
+                { "WVR_CR_Right_001", new WVRCtrlProfile() { model = VRModuleDeviceModel.WaveCRControllerRight, input2D = VRModuleInput2DType.JoystickOnly } },
+                { "WVR_CR_Left_001", new WVRCtrlProfile() { model = VRModuleDeviceModel.WaveCRControllerLeft, input2D = VRModuleInput2DType.JoystickOnly } },
             };
 
             public bool isActivated { get; private set; }
@@ -361,12 +361,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             return;
                         case VRModuleDeviceClass.Controller:
                             {
-                                WVRCtrlProfile profile;
-                                if (m_wvrModels.TryGetValue(deviceState.modelNumber, out profile))
+                                foreach (var p in m_wvrModels)
                                 {
-                                    deviceState.deviceModel = profile.model;
-                                    deviceState.input2DType = profile.input2D;
-                                    return;
+                                    if (deviceState.modelNumber.Contains(p.Key))
+                                    {
+                                        deviceState.deviceModel = p.Value.model;
+                                        deviceState.input2DType = p.Value.input2D;
+                                        return;
+                                    }
                                 }
                             }
                             break;

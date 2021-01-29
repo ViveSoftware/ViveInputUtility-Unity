@@ -115,8 +115,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.KhronosSimpleController:
                     updateFunc = UpdateKhronosSimpleControllerState;
                     break;
-                case VRModuleDeviceModel.Unknown:
-                    updateFunc = UpdateViveFocusUnknownControllerState;
+                case VRModuleDeviceModel.WaveCRControllerLeft:
+                case VRModuleDeviceModel.WaveCRControllerRight:
+                    updateFunc = UpdateWaveCRControllerState;
                     break;
                 default:
                     updateFunc = null;
@@ -564,7 +565,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             // [Vector3] PointerAngularVelocity
         }
 
-        private void UpdateViveFocusUnknownControllerState(IVRModuleDeviceStateRW state, InputDevice device)
+        private void UpdateWaveCRControllerState(IVRModuleDeviceStateRW state, InputDevice device)
         {
             bool primary2DAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisClick);
             bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch);
