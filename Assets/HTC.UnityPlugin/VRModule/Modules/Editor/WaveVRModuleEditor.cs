@@ -33,10 +33,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
             });
 
             Add(new SymbolRequirement()
-{
+            {
                 symbol = "VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL",
                 reqTypeNames = new string[] { "Wave.Essence.Controller.Model.RenderModel", "Wave.Essence.Controller.Model.ButtonEffect", "Wave.Essence.Controller.Model.ControllerTips" },
                 reqFileNames = new string[] { "RenderModel.cs", "ButtonEffect.cs", "ControllerTips.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVE_XRSDK_3_99_31_OR_NEWER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.Native.Interop",
+                        name = "WVR_SetControllerPoseMode",
+                        argTypeNames = new string[]
+                        {
+                            "Wave.Native.WVR_DeviceType",
+                            "Wave.Native.WVR_ControllerPoseMode",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
             });
 
             Add(new SymbolRequirement()

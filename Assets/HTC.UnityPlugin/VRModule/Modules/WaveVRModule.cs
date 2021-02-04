@@ -83,6 +83,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         m_modelObj.SetActive(false);
                         m_modelObj.transform.SetParent(hook.transform, false);
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
+#if VIU_WAVE_XRSDK_3_99_31_OR_NEWER
+                        m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
+#endif
                         m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
                         m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
 #elif VIU_WAVEXR_ESSENCE_RENDERMODEL
@@ -113,6 +116,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         m_modelObj.SetActive(false);
                         m_modelObj.transform.SetParent(hook.transform, false);
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
+#if VIU_WAVE_XRSDK_3_99_31_OR_NEWER
+                        var pm = m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
+                        pm.WhichHand = XR_Hand.NonDominant;
+#endif
                         var rm = m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
                         rm.WhichHand = XR_Hand.NonDominant;
                         var be = m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
