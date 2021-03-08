@@ -194,8 +194,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 }
                 catch (Exception ex)
                 {
-                    // exception handling, save & log it;
-                    Debug.LogError(string.Format("{0}\n{1}", ex.Message, ex.StackTrace));
+                    Debug.LogException(ex);
                     lock (stateLock)
                     {
                         state = RunningState.Exception;
