@@ -140,11 +140,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
 
-            private static string GetSkeletonPrefabPath(bool isLeft)
-            {
-                return SKELETON_PREFAB_BASE_PATH + (isLeft ? "Left" : "Right");
-            }
-
             public override void UpdateRenderModel()
             {
                 m_index = hook.GetModelDeviceIndex();
@@ -165,44 +160,45 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         UpdateDefaultRenderModel(false);
 
-                        // create object for render model
-                        if (m_renderModelComp == null)
+                        bool isLeft;
+                        SteamVRSkeletonMode skeletonMode = GetDeviceSkeletonMode(out isLeft);
+                        bool shouldShowHand = skeletonMode != SteamVRSkeletonMode.Disabled && IsSkeletonValid();
+                        bool shouldShowController = !shouldShowHand || skeletonMode != SteamVRSkeletonMode.WithoutController;
+
+                        if (shouldShowHand && m_skeletonObj == null)
                         {
+                            // Create skeleton object
+                            GameObject prefab = Resources.Load<GameObject>(GetSkeletonPrefabPath(isLeft));
+                            m_skeletonObj = Object.Instantiate(prefab);
+                            m_skeletonObj.transform.SetParent(hook.transform);
+                            m_skeletonObj.transform.localPosition = Vector3.zero;
+                            m_skeletonObj.transform.localRotation = Quaternion.identity;
+                        }
+
+                        if (m_skeletonObj != null)
+                        {
+                            m_skeletonObj.SetActive(shouldShowHand);
+                        }
+
+                        if (shouldShowController && m_renderModelComp == null)
+                        {
+                            // create object for render model
                             var go = new GameObject("Model");
                             go.SetActive(false);
                             go.transform.SetParent(hook.transform, false);
                             m_renderModelComp = go.AddComponent<VIUSteamVRRenderModel>();
                         }
 
-                        // set render model index
-                        m_renderModelComp.shaderOverride = hook.overrideShader;
-                        m_renderModelComp.SetDeviceIndex(m_index);
-                        m_renderModelComp.gameObject.SetActive(true);
-
-                        SteamVRSkeletonSetting skeletonSetting = IsLeft() ? VIUSettings.steamVRLeftSkeletonSetting : VIUSettings.steamVRRightSkeletonSetting;
-                        bool isSkeletonValid = IsSkeletonValid();
-                        bool shouldShowHand = isSkeletonValid && skeletonSetting.showHand;
-                        if (shouldShowHand)
+                        if (m_renderModelComp != null)
                         {
-                            // Create skeleton object
-                            if (m_skeletonObj == null)
+                            m_renderModelComp.gameObject.SetActive(shouldShowController);
+
+                            if (shouldShowController)
                             {
-                                GameObject prefab = Resources.Load<GameObject>(GetSkeletonPrefabPath(IsLeft()));
-                                m_skeletonObj = Object.Instantiate(prefab);
-                                m_skeletonObj.transform.SetParent(hook.transform);
-                                m_skeletonObj.transform.localPosition = Vector3.zero;
-                                m_skeletonObj.transform.localRotation = Quaternion.identity;
+                                // set render model index
+                                m_renderModelComp.shaderOverride = hook.overrideShader;
+                                m_renderModelComp.SetDeviceIndex(m_index);
                             }
-                        }
-
-                        if (m_renderModelComp)
-                        {
-                            m_renderModelComp.gameObject.SetActive(skeletonSetting.showController);
-                        }
-
-                        if (m_skeletonObj)
-                        {
-                            m_skeletonObj.SetActive(shouldShowHand);
                         }
                     }
                 }
@@ -243,6 +239,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
 
                 return m_index == s_moduleInstance.GetLeftControllerDeviceIndex();
+            }
+
+            private static string GetSkeletonPrefabPath(bool isLeft)
+            {
+                return SKELETON_PREFAB_BASE_PATH + (isLeft ? "Left" : "Right");
+            }
+
+            private SteamVRSkeletonMode GetDeviceSkeletonMode(out bool isLeft)
+            {
+                if (s_moduleInstance == null)
+                {
+                    Debug.LogWarning("s_moduleInstance is null.");
+                    isLeft = false;
+                    return SteamVRSkeletonMode.Disabled;
+                }
+
+                if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.Controller)
+                {
+                    if (m_index == s_moduleInstance.GetLeftControllerDeviceIndex()) { isLeft = true; return VIUSettings.steamVRLeftSkeletonMode; }
+                    if (m_index == s_moduleInstance.GetRightControllerDeviceIndex()) { isLeft = false; return VIUSettings.steamVRRightSkeletonMode; }
+                }
+
+                isLeft = false;
+                return SteamVRSkeletonMode.Disabled;
             }
 
             private bool IsSkeletonValid()

@@ -555,19 +555,15 @@ namespace HTC.UnityPlugin.Vive
                     else
                     {
                         EditorGUI.BeginChangeCheck();
-                        VRModuleSettings.activateViveHandTrackingSubmodule = EditorGUILayout.ToggleLeft(new GUIContent(vhtTitle, "Vive, VIVE Pro, Vive Pro Eye, VIVE Cosmos, VIVE Cosmos XR and Valve Index"), VRModuleSettings.activateViveHandTrackingSubmodule);
+                        VRModuleSettings.activateViveHandTrackingSubmodule = EditorGUILayout.ToggleLeft(new GUIContent(vhtTitle, "Works on Vive, VIVE Pro, Vive Pro Eye, VIVE Cosmos, VIVE Cosmos XR and Valve Index"), VRModuleSettings.activateViveHandTrackingSubmodule);
                         s_guiChanged |= EditorGUI.EndChangeCheck();
                     }
 
                     if (VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
 
                     // Skeleton mode
-                    VIUSettings.steamVRLeftSkeletonSetting.type = (SteamVRSkeletonType) EditorGUILayout.EnumPopup("Skeleton Type (Left)", VIUSettings.steamVRLeftSkeletonSetting.type);
-                    VIUSettings.steamVRLeftSkeletonSetting.showController = EditorGUILayout.ToggleLeft("Show Controller (Left)", VIUSettings.steamVRLeftSkeletonSetting.showController);
-                    VIUSettings.steamVRLeftSkeletonSetting.showHand = EditorGUILayout.ToggleLeft("Show Hand (Left)", VIUSettings.steamVRLeftSkeletonSetting.showHand);
-                    VIUSettings.steamVRRightSkeletonSetting.type = (SteamVRSkeletonType) EditorGUILayout.EnumPopup("Skeleton Type (Right)", VIUSettings.steamVRRightSkeletonSetting.type);
-                    VIUSettings.steamVRRightSkeletonSetting.showController = EditorGUILayout.ToggleLeft("Show Controller (Right)", VIUSettings.steamVRRightSkeletonSetting.showController);
-                    VIUSettings.steamVRRightSkeletonSetting.showHand = EditorGUILayout.ToggleLeft("Show Hand (Right)", VIUSettings.steamVRRightSkeletonSetting.showHand);
+                    VIUSettings.steamVRLeftSkeletonMode = (SteamVRSkeletonMode)EditorGUILayout.EnumPopup(new GUIContent("Left Controller Skeleton", "This effects RenderModelHook's behaviour"), VIUSettings.steamVRLeftSkeletonMode);
+                    VIUSettings.steamVRRightSkeletonMode = (SteamVRSkeletonMode)EditorGUILayout.EnumPopup(new GUIContent("Right Controller Skeleton", "This effects RenderModelHook's behaviour"), VIUSettings.steamVRRightSkeletonMode);
 
                     VIUSettings.autoLoadExternalCameraConfigOnStart = EditorGUILayout.ToggleLeft(new GUIContent("Load Config and Enable External Camera on Start", "You can also load config by calling ExternalCameraHook.LoadConfigFromFile(path) in script."), VIUSettings.autoLoadExternalCameraConfigOnStart);
                     if (!VIUSettings.autoLoadExternalCameraConfigOnStart) { GUI.enabled = false; }

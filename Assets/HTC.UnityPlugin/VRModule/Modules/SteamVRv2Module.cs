@@ -517,7 +517,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 RigidPose fixedHandPose = currState.pose;
                 fixedHandPose.rot *= SteamVR_Action_Skeleton.steamVRFixUpRotation;
 
-                EVRSkeletalMotionRange skeletonType = (EVRSkeletalMotionRange) (isLeft ? VIUSettings.steamVRLeftSkeletonSetting.type : VIUSettings.steamVRRightSkeletonSetting.type);
+                EVRSkeletalMotionRange skeletonType = (EVRSkeletalMotionRange)(isLeft ? VIUSettings.steamVRLeftSkeletonMode : VIUSettings.steamVRRightSkeletonMode);
                 EVRInputError boneError = OpenVR.Input.GetSkeletalBoneData(actionHandle, EVRSkeletalTransformSpace.Model, skeletonType, s_tempBoneTransforms);
                 if (boneError == EVRInputError.None)
                 {
