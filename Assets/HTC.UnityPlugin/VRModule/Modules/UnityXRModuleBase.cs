@@ -166,8 +166,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
                     currState.serialNumber = device.name + " " + device.serialNumber + " " + (int)device.characteristics;
-                    currState.modelNumber = device.name + " ("+ device.characteristics + ")";
-                    currState.renderModelName = device.name + " ("+ device.characteristics + ")";
+                    currState.modelNumber = device.name + " (" + device.characteristics + ")";
+                    currState.renderModelName = device.name + " (" + device.characteristics + ")";
 
                     SetupKnownDeviceModel(currState);
 
@@ -331,6 +331,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private uint maxHapticStateIndex = 0u;
         private HapticState[] hapticStates = new HapticState[VRModule.MAX_DEVICE_COUNT];
+
+        public override void TriggerViveControllerHaptic(uint deviceIndex, ushort durationMicroSec = 500)
+        {
+            TriggerHapticVibration(deviceIndex, durationMicroSec * 1000000f);
+        }
 
         // NOTE: Frequency not supported
         public override void TriggerHapticVibration(uint deviceIndex, float durationSeconds = 0.01f, float frequency = 85.0f, float amplitude = 0.125f, float startSecondsFromNow = 0.0f)
