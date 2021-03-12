@@ -3,7 +3,7 @@ stages:
   - build
 
 variables:
-  UNITY_COMMAND: "xvfb-run --auto-servernum --server-args='-screen 0 640x480x24' /opt/Unity/Editor/Unity -batchmode -nographics -logfile /dev/stdout -quit"
+  UNITY_COMMAND: "xvfb-run --auto-servernum --server-args='-screen 0 640x480x24' /opt/unity/Editor/Unity -batchmode -nographics -logfile /dev/stdout -quit"
   BUILD_SCENE_PATH: 'Assets/HTC.UnityPlugin/ViveInputUtility/Examples/1.UGUI/UGUI.unity'
   BUILD_OUTPUT_FOLDER: 'Builds/Win64'
   BUILD_OUTPUT_NAME: 'UGUI.exe'
@@ -15,7 +15,7 @@ variables:
   eval ${UNITY_COMMAND} -returnLicense
 
 .unity_template: &unity_template
-  image: gableroux/unity3d:${IMAGE_TAG}
+  image: unityci/editor:${IMAGE_TAG}
   cache:
     key: "${CI_PROJECT_ID}-${CI_COMMIT_REF_SLUG}-${CI_JOB_NAME}"
     paths:
@@ -58,86 +58,80 @@ variables:
     - find './Assets/HTC.UnityPlugin/' -type f -name '*.asmref*' -delete
     - *unity_activate
 
-editor:2017.4-asset:
-  <<: *no_asmdef_unity_template
-  stage: editor
-  variables:
-    IMAGE_TAG: '2017.4.27f1-windows'
-
 editor:2018.2-asset:
   <<: *no_asmdef_unity_template
   stage: editor
   variables:
-    IMAGE_TAG: '2018.2.21f1-windows'
+    IMAGE_TAG: '2018.2.21f1-windows-mono-0'
     
 editor:2018.4-asset:
   <<: *no_asmdef_unity_template
   stage: editor
   variables:
-    IMAGE_TAG: '2018.4.24f1-windows'
+    IMAGE_TAG: '2018.4.32f1-windows-mono-0'
 
-editor:2019.1-asset:
+editor:2019.2-asset:
   <<: *no_asmdef_unity_template
   stage: editor
   variables:
-    IMAGE_TAG: '2019.1.14f1-windows'
+    IMAGE_TAG: '2019.2.21f1-windows-mono-0'
 
 editor:2019.4-asset:
   <<: *no_asmdef_unity_template
   stage: editor
   variables:
-    IMAGE_TAG: '2019.4.2f1-windows'
+    IMAGE_TAG: '2019.4.22f1-windows-mono-0'
 
-editor:2020.1-asset:
+editor:2020.3-asset:
   <<: *no_asmdef_unity_template
   stage: editor
   variables:
-    IMAGE_TAG: '2020.1.0f1-windows'
+    IMAGE_TAG: '2020.3.0f1-windows-mono-0'
 
 editor:2019.4-package:
   <<: *unity_template
   stage: editor
   variables:
-    IMAGE_TAG: '2019.4.2f1-windows'
+    IMAGE_TAG: '2019.4.22f1-windows-mono-0'
 
-editor:2020.1-package:
+editor:2020.3-package:
   <<: *unity_template
   stage: editor
   variables:
-    IMAGE_TAG: '2020.1.0f1-windows'
+    IMAGE_TAG: '2020.3.0f1-windows-mono-0'
     
 build:2018.4-asset-win64:
   <<: *no_asmdef_build_win64_unity_template
   stage: build
   variables:
-    IMAGE_TAG: '2018.4.24f1-windows'
+    IMAGE_TAG: '2018.4.32f1-windows-mono-0'
 
 build:2019.2-asset-win64:
   <<: *no_asmdef_build_win64_unity_template
   stage: build
   variables:
-    IMAGE_TAG: '2019.2.20f1-windows'
+    IMAGE_TAG: '2019.2.21f1-windows-mono-0'
 
 build:2019.4-asset-win64:
   <<: *no_asmdef_build_win64_unity_template
   stage: build
   variables:
-    IMAGE_TAG: '2019.4.2f1-windows'
+    IMAGE_TAG: '2019.4.22f1-windows-mono-0'
 
-build:2020.1-asset-win64:
+build:2020.3-asset-win64:
   <<: *no_asmdef_build_win64_unity_template
   stage: build
   variables:
-    IMAGE_TAG: '2020.1.0f1-windows'
+    IMAGE_TAG: '2020.3.0f1-windows-mono-0'
 
 build:2019.4-package-win64:
   <<: *build_win64_unity_template
   stage: build
   variables:
-    IMAGE_TAG: '2019.4.2f1-windows'
+    IMAGE_TAG: '2019.4.22f1-windows-mono-0'
 
-build:2020.1-package-win64:
+build:2020.3-package-win64:
   <<: *build_win64_unity_template
   stage: build
   variables:
-    IMAGE_TAG: '2020.1.0f1-windows'
+    IMAGE_TAG: '2020.3.0f1-windows-mono-0'
