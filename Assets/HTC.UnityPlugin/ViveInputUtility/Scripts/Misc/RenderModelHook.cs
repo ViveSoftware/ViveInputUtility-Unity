@@ -101,18 +101,18 @@ namespace HTC.UnityPlugin.Vive
             {
                 var deviceState = VRModule.GetDeviceState(hook.GetModelDeviceIndex());
 
-                var lastActiveModelNum = m_activeModel;
-                var lastActiveModelObj = m_modelObjs[m_activeModel];
-                var lastModelActive = m_isModelActivated;
+                var lastModelActivated = m_isModelActivated;
+                var lastActivatedModel = m_activeModel;
                 var shouldActiveModelNum = deviceState.deviceModel;
                 var shouldActiveModelPrefab = shouldActive ? GetDefaultDeviceModelPrefab(shouldActiveModelNum) : null;
                 var shouldActiveModel = shouldActive && deviceState.isConnected && shouldActiveModelPrefab != null;
 
-                if (lastModelActive)
+                if (lastModelActivated)
                 {
-                    if (!shouldActiveModel || lastActiveModelNum != shouldActiveModelNum)
+                    if (!shouldActiveModel || lastActivatedModel != shouldActiveModelNum)
                     {
                         // deactivate custom override model
+                        var lastActiveModelObj = m_modelObjs[m_activeModel];
                         if (lastActiveModelObj != null && SendBeforeModelDeactivatedMessage(lastActiveModelObj, hook))
                         {
                             lastActiveModelObj.gameObject.SetActive(false);
@@ -121,7 +121,6 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
 
-                m_activeModel = shouldActiveModelNum;
                 if (shouldActiveModel)
                 {
                     var shouldActiveModelObj = m_modelObjs[shouldActiveModelNum];
@@ -133,6 +132,7 @@ namespace HTC.UnityPlugin.Vive
                         shouldActiveModelObj.transform.rotation = Quaternion.identity;
                         shouldActiveModelObj.transform.SetParent(hook.transform, false);
                         m_modelObjs[shouldActiveModelNum] = shouldActiveModelObj;
+                        m_activeModel = shouldActiveModelNum;
                         m_isModelActivated = false;
                         SendAfterModelCreatedMessage(shouldActiveModelObj, hook);
                     }
@@ -151,15 +151,15 @@ namespace HTC.UnityPlugin.Vive
 
             public override void CleanUpRenderModel()
             {
-                if (!m_isModelActivated)
+                if (m_isModelActivated)
                 {
-                    var activatedModelObj = m_modelObjs[m_activeModel];
-                    // active custom override model
-                    if (activatedModelObj != null && SendBeforeModelActivatedMessage(activatedModelObj, hook))
+                    // deactivate custom override model
+                    var lastActiveModelObj = m_modelObjs[m_activeModel];
+                    if (lastActiveModelObj != null && SendBeforeModelDeactivatedMessage(lastActiveModelObj, hook))
                     {
-                        activatedModelObj.gameObject.SetActive(true);
+                        lastActiveModelObj.gameObject.SetActive(false);
                     }
-                    m_isModelActivated = true;
+                    m_isModelActivated = false;
                 }
             }
         }
@@ -248,6 +248,7 @@ namespace HTC.UnityPlugin.Vive
         private int m_activeCreatorIndex = -1;
         private int m_defaultCreatorIndex = -1;
         private bool m_isQuiting;
+        private bool m_updateModelLock;
 
         public ViveRoleProperty viveRole { get { return m_viveRole; } }
         [Obsolete]
@@ -323,15 +324,6 @@ namespace HTC.UnityPlugin.Vive
             return defaultValue;
         }
 
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (isActiveAndEnabled && Application.isPlaying && VRModule.Active)
-            {
-                UpdateModel();
-            }
-        }
-#endif
         private void Awake()
         {
             FindAllRenderModelCreatorTypes();
@@ -445,9 +437,18 @@ namespace HTC.UnityPlugin.Vive
             return result;
         }
 
-        private void UpdateModel()
+        [ContextMenu("Update Model")]
+        public void UpdateModel()
         {
             if (m_isQuiting) { return; }
+
+            if (m_updateModelLock)
+            {
+                Debug.LogWarning("Recursive UpdateModel call is not supported");
+                return;
+            }
+
+            m_updateModelLock = true;
 
             var deviceState = VRModule.GetDeviceState(GetModelDeviceIndex());
 
@@ -457,14 +458,15 @@ namespace HTC.UnityPlugin.Vive
             var shouldActiveCustomModelNum = deviceState.deviceModel;
             var shouldActiveCustomModelPrefab = m_customModels[shouldActiveCustomModelNum];
             if (shouldActiveCustomModelPrefab == null) { shouldActiveCustomModelPrefab = VIUSettings.GetOverrideDeviceModel(shouldActiveCustomModelNum); }
-            var shouldActiveCustomModel = deviceState.isConnected && shouldActiveCustomModelPrefab != null;
+            var shouldActiveCustomModel = enabled && deviceState.isConnected && shouldActiveCustomModelPrefab != null;
 
             var lastCreatorActive = m_activeCreatorIndex >= 0;
-            var shouldActiveCreator = !shouldActiveCustomModel;
+            var shouldActiveCreator = enabled && !shouldActiveCustomModel;
             var shouldActiveCreatorIndex = -1;
             if (shouldActiveCreator)
             {
                 // determin which creator should be activated
+                shouldActiveCreatorIndex = m_defaultCreatorIndex;
                 if (m_overrideModel == OverrideModelEnum.DontOverride)
                 {
                     for (int i = 0, imax = m_creators.Length; i < imax; ++i)
@@ -475,10 +477,6 @@ namespace HTC.UnityPlugin.Vive
                             break;
                         }
                     }
-                }
-                else
-                {
-                    shouldActiveCreatorIndex = m_defaultCreatorIndex;
                 }
             }
 
@@ -538,6 +536,8 @@ namespace HTC.UnityPlugin.Vive
                 // update active creator
                 m_creators[m_activeCreatorIndex].UpdateRenderModel();
             }
+
+            m_updateModelLock = false;
         }
     }
 }

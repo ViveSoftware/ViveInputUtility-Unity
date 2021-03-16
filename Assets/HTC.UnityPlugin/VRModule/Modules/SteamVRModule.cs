@@ -143,7 +143,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public override void UpdateRenderModel()
             {
                 m_index = hook.GetModelDeviceIndex();
-                if (VRModule.IsValidDeviceIndex(m_index))
+                if (hook.enabled && VRModule.IsValidDeviceIndex(m_index))
                 {
                     if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand)
                     {
@@ -154,6 +154,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         if (m_renderModelComp != null)
                         {
                             m_renderModelComp.gameObject.SetActive(false);
+                        }
+
+                        if (m_skeletonObj != null)
+                        {
+                            m_skeletonObj.SetActive(false);
                         }
                     }
                     else
@@ -224,9 +229,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 if (m_renderModelComp != null)
                 {
-                    UnityEngine.Object.Destroy(m_renderModelComp.gameObject);
-                    m_renderModelComp = null;
-                    m_index = INVALID_DEVICE_INDEX;
+                    m_renderModelComp.gameObject.SetActive(false);
+                }
+
+                if (m_skeletonObj != null)
+                {
+                    m_skeletonObj.SetActive(false);
                 }
             }
 
