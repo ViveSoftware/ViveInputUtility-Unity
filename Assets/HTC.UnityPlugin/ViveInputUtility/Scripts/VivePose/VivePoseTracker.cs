@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.Vive
 
         public Transform origin { get { return m_origin; } set { m_origin = value; } }
 
-        public UnityEventBool onIsValidChanged { get { return onIsValidChanged; } }
+        public UnityEventBool onIsValidChanged { get { return m_onIsValidChanged; } }
 
         protected void SetIsValid(bool value, bool forceSet = false)
         {
