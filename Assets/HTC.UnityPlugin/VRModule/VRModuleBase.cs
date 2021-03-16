@@ -36,7 +36,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", REGEX_OPTIONS);
             private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", REGEX_OPTIONS);
-            private static readonly Regex s_oculusRgx = new Regex("^.*(oculus).*$", REGEX_OPTIONS);
+            private static readonly Regex s_oculusRgx = new Regex("^.*(oculus|quest).*$", REGEX_OPTIONS);
             private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGEX_OPTIONS);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", REGEX_OPTIONS);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGEX_OPTIONS);
@@ -223,7 +223,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             }
                             else
                             {
-                                if (deviceState.modelNumber.Contains("Rift S"))
+                                if (deviceState.modelNumber.Contains("Rift S") || deviceState.modelNumber.Contains("Quest"))
                                 {
                                     if (s_leftRgx.IsMatch(deviceState.modelNumber))
                                     {
