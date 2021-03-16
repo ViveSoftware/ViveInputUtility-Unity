@@ -253,43 +253,6 @@ namespace HTC.UnityPlugin.Vive
                     {
                         EditorGUI.indentLevel += 2;
 
-                        // Wave Hand Tracking Submodule
-                        const string whtTitle = "Enable Wave Hand Tracking";
-                        const string whgTitle = "Enable Wave Hand Gesture";
-                        const string wnhTitle = "Enable Wave Natural Hand";
-                        const string wehTitle = "Enable Wave Electronic Hand";
-                        const string wehwcTitle = "Show Wave Electronic Hand With Controller";
-
-                        if (!VRModule.isWaveHandTrackingDetected)
-                        {
-                            GUI.enabled = false;
-                            EditorGUILayout.ToggleLeft(new GUIContent(whtTitle, "Wave Hand Tracking SDK required"), false, GUILayout.Width(230f));
-                            GUI.enabled = true;
-                        }
-                        else
-                        {
-                            EditorGUI.BeginChangeCheck();
-                            VRModuleSettings.activateWaveHandTrackingSubmodule = EditorGUILayout.ToggleLeft(new GUIContent(whtTitle, "Wave Hand Tracking SDK required"), VRModuleSettings.activateWaveHandTrackingSubmodule);
-                            EditorGUI.indentLevel++;
-                            if (VRModuleSettings.activateWaveHandTrackingSubmodule)
-                            {
-                                VRModuleSettings.enableWaveHandGesture = EditorGUILayout.ToggleLeft(new GUIContent(whgTitle, "Hand Gesture supports Fist, Five, IndexUp, ThumbUp and OK"), VRModuleSettings.enableWaveHandGesture);
-                                VRModuleSettings.enableWaveNaturalHand = EditorGUILayout.ToggleLeft(new GUIContent(wnhTitle, "Show virtual hand"), VRModuleSettings.enableWaveNaturalHand);
-                                VRModuleSettings.enableWaveElectronicHand = EditorGUILayout.ToggleLeft(new GUIContent(wehTitle, "Simulate button inputs to hand"), VRModuleSettings.enableWaveElectronicHand);
-                                EditorGUI.indentLevel++;
-                                VRModuleSettings.showWaveElectronicHandWithController = EditorGUILayout.ToggleLeft(new GUIContent(wehwcTitle, "Simulate finger interaction with corresponding buttons"), VRModuleSettings.showWaveElectronicHandWithController);
-                                EditorGUI.indentLevel--;
-                            }
-                            else
-                            {
-                                GUI.enabled = false;
-                                EditorGUILayout.ToggleLeft(new GUIContent(whgTitle, "Wave Hand Tracking SDK required"), VRModuleSettings.enableWaveHandGesture, GUILayout.Width(230f));
-                                GUI.enabled = true;
-                            }
-                            EditorGUI.indentLevel--;
-                            s_guiChanged |= EditorGUI.EndChangeCheck();
-                        }
-
                         EditorGUILayout.BeginHorizontal();
 
                         EditorGUIUtility.labelWidth = 230;
