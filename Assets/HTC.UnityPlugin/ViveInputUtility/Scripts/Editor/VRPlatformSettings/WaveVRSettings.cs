@@ -306,11 +306,7 @@ namespace HTC.UnityPlugin.Vive
 
                         EditorGUILayout.BeginHorizontal();
 
-                        if (!File.Exists(VIUSettings.waveVRAndroidManifestPath) && (string.IsNullOrEmpty(defaultAndroidManifestPath) || !File.Exists(defaultAndroidManifestPath)))
-                        {
-                            EditorGUILayout.HelpBox("Default AndroidManifest.xml does not existed!", MessageType.Warning);
-                        }
-                        else if (!string.IsNullOrEmpty(VIUSettings.waveVRAndroidManifestPath) && !File.Exists(VIUSettings.waveVRAndroidManifestPath))
+                        if (!string.IsNullOrEmpty(VIUSettings.waveVRAndroidManifestPath) && !File.Exists(VIUSettings.waveVRAndroidManifestPath))
                         {
                             EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
                         }
