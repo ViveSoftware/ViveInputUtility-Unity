@@ -233,6 +233,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, gPoint);
             currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gPoint);
             currState.SetButtonPress(VRModuleRawButton.Grip, gFist);
+            currState.SetButtonTouch(VRModuleRawButton.Grip, gFist);
             currState.SetAxisValue(VRModuleRawAxis.Trigger, resultData.pinchLevel);
         }
 

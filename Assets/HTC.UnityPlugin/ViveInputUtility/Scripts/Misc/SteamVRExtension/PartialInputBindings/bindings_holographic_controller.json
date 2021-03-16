@@ -94,8 +94,14 @@
         },
         {
           "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_08"
+            },
             "position": {
               "output": "/actions/htc_viu/in/viu_axis_2xy"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_08"
             }
           },
           "mode": "joystick",
@@ -103,8 +109,14 @@
         },
         {
           "inputs": {
+            "click": {
+              "output": "/actions/htc_viu/in/viu_press_08"
+            },
             "position": {
               "output": "/actions/htc_viu/in/viu_axis_2xy"
+            },
+            "touch": {
+              "output": "/actions/htc_viu/in/viu_touch_08"
             }
           },
           "mode": "joystick",

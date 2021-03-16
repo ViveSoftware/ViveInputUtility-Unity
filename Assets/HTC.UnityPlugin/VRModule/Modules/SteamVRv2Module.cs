@@ -110,6 +110,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             pressActions.Set(VRModuleRawButton.DPadRight, "05", "Press05 (DPadRight)");
             pressActions.Set(VRModuleRawButton.DPadDown, "06", "Press06 (DPadDown)");
             pressActions.Set(VRModuleRawButton.A, "07", "Press07 (A)");
+            pressActions.Set(VRModuleRawButton.Joystick, "08", "Press08 (Thumbstick)");
             pressActions.Set(VRModuleRawButton.ProximitySensor, "31", "Press31 (ProximitySensor)");
             pressActions.Set(VRModuleRawButton.Touchpad, "32", "Press32 (Touchpad)");
             pressActions.Set(VRModuleRawButton.Trigger, "33", "Press33 (Trigger)");
@@ -125,6 +126,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             touchActions.Set(VRModuleRawButton.DPadRight, "05", "Touch05 (DPadRight)");
             touchActions.Set(VRModuleRawButton.DPadDown, "06", "Touch06 (DPadDown)");
             touchActions.Set(VRModuleRawButton.A, "07", "Touch07 (A)");
+            touchActions.Set(VRModuleRawButton.Joystick, "08", "Touch08 (Thumbstick)");
             touchActions.Set(VRModuleRawButton.ProximitySensor, "31", "Touch31 (ProximitySensor)");
             touchActions.Set(VRModuleRawButton.Touchpad, "32", "Touch32 (Touchpad)");
             touchActions.Set(VRModuleRawButton.Trigger, "33", "Touch33 (Trigger)");

@@ -64,6 +64,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         KhronosSimpleController,
         WaveCRControllerLeft,
         WaveCRControllerRight,
+        ViveTracker3,
     }
 
     public enum VRModuleRawButton
@@ -76,6 +77,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         DPadRight = 5,
         DPadDown = 6,
         A = 7,
+        Joystick = 8,
         ProximitySensor = 31,
         DashboardBack = 2, // Grip
         Touchpad = 32, // Axis0

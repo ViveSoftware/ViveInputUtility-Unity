@@ -41,6 +41,11 @@
       "requirement": "optional"
     },
     {
+      "name": "/actions/htc_viu/in/viu_press_08",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
       "name": "/actions/htc_viu/in/viu_press_31",
       "type": "boolean",
       "requirement": "optional"
@@ -102,6 +107,11 @@
     },
     {
       "name": "/actions/htc_viu/in/viu_touch_07",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/htc_viu/in/viu_touch_08",
       "type": "boolean",
       "requirement": "optional"
     },
@@ -324,6 +334,7 @@
       "/actions/htc_viu/in/viu_press_05": "Press05 (DPadRight)",
       "/actions/htc_viu/in/viu_press_06": "Press06 (DPadDown)",
       "/actions/htc_viu/in/viu_press_07": "Press07 (A)",
+      "/actions/htc_viu/in/viu_press_36": "Press08 (Joystick)",
       "/actions/htc_viu/in/viu_press_31": "Press31 (ProximitySensor)",
       "/actions/htc_viu/in/viu_press_32": "Press32 (Touchpad)",
       "/actions/htc_viu/in/viu_press_33": "Press33 (Trigger)",
@@ -337,6 +348,7 @@
       "/actions/htc_viu/in/viu_touch_05": "Touch05 (DPadRight)",
       "/actions/htc_viu/in/viu_touch_06": "Touch06 (DPadDown)",
       "/actions/htc_viu/in/viu_touch_07": "Touch07 (A)",
+      "/actions/htc_viu/in/viu_touch_36": "Touch08 (Joystick)",
       "/actions/htc_viu/in/viu_touch_31": "Touch31 (ProximitySensor)",
       "/actions/htc_viu/in/viu_touch_32": "Touch32 (Touchpad)",
       "/actions/htc_viu/in/viu_touch_33": "Touch33 (Trigger)",
@@ -354,7 +366,7 @@
       "/actions/htc_viu/in/viu_axis_4y": "Axis4 Y (PinkyCurl)",
       "/actions/htc_viu/in/viu_axis_0xy": "Axis0 X&Y (Touchpad)",
       "/actions/htc_viu/in/viu_axis_1xy": "Axis1 X&Y",
-      "/actions/htc_viu/in/viu_axis_2xy": "Axis2 X&Y (Thumbstick)",
+      "/actions/htc_viu/in/viu_axis_2xy": "Axis2 X&Y (Joystick)",
       "/actions/htc_viu/in/viu_axis_3xy": "Axis3 X&Y",
       "/actions/htc_viu/in/viu_axis_4xy": "Axis4 X&Y",
       "/actions/htc_viu/out/viu_vib_01": "Vibration",

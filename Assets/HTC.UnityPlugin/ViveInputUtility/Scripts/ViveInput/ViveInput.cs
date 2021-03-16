@@ -43,6 +43,8 @@ namespace HTC.UnityPlugin.Vive
         TriggerTouch = 8, // on:0.25 off:0.20
         Pad = 1,
         PadTouch = 3,
+        Joystick = 47,
+        JoystickToucn = 48,
         Grip = 2,
         GripTouch = 9,
         CapSenseGrip = 10, // on:1.00 off:0.90 // Knuckles, Oculus Touch only
@@ -110,15 +112,15 @@ namespace HTC.UnityPlugin.Vive
         DPadCenterTouch = 37,
 
         // Gestures
-        IndexPinch,
-        MiddlePinch,
-        RingPinch,
-        PinkyPinch,
-        Fist,
-        Five,
-        Ok,
-        ThumbUp,
-        IndexUp,
+        IndexPinch = 38,
+        MiddlePinch = 39,
+        RingPinch = 40,
+        PinkyPinch = 41,
+        Fist = 42,
+        Five = 43,
+        Ok = 44,
+        ThumbUp = 45,
+        IndexUp = 46,
     }
 
     public enum ControllerAxis
