@@ -327,17 +327,10 @@ namespace HTC.UnityPlugin.Vive
             Add(new VIUVersionCheck.RecommendedSetting<ColorSpace>()
             {
                 settingTitle = "Color Space",
-                skipCheckFunc = () => (VRModule.isSteamVRPluginDetected && VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Standalone) || !VIUSettingsEditor.supportAnyVR,
+                skipCheckFunc = () => VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone || VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyVR,
                 recommendBtnPostfix = "requires reloading scene",
                 currentValueFunc = () => PlayerSettings.colorSpace,
-                setValueFunc = v =>
-                {
-                    if (VIUSettingsEditor.supportAnyAndroidVR)
-                    {
-                        VIUSettingsEditor.SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
-                    }
-                    PlayerSettings.colorSpace = v;
-                },
+                setValueFunc = v => PlayerSettings.colorSpace = v,
                 recommendedValue = ColorSpace.Linear,
             });
 #if VIU_STEAMVR_2_0_0_OR_NEWER
