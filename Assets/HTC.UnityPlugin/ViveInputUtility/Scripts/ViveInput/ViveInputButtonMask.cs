@@ -41,102 +41,44 @@ namespace HTC.UnityPlugin.Vive
 
     public partial class ViveInput : SingletonBehaviour<ViveInput>
     {
-        public static bool GetAnyPress<TRole>(TRole role, ControllerButtonMask mask, bool usePrevState = false)
+        public static bool GetAnyPress(HandRole role, ControllerButtonMask mask, bool usePrevState = false)
         {
-            return mask.GetAnyPress(usePrevState ? GetState(role).PreviousButtonPressed : GetState(role).CurrentButtonPressed);
+            return GetAnyPressEx(role, mask, usePrevState);
         }
 
-        //public static bool GetAnyPressDown<TRole>(TRole role, ControllerButtonMask mask)
-        //{
-        //    var state = GetState(role);
-        //    return !mask.GetAnyPress(state.PreviousButtonPressed) && mask.GetAnyPress(state.CurrentButtonPressed);
-        //}
-
-        //public static bool GetAnyPressUp<TRole>(TRole role, ControllerButtonMask mask)
-        //{
-        //    var state = GetState(role);
-        //    return mask.GetAllPress(state.PreviousButtonPressed) && !mask.GetAllPress(state.CurrentButtonPressed);
-        //}
-
-        public static bool GetAllPress<TRole>(TRole role, ControllerButtonMask mask, bool usePrevState = false)
+        public static bool GetAllPress(HandRole role, ControllerButtonMask mask, bool usePrevState = false)
         {
-            return mask.GetAllPress(usePrevState ? GetState(role).PreviousButtonPressed : GetState(role).CurrentButtonPressed);
+            return GetAllPressEx(role, mask, usePrevState);
         }
 
-        //public static bool GetAllPressDown<TRole>(TRole role, ControllerButtonMask mask)
-        //{
-        //    var state = GetState(role);
-        //    return !mask.GetAllPress(state.PreviousButtonPressed) && mask.GetAllPress(state.CurrentButtonPressed);
-        //}
+        public static bool GetAnyPressEx<TRole>(TRole role, ControllerButtonMask mask, bool usePrevState = false)
+        {
+            return mask.GetAnyPress(GetPressEx(role, usePrevState));
+        }
 
-        //public static bool GetAllPressUp<TRole>(TRole role, ControllerButtonMask mask)
-        //{
-        //    var state = GetState(role);
-        //    return mask.GetAnyPress(state.PreviousButtonPressed) && !mask.GetAnyPress(state.CurrentButtonPressed);
-        //}
+        public static bool GetAllPressEx<TRole>(TRole role, ControllerButtonMask mask, bool usePrevState = false)
+        {
+            return mask.GetAllPress(GetPressEx(role, usePrevState));
+        }
 
         public static bool GetAnyPress(ViveRoleProperty role, ControllerButtonMask mask, bool usePrevState = false)
         {
             return GetAnyPress(role.roleType, role.roleValue, mask, usePrevState);
         }
 
-        //public static bool GetAnyPressDown(ViveRoleProperty role, ControllerButtonMask mask)
-        //{
-        //    return GetAnyPressDown(role.roleType, role.roleValue, mask);
-        //}
-
-        //public static bool GetAnyPressUp(ViveRoleProperty role, ControllerButtonMask mask)
-        //{
-        //    return GetAnyPressUp(role.roleType, role.roleValue, mask);
-        //}
-
         public static bool GetAllPress(ViveRoleProperty role, ControllerButtonMask mask, bool usePrevState = false)
         {
             return GetAllPress(role.roleType, role.roleValue, mask, usePrevState);
         }
 
-        //public static bool GetAllPressDown(ViveRoleProperty role, ControllerButtonMask mask)
-        //{
-        //    return GetAllPressDown(role.roleType, role.roleValue, mask);
-        //}
-
-        //public static bool GetAllPressUp(ViveRoleProperty role, ControllerButtonMask mask)
-        //{
-        //    return GetAllPressUp(role.roleType, role.roleValue, mask);
-        //}
-
         public static bool GetAnyPress(Type roleType, int roleValue, ControllerButtonMask mask, bool usePrevState = false)
         {
-            return mask.GetAnyPress(usePrevState ? GetState(roleType, roleValue).PreviousButtonPressed : GetState(roleType, roleValue).CurrentButtonPressed);
+            return mask.GetAnyPress(GetPressEx(roleType, roleValue, usePrevState));
         }
-
-        //public static bool GetAnyPressDown(Type roleType, int roleValue, ControllerButtonMask mask)
-        //{
-        //    var state = GetState(roleType, roleValue);
-        //    return !mask.GetAnyPress(state.PreviousButtonPressed) && mask.GetAnyPress(state.CurrentButtonPressed);
-        //}
-
-        //public static bool GetAnyPressUp(Type roleType, int roleValue, ControllerButtonMask mask)
-        //{
-        //    var state = GetState(roleType, roleValue);
-        //    return mask.GetAllPress(state.PreviousButtonPressed) && !mask.GetAllPress(state.CurrentButtonPressed);
-        //}
 
         public static bool GetAllPress(Type roleType, int roleValue, ControllerButtonMask mask, bool usePrevState = false)
         {
-            return mask.GetAllPress(usePrevState ? GetState(roleType, roleValue).PreviousButtonPressed : GetState(roleType, roleValue).CurrentButtonPressed);
+            return mask.GetAllPress(GetPressEx(roleType, roleValue, usePrevState));
         }
-
-        //public static bool GetAllPressDown(Type roleType, int roleValue, ControllerButtonMask mask)
-        //{
-        //    var state = GetState(roleType, roleValue);
-        //    return !mask.GetAllPress(state.PreviousButtonPressed) && mask.GetAllPress(state.CurrentButtonPressed);
-        //}
-
-        //public static bool GetAllPressUp(Type roleType, int roleValue, ControllerButtonMask mask)
-        //{
-        //    var state = GetState(roleType, roleValue);
-        //    return mask.GetAnyPress(state.PreviousButtonPressed) && !mask.GetAnyPress(state.CurrentButtonPressed);
-        //}
     }
 }

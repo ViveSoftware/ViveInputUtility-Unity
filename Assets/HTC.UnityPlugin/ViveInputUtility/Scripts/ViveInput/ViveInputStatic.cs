@@ -23,6 +23,11 @@ namespace HTC.UnityPlugin.Vive
             return GetPressEx(role, button);
         }
 
+        public static ulong GetPress(HandRole role, bool usePrevState = false)
+        {
+            return usePrevState ? GetState(role).PreviousButtonPressed : GetState(role).CurrentButtonPressed;
+        }
+
         /// <summary>
         /// Returns true during the frame the user pressed down the button on the controller identified by role
         /// </summary>
@@ -211,6 +216,11 @@ namespace HTC.UnityPlugin.Vive
             return GetPressEx(role.roleType, role.roleValue, button);
         }
 
+        public static ulong GetPress(ViveRoleProperty role, bool usePrevState = false)
+        {
+            return usePrevState ? GetState(role.roleType, role.roleValue).PreviousButtonPressed : GetState(role.roleType, role.roleValue).CurrentButtonPressed;
+        }
+
         /// <summary>
         /// Returns true during the frame the user pressed down the button on the controller identified by role
         /// </summary>
@@ -357,6 +367,11 @@ namespace HTC.UnityPlugin.Vive
         public static bool GetPressEx<TRole>(TRole role, ControllerButton button)
         {
             return GetState(role).GetPress(button);
+        }
+
+        public static ulong GetPressEx<TRole>(TRole role, bool usePrevState = false)
+        {
+            return usePrevState ? GetState(role).PreviousButtonPressed : GetState(role).CurrentButtonPressed;
         }
 
         /// <typeparam name="TRole">
@@ -658,6 +673,11 @@ namespace HTC.UnityPlugin.Vive
         public static bool GetPressEx(Type roleType, int roleValue, ControllerButton button)
         {
             return GetState(roleType, roleValue).GetPress(button);
+        }
+
+        public static ulong GetPressEx(Type roleType, int roleValue, bool usePrevState = false)
+        {
+            return usePrevState ? GetState(roleType, roleValue).PreviousButtonPressed : GetState(roleType, roleValue).CurrentButtonPressed;
         }
 
         /// <param name="roleType">
