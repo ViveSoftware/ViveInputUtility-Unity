@@ -686,11 +686,7 @@ namespace HTC.UnityPlugin.Vive
                         // Custom Android manifest warnings
                         EditorGUILayout.BeginHorizontal();
 
-                        if (!File.Exists(VIUSettings.oculusVRAndroidManifestPath) && (string.IsNullOrEmpty(defaultAndroidManifestPath) || !File.Exists(defaultAndroidManifestPath)))
-                        {
-                            EditorGUILayout.HelpBox("Default AndroidManifest.xml does not existed!", MessageType.Warning);
-                        }
-                        else if (!string.IsNullOrEmpty(VIUSettings.oculusVRAndroidManifestPath) && !File.Exists(VIUSettings.oculusVRAndroidManifestPath))
+                        if (!string.IsNullOrEmpty(VIUSettings.oculusVRAndroidManifestPath) && !File.Exists(VIUSettings.oculusVRAndroidManifestPath))
                         {
                             EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
                         }
