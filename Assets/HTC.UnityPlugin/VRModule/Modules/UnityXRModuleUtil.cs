@@ -21,6 +21,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             private Dictionary<int, uint> hashID2index = new Dictionary<int, uint>();
             private InputDevice[] index2Device = new InputDevice[VRModule.MAX_DEVICE_COUNT];
+            private int[] index2DeviceHashID = new int[VRModule.MAX_DEVICE_COUNT];
             public IndexMap() { Clear(); }
 
             private bool IsValidDevice(InputDevice device) { return device != default(InputDevice); }
@@ -64,7 +65,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public bool IsMapped(uint index)
             {
-                return IsValidIndex(index) && IsValidDevice(index2Device[index]);
+                return IsValidIndex(index) && index2DeviceHashID[index] != 0;
             }
 
             public static bool IsHMD(InputDevice device)
@@ -83,6 +84,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 hashID2index[hashID] = VRModule.HMD_DEVICE_INDEX;
                 index2Device[VRModule.HMD_DEVICE_INDEX] = device;
+                index2DeviceHashID[VRModule.HMD_DEVICE_INDEX] = hashID;
                 return true;
             }
 
@@ -100,6 +102,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 hashID2index[hashID] = index;
                 index2Device[index] = device;
+                index2DeviceHashID[index] = hashID;
             }
 
             public void UnmapByDevice(InputDevice device)
@@ -109,26 +112,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var hashID = HashID(device);
                 uint index;
                 if (!hashID2index.TryGetValue(hashID, out index)) { return; }
-                if (!index2Device[index].Equals(device)) { throw new Exception("Unexpected mapping " + device.ToString() + "=>" + index + " " + index + "=>" + index2Device[index].ToString()); }
 
                 hashID2index.Remove(hashID);
                 index2Device[index] = default(InputDevice);
+                index2DeviceHashID[index] = 0;
             }
 
             public void UnmapByIndex(uint index)
             {
                 if (!IsValidIndex(index)) { throw new ArgumentException("Invalid index", "index"); }
 
-                var device = index2Device[index];
-                if (!IsValidDevice(device)) { return; }
-
-                var hashID = HashID(device);
-                uint mappedIndex;
-                if (!hashID2index.TryGetValue(hashID, out mappedIndex)) { throw new Exception("Unexpected mapping " + index + "=>" + device.ToString() + " " + device.ToString() + "=>null"); }
-                if (mappedIndex != index) { throw new Exception("Unexpected mapping " + index + "=>" + device.ToString() + " " + device.ToString() + "=>" + mappedIndex); }
-
-                hashID2index.Remove(hashID);
+                hashID2index.Remove(index2DeviceHashID[index]);
                 index2Device[index] = default(InputDevice);
+                index2DeviceHashID[index] = 0;
             }
 
             public void Clear()
@@ -137,7 +133,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 for (int i = index2Device.Length - 1; i >= 0; --i) { index2Device[i] = default(InputDevice); }
             }
 
-            private static int HashID(InputDevice device)
+            public static int HashID(InputDevice device)
             {
 #if CSHARP_7_OR_LATER
                 return (device, device.name, device.characteristics).GetHashCode();
