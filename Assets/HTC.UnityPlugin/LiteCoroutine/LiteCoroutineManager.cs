@@ -63,6 +63,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             private readonly List<YieldStack> lateUpdateStageStackes = new List<YieldStack>();
             private readonly List<YieldStack> fixedUpdateStageStackes = new List<YieldStack>();
             private readonly List<YieldStack> endOfFrameStageStackes = new List<YieldStack>();
+            private Predicate<YieldStack> removeAllInvalidYieldStackPredicate;
 
             private readonly object delayCallLock = new object();
             private Action delayUpdateCall;
@@ -81,6 +82,11 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             public override event Action DelayFixedUpdateCall { add { SafeAddDelayAction(ref delayFixedUpdateCall, value); } remove { SafeRemoveDelayAction(ref delayFixedUpdateCall, value); } }
 
             public override event Action DelayEndOfFrameCall { add { SafeAddDelayAction(ref delayEndOfFrameCall, value); } remove { SafeRemoveDelayAction(ref delayEndOfFrameCall, value); } }
+
+            public Manager()
+            {
+                removeAllInvalidYieldStackPredicate = RemoveAllInvalidYieldStackPredicate;
+            }
 
             private void SafeAddDelayAction(ref Action delayActions, Action value)
             {
@@ -170,44 +176,45 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 }
             }
 
+            private bool RemoveAllInvalidYieldStackPredicate(YieldStack stack)
+            {
+                bool validHandle;
+                var handle = stack.handle;
+                lock (handle)
+                {
+                    validHandle = !handle.isDone && handle.stack == stack;
+                }
+
+                if (validHandle)
+                {
+                    if (stack.waitForUpdate)
+                    {
+                        tempStageStackes.Add(stack);
+                    }
+                }
+                else
+                {
+                    if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out var stageStacks))
+                    {
+                        lock (stageStacks)
+                        {
+                            // TODO: indexed set?
+                            stageStacks.Remove(stack);
+                        }
+                    }
+                    pool.Release(stack);
+                }
+
+                return !validHandle;
+            }
+
             public override void MainUpdate()
             {
                 lock (workingStacks)
                 {
                     if (workingStacks.Count == 0) { return; }
 
-                    workingStacks.RemoveAll((stack) =>
-                    {
-                        bool validHandle;
-                        var handle = stack.handle;
-                        lock (handle)
-                        {
-                            validHandle = !handle.isDone && handle.stack == stack;
-                        }
-
-                        if (validHandle)
-                        {
-                            if (stack.waitForUpdate)
-                            {
-                                tempStageStackes.Add(stack);
-                            }
-                        }
-                        else
-                        {
-                            List<YieldStack> stageStacks;
-                            if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out stageStacks))
-                            {
-                                lock (stageStacks)
-                                {
-                                    // TODO: indexed set?
-                                    stageStacks.Remove(stack);
-                                }
-                            }
-                            pool.Release(stack);
-                        }
-
-                        return !validHandle;
-                    });
+                    workingStacks.RemoveAll(removeAllInvalidYieldStackPredicate);
                 }
 
                 if (tempStageStackes.Count > 0)

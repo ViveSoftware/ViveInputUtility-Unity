@@ -43,7 +43,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                     catch (Exception e)
                     {
                         hasNext = false;
-                        Debug.LogError("Caught exception while performing LiteCoroutines: " + e.Message + "\n" + e.StackTrace);
+                        Debug.LogException(e);
                     }
 
                     if (!hasNext)
