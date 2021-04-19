@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace HTC.UnityPlugin.LiteCoroutineSystem
 {
@@ -30,6 +28,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         public bool MoveNext() { return !IsDone; }
 
         public void Reset() { throw new NotImplementedException(); }
+
+        public IEnumerator Wait() { while (!IsDone) { yield return null; } }
 
         private sealed class Handle : LiteCoroutine
         {

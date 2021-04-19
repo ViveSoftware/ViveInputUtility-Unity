@@ -1,6 +1,7 @@
 ﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace HTC.UnityPlugin.LiteCoroutineSystem
@@ -17,39 +18,74 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
     }
 
     // Creates a yield instruction to wait for a given number of seconds using scaled time
-    public sealed class WaitForSecondsScaledTime : CustomYieldInstruction
+    public sealed class WaitForSecondsScaledTime : IEnumerator
     {
-        private float timeout;
+        private float waitUntilTime = -1;
 
-        public float seconds { get; private set; }
+        public float waitTime { get; set; }
 
-        public WaitForSecondsScaledTime(float seconds) { ResetTimer(seconds); }
+        public object Current { get { return null; } }
 
-        public override bool keepWaiting { get { return Time.time < timeout; } }
+        public WaitForSecondsScaledTime(float time) { waitTime = time; }
 
-        public WaitForSecondsScaledTime ResetTimer() { timeout = Time.time + seconds; return this; }
-        public WaitForSecondsScaledTime ResetTimer(float seconds) { this.seconds = seconds; return ResetTimer(); }
+        public bool MoveNext()
+        {
+            var now = Time.time;
+            if (waitUntilTime < 0) { waitUntilTime = now + waitTime; }
+            var wait = now < waitUntilTime;
+            if (!wait) { Reset(); } // Reset so it can be reused.
+            return wait;
+        }
+
+        public void Reset() { waitUntilTime = -1; }
     }
 
-    public sealed class WaitForTicks : CustomYieldInstruction
+    public sealed class WaitForSecondsUnscaledTime : IEnumerator
     {
-        private long timeout;
+        private float waitUntilTime = -1;
 
-        private static long now { get { return DateTime.UtcNow.Ticks; } }
+        public float waitTime { get; set; }
 
-        public long ticks { get; private set; }
-        public TimeSpan duration { get { return new TimeSpan(ticks); } }
+        public object Current { get { return null; } }
 
-        public override bool keepWaiting { get { return now < timeout; } }
+        public WaitForSecondsUnscaledTime(float time) { waitTime = time; }
 
-        public WaitForTicks(long ticks) { ResetTimer(ticks); }
+        public bool MoveNext()
+        {
+            var now = Time.unscaledTime;
+            if (waitUntilTime < 0) { waitUntilTime = now + waitTime; }
+            var wait = now < waitUntilTime;
+            if (!wait) { Reset(); } // Reset so it can be reused.
+            return wait;
+        }
+
+        public void Reset() { waitUntilTime = -1; }
+    }
+
+    public sealed class WaitForTicks : IEnumerator
+    {
+        private long waitUntilTicks = -1;
+
+        public long waitTicks { get; set; }
+
+        public TimeSpan waitTime { get { return new TimeSpan(waitTicks); } }
+
+        public object Current { get { return null; } }
+
+        public WaitForTicks(long ticks) { waitTicks = ticks; }
         public WaitForTicks(TimeSpan duration) : this(duration.Ticks) { }
+        public static WaitForTicks Seconds(float value) { return new WaitForTicks(value > 0L ? (long)(value * TimeSpan.TicksPerSecond) : 0L); }
+        public static WaitForTicks MiliSeconds(float value) { return new WaitForTicks(value > 0L ? (long)(value * TimeSpan.TicksPerMillisecond) : 0L); }
 
-        public static WaitForTicks Seconds(long value) { return new WaitForTicks(value > 0L ? value * TimeSpan.TicksPerSecond : 0L); }
-        public static WaitForTicks MiliSeconds(long value) { return new WaitForTicks(value > 0L ? value * TimeSpan.TicksPerMillisecond : 0L); }
+        public bool MoveNext()
+        {
+            var now = DateTime.UtcNow.Ticks;
+            if (waitUntilTicks < 0) { waitUntilTicks = now + waitTicks; }
+            var wait = now < waitUntilTicks;
+            if (!wait) { Reset(); } // Reset so it can be reused.
+            return wait;
+        }
 
-        public WaitForTicks ResetTimer() { timeout = now + ticks; return this; }
-        public WaitForTicks ResetTimer(long ticks) { this.ticks = ticks; return ResetTimer(); }
-        public WaitForTicks ResetTimer(TimeSpan duration) { return ResetTimer(duration.Ticks); }
+        public void Reset() { waitUntilTicks = -1; }
     }
 }

@@ -13,25 +13,23 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         Running,
         Done,
         Cancelled,
-        Exception
+        Exception,
     }
 
     public class LiteTask : IEnumerator
     {
-        public object Current { get; private set; }
-        public bool MoveNext() { return OnMoveNext(); }
-        public void Reset() { innerRoutine.Reset(); }
-
         private enum RunningState
         {
             Init,
-            RunningAsync,
-            PendingYield,
+            RunningBackground,
+            RunningForeground,
             ToBackground,
-            RunningSync,
-            CancellationRequested,
+            ToForeground,
+            PendingYield,
+            CancelledBackground,
             Done,
-            Exception
+            Cancelled,
+            Exception,
         }
 
         private class JumpEnumerator : IEnumerator
@@ -44,16 +42,21 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         public static readonly IEnumerator ToForground = new JumpEnumerator();
         public static readonly IEnumerator ToBackground = new JumpEnumerator();
 
+        private readonly WaitCallback wcBackgroundMoveNextState;
+        private readonly object stateLock = new object();
         private IEnumerator innerRoutine;
         private RunningState state;
-        private object stateLock = new object();
-        private bool isBachgroundThreadRunning;
+        private object current;
 
         public LiteTaskState State { get { lock (stateLock) { return ToTaskState(state); } } }
 
-        public Exception Exception { get; protected set; }
+        public bool Silent { get; set; }
 
         public bool StartInBackground { get; private set; }
+
+        public Exception Exception { get; private set; }
+
+        object IEnumerator.Current { get { return current; } }
 
         public bool IsDone
         {
@@ -61,27 +64,64 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             {
                 lock (stateLock)
                 {
-                    var ts = ToTaskState(state);
-                    return ts != LiteTaskState.Init && ts != LiteTaskState.Running;
+                    switch (state)
+                    {
+                        case RunningState.Cancelled:
+                        case RunningState.Done:
+                        case RunningState.Exception:
+                            return true;
+                        default:
+                            return false;
+                    }
                 }
             }
         }
 
+        public LiteTask()
+        {
+            wcBackgroundMoveNextState = BackgroundMoveNextState;
+            state = RunningState.Done;
+        }
+
         public LiteTask(IEnumerator routine, bool startInBackground = true)
         {
+            wcBackgroundMoveNextState = BackgroundMoveNextState;
             innerRoutine = routine;
-            state = RunningState.Init;
             StartInBackground = startInBackground;
+            state = routine == null ? RunningState.Done : RunningState.Init;
+        }
+
+        void IEnumerator.Reset() { throw new NotImplementedException(); }
+
+        public void RestartTask(IEnumerator routine)
+        {
+            lock (stateLock)
+            {
+                if (!IsDone) { throw new Exception("Task not done yet."); }
+                innerRoutine = routine;
+                state = routine == null ? RunningState.Done : RunningState.Init;
+            }
+        }
+
+        public void RestartTask(IEnumerator routine, bool startInBackground)
+        {
+            lock (stateLock)
+            {
+                if (!IsDone) { throw new Exception("Task not done yet."); }
+                innerRoutine = routine;
+                state = routine == null ? RunningState.Done : RunningState.Init;
+                StartInBackground = startInBackground;
+            }
         }
 
         private static LiteTaskState ToTaskState(RunningState value)
         {
             switch (value)
             {
-                case RunningState.CancellationRequested:
-                    return LiteTaskState.Cancelled;
                 case RunningState.Done:
                     return LiteTaskState.Done;
+                case RunningState.Cancelled:
+                    return LiteTaskState.Cancelled;
                 case RunningState.Exception:
                     return LiteTaskState.Exception;
                 case RunningState.Init:
@@ -97,12 +137,16 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             {
                 switch (state)
                 {
+                    case RunningState.CancelledBackground:
                     case RunningState.Done:
                     case RunningState.Exception:
-                    case RunningState.CancellationRequested:
+                    case RunningState.Cancelled:
+                        break;
+                    case RunningState.RunningBackground:
+                        state = RunningState.CancelledBackground;
                         break;
                     default:
-                        state = RunningState.CancellationRequested;
+                        state = RunningState.Cancelled;
                         break;
                 }
             }
@@ -116,147 +160,192 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             }
         }
 
-        private bool OnMoveNext()
+        bool IEnumerator.MoveNext()
         {
-            if (isBachgroundThreadRunning)
+            lock (stateLock)
             {
-                lock (stateLock)
+                switch (state)
                 {
-                    switch (state)
+                    case RunningState.Init:
+                        state = StartInBackground ? RunningState.ToBackground : RunningState.ToForeground;
+                        break;
+                    case RunningState.RunningBackground:
+                    case RunningState.CancelledBackground:
+                        current = null;
+                        return true;
+                    case RunningState.PendingYield:
+                        state = RunningState.ToBackground;
+                        return true;
+                }
+
+                if (state == RunningState.ToForeground)
+                {
+                    state = RunningState.RunningForeground;
+                    ForegroundMoveNextState();
+
+                    if (state == RunningState.PendingYield)
                     {
-                        case RunningState.RunningAsync:
-                            Current = null;
-                            return true;
-
-                        case RunningState.PendingYield:
-                            state = RunningState.ToBackground;
-                            isBachgroundThreadRunning = false;
-                            // Current should have been set in MoveNextLoop
-                            return true;
-
-                        //case RunningState.RunningSync:
-                        //case RunningState.Exception:
-                        //case RunningState.CancellationRequested:
-                        //case RunningState.Done:
-                        default:
-                            isBachgroundThreadRunning = false;
-                            break;
+                        state = RunningState.ToForeground;
+                        return true;
                     }
                 }
-            }
 
-            if (state == RunningState.Init)
-            {
-                state = StartInBackground ? RunningState.ToBackground : RunningState.RunningSync;
-            }
-
-            if (state == RunningState.RunningSync)
-            {
-                MoveNextLoop(false);
-            }
-
-            switch (state)
-            {
-                case RunningState.ToBackground:
-                    state = RunningState.RunningAsync;
-                    isBachgroundThreadRunning = true;
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(MoveNextLoopAsync));
-                    Current = null;
+                if (state == RunningState.ToBackground)
+                {
+                    state = RunningState.RunningBackground;
+                    ThreadPool.QueueUserWorkItem(wcBackgroundMoveNextState);
+                    current = null;
                     return true;
+                }
 
-                case RunningState.PendingYield:
-                    state = RunningState.RunningSync;
-                    return true;
+                return false;
+            }
+        }
 
-                //case RunningState.Exception:
-                //case RunningState.CancellationRequested:
-                //case RunningState.Done:
-                default:
-                    Current = null;
+        private bool InnerMoveNext()
+        {
+            bool hasNext;
+            try
+            {
+                hasNext = innerRoutine.MoveNext();
+                current = hasNext ? innerRoutine.Current : null;
+                Exception = null;
+            }
+            catch (Exception ex)
+            {
+                hasNext = false;
+                current = null;
+                Exception = ex;
+            }
+            return hasNext;
+        }
+
+        private void ForegroundMoveNextState()
+        {
+            while (ForegroundInnerMoveNext()) { }
+        }
+
+        private bool ForegroundInnerMoveNext()
+        {
+            var hasNext = InnerMoveNext();
+
+            lock (stateLock)
+            {
+                if (Exception != null)
+                {
+                    state = RunningState.Exception;
+
+                    if (!Silent) { Debug.LogException(Exception); }
+
                     return false;
-            }
-        }
-
-        private void MoveNextLoopAsync(object state)
-        {
-            MoveNextLoop(true);
-        }
-
-        private void MoveNextLoop(bool isInBackground)
-        {
-            while (true)
-            {
-                bool hasNext;
-
-                try
-                {
-                    hasNext = innerRoutine.MoveNext();
                 }
-                catch (Exception ex)
+
+                if (state == RunningState.Cancelled)
                 {
-                    Debug.LogException(ex);
-                    lock (stateLock)
-                    {
-                        state = RunningState.Exception;
-                        Exception = ex;
-                        return;
-                    }
+                    return false;
                 }
 
                 if (!hasNext)
                 {
-                    ChangeStateIfNotCanceled(RunningState.Done);
-                    return;
+                    state = RunningState.Done;
+                    return false;
                 }
 
-                var current = innerRoutine.Current;
                 if (current != null)
                 {
+                    if (current == ToBackground)
+                    {
+                        state = RunningState.ToBackground;
+                        return false;
+                    }
+
                     if (current == ToForground)
                     {
-                        if (isInBackground)
-                        {
-                            ChangeStateIfNotCanceled(RunningState.RunningSync);
-                            return;
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                    else if (current == ToBackground)
-                    {
-                        if (isInBackground)
-                        {
-                            continue;
-                        }
-                        else
-                        {
-                            ChangeStateIfNotCanceled(RunningState.ToBackground);
-                            return;
-                        }
-                    }
-                    else if (isInBackground && current is WaitForTicks)
-                    {
-                        Thread.Sleep(((WaitForTicks)current).duration);
-                        continue;
+                        return true;
                     }
                 }
 
-                ChangeStateIfNotCanceled(RunningState.PendingYield, current);
-                return;
+                state = RunningState.PendingYield;
+                return false;
             }
         }
 
-        private void ChangeStateIfNotCanceled(RunningState value, object current = null)
+        private void BackgroundMoveNextState(object o)
         {
+            TimeSpan sleepTime;
+            while (BackgroundInnerMoveNext(out sleepTime) && BackgroundSleep(sleepTime)) { }
+        }
+
+        private bool BackgroundInnerMoveNext(out TimeSpan outSleepTime)
+        {
+            bool hasNext;
+            outSleepTime = TimeSpan.Zero;
+
+            hasNext = InnerMoveNext();
+
             lock (stateLock)
             {
-                if (state != RunningState.CancellationRequested)
+                if (Exception != null)
                 {
-                    Current = current;
-                    state = value;
+                    state = RunningState.Exception;
+
+                    if (!Silent) { Debug.LogException(Exception); }
+
+                    return false;
                 }
+
+                if (state == RunningState.CancelledBackground)
+                {
+                    state = RunningState.Cancelled;
+                    return false;
+                }
+
+                if (!hasNext)
+                {
+                    state = RunningState.Done;
+                    return false;
+                }
+
+                if (current != null)
+                {
+                    if (current == ToBackground)
+                    {
+                        return true;
+                    }
+
+                    if (current == ToForground)
+                    {
+                        state = RunningState.ToForeground;
+                        return false;
+                    }
+
+                    if (current is WaitForTicks)
+                    {
+                        outSleepTime = ((WaitForTicks)current).waitTime;
+                        return true;
+                    }
+                }
+
+                state = RunningState.PendingYield;
+                return false;
+            }
+        }
+
+        private bool BackgroundSleep(TimeSpan inSleepTime)
+        {
+            if (inSleepTime <= TimeSpan.Zero) { return true; }
+
+            Thread.Sleep(inSleepTime);
+
+            lock (stateLock)
+            {
+                if (state == RunningState.CancelledBackground)
+                {
+                    state = RunningState.Cancelled;
+                    return false;
+                }
+
+                return true;
             }
         }
     }
