@@ -29,8 +29,6 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
 
         public void Reset() { throw new NotImplementedException(); }
 
-        public IEnumerator Wait() { while (!IsDone) { yield return null; } }
-
         private sealed class Handle : LiteCoroutine
         {
             private readonly Manager manager;

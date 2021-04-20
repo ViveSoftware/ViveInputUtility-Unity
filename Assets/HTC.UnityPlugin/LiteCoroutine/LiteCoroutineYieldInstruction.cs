@@ -38,6 +38,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         }
 
         public void Reset() { waitUntilTime = -1; }
+
+        public WaitForSecondsScaledTime SetWaitTime(float time) { waitTime = time; return this; }
     }
 
     public sealed class WaitForSecondsUnscaledTime : IEnumerator
@@ -60,22 +62,28 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         }
 
         public void Reset() { waitUntilTime = -1; }
+
+        public WaitForSecondsUnscaledTime SetWaitTime(float time) { waitTime = time; return this; }
     }
 
+    /// <summary>
+    /// When yield returned in main thread coroutine, it works normally as other Wait instruction, skip frames for a while.
+    /// When yield returned in LiteTask background thread, it will trigger Thread.Sleep for a while and continue the enumerating without restarting a new thread.
+    /// </summary>
     public sealed class WaitForTicks : IEnumerator
     {
         private long waitUntilTicks = -1;
 
         public long waitTicks { get; set; }
 
-        public TimeSpan waitTime { get { return new TimeSpan(waitTicks); } }
+        public TimeSpan waitTime { get { return new TimeSpan(waitTicks); } set { waitTicks = value.Ticks; } }
 
         public object Current { get { return null; } }
 
         public WaitForTicks(long ticks) { waitTicks = ticks; }
-        public WaitForTicks(TimeSpan duration) : this(duration.Ticks) { }
-        public static WaitForTicks Seconds(float value) { return new WaitForTicks(value > 0L ? (long)(value * TimeSpan.TicksPerSecond) : 0L); }
-        public static WaitForTicks MiliSeconds(float value) { return new WaitForTicks(value > 0L ? (long)(value * TimeSpan.TicksPerMillisecond) : 0L); }
+        public WaitForTicks(TimeSpan time) : this(time.Ticks) { }
+        public static WaitForTicks Seconds(float value) { return new WaitForTicks(TicksFromSeconds(value)); }
+        public static WaitForTicks MiliSeconds(float value) { return new WaitForTicks(TicksFromMiliSeconds(value)); }
 
         public bool MoveNext()
         {
@@ -87,5 +95,17 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         }
 
         public void Reset() { waitUntilTicks = -1; }
+
+        public WaitForTicks SetWaitTicks(long ticks) { waitTicks = ticks; return this; }
+
+        public WaitForTicks SetWaitTime(TimeSpan time) { waitTime = time; return this; }
+
+        public WaitForTicks SetWaitSeconds(float value) { waitTicks = TicksFromSeconds(value); return this; }
+
+        public WaitForTicks SetWaitMiliSeconds(float value) { waitTicks = TicksFromMiliSeconds(value); return this; }
+
+        private static long TicksFromSeconds(float value) { return (long)(value * TimeSpan.TicksPerSecond); }
+
+        private static long TicksFromMiliSeconds(float value) { return (long)(value * TimeSpan.TicksPerMillisecond); }
     }
 }

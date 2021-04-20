@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
@@ -39,7 +40,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             void IEnumerator.Reset() { }
         }
 
-        public static readonly IEnumerator ToForground = new JumpEnumerator();
+        public static readonly IEnumerator ToForeground = new JumpEnumerator();
         public static readonly IEnumerator ToBackground = new JumpEnumerator();
 
         private readonly WaitCallback wcBackgroundMoveNextState;
@@ -80,6 +81,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         public LiteTask()
         {
             wcBackgroundMoveNextState = BackgroundMoveNextState;
+            StartInBackground = true;
             state = RunningState.Done;
         }
 
@@ -93,17 +95,18 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
 
         void IEnumerator.Reset() { throw new NotImplementedException(); }
 
-        public void RestartTask(IEnumerator routine)
+        public LiteTask RestartTask(IEnumerator routine)
         {
             lock (stateLock)
             {
                 if (!IsDone) { throw new Exception("Task not done yet."); }
                 innerRoutine = routine;
                 state = routine == null ? RunningState.Done : RunningState.Init;
+                return this;
             }
         }
 
-        public void RestartTask(IEnumerator routine, bool startInBackground)
+        public LiteTask RestartTask(IEnumerator routine, bool startInBackground)
         {
             lock (stateLock)
             {
@@ -111,6 +114,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 innerRoutine = routine;
                 state = routine == null ? RunningState.Done : RunningState.Init;
                 StartInBackground = startInBackground;
+                return this;
             }
         }
 
@@ -259,7 +263,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                         return false;
                     }
 
-                    if (current == ToForground)
+                    if (current == ToForeground)
                     {
                         return true;
                     }
@@ -313,7 +317,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                         return true;
                     }
 
-                    if (current == ToForground)
+                    if (current == ToForeground)
                     {
                         state = RunningState.ToForeground;
                         return false;
@@ -347,6 +351,111 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
 
                 return true;
             }
+        }
+    }
+
+    public class LiteTaskPool
+    {
+        private static LiteTaskPool defaultPool;
+        public static LiteTaskPool Default { get { return defaultPool ?? (defaultPool = new LiteTaskPool()); } }
+
+        private Stack<LiteTask> pool = new Stack<LiteTask>();
+        private HashSet<LiteTask> set = new HashSet<LiteTask>();
+        private List<LiteTask> runningTasks;
+        private LiteCoroutine waitRoutine;
+        private Predicate<LiteTask> removeFinishedTask;
+
+        public int poolCount { get { lock (pool) { return pool.Count; } } }
+
+        public int releasingCount { get { lock (pool) { return runningTasks.Count; } } }
+
+        public LiteTask Get(IEnumerator routine = null, bool startInBackground = true)
+        {
+            lock (pool)
+            {
+                if (pool.Count == 0)
+                {
+                    return new LiteTask(routine, startInBackground);
+                }
+                else
+                {
+                    var task = pool.Pop();
+                    set.Remove(task);
+                    return task.RestartTask(routine, startInBackground);
+                }
+            }
+        }
+
+        public LiteTask Get(out LiteTask task, IEnumerator routine = null, bool startInBackground = true)
+        {
+            lock (pool)
+            {
+                if (pool.Count == 0)
+                {
+                    return task = new LiteTask(routine, startInBackground);
+                }
+                else
+                {
+                    task = pool.Pop();
+                    set.Remove(task);
+                    return task.RestartTask(routine, startInBackground);
+                }
+            }
+        }
+
+        public void Release(LiteTask task)
+        {
+            lock (pool)
+            {
+                if (task != null && set.Add(task))
+                {
+                    task.Cancel();
+
+                    if (task.IsDone)
+                    {
+                        task.RestartTask(null, true);
+                        pool.Push(task);
+                    }
+                    else
+                    {
+                        if (runningTasks == null)
+                        {
+                            runningTasks = new List<LiteTask>() { task };
+                            removeFinishedTask = RemoveFinishedTask;
+                        }
+                        else
+                        {
+                            runningTasks.Add(task);
+                        }
+
+                        if (waitRoutine.IsNullOrDone())
+                        {
+                            LiteCoroutine.StartCoroutine(ref waitRoutine, WaitForTasks());
+                        }
+                    }
+                }
+            }
+        }
+
+        private IEnumerator WaitForTasks()
+        {
+            while (true)
+            {
+                lock (pool)
+                {
+                    runningTasks.RemoveAll(removeFinishedTask);
+                    if (runningTasks.Count == 0) { yield break; }
+                }
+                yield return null;
+            }
+        }
+
+        private bool RemoveFinishedTask(LiteTask task)
+        {
+            if (!task.IsDone) { return false; }
+            task.RestartTask(null, true);
+            pool.Push(task);
+            return true;
         }
     }
 }

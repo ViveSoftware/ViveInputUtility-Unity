@@ -194,7 +194,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 }
                 else
                 {
-                    if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out var stageStacks))
+                    List<YieldStack> stageStacks;
+                    if (TryGetOtherStageFromYieldInstruction(stack.yieldInstruction, out stageStacks))
                     {
                         lock (stageStacks)
                         {
