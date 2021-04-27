@@ -56,6 +56,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 { "WVR_CONTROLLER_FINCH3DOF_2_0", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusFinch, input2D = VRModuleInput2DType.TouchpadOnly } },
                 { "WVR_CONTROLLER_ASPEN_MI6_1", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusChirp, input2D = VRModuleInput2DType.TouchpadOnly } },
+                { "WVR_CONTROLLER_ASPEN_XA_XB", new WVRCtrlProfile() { model = VRModuleDeviceModel.ViveFocusChirp, input2D = VRModuleInput2DType.TouchpadOnly } },
                 { "WVR_CR_Right_001", new WVRCtrlProfile() { model = VRModuleDeviceModel.WaveCRControllerRight, input2D = VRModuleInput2DType.JoystickOnly } },
                 { "WVR_CR_Left_001", new WVRCtrlProfile() { model = VRModuleDeviceModel.WaveCRControllerLeft, input2D = VRModuleInput2DType.JoystickOnly } },
             };
