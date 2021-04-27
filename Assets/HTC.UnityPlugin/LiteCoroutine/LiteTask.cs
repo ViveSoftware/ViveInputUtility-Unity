@@ -101,6 +101,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             {
                 if (!IsDone) { throw new Exception("Task not done yet."); }
                 innerRoutine = routine;
+                current = null;
+                Exception = null;
                 state = routine == null ? RunningState.Done : RunningState.Init;
                 return this;
             }
@@ -112,6 +114,8 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             {
                 if (!IsDone) { throw new Exception("Task not done yet."); }
                 innerRoutine = routine;
+                current = null;
+                Exception = null;
                 state = routine == null ? RunningState.Done : RunningState.Init;
                 StartInBackground = startInBackground;
                 return this;
@@ -196,9 +200,9 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
 
                 if (state == RunningState.ToBackground)
                 {
+                    current = null;
                     state = RunningState.RunningBackground;
                     ThreadPool.QueueUserWorkItem(wcBackgroundMoveNextState);
-                    current = null;
                     return true;
                 }
 
@@ -206,20 +210,20 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             }
         }
 
-        private bool InnerMoveNext()
+        private bool InnerMoveNext(out object innerCurrent, out Exception innerException)
         {
             bool hasNext;
             try
             {
                 hasNext = innerRoutine.MoveNext();
-                current = hasNext ? innerRoutine.Current : null;
-                Exception = null;
+                innerCurrent = hasNext ? innerRoutine.Current : null;
+                innerException = null;
             }
             catch (Exception ex)
             {
                 hasNext = false;
-                current = null;
-                Exception = ex;
+                innerCurrent = null;
+                innerException = ex;
             }
             return hasNext;
         }
@@ -231,16 +235,20 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
 
         private bool ForegroundInnerMoveNext()
         {
-            var hasNext = InnerMoveNext();
+            bool hasNext;
+            object innerCurrent;
+            Exception innerException;
+
+            hasNext = InnerMoveNext(out innerCurrent, out innerException);
 
             lock (stateLock)
             {
-                if (Exception != null)
+                if (innerException != null)
                 {
+                    Exception = innerException;
                     state = RunningState.Exception;
 
-                    if (!Silent) { Debug.LogException(Exception); }
-
+                    if (!Silent) { Debug.LogException(innerException); }
                     return false;
                 }
 
@@ -255,20 +263,21 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                     return false;
                 }
 
-                if (current != null)
+                if (innerCurrent != null)
                 {
-                    if (current == ToBackground)
+                    if (innerCurrent == ToBackground)
                     {
                         state = RunningState.ToBackground;
                         return false;
                     }
 
-                    if (current == ToForeground)
+                    if (innerCurrent == ToForeground)
                     {
                         return true;
                     }
                 }
 
+                current = innerCurrent;
                 state = RunningState.PendingYield;
                 return false;
             }
@@ -283,18 +292,20 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         private bool BackgroundInnerMoveNext(out TimeSpan outSleepTime)
         {
             bool hasNext;
+            object innerCurrent;
+            Exception innerException;
             outSleepTime = TimeSpan.Zero;
 
-            hasNext = InnerMoveNext();
+            hasNext = InnerMoveNext(out innerCurrent, out innerException);
 
             lock (stateLock)
             {
-                if (Exception != null)
+                if (innerException != null)
                 {
+                    Exception = innerException;
                     state = RunningState.Exception;
 
-                    if (!Silent) { Debug.LogException(Exception); }
-
+                    if (!Silent) { Debug.LogException(innerException); }
                     return false;
                 }
 
@@ -310,26 +321,27 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                     return false;
                 }
 
-                if (current != null)
+                if (innerCurrent != null)
                 {
-                    if (current == ToBackground)
+                    if (innerCurrent == ToBackground)
                     {
                         return true;
                     }
 
-                    if (current == ToForeground)
+                    if (innerCurrent == ToForeground)
                     {
                         state = RunningState.ToForeground;
                         return false;
                     }
 
-                    if (current is WaitForTicks)
+                    if (innerCurrent is WaitForTicks)
                     {
-                        outSleepTime = ((WaitForTicks)current).waitTime;
+                        outSleepTime = ((WaitForTicks)innerCurrent).waitTime;
                         return true;
                     }
                 }
 
+                current = innerCurrent;
                 state = RunningState.PendingYield;
                 return false;
             }
