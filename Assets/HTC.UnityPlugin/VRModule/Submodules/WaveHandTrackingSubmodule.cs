@@ -249,7 +249,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             private IEnumerator ActivateCoroutine()
             {
-                yield return LiteTask.ToForground;
+                yield return LiteTask.ToForeground;
 
                 const long retryInterval = 1000L;
                 var nextRestartTime = default(DateTime);
@@ -305,7 +305,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         result = initializer();
                     }
 
-                    yield return LiteTask.ToForground;
+                    yield return LiteTask.ToForeground;
 
                     switch (result)
                     {
