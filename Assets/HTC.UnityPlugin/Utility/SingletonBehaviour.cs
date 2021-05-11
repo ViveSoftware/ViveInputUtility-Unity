@@ -32,11 +32,11 @@ namespace HTC.UnityPlugin.Utility
 
         public static void Initialize()
         {
-            if (!Application.isPlaying || s_isApplicationQuitting) { return; }
-
             lock (s_lock)
             {
                 if (s_instance != null) { return; }
+
+                if (!Application.isPlaying || s_isApplicationQuitting) { return; }
 
                 var instances = FindObjectsOfType<T>();
                 if (instances.Length > 0)
