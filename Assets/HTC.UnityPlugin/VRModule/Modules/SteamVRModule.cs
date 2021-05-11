@@ -106,6 +106,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 for (int i = module2tracked.Length - 1; i >= 0; --i) { module2tracked[i] = OpenVR.k_unTrackedDeviceIndexInvalid; }
             }
         }
+
+        public static VRModuleDeviceClass ToVRModuleDeviceClass(ETrackedDeviceClass deviceClass)
+        {
+            switch (deviceClass)
+            {
+                case ETrackedDeviceClass.HMD: return VRModuleDeviceClass.HMD;
+                case ETrackedDeviceClass.Controller: return VRModuleDeviceClass.Controller;
+                case ETrackedDeviceClass.GenericTracker: return VRModuleDeviceClass.GenericTracker;
+                case ETrackedDeviceClass.TrackingReference: return VRModuleDeviceClass.TrackingReference;
+                default: return VRModuleDeviceClass.Invalid;
+            }
+        }
 #endif
 
 #if VIU_STEAMVR && UNITY_STANDALONE
@@ -423,7 +435,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         {
                             m_openvrCtrlRoleDirty = true;
                             currState.isConnected = true;
-                            currState.deviceClass = (VRModuleDeviceClass)vrSystem.GetTrackedDeviceClass(trackedIndex);
+                            currState.deviceClass = ToVRModuleDeviceClass(vrSystem.GetTrackedDeviceClass(i));
                             currState.serialNumber = QueryDeviceStringProperty(vrSystem, trackedIndex, ETrackedDeviceProperty.Prop_SerialNumber_String);
                             currState.modelNumber = QueryDeviceStringProperty(vrSystem, trackedIndex, ETrackedDeviceProperty.Prop_ModelNumber_String);
                             currState.renderModelName = QueryDeviceStringProperty(vrSystem, trackedIndex, ETrackedDeviceProperty.Prop_RenderModelName_String);
