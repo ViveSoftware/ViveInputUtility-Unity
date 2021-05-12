@@ -5,11 +5,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace HTC.UnityPlugin.Utility
 {
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
+    public class InvalidEnumArrayIndexAttribute : Attribute { }
+
     public abstract class EnumToIntResolver { }
 
     /// <summary>
@@ -155,17 +159,85 @@ namespace HTC.UnityPlugin.Utility
     {
         public const int DEFAULT_LENGTH_LIMIT = 1024;
 
+        protected delegate bool RangeCheckFunc(object e, out int ei);
+
         public abstract Type EnumType { get; }
         public abstract Type ElementType { get; }
         public abstract int MinInt { get; }
         public abstract int MaxInt { get; }
         public abstract int Length { get; }
         public abstract int Capacity { get; }
-        public abstract string EnumIntName(int enumInt);
-        public abstract bool IsDefined(int enumInt);
+        public abstract string EnumName(int enumInt);
+        public abstract bool IsValidIndex(int enumInt);
         public abstract void Clear();
         public abstract void FillCapacityToLength();
         public abstract void TrimCapacityToLength();
+
+        protected static bool WithoutInvalidIndexAttr(FieldInfo fi)
+        {
+            return fi.IsStatic && fi.GetCustomAttributes(typeof(InvalidEnumArrayIndexAttribute), true).Length == 0;
+        }
+
+        protected static int CompareMetadataToken(FieldInfo fi)
+        {
+            return fi.MetadataToken;
+        }
+
+        protected static bool RangeCheckFromUInt8(object e, out int ei) { ei = (byte)e; return true; }
+        protected static bool RangeCheckFromInt8(object e, out int ei) { ei = (sbyte)e; return true; }
+        protected static bool RangeCheckFromInt16(object e, out int ei) { ei = (short)e; return true; }
+        protected static bool RangeCheckFromUInt16(object e, out int ei) { ei = (ushort)e; return true; }
+        protected static bool RangeCheckFromInt32(object e, out int ei) { ei = (int)e; return true; }
+
+        protected static bool RangeCheckFromUInt32(object e, out int ei)
+        {
+            var l = (uint)e;
+            if (l <= int.MaxValue)
+            {
+                ei = (int)l;
+                return true;
+            }
+            else
+            {
+                ei = int.MaxValue;
+                return false;
+            }
+        }
+
+        protected static bool RangeCheckFromInt64(object e, out int ei)
+        {
+            var l = (long)e;
+            if (l < int.MinValue)
+            {
+                ei = int.MinValue;
+                return false;
+            }
+            else if (l <= int.MaxValue)
+            {
+                ei = (int)l;
+                return true;
+            }
+            else
+            {
+                ei = int.MaxValue;
+                return false;
+            }
+        }
+
+        protected static bool RangeCheckFromUInt64(object e, out int ei)
+        {
+            var l = (ulong)e;
+            if (l <= int.MaxValue)
+            {
+                ei = (int)l;
+                return true;
+            }
+            else
+            {
+                ei = int.MaxValue;
+                return false;
+            }
+        }
     }
 
     [Serializable]
@@ -176,53 +248,78 @@ namespace HTC.UnityPlugin.Utility
     {
         public struct EnumEnumerator : IEnumerator<TEnum>, IEnumerable<TEnum>
         {
-            private int i;
+            private readonly int iStart;
+            private readonly int iEnd;
             private int iCurrent;
-            private int iDst;
 
             object IEnumerator.Current { get { return Current; } }
-            public TEnum Current { get { return enums[iCurrent]; } }
+            public TEnum Current { get { return InternalI2E(iCurrent); } }
 
-            public static EnumEnumerator Default { get { return new EnumEnumerator() { iDst = StaticLength }; } }
-
-            public EnumEnumerator(TEnum from)
+            public static EnumEnumerator All
             {
-                i = iCurrent = E2I(from) - StaticMinInt;
-                iDst = StaticLength;
+                get
+                {
+                    return new EnumEnumerator(0, StaticLength - 1);
+                }
             }
 
-            public EnumEnumerator(TEnum from, TEnum to)
+            public static EnumEnumerator From(TEnum from)
             {
-                i = iCurrent = E2I(from) - StaticMinInt;
-                iDst = E2I(to) - StaticMinInt;
-                if (iDst > i) { ++iDst; }
-                else { --iDst; }
+                var ifrom = E2I(from) - StaticMinInt; return new EnumEnumerator(ifrom, Mathf.Max(ifrom, StaticLength - 1));
+            }
+
+            public static EnumEnumerator FromTo(TEnum from, TEnum to)
+            {
+                return new EnumEnumerator(E2I(from) - StaticMinInt, E2I(to) - StaticMinInt);
+            }
+
+            private EnumEnumerator(int from, int to)
+            {
+                if (StaticLength == 0)
+                {
+                    iStart = iEnd = iCurrent = -1;
+                }
+                else
+                {
+                    from = Mathf.Clamp(from, 0, StaticLength - 1);
+                    to = Mathf.Clamp(to, 0, StaticLength - 1);
+
+                    if (from <= to)
+                    {
+                        iStart = iCurrent = from - 1;
+                        iEnd = to;
+                    }
+                    else
+                    {
+                        iStart = iCurrent = from + 1;
+                        iEnd = to;
+                    }
+                }
             }
 
             void IDisposable.Dispose() { }
-            public void Reset() { i = 0; iCurrent = 0; }
+            public void Reset() { iCurrent = iStart; }
             public EnumEnumerator GetEnumerator() { return this; }
             IEnumerator<TEnum> IEnumerable<TEnum>.GetEnumerator() { return this; }
             IEnumerator IEnumerable.GetEnumerator() { return this; }
 
             public bool MoveNext()
             {
-                if (enums == null) { return false; }
-                while (i != iDst)
+                while (iCurrent != iEnd)
                 {
-                    iCurrent = i;
-                    if (i > iDst) { --i; } else { ++i; }
-                    if (enumIsDefined[iCurrent])
+                    iCurrent = iCurrent > iEnd ? (iCurrent - 1) : (iCurrent + 1);
+                    if (InternalStaticIsValidIndex(iCurrent))
                     {
                         return true;
                     }
                 }
+
                 return false;
             }
         }
 
-        protected static readonly TEnum[] enums;
-        protected static readonly bool[] enumIsDefined;
+        private static readonly TEnum[] enums;
+        private static readonly string[] enumNames;
         private static Func<TEnum, int> funcE2I;
         public static readonly int StaticMinInt;
         public static readonly TEnum StaticMin;
@@ -272,99 +369,124 @@ namespace HTC.UnityPlugin.Utility
             }
 
             // find out min/max/length value in defined enum values
-            var min = int.MaxValue;
-            var max = int.MinValue;
-            var enums = Enum.GetValues(StaticEnumType) as TEnum[];
-            foreach (var e in enums)
+            var fields = StaticEnumType.GetFields().Where(WithoutInvalidIndexAttr).OrderBy(CompareMetadataToken).ToArray();
+            var fieldEnums = new TEnum[fields.Length];
+            var fieldValues = new int[fields.Length];
+            var fieldNames = new string[fields.Length];
+
+            var validIndexFound = false;
+            for (int i = 0, imax = fields.Length; i < imax; ++i)
             {
-                int i;
-                if (rangeCheckFunc(e, out i))
+                var field = fields[i];
+                var vo = field.GetValue(null);
+                var ve = (TEnum)vo;
+                int vi;
+                if (rangeCheckFunc(vo, out vi))
                 {
-                    if (i <= min)
+                    if (!validIndexFound)
                     {
-                        StaticMinInt = min = i;
-                        StaticMin = e;
+                        validIndexFound = true;
+                        StaticMinInt = StaticMaxInt = vi;
+                        StaticMin = StaticMax = ve;
+                    }
+                    else
+                    {
+                        if (vi < StaticMinInt)
+                        {
+                            if (StaticMaxInt >= int.MinValue + DEFAULT_LENGTH_LIMIT && vi <= StaticMaxInt - DEFAULT_LENGTH_LIMIT)
+                            {
+                                Debug.Log("[EnumArray] too small. vi=" + vi + " min=" + StaticMinInt + " max=" + StaticMaxInt);
+                                continue; // length out of range
+                            }
+                            StaticMinInt = vi;
+                        }
+                        else if (vi > StaticMaxInt)
+                        {
+                            if (StaticMinInt <= int.MaxValue - DEFAULT_LENGTH_LIMIT && vi >= StaticMinInt + DEFAULT_LENGTH_LIMIT)
+                            {
+                                Debug.Log("[EnumArray] too large. vi=" + vi + " min=" + StaticMinInt + " max=" + StaticMaxInt);
+                                continue; // length out of range
+                            }
+                            StaticMaxInt = vi;
+                        }
                     }
 
-                    if (i >= max)
-                    {
-                        StaticMaxInt = max = i;
-                        StaticMax = e;
-                    }
+                    fieldValues[i] = vi;
+                    fieldEnums[i] = ve;
+                    fieldNames[i] = field.Name;
                 }
             }
 
-            if (StaticMinInt != min)
+            if (!validIndexFound)
             {
-                Debug.LogWarning("All defined values for " + StaticEnumType.Name + " are out of int range, set StaticLength to 1.");
+                Debug.LogWarning("Valid index for EnumArray not found. type:" + StaticEnumType.Name);
                 StaticMinInt = 0;
                 StaticMin = default(TEnum);
                 StaticMaxInt = 0;
                 StaticMax = default(TEnum);
-                StaticLength = 1;
+                StaticLength = 0;
             }
-            else
-            {
-                if (StaticMinInt < (int.MaxValue - DEFAULT_LENGTH_LIMIT) && (StaticMinInt + DEFAULT_LENGTH_LIMIT) < StaticMaxInt)
-                {
-                    Debug.LogWarning("DefinedLength for " + StaticEnumType.Name + " out of range, will be clamped to less then " + DEFAULT_LENGTH_LIMIT + ".");
-                    for (StaticMaxInt = StaticMinInt + DEFAULT_LENGTH_LIMIT; StaticMaxInt > StaticMinInt; --StaticMaxInt)
-                    {
-                        if (Enum.IsDefined(StaticEnumType, StaticMaxInt)) { break; }
-                    }
 
-                    StaticMax = (TEnum)(object)StaticMaxInt;
-                }
-
-                StaticLength = StaticMaxInt - StaticMinInt + 1;
-            }
+            StaticLength = StaticMaxInt - StaticMinInt + 1;
 
             // create an int array with invalid enum values
-            EnumArrayBase<TEnum>.enums = new TEnum[StaticLength];
-            enumIsDefined = new bool[StaticLength];
-            foreach (var e in enums)
+            enums = new TEnum[StaticLength];
+            enumNames = new string[StaticLength];
+            for (int fi = 0, imax = fields.Length; fi < imax; ++fi)
             {
-                int i;
-                if (rangeCheckFunc(e, out i) && i >= StaticMinInt && i <= StaticMaxInt)
-                {
-                    var index = i - StaticMinInt;
-                    EnumArrayBase<TEnum>.enums[index] = e;
-                    enumIsDefined[index] = true;
-                }
-            }
+                if (fieldNames[fi] == null) { continue; }
 
-            // resolve undefined enums
-            for (int i = 0, imax = StaticLength; i < imax; ++i)
-            {
-                if (!enumIsDefined[i])
-                {
-                    EnumArrayBase<TEnum>.enums[i] = (TEnum)(object)(i + StaticMinInt);
-                }
+                var i = fieldValues[fi] - StaticMinInt;
+                if (enumNames[i] != null) { continue; }
+
+                enums[i] = fieldEnums[fi];
+                enumNames[i] = fieldNames[fi];
             }
         }
 
         public override Type EnumType { get { return StaticEnumType; } }
 
-        public override string EnumIntName(int enumInt) { return I2E(enumInt).ToString(); }
+        public override string EnumName(int enumInt)
+        {
+            return StaticEnumName(enumInt);
+        }
 
-        public override bool IsDefined(int enumInt) { return StaticIsDefined(enumInt); }
+        public static string StaticEnumName(TEnum e)
+        {
+            return StaticEnumName(E2I(e));
+        }
 
-        public static bool StaticIsDefined(int enumInt)
+        public static string StaticEnumName(int enumInt)
+        {
+            return enumNames[enumInt - StaticMinInt];
+        }
+
+        public override bool IsValidIndex(int enumInt)
+        {
+            return StaticIsValidIndex(enumInt);
+        }
+
+        public static bool StaticIsValidIndex(TEnum e)
+        {
+            return StaticIsValidIndex(E2I(e));
+        }
+
+        public static bool StaticIsValidIndex(int enumInt)
         {
             var i = enumInt - StaticMinInt;
-            return i >= 0 && i < StaticLength && enumIsDefined[i];
+            return i >= 0 && i < StaticLength && InternalStaticIsValidIndex(i);
         }
 
-        public static bool StaticIsDefined(TEnum e)
+        protected static bool InternalStaticIsValidIndex(int index)
         {
-            return StaticIsDefined(E2I(e));
+            return enumNames[index] != null;
         }
 
-        public static EnumEnumerator StaticEnums { get { return EnumEnumerator.Default; } }
+        public static EnumEnumerator StaticEnums { get { return EnumEnumerator.All; } }
 
-        public static EnumEnumerator StaticEnumsFrom(TEnum from) { return new EnumEnumerator(from); }
+        public static EnumEnumerator StaticEnumsFrom(TEnum from) { return EnumEnumerator.From(from); }
 
-        public static EnumEnumerator StaticEnumsFrom(TEnum from, TEnum to) { return new EnumEnumerator(from, to); }
+        public static EnumEnumerator StaticEnumsFrom(TEnum from, TEnum to) { return EnumEnumerator.FromTo(from, to); }
 
         public static void InitializeFuncE2I()
         {
@@ -378,44 +500,43 @@ namespace HTC.UnityPlugin.Utility
             if (EnumToIntResolverCache.TryGetCachedResolverInstance(out resolver))
             {
                 funcE2I = resolver.Resolve;
+                return;
             }
-            else
-            {
-                WarnBoxingResolver();
-            }
+
+            WarnBoxingResolver();
 
             var underlyingType = Enum.GetUnderlyingType(StaticEnumType);
             if (underlyingType == typeof(int))
             {
-                if (funcE2I == null) { funcE2I = EqualityComparer<TEnum>.Default.GetHashCode; }
+                funcE2I = EqualityComparer<TEnum>.Default.GetHashCode;
             }
             else if (underlyingType == typeof(uint))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(uint)(object)e; }
+                funcE2I = e => (int)(uint)(object)e;
             }
             else if (underlyingType == typeof(long))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(long)(object)e; }
+                funcE2I = e => (int)(long)(object)e;
             }
             else if (underlyingType == typeof(ulong))
             {
-                if (funcE2I == null) { funcE2I = e => (int)(ulong)(object)e; }
+                funcE2I = e => (int)(ulong)(object)e;
             }
             else if (underlyingType == typeof(byte))
             {
-                if (funcE2I == null) { funcE2I = e => (byte)(object)e; }
+                funcE2I = e => (byte)(object)e;
             }
             else if (underlyingType == typeof(sbyte))
             {
-                if (funcE2I == null) { funcE2I = e => (sbyte)(object)e; }
+                funcE2I = e => (sbyte)(object)e;
             }
             else if (underlyingType == typeof(short))
             {
-                if (funcE2I == null) { funcE2I = e => (short)(object)e; }
+                funcE2I = e => (short)(object)e;
             }
             else if (underlyingType == typeof(ushort))
             {
-                if (funcE2I == null) { funcE2I = e => (ushort)(object)e; }
+                funcE2I = e => (ushort)(object)e;
             }
         }
 
@@ -427,65 +548,12 @@ namespace HTC.UnityPlugin.Utility
 
         public static TEnum I2E(int ei)
         {
-            return enums[ei - StaticMinInt];
+            return InternalI2E(ei - StaticMinInt);
         }
 
-        private delegate bool RangeCheckFunc(TEnum e, out int ei);
-
-        private static bool RangeCheckFromUInt8(TEnum e, out int ei) { ei = (byte)(object)e; return true; }
-        private static bool RangeCheckFromInt8(TEnum e, out int ei) { ei = (sbyte)(object)e; return true; }
-        private static bool RangeCheckFromInt16(TEnum e, out int ei) { ei = (short)(object)e; return true; }
-        private static bool RangeCheckFromUInt16(TEnum e, out int ei) { ei = (ushort)(object)e; return true; }
-        private static bool RangeCheckFromInt32(TEnum e, out int ei) { ei = EqualityComparer<TEnum>.Default.GetHashCode(e); return true; }
-
-        private static bool RangeCheckFromUInt32(TEnum e, out int ei)
+        protected static TEnum InternalI2E(int index)
         {
-            var l = (uint)(object)e;
-            if (l <= int.MaxValue)
-            {
-                ei = (int)l;
-                return true;
-            }
-            else
-            {
-                ei = int.MaxValue;
-                return false;
-            }
-        }
-
-        private static bool RangeCheckFromInt64(TEnum e, out int ei)
-        {
-            var l = (long)(object)e;
-            if (l < int.MinValue)
-            {
-                ei = int.MinValue;
-                return false;
-            }
-            else if (l <= int.MaxValue)
-            {
-                ei = (int)l;
-                return true;
-            }
-            else
-            {
-                ei = int.MaxValue;
-                return false;
-            }
-        }
-
-        private static bool RangeCheckFromUInt64(TEnum e, out int ei)
-        {
-            var l = (ulong)(object)e;
-            if (l <= int.MaxValue)
-            {
-                ei = (int)l;
-                return true;
-            }
-            else
-            {
-                ei = int.MaxValue;
-                return false;
-            }
+            return enums[index];
         }
 
         private static void WarnBoxingResolver()
@@ -564,54 +632,77 @@ namespace HTC.UnityPlugin.Utility
         public struct ValueEnumerator : IEnumerator<TValue>, IEnumerable<TValue>
         {
             private readonly TValue[] elements;
-            private int i;
+            private readonly int iStart;
+            private readonly int iEnd;
             private int iCurrent;
-            private int iDst;
 
             object IEnumerator.Current { get { return Current; } }
             public TValue Current { get { return elements[iCurrent]; } }
 
-            public ValueEnumerator(EnumArray<TEnum, TValue> array)
+            public static ValueEnumerator All(EnumArray<TEnum, TValue> array)
             {
-                elements = array.elements;
-                i = iCurrent = 0;
-                iDst = StaticLength;
+                return new ValueEnumerator(array, 0, StaticLength - 1);
             }
 
-            public ValueEnumerator(EnumArray<TEnum, TValue> array, TEnum from)
+            public static ValueEnumerator From(EnumArray<TEnum, TValue> array, TEnum from)
             {
-                elements = array.elements;
-                i = iCurrent = E2I(from) - StaticMinInt;
-                iDst = StaticLength;
+                var ifrom = E2I(from) - StaticMinInt;
+                return new ValueEnumerator(array, ifrom, Mathf.Max(ifrom, StaticLength - 1));
             }
 
-            public ValueEnumerator(EnumArray<TEnum, TValue> array, TEnum from, TEnum to)
+            public static ValueEnumerator FromTo(EnumArray<TEnum, TValue> array, TEnum from, TEnum to)
             {
-                elements = array.elements;
-                i = iCurrent = E2I(from) - StaticMinInt;
-                iDst = E2I(to) - StaticMinInt;
-                if (iDst > i) { ++iDst; }
-                else { --iDst; }
+                return new ValueEnumerator(array, E2I(from) - StaticMinInt, E2I(to) - StaticMinInt);
+            }
+
+            private ValueEnumerator(EnumArray<TEnum, TValue> array, int from, int to)
+            {
+                if (StaticLength == 0)
+                {
+                    elements = null;
+                    iStart = iEnd = iCurrent = -1;
+                }
+                else
+                {
+                    from = Mathf.Clamp(from, 0, StaticLength - 1);
+                    to = Mathf.Clamp(to, 0, StaticLength - 1);
+
+                    if (from <= to)
+                    {
+                        iStart = iCurrent = from - 1;
+                        iEnd = to;
+                    }
+                    else
+                    {
+                        iStart = iCurrent = from + 1;
+                        iEnd = to;
+                    }
+
+                    array.FillCapacityToLength();
+                    elements = array.elements;
+                }
             }
 
             void IDisposable.Dispose() { }
-            public void Reset() { i = 0; iCurrent = 0; }
+            public void Reset() { iCurrent = iStart; }
             public ValueEnumerator GetEnumerator() { return this; }
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() { return this; }
             IEnumerator IEnumerable.GetEnumerator() { return this; }
 
             public bool MoveNext()
             {
-                if (elements == null) { return false; }
-                while (i != iDst)
+                if (elements != null)
                 {
-                    iCurrent = i;
-                    if (i > iDst) { --i; } else { ++i; }
-                    if (enumIsDefined[iCurrent])
+                    while (iCurrent != iEnd)
                     {
-                        return true;
+                        iCurrent = iCurrent > iEnd ? (iCurrent - 1) : (iCurrent + 1);
+                        if (InternalStaticIsValidIndex(iCurrent))
+                        {
+                            return true;
+                        }
                     }
                 }
+
                 return false;
             }
         }
@@ -619,54 +710,77 @@ namespace HTC.UnityPlugin.Utility
         public struct EnumValueEnumerator : IEnumerator<KeyValuePair<TEnum, TValue>>, IEnumerable<KeyValuePair<TEnum, TValue>>
         {
             private readonly TValue[] elements;
-            private int i;
+            private readonly int iStart;
+            private readonly int iEnd;
             private int iCurrent;
-            private int iDst;
 
             object IEnumerator.Current { get { return Current; } }
-            public KeyValuePair<TEnum, TValue> Current { get { return new KeyValuePair<TEnum, TValue>(enums[iCurrent], elements[iCurrent]); } }
+            public KeyValuePair<TEnum, TValue> Current { get { return new KeyValuePair<TEnum, TValue>(InternalI2E(iCurrent), elements[iCurrent]); } }
 
-            public EnumValueEnumerator(EnumArray<TEnum, TValue> array)
+            public static EnumValueEnumerator All(EnumArray<TEnum, TValue> array)
             {
-                elements = array.elements;
-                i = iCurrent = 0;
-                iDst = StaticLength;
+                return new EnumValueEnumerator(array, 0, StaticLength - 1);
             }
 
-            public EnumValueEnumerator(EnumArray<TEnum, TValue> array, TEnum from)
+            public static EnumValueEnumerator From(EnumArray<TEnum, TValue> array, TEnum from)
             {
-                elements = array.elements;
-                i = iCurrent = E2I(from) - StaticMinInt;
-                iDst = StaticLength;
+                var ifrom = E2I(from) - StaticMinInt;
+                return new EnumValueEnumerator(array, ifrom, Mathf.Max(ifrom, StaticLength - 1));
             }
 
-            public EnumValueEnumerator(EnumArray<TEnum, TValue> array, TEnum from, TEnum to)
+            public static EnumValueEnumerator FromTo(EnumArray<TEnum, TValue> array, TEnum from, TEnum to)
             {
-                elements = array.elements;
-                i = iCurrent = E2I(from) - StaticMinInt;
-                iDst = E2I(to) - StaticMinInt;
-                if (iDst > i) { ++iDst; }
-                else { --iDst; }
+                return new EnumValueEnumerator(array, E2I(from) - StaticMinInt, E2I(to) - StaticMinInt);
+            }
+
+            private EnumValueEnumerator(EnumArray<TEnum, TValue> array, int from, int to)
+            {
+                if (StaticLength == 0)
+                {
+                    elements = null;
+                    iStart = iEnd = iCurrent = -1;
+                }
+                else
+                {
+                    from = Mathf.Clamp(from, 0, StaticLength - 1);
+                    to = Mathf.Clamp(to, 0, StaticLength - 1);
+
+                    if (from <= to)
+                    {
+                        iStart = iCurrent = from - 1;
+                        iEnd = to;
+                    }
+                    else
+                    {
+                        iStart = iCurrent = from + 1;
+                        iEnd = to;
+                    }
+
+                    array.FillCapacityToLength();
+                    elements = array.elements;
+                }
             }
 
             void IDisposable.Dispose() { }
-            public void Reset() { i = 0; iCurrent = 0; }
+            public void Reset() { iCurrent = iStart; }
             public EnumValueEnumerator GetEnumerator() { return this; }
             IEnumerator<KeyValuePair<TEnum, TValue>> IEnumerable<KeyValuePair<TEnum, TValue>>.GetEnumerator() { return this; }
             IEnumerator IEnumerable.GetEnumerator() { return this; }
 
             public bool MoveNext()
             {
-                if (elements == null) { return false; }
-                while (i != iDst)
+                if (elements != null)
                 {
-                    iCurrent = i;
-                    if (i > iDst) { --i; } else { ++i; }
-                    if (enumIsDefined[iCurrent])
+                    while (iCurrent != iEnd)
                     {
-                        return true;
+                        iCurrent = iCurrent > iEnd ? (iCurrent - 1) : (iCurrent + 1);
+                        if (InternalStaticIsValidIndex(iCurrent))
+                        {
+                            return true;
+                        }
                     }
                 }
+
                 return false;
             }
         }
@@ -711,11 +825,11 @@ namespace HTC.UnityPlugin.Utility
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public ValueEnumerator Values { get { FillCapacityToLength(); return new ValueEnumerator(this); } }
+        public ValueEnumerator Values { get { return ValueEnumerator.All(this); } }
 
-        public ValueEnumerator ValuesFrom(TEnum from) { FillCapacityToLength(); return new ValueEnumerator(this, from); }
+        public ValueEnumerator ValuesFrom(TEnum from) { return ValueEnumerator.From(this, from); }
 
-        public ValueEnumerator ValuesFrom(TEnum from, TEnum to) { FillCapacityToLength(); return new ValueEnumerator(this, from, to); }
+        public ValueEnumerator ValuesFrom(TEnum from, TEnum to) { return ValueEnumerator.FromTo(this, from, to); }
 
         public EnumEnumerator Enums { get { return StaticEnums; } }
 
@@ -723,11 +837,11 @@ namespace HTC.UnityPlugin.Utility
 
         public EnumEnumerator EnumsFrom(TEnum from, TEnum to) { return StaticEnumsFrom(from, to); }
 
-        public EnumValueEnumerator EnumValues { get { FillCapacityToLength(); return new EnumValueEnumerator(this); } }
+        public EnumValueEnumerator EnumValues { get { return EnumValueEnumerator.All(this); } }
 
-        public EnumValueEnumerator EnumValuesFrom(TEnum from) { FillCapacityToLength(); return new EnumValueEnumerator(this, from); }
+        public EnumValueEnumerator EnumValuesFrom(TEnum from) { return EnumValueEnumerator.From(this, from); }
 
-        public EnumValueEnumerator EnumValuesFrom(TEnum from, TEnum to) { FillCapacityToLength(); return new EnumValueEnumerator(this, from, to); }
+        public EnumValueEnumerator EnumValuesFrom(TEnum from, TEnum to) { return EnumValueEnumerator.FromTo(this, from, to); }
 
         public TValue this[TEnum e]
         {

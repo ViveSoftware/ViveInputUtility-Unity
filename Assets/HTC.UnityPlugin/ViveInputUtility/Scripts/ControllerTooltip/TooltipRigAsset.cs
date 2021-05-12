@@ -44,7 +44,7 @@ namespace HTC.UnityPlugin.Vive
 
         public static bool TryGetDefaultAsset(VRModuleDeviceModel model, out TooltipRigAsset rigAsset)
         {
-            if (!EnumArrayBase<VRModuleDeviceModel>.StaticIsDefined((int)model)) { rigAsset = null; return false; }
+            if (!EnumArrayBase<VRModuleDeviceModel>.StaticIsValidIndex((int)model)) { rigAsset = null; return false; }
 
             if (s_defaultTooltipRigSets == null) { s_defaultTooltipRigSets = new EnumArray<VRModuleDeviceModel, LoadedRigSet>(); }
 

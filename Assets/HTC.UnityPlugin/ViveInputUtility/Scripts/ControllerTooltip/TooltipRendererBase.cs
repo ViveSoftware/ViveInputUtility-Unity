@@ -24,7 +24,7 @@ namespace HTC.UnityPlugin.Vive
         public bool TryGetValidTooltipRig(ControllerButton button, out TooltipRig rig)
         {
             rig = default(TooltipRig);
-            if (!EnumArrayBase<ControllerButton>.StaticIsDefined((int)button)) { return false; }
+            if (!EnumArrayBase<ControllerButton>.StaticIsValidIndex((int)button)) { return false; }
 
             var model = VRModule.GetDeviceState(m_viveRole.GetDeviceIndex()).deviceModel;
 
@@ -133,7 +133,7 @@ namespace HTC.UnityPlugin.Vive
         {
             data = default(TRenderData);
             if (dataStateArray == null) { return false; }
-            if (!EnumArrayBase<ControllerButton>.StaticIsDefined(button)) { return false; }
+            if (!EnumArrayBase<ControllerButton>.StaticIsValidIndex(button)) { return false; }
             if (!dataStateArray[(int)button].isValid) { return false; }
             data = dataStateArray[(int)button].data;
             return true;
@@ -159,7 +159,7 @@ namespace HTC.UnityPlugin.Vive
             while (dataEnumerator.MoveNext())
             {
                 var entry = dataEnumerator.Current;
-                if (EnumArrayBase<ControllerButton>.StaticIsDefined((int)entry.Key))
+                if (EnumArrayBase<ControllerButton>.StaticIsValidIndex((int)entry.Key))
                 {
                     btnVisibleTmp[(int)entry.Key] = true;
                     SetTooltipData(entry.Key, entry.Value);

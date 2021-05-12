@@ -166,7 +166,7 @@ namespace HTC.UnityPlugin.Vive
                 var enumInfo = EnumUtils.GetDisplayInfo(typeof(TEnum));
                 for (int i = EnumArrayBase<TEnum>.StaticMinInt, imax = EnumArrayBase<TEnum>.StaticMaxInt; i <= imax; ++i)
                 {
-                    if (EnumArrayBase<TEnum>.StaticIsDefined(i))
+                    if (EnumArrayBase<TEnum>.StaticIsValidIndex(i))
                     {
                         var mask = 1ul << i;
                         var wasSet = (prev & mask) > 0ul;

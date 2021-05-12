@@ -78,10 +78,10 @@ namespace HTC.UnityPlugin.Utility
                     target.FillCapacityToLength();
                     for (int i = 0, imax = arrayLen, ev = target.MinInt; i < imax; ++i, ++ev)
                     {
-                        if (target.IsDefined(ev))
+                        if (target.IsValidIndex(ev))
                         {
                             var element = arrayProp.GetArrayElementAtIndex(i);
-                            var enumName = ObjectNames.NicifyVariableName(target.EnumIntName(ev));
+                            var enumName = ObjectNames.NicifyVariableName(target.EnumName(ev));
 
                             position.height = EditorGUI.GetPropertyHeight(element, GUIContent.none, true);
                             EditorGUI.PropertyField(position, element, new GUIContent(enumName), true);
@@ -111,7 +111,7 @@ namespace HTC.UnityPlugin.Utility
                 var target = GetTargetObjectOfProperty(property) as EnumArrayBase;
                 for (int i = 0, imax = Mathf.Min(arrayLen, target.Length); i < imax; ++i)
                 {
-                    if (target.IsDefined(i + target.MinInt))
+                    if (target.IsValidIndex(i + target.MinInt))
                     {
                         result += verticalSpacing + EditorGUI.GetPropertyHeight(arrayProp.GetArrayElementAtIndex(i), GUIContent.none, true);
                     }
