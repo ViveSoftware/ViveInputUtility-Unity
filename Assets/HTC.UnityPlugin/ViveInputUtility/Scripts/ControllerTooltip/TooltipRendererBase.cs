@@ -27,8 +27,7 @@ namespace HTC.UnityPlugin.Vive
             if (!EnumArrayBase<ControllerButton>.StaticIsValidIndex((int)button)) { return false; }
 
             var model = VRModule.GetDeviceState(m_viveRole.GetDeviceIndex()).deviceModel;
-
-            TooltipRigAsset rigSetAsset = null;
+            var rigSetAsset = (TooltipRigAsset)null;
             if (m_customTooltipRigSet != null)
             {
                 rigSetAsset = m_customTooltipRigSet[(int)model];
@@ -89,41 +88,42 @@ namespace HTC.UnityPlugin.Vive
         {
             if (dataStateArray == null) { return; }
 
-            for (ControllerButton i = EnumArrayBase<ControllerButton>.StaticMin, imax = EnumArrayBase<ControllerButton>.StaticMax; i <= imax; ++i)
+            foreach (var ev in dataStateArray.EnumValues)
             {
-                var state = dataStateArray[(int)i];
+                var button = ev.Key;
+                var state = ev.Value;
                 if (!state.isValid) { continue; }
 
                 TooltipRig rig;
-                var shouldShow = TryGetValidTooltipRig(i, out rig);
+                var shouldShow = TryGetValidTooltipRig(button, out rig);
                 var wasVisible = state.isVisible;
 
                 if (wasVisible)
                 {
                     if (shouldShow)
                     {
-                        OnShowTooltip(i, rig, state.data, true);
+                        OnShowTooltip(button, rig, state.data, true);
                     }
                     else
                     {
-                        dataStateArray[(int)i] = new DataState()
+                        dataStateArray[(int)button] = new DataState()
                         {
                             state = State.Hidden,
                             data = state.data,
                         };
-                        OnHideTooltip(i);
+                        OnHideTooltip(button);
                     }
                 }
                 else
                 {
                     if (shouldShow)
                     {
-                        dataStateArray[(int)i] = new DataState()
+                        dataStateArray[(int)button] = new DataState()
                         {
                             state = State.Visible,
                             data = state.data,
                         };
-                        OnShowTooltip(i, rig, state.data, false);
+                        OnShowTooltip(button, rig, state.data, false);
                     }
                 }
             }
@@ -166,15 +166,17 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
-            for (ControllerButton i = EnumArrayBase<ControllerButton>.StaticMin, imax = EnumArrayBase<ControllerButton>.StaticMax; i <= imax; ++i)
+            foreach (var ev in btnVisibleTmp.EnumValues)
             {
-                if (btnVisibleTmp[(int)i])
+                var button = ev.Key;
+                var wasSet = ev.Value;
+                if (wasSet)
                 {
-                    btnVisibleTmp[(int)i] = false;
+                    btnVisibleTmp[(int)button] = false;
                 }
                 else
                 {
-                    ResetTooltipData(i);
+                    ResetTooltipData(button);
                 }
             }
         }
@@ -186,7 +188,6 @@ namespace HTC.UnityPlugin.Vive
 
             TooltipRig rig;
             var shouldShow = TryGetValidTooltipRig(button, out rig);
-
             dataStateArray[(int)button] = new DataState()
             {
                 state = shouldShow ? State.Visible : State.Hidden,

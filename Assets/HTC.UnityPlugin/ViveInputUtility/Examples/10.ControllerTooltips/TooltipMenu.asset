@@ -13,5 +13,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_buttonList: 0400000000000000
   m_dataList:
-  - labelText: Cancel
+  - labelText: Close Menu
   - labelText: Select

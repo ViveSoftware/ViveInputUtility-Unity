@@ -33,6 +33,7 @@ namespace HTC.UnityPlugin.Vive
     /// </summary>
     public enum ControllerButton
     {
+        [InvalidEnumArrayIndex]
         None = -1,
 
         // classic buttons

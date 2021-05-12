@@ -399,6 +399,7 @@ namespace HTC.UnityPlugin.Utility
                                 continue; // length out of range
                             }
                             StaticMinInt = vi;
+                            StaticMin = ve;
                         }
                         else if (vi > StaticMaxInt)
                         {
@@ -408,6 +409,7 @@ namespace HTC.UnityPlugin.Utility
                                 continue; // length out of range
                             }
                             StaticMaxInt = vi;
+                            StaticMax = ve;
                         }
                     }
 

@@ -24,7 +24,7 @@ namespace HTC.UnityPlugin.Vive.VIUExample
 
         private void Awake()
         {
-            SwitchMode(initMode);
+            EnterMode(initMode);
         }
 
         public void SwitchToTeleportMode() { SwitchMode(Mode.Teleport); }
