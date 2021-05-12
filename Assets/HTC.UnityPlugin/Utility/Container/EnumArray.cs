@@ -369,7 +369,7 @@ namespace HTC.UnityPlugin.Utility
             }
 
             // find out min/max/length value in defined enum values
-            var fields = StaticEnumType.GetFields().Where(WithoutInvalidIndexAttr).OrderBy(CompareMetadataToken).ToArray();
+            var fields = StaticEnumType.GetFields().Where(WithoutInvalidIndexAttr).OrderBy((Func<FieldInfo, int>)CompareMetadataToken).ToArray();
             var fieldEnums = new TEnum[fields.Length];
             var fieldValues = new int[fields.Length];
             var fieldNames = new string[fields.Length];

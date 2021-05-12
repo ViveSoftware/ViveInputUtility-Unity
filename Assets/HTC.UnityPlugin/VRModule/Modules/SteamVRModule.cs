@@ -435,7 +435,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         {
                             m_openvrCtrlRoleDirty = true;
                             currState.isConnected = true;
-                            currState.deviceClass = ToVRModuleDeviceClass(vrSystem.GetTrackedDeviceClass(i));
+                            currState.deviceClass = ToVRModuleDeviceClass(vrSystem.GetTrackedDeviceClass(trackedIndex));
                             currState.serialNumber = QueryDeviceStringProperty(vrSystem, trackedIndex, ETrackedDeviceProperty.Prop_SerialNumber_String);
                             currState.modelNumber = QueryDeviceStringProperty(vrSystem, trackedIndex, ETrackedDeviceProperty.Prop_ModelNumber_String);
                             currState.renderModelName = QueryDeviceStringProperty(vrSystem, trackedIndex, ETrackedDeviceProperty.Prop_RenderModelName_String);
