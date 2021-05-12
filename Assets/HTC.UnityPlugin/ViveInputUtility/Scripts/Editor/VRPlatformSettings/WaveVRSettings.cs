@@ -202,7 +202,12 @@ namespace HTC.UnityPlugin.Vive
                     const float wvrToggleWidth = 226f;
                     GUILayout.BeginHorizontal();
                     Foldouter.ShowFoldoutBlank();
-#if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
+
+#if !UNITY_5_6_OR_NEWER || UNITY_5_6_0 || UNITY_5_6_1 || UNITY_5_6_2
+                    GUI.enabled = false;
+                    ShowToggle(new GUIContent(title, "Unity 5.6.3 or later version required."), false, GUILayout.Width(wvrToggleWidth));
+                    GUI.enabled = true;
+#else
                     if (activeBuildTargetGroup != BuildTargetGroup.Android)
                     {
                         GUI.enabled = false;
@@ -239,11 +244,8 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowUrlLinkButton(URL_WAVE_VR_PLUGIN);
                     }
-#else
-                    GUI.enabled = false;
-                    ShowToggle(new GUIContent(title, "Unity 5.6.3 or later version required."), false, GUILayout.Width(wvrToggleWidth));
-                    GUI.enabled = true;
 #endif
+
                     GUILayout.EndHorizontal();
                 }
 

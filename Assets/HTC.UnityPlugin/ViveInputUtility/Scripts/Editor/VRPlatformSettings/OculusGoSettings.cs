@@ -588,7 +588,7 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
                     }
-#if UNITY_2020_2_OR_NEWER 
+#if UNITY_2020_2_OR_NEWER && FALSE // openxr not fully supported yet
                     else if (!PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
                     {
                         GUI.enabled = false;

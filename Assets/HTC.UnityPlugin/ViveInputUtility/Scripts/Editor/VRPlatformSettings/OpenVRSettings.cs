@@ -341,7 +341,7 @@ namespace HTC.UnityPlugin.Vive
 
     public static partial class VIUSettingsEditor
     {
-        public const string URL_STEAM_VR_PLUGIN = "https://assetstore.unity.com/packages/slug/32647?";
+        public const string URL_STEAM_VR_PLUGIN = "https://assetstore.unity.com/packages/slug/32647";
 
         private const string OPENVR_PACKAGE_NAME = "com.unity.xr.openvr.standalone";
         private const string OPENVR_XR_PACKAGE_NAME_OLD = "com.valve.openvr";
@@ -478,7 +478,7 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
                     }
-#if UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER && FALSE // openxr not fully supported yet
                     else if (!PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
@@ -487,7 +487,7 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowAddPackageButton("OpenXR Plugin", OPENXR_PLUGIN_PACKAGE_NAME);
                     }
-#elif UNITY_2019_3_OR_NEWER
+#elif UNITY_2019_3_OR_NEWER && FALSE // openvr xr plugin on Valve registry is obsolete
                     else if (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
@@ -506,7 +506,7 @@ namespace HTC.UnityPlugin.Vive
                             VIUProjectSettings.Instance.isInstallingOpenVRXRPlugin = true;
                         }
                     }
-#elif UNITY_2018_2_OR_NEWER
+#elif UNITY_2018_2_OR_NEWER && FALSE // obsolete
                     else if (!PackageManagerHelper.IsPackageInList(OPENVR_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
