@@ -1,7 +1,8 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
+using HTC.UnityPlugin.Vive.WaveVRExtension;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -9,6 +10,9 @@ using UnityEngine;
 #if VIU_WAVEVR && UNITY_ANDROID
 using wvr;
 using Object = UnityEngine.Object;
+#endif
+#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL
+using Wave.Essence;
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -35,6 +39,123 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override int moduleOrder { get { return (int)DefaultModuleOrder.WaveVR; } }
 
         public override int moduleIndex { get { return (int)VRModuleSelectEnum.WaveVR; } }
+
+        [RenderModelHook.CreatorPriorityAttirbute(0)]
+        private class XRRenderModelCreator : RenderModelHook.DefaultRenderModelCreator
+        {
+            private uint m_index = INVALID_DEVICE_INDEX;
+            private GameObject m_modelObj;
+
+            public override bool shouldActive
+            {
+                get
+                {
+#if (VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL) && UNITY_ANDROID
+                    return true;
+#else
+                    return false;
+#endif
+                }
+            }
+
+            public override void UpdateRenderModel()
+            {
+                if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
+
+                if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetRightControllerDeviceIndex())
+                {
+                    if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand)
+                    {
+                        // VIUWaveVRRenderModel currently doesn't support tracked hand
+                        // Fallback to default model instead
+                        UpdateDefaultRenderModel(true);
+
+                        if (m_modelObj != null)
+                        {
+                            m_modelObj.SetActive(false);
+                        }
+                    }
+                    else
+                    {
+                        UpdateDefaultRenderModel(false);
+
+                        m_modelObj = new GameObject("Model");
+                        m_modelObj.SetActive(false);
+                        m_modelObj.transform.SetParent(hook.transform, false);
+#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
+#if VIU_WAVE_XRSDK_3_99_31_OR_NEWER
+                        m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
+#endif
+                        m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
+                        m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
+#elif VIU_WAVEXR_ESSENCE_RENDERMODEL
+                        m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
+                        m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+#endif
+                        m_modelObj.SetActive(true);
+                    }
+                }
+                else if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetLeftControllerDeviceIndex())
+                {
+                    if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand)
+                    {
+                        // VIUSteamVRRenderModel currently doesn't support tracked hand
+                        // Fallback to default model instead
+                        UpdateDefaultRenderModel(true);
+
+                        if (m_modelObj != null)
+                        {
+                            m_modelObj.SetActive(false);
+                        }
+                    }
+                    else
+                    {
+                        UpdateDefaultRenderModel(false);
+
+                        m_modelObj = new GameObject("Model");
+                        m_modelObj.SetActive(false);
+                        m_modelObj.transform.SetParent(hook.transform, false);
+#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
+#if VIU_WAVE_XRSDK_3_99_31_OR_NEWER
+                        var pm = m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
+                        pm.WhichHand = XR_Hand.NonDominant;
+#endif
+                        var rm = m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
+                        rm.WhichHand = XR_Hand.NonDominant;
+                        var be = m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
+                        be.HandType = XR_Hand.NonDominant;
+#elif VIU_WAVEXR_ESSENCE_RENDERMODEL
+                        var rm = m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
+                        rm.WhichHand = XR_Hand.NonDominant;
+                        var be = m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                        be.HandType = XR_Hand.NonDominant;
+#endif
+                        m_modelObj.SetActive(true);
+                    }
+                }
+                else
+                {
+                    UpdateDefaultRenderModel(false);
+                    // deacitvate object for render model
+                    if (m_modelObj != null)
+                    {
+                        m_modelObj.SetActive(false);
+                    }
+                }
+            }
+
+            public override void CleanUpRenderModel()
+            {
+                base.CleanUpRenderModel();
+
+                if (m_modelObj != null)
+                {
+                    UnityEngine.Object.Destroy(m_modelObj);
+                    m_modelObj = null;
+                    m_index = INVALID_DEVICE_INDEX;
+                }
+            }
+        }
 
 #if VIU_WAVEVR && UNITY_ANDROID
         private class CameraCreator : VRCameraHook.CameraCreator
@@ -246,7 +367,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private IVRModuleDeviceStateRW m_leftState;
         private WaveVR_ControllerLoader.ControllerHand[] m_deviceHands = new WaveVR_ControllerLoader.ControllerHand[DEVICE_COUNT];
 
-        #region 6Dof Controller Simulation
+#region 6Dof Controller Simulation
 
         private enum Simulate6DoFControllerMode
         {
@@ -257,7 +378,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static Simulate6DoFControllerMode s_simulationMode = Simulate6DoFControllerMode.KeyboardWASD;
         private static Vector3[] s_simulatedCtrlPosArray;
 
-        #endregion
+#endregion
 
         static WaveVRModule()
         {

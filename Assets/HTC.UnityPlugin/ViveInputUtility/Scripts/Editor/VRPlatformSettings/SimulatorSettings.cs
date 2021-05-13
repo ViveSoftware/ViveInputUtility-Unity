@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using UnityEditor;
 using UnityEngine;
@@ -47,7 +47,9 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "Simulator";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "If checked, the simulator will activated automatically if no other valid VR devices found."), support);
+                    var wasSupported = support;
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "If checked, the simulator will activated automatically if no other valid VR devices found."), wasSupported);
+                    s_symbolChanged |= wasSupported != support;
                 }
                 else
                 {

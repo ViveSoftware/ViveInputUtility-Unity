@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 using HTC.UnityPlugin.Utility;
@@ -64,7 +64,15 @@ namespace HTC.UnityPlugin.Vive
 
             // set targetPose to device pose
             targetPose = VivePose.GetPose(deviceIndex) * new RigidPose(posOffset, Quaternion.Euler(rotOffset));
-            ModifyPose(ref targetPose, origin);
+            if (origin != null && origin != transform.parent)
+            {
+                targetPose = new RigidPose(origin.transform) * targetPose;
+                ModifyPose(ref targetPose, false);
+            }
+            else
+            {
+                ModifyPose(ref targetPose, true);
+            }
 
             // transform to world space
             var o = origin != null ? origin : transform.parent;

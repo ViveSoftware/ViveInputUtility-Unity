@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -54,11 +54,34 @@ namespace HTC.UnityPlugin.PoseTracker
             TrackPose((RigidPose)pose, origin);
         }
 
+        [Obsolete("User TrackPose(RigidPose pose, bool useLocal) instead")]
         protected void TrackPose(RigidPose pose, Transform origin = null)
         {
+            if (origin != null && origin != transform.parent)
+            {
+                pose = new RigidPose(origin, false) * pose;
+                TrackPose(pose, false);
+            }
+            else
+            {
+                TrackPose(pose, true);
+            }
+        }
+
+        protected void TrackPose(RigidPose pose, bool useLocal)
+        {
             pose = pose * new RigidPose(posOffset, Quaternion.Euler(rotOffset));
-            ModifyPose(ref pose, origin);
-            RigidPose.SetPose(transform, pose, origin);
+            ModifyPose(ref pose, useLocal);
+            if (useLocal)
+            {
+                transform.localPosition = pose.pos;
+                transform.localRotation = pose.rot;
+            }
+            else
+            {
+                transform.position = pose.pos;
+                transform.rotation = pose.rot;
+            }
         }
 
         [Obsolete]
@@ -69,14 +92,28 @@ namespace HTC.UnityPlugin.PoseTracker
             pose = rigidPose;
         }
 
+        [Obsolete("Use ModifyPose(ref RigidPose pose, bool useLocal) instead")]
         protected void ModifyPose(ref RigidPose pose, Transform origin)
+        {
+            if (origin != null && origin != transform.parent)
+            {
+                pose = new RigidPose(origin, false) * pose;
+                ModifyPose(ref pose, false);
+            }
+            else
+            {
+                ModifyPose(ref pose, true);
+            }
+        }
+
+        protected void ModifyPose(ref RigidPose pose, bool useLocal)
         {
             if (modifierSet == null) { return; }
 
             for (int i = 0, imax = modifierSet.Count; i < imax; ++i)
             {
                 if (!modifierSet[i].enabled) { continue; }
-                modifierSet[i].ModifyPose(ref pose, origin);
+                modifierSet[i].ModifyPose(ref pose, useLocal);
             }
         }
     }

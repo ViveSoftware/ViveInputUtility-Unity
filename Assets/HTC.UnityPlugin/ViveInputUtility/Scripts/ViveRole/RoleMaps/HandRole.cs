@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -88,13 +88,23 @@ namespace HTC.UnityPlugin.Vive
             return deviceClass == VRModuleDeviceClass.GenericTracker;
         }
 
+        private bool IsTrackedHand(uint deviceIndex)
+        {
+            return IsTrackedHand(VRModule.GetCurrentDeviceState(deviceIndex).deviceClass);
+        }
+
+        private bool IsTrackedHand(VRModuleDeviceClass deviceClass)
+        {
+            return deviceClass == VRModuleDeviceClass.TrackedHand;
+        }
+
         public override void OnAssignedAsCurrentMapHandler() { Refresh(); }
 
         public override void OnTrackedDeviceRoleChanged() { Refresh(); }
 
         public override void OnConnectedDeviceChanged(uint deviceIndex, VRModuleDeviceClass deviceClass, string deviceSN, bool connected)
         {
-            if (!RoleMap.IsDeviceBound(deviceSN) && !IsController(deviceClass) && !IsTracker(deviceClass)) { return; }
+            if (!RoleMap.IsDeviceBound(deviceSN) && !IsController(deviceClass) && !IsTracker(deviceClass) && !IsTrackedHand(deviceClass)) { return; }
 
             Refresh();
         }

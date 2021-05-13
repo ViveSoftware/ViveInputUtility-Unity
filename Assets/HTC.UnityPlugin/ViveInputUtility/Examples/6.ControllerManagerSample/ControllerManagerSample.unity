@@ -2289,6 +2289,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   posOffset: {x: 0, y: 0, z: 0}
   rotOffset: {x: 0, y: 0, z: 0}
+  stickyGrabbable: {fileID: 0}
   alignPosition: 0
   alignRotation: 0
   alignPositionOffset: {x: 0, y: 0, z: 0}
@@ -2296,6 +2297,7 @@ MonoBehaviour:
   m_followingDuration: 0.04
   m_overrideMaxAngularVelocity: 1
   m_unblockableGrab: 1
+  m_singleItemGrab: 0
   m_primaryGrabButton: 0
   m_secondaryGrabButton: 1
   m_grabButton: 0

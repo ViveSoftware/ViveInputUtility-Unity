@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using System;
 using UnityEngine;
@@ -32,11 +32,11 @@ namespace HTC.UnityPlugin.Utility
 
         public static void Initialize()
         {
-            if (!Application.isPlaying || s_isApplicationQuitting) { return; }
-
             lock (s_lock)
             {
                 if (s_instance != null) { return; }
+
+                if (!Application.isPlaying || s_isApplicationQuitting) { return; }
 
                 var instances = FindObjectsOfType<T>();
                 if (instances.Length > 0)

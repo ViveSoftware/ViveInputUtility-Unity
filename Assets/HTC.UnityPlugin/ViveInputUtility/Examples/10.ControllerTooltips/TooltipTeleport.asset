@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50c3114128a71ad4a80e400cfa3188fa, type: 3}
+  m_Name: TooltipTeleport
+  m_EditorClassIdentifier: 
+  m_buttonList: 0400000001000000
+  m_dataList:
+  - labelText: Open Menu
+  - labelText: Teleport

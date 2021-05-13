@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -15,9 +15,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 {
     public partial class VRModule : SingletonBehaviour<VRModule>
     {
-        private static readonly DeviceState s_defaultState;
-        private static readonly SimulatorVRModule s_simulator;
-        private static readonly Dictionary<string, uint> s_deviceSerialNumberTable;
+        private static DeviceState s_defaultState;
+        private static SimulatorVRModule s_simulator;
+        private static Dictionary<string, uint> s_deviceSerialNumberTable;
 
         [SerializeField]
         private bool m_dontDestroyOnLoad = true;
@@ -51,15 +51,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private DeviceState[] m_prevStates;
         private DeviceState[] m_currStates;
 
-        static VRModule()
-        {
-            SetDefaultInitGameObjectGetter(GetDefaultInitGameObject);
-
-            s_defaultState = new DeviceState(INVALID_DEVICE_INDEX);
-            s_simulator = new SimulatorVRModule();
-            s_deviceSerialNumberTable = new Dictionary<string, uint>(16);
-        }
-
         private static GameObject GetDefaultInitGameObject()
         {
             return new GameObject("[ViveInputUtility]");
@@ -76,6 +67,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 DontDestroyOnLoad(gameObject);
             }
+
+            SetDefaultInitGameObjectGetter(GetDefaultInitGameObject);
+
+            s_defaultState = new DeviceState(INVALID_DEVICE_INDEX);
+            s_simulator = new SimulatorVRModule();
+            s_deviceSerialNumberTable = new Dictionary<string, uint>(16);
 
             m_activatedModule = VRModuleActiveEnum.Uninitialized;
             m_activatedModuleBase = null;
@@ -135,11 +132,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private void EnsureDeviceStateLength(uint capacity)
         {
             // NOTE: this will clear out the array
-            var cap = Mathf.Min((int)capacity, (int)MAX_DEVICE_COUNT);
+            var cap = (int)(capacity < MAX_DEVICE_COUNT ? capacity : MAX_DEVICE_COUNT);
             if (GetDeviceStateLength() < cap)
             {
-                m_prevStates = new DeviceState[cap];
-                m_currStates = new DeviceState[cap];
+                if (m_currStates == null) { m_currStates = new DeviceState[cap]; }
+                else { Array.Resize(ref m_currStates, cap); }
+                if (m_prevStates == null) { m_prevStates = new DeviceState[cap]; }
+                else { Array.Resize(ref m_prevStates, cap); }
             }
         }
 
@@ -163,7 +162,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private bool TryGetValidDeviceState(uint index, out DeviceState prevState, out DeviceState currState)
         {
-            if (m_currStates == null || m_currStates[index] == null)
+            if (m_currStates == null || index >= m_currStates.Length || m_currStates[index] == null)
             {
                 prevState = null;
                 currState = null;
@@ -179,11 +178,32 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void EnsureValidDeviceState(uint index, out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
         {
+            EnsureDeviceStateLength(index + 1);
             if (!TryGetValidDeviceState(index, out prevState, out currState))
             {
                 prevState = m_prevStates[index] = new DeviceState(index);
                 currState = m_currStates[index] = new DeviceState(index);
             }
+        }
+        // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
+        private uint FindAndEnsureUnusedNotHMDDeviceState(out IVRModuleDeviceState prevState, out IVRModuleDeviceStateRW currState)
+        {
+            var len = GetDeviceStateLength();
+            for (uint i = 0u, imax = len; i < imax; ++i)
+            {
+                if (i == VRModule.HMD_DEVICE_INDEX) { continue; }
+                if (TryGetValidDeviceState(i, out prevState, out currState))
+                {
+                    if (prevState.isConnected) { continue; }
+                    if (currState.isConnected) { continue; }
+                }
+
+                EnsureValidDeviceState(i, out prevState, out currState);
+                return i;
+            }
+
+            EnsureValidDeviceState(len, out prevState, out currState);
+            return len;
         }
 
         private void Update()
@@ -251,7 +271,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private VRModuleActiveEnum GetShouldActivateModule()
         {
-            if (m_isDestoryed) { return VRModuleActiveEnum.Uninitialized; }
+            if (IsApplicationQuitting || m_isDestoryed) { return VRModuleActiveEnum.Uninitialized; }
 
             if (m_selectModule == VRModuleSelectEnum.Auto)
             {
@@ -397,32 +417,62 @@ namespace HTC.UnityPlugin.VRModuleManagement
             DeviceState currState;
 
             m_delayDeactivate = true;
+            List<uint> connected = null;
+            List<uint> disconnected = null;
             // send connect/disconnect event
             for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
                 if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
 
-                if (prevState.isConnected == currState.isConnected) { continue; }
-
-                if (currState.isConnected)
+                if (!prevState.isConnected)
                 {
-                    if (string.IsNullOrEmpty(currState.serialNumber))
+                    if (currState.isConnected)
                     {
-                        Debug.LogError("Device connected with empty serialNumber. index:" + i);
-                    }
-                    else if (s_deviceSerialNumberTable.ContainsKey(currState.serialNumber))
-                    {
-                        Debug.LogError("Device connected with duplicate serialNumber: " + currState.serialNumber + " index:" + i + "(" + s_deviceSerialNumberTable[currState.serialNumber] + ")");
-                    }
-                    else
-                    {
-                        s_deviceSerialNumberTable.Add(currState.serialNumber, i);
+                        if (connected == null) { connected = ListPool<uint>.Get(); }
+                        connected.Add(i);
                     }
                 }
                 else
                 {
-                    s_deviceSerialNumberTable.Remove(prevState.serialNumber);
+                    if (!currState.isConnected)
+                    {
+                        if (disconnected == null) { disconnected = ListPool<uint>.Get(); }
+                        disconnected.Add(i);
+                    }
                 }
+            }
+
+            if (disconnected != null)
+            {
+                for (int i = 0, imax = disconnected.Count; i < imax; ++i)
+                {
+                    var index = disconnected[i];
+                    var state = m_prevStates[index];
+                    s_deviceSerialNumberTable.Remove(state.serialNumber);
+                }
+                ListPool<uint>.Release(disconnected);
+            }
+
+            if (connected != null)
+            {
+                for (int i = 0, imax = connected.Count; i < imax; ++i)
+                {
+                    var index = connected[i];
+                    var state = m_currStates[index];
+                    if (string.IsNullOrEmpty(state.serialNumber))
+                    {
+                        Debug.LogError("Device connected with empty serialNumber. index:" + state.deviceIndex);
+                    }
+                    else if (s_deviceSerialNumberTable.ContainsKey(state.serialNumber))
+                    {
+                        Debug.LogError("Device connected with duplicate serialNumber: " + state.serialNumber + " index:" + state.deviceIndex + "(" + s_deviceSerialNumberTable[state.serialNumber] + ")");
+                    }
+                    else
+                    {
+                        s_deviceSerialNumberTable.Add(state.serialNumber, index);
+                    }
+                }
+                ListPool<uint>.Release(connected);
             }
 
             SendAllDeviceConnectedEvent();

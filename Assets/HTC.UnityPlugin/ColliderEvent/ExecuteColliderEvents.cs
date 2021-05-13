@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine.EventSystems;
 
@@ -16,6 +16,18 @@ namespace HTC.UnityPlugin.ColliderEvent
         private static void Execute(IColliderEventHoverExitHandler handler, BaseEventData eventData)
         {
             handler.OnColliderEventHoverExit(ExecuteEvents.ValidateEventData<ColliderHoverEventData>(eventData));
+        }
+
+        public static readonly ExecuteEvents.EventFunction<IColliderEventLastHoverEnterHandler> LastHoverEnterHandler = Execute;
+        private static void Execute(IColliderEventLastHoverEnterHandler handler, BaseEventData eventData)
+        {
+            handler.OnColliderEventLastHoverEnter(ExecuteEvents.ValidateEventData<ColliderHoverEventData>(eventData));
+        }
+
+        public static readonly ExecuteEvents.EventFunction<IColliderEventLastHoverExitHandler> LastHoverExitHandler = Execute;
+        private static void Execute(IColliderEventLastHoverExitHandler handler, BaseEventData eventData)
+        {
+            handler.OnColliderEventLastHoverExit(ExecuteEvents.ValidateEventData<ColliderHoverEventData>(eventData));
         }
 
         public static readonly ExecuteEvents.EventFunction<IColliderEventPressDownHandler> PressDownHandler = Execute;

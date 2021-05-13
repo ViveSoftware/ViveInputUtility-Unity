@@ -1,4 +1,4 @@
-//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
@@ -327,17 +327,10 @@ namespace HTC.UnityPlugin.Vive
             Add(new VIUVersionCheck.RecommendedSetting<ColorSpace>()
             {
                 settingTitle = "Color Space",
-                skipCheckFunc = () => (VRModule.isSteamVRPluginDetected && VIUSettingsEditor.activeBuildTargetGroup == BuildTargetGroup.Standalone) || !VIUSettingsEditor.supportAnyVR,
+                skipCheckFunc = () => VIUSettingsEditor.activeBuildTargetGroup != BuildTargetGroup.Standalone || VRModule.isSteamVRPluginDetected || !VIUSettingsEditor.supportAnyVR,
                 recommendBtnPostfix = "requires reloading scene",
                 currentValueFunc = () => PlayerSettings.colorSpace,
-                setValueFunc = v =>
-                {
-                    if (VIUSettingsEditor.supportAnyAndroidVR)
-                    {
-                        VIUSettingsEditor.SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
-                    }
-                    PlayerSettings.colorSpace = v;
-                },
+                setValueFunc = v => PlayerSettings.colorSpace = v,
                 recommendedValue = ColorSpace.Linear,
             });
 #if VIU_STEAMVR_2_0_0_OR_NEWER
@@ -348,7 +341,7 @@ namespace HTC.UnityPlugin.Vive
 
     public static partial class VIUSettingsEditor
     {
-        public const string URL_STEAM_VR_PLUGIN = "https://assetstore.unity.com/packages/tools/integration/steamvr-plugin-32647";
+        public const string URL_STEAM_VR_PLUGIN = "https://assetstore.unity.com/packages/slug/32647";
 
         private const string OPENVR_PACKAGE_NAME = "com.unity.xr.openvr.standalone";
         private const string OPENVR_XR_PACKAGE_NAME_OLD = "com.valve.openvr";
@@ -394,9 +387,8 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
-
-#if UNITY_2020_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && (PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD));
+#if UNITY_2019_3_OR_NEWER
+                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD));
 #elif UNITY_2018_1_OR_NEWER
                     return activeBuildTargetGroup == BuildTargetGroup.Standalone && ((PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD)) || PackageManagerHelper.IsPackageInList(OPENVR_PACKAGE_NAME));
 #elif UNITY_5_5_OR_NEWER
@@ -411,10 +403,11 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
-#if UNITY_2020_1_OR_NEWER
-                    return canSupport && ((VIUSettings.activateSteamVRModule || VIUSettings.activateUnityXRModule) && XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, requirdPlatform));
-#elif UNITY_2019_3_OR_NEWER
-                    return canSupport && (((VIUSettings.activateSteamVRModule || VIUSettings.activateUnityNativeVRModule) && OpenVRSDK.enabled) || VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, requirdPlatform));
+#if UNITY_2019_3_OR_NEWER
+                    bool supportOpenVRXR = (VIUSettings.activateSteamVRModule || VIUSettings.activateUnityXRModule) && XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, requirdPlatform);
+                    bool supportOpenXR = VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.OPENXR_LOADER_NAME, requirdPlatform);
+
+                    return canSupport && (supportOpenVRXR || supportOpenXR);
 #elif UNITY_5_5_OR_NEWER
                     return canSupport && (VIUSettings.activateSteamVRModule || VIUSettings.activateUnityNativeVRModule) && OpenVRSDK.enabled;
 #elif UNITY_5_4_OR_NEWER
@@ -428,15 +421,19 @@ namespace HTC.UnityPlugin.Vive
                     if (support == value) { return; }
 
                     VIUSettings.activateSteamVRModule = value;
-#if UNITY_2020_1_OR_NEWER
-                    XRPluginManagementUtils.SetXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_CLASS_NAME, requirdPlatform, value && (PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD)));
+#if UNITY_2019_3_OR_NEWER
+                    if (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
+                    {
+                        XRPluginManagementUtils.SetXRLoaderEnabled(UnityXRModule.OPENXR_LOADER_CLASS_NAME, requirdPlatform, value);
+                    }
+                    else if (PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD))
+                    {
+                        XRPluginManagementUtils.SetXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_CLASS_NAME, requirdPlatform, value);
+                    }
+
                     OpenVRSDK.enabled = value && (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || !PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD));
+
                     VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
-#elif UNITY_2019_3_OR_NEWER
-                    XRPluginManagementUtils.SetXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_CLASS_NAME, requirdPlatform, value && (PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD)));
-                    OpenVRSDK.enabled = value && (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) || !PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD));
-                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
-                    VIUSettings.activateUnityNativeVRModule = value || supportOculus;
 #elif UNITY_5_5_OR_NEWER
                     OpenVRSDK.enabled = value;
                     VIUSettings.activateUnityNativeVRModule = value || supportOculus;
@@ -464,7 +461,9 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "OpenVR";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE, VIVE Pro, VIVE Pro Eye, VIVE Cosmos\nOculus Rift, Oculus Rift S, Windows MR"), support);
+                    var wasSupported = support;
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE, VIVE Pro, VIVE Pro Eye, VIVE Cosmos\nOculus Rift, Oculus Rift S, Windows MR"), wasSupported);
+                    s_symbolChanged |= wasSupported != support;
                 }
                 else
                 {
@@ -479,7 +478,16 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
                     }
-#if UNITY_2019_3_OR_NEWER
+#if UNITY_2020_2_OR_NEWER && FALSE // openxr not fully supported yet
+                    else if (!PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "OpenXR Plugin ackage required."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowAddPackageButton("OpenXR Plugin", OPENXR_PLUGIN_PACKAGE_NAME);
+                    }
+#elif UNITY_2019_3_OR_NEWER && FALSE // openvr xr plugin on Valve registry is obsolete
                     else if (!PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
@@ -498,8 +506,7 @@ namespace HTC.UnityPlugin.Vive
                             VIUProjectSettings.Instance.isInstallingOpenVRXRPlugin = true;
                         }
                     }
-#endif
-#if !UNITY_2020_1_OR_NEWER
+#elif UNITY_2018_2_OR_NEWER && FALSE // obsolete
                     else if (!PackageManagerHelper.IsPackageInList(OPENVR_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
@@ -523,56 +530,80 @@ namespace HTC.UnityPlugin.Vive
 
                 if (support && m_foldouter.isExpended)
                 {
-                    if (support && VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                    EditorGUI.indentLevel += 2;
+
+                    // Vive Hand Tracking Submodule
+                    const string vhtSdkUrl = "https://developer.vive.com/resources/vive-sense/sdk/vive-hand-tracking-sdk/";
+                    const string vhtTitle = "Enable Vive Hand Tracking";
+                    if (!VRModule.isViveHandTrackingDetected)
                     {
-                        EditorGUI.indentLevel += 2;
-
-                        VIUSettings.autoLoadExternalCameraConfigOnStart = EditorGUILayout.ToggleLeft(new GUIContent("Load Config and Enable External Camera on Start", "You can also load config by calling ExternalCameraHook.LoadConfigFromFile(path) in script."), VIUSettings.autoLoadExternalCameraConfigOnStart);
-                        if (!VIUSettings.autoLoadExternalCameraConfigOnStart && support) { GUI.enabled = false; }
-                        {
-                            EditorGUI.indentLevel++;
-
-                            EditorGUI.BeginChangeCheck();
-                            VIUSettings.externalCameraConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("Config Path"), VIUSettings.externalCameraConfigFilePath);
-                            if (string.IsNullOrEmpty(VIUSettings.externalCameraConfigFilePath))
-                            {
-                                VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
-                                EditorGUI.EndChangeCheck();
-                            }
-                            else if (EditorGUI.EndChangeCheck() && VIUSettings.externalCameraConfigFilePath.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-                            {
-                                VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
-                            }
-                            // Create button that writes default config file
-                            if (VIUSettings.autoLoadExternalCameraConfigOnStart && support && !File.Exists(VIUSettings.externalCameraConfigFilePath))
-                            {
-                                if (support && VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); }
-                                ShowCreateExCamCfgButton();
-                                if (support && VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); }
-                            }
-
-                            EditorGUI.indentLevel--;
-                        }
-                        if (!VIUSettings.autoLoadExternalCameraConfigOnStart && support) { GUI.enabled = true; }
-
-                        VIUSettings.enableExternalCameraSwitch = EditorGUILayout.ToggleLeft(new GUIContent("Enable External Camera Switch", VIUSettings.EX_CAM_UI_SWITCH_TOOLTIP), VIUSettings.enableExternalCameraSwitch);
-                        if (!VIUSettings.enableExternalCameraSwitch && support) { GUI.enabled = false; }
-                        {
-                            EditorGUI.indentLevel++;
-
-                            VIUSettings.externalCameraSwitchKey = (KeyCode)EditorGUILayout.EnumPopup("Switch Key", VIUSettings.externalCameraSwitchKey);
-                            VIUSettings.externalCameraSwitchKeyModifier = (KeyCode)EditorGUILayout.EnumPopup("Switch Key Modifier", VIUSettings.externalCameraSwitchKeyModifier);
-
-                            EditorGUI.indentLevel--;
-                        }
-                        if (!VIUSettings.enableExternalCameraSwitch && support) { GUI.enabled = true; }
-
-                        EditorGUI.indentLevel -= 2;
+                        GUILayout.BeginHorizontal();
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(vhtTitle, "Vive Hand Tracking SDK required"), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+                        ShowUrlLinkButton(vhtSdkUrl);
+                        GUILayout.EndHorizontal();
                     }
-                    if (support && VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
+                    else
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        VRModuleSettings.activateViveHandTrackingSubmodule = EditorGUILayout.ToggleLeft(new GUIContent(vhtTitle, "Works on Vive, VIVE Pro, Vive Pro Eye, VIVE Cosmos, VIVE Cosmos XR and Valve Index"), VRModuleSettings.activateViveHandTrackingSubmodule);
+                        s_guiChanged |= EditorGUI.EndChangeCheck();
+                    }
+
+                    if (VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+
+                    // Skeleton mode
+                    VIUSettings.steamVRLeftSkeletonMode = (SteamVRSkeletonMode)EditorGUILayout.EnumPopup(new GUIContent("Left Controller Skeleton", "This effects RenderModelHook's behaviour"), VIUSettings.steamVRLeftSkeletonMode);
+                    VIUSettings.steamVRRightSkeletonMode = (SteamVRSkeletonMode)EditorGUILayout.EnumPopup(new GUIContent("Right Controller Skeleton", "This effects RenderModelHook's behaviour"), VIUSettings.steamVRRightSkeletonMode);
+
+                    VIUSettings.autoLoadExternalCameraConfigOnStart = EditorGUILayout.ToggleLeft(new GUIContent("Load Config and Enable External Camera on Start", "You can also load config by calling ExternalCameraHook.LoadConfigFromFile(path) in script."), VIUSettings.autoLoadExternalCameraConfigOnStart);
+                    if (!VIUSettings.autoLoadExternalCameraConfigOnStart) { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel++;
+
+                        EditorGUI.BeginChangeCheck();
+                        VIUSettings.externalCameraConfigFilePath = EditorGUILayout.DelayedTextField(new GUIContent("Config Path"), VIUSettings.externalCameraConfigFilePath);
+                        if (string.IsNullOrEmpty(VIUSettings.externalCameraConfigFilePath))
+                        {
+                            VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+                            EditorGUI.EndChangeCheck();
+                        }
+                        else if (EditorGUI.EndChangeCheck() && VIUSettings.externalCameraConfigFilePath.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                        {
+                            VIUSettings.externalCameraConfigFilePath = VIUSettings.EXTERNAL_CAMERA_CONFIG_FILE_PATH_DEFAULT_VALUE;
+                        }
+                        // Create button that writes default config file
+                        if (VIUSettings.autoLoadExternalCameraConfigOnStart && !File.Exists(VIUSettings.externalCameraConfigFilePath))
+                        {
+                            if (VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); }
+                            ShowCreateExCamCfgButton();
+                            if (VRModule.isSteamVRPluginDetected) { EditorGUI.BeginChangeCheck(); }
+                        }
+
+                        EditorGUI.indentLevel--;
+                    }
+                    if (!VIUSettings.autoLoadExternalCameraConfigOnStart) { GUI.enabled = true; }
+
+                    VIUSettings.enableExternalCameraSwitch = EditorGUILayout.ToggleLeft(new GUIContent("Enable External Camera Switch", VIUSettings.EX_CAM_UI_SWITCH_TOOLTIP), VIUSettings.enableExternalCameraSwitch);
+                    if (!VIUSettings.enableExternalCameraSwitch) { GUI.enabled = false; }
+                    {
+                        EditorGUI.indentLevel++;
+
+                        VIUSettings.externalCameraSwitchKey = (KeyCode)EditorGUILayout.EnumPopup("Switch Key", VIUSettings.externalCameraSwitchKey);
+                        VIUSettings.externalCameraSwitchKeyModifier = (KeyCode)EditorGUILayout.EnumPopup("Switch Key Modifier", VIUSettings.externalCameraSwitchKeyModifier);
+
+                        EditorGUI.indentLevel--;
+                    }
+                    if (!VIUSettings.enableExternalCameraSwitch) { GUI.enabled = true; }
+
+                    EditorGUI.indentLevel -= 2;
+
+                    if (VRModule.isSteamVRPluginDetected) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
                 }
 
-                if (support && !VRModule.isSteamVRPluginDetected)
+                if (support && !VRModule.isSteamVRPluginDetected && !PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
                 {
                     EditorGUI.indentLevel += 2;
 

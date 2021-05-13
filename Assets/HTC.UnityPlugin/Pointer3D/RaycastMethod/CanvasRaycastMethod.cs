@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System.Collections.Generic;
@@ -12,6 +12,8 @@ namespace HTC.UnityPlugin.Pointer3D
     public class CanvasRaycastMethod : BaseRaycastMethod
     {
         private static readonly IndexedSet<ICanvasRaycastTarget> canvases = new IndexedSet<ICanvasRaycastTarget>();
+
+        public static IIndexedSetReadOnly<ICanvasRaycastTarget> TargetCanvases { get { return canvases.ReadOnly; } }
 
         public static bool AddTarget(ICanvasRaycastTarget obj) { return obj == null ? false : canvases.AddUnique(obj); }
 

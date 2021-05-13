@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -266,6 +266,18 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
+            public void ShowFoldoutWithLabel(GUIContent content)
+            {
+                GUILayout.BeginHorizontal();
+                ShowFoldoutButton();
+                if (GUILayout.Button(content, EditorStyles.label))
+                {
+                    isExpended = !isExpended;
+                }
+                //EditorGUILayout.LabelField(content);
+                GUILayout.EndHorizontal();
+            }
+
             public bool ShowFoldoutButtonOnToggleEnabled(GUIContent content, bool toggleValue)
             {
                 GUILayout.BeginHorizontal();
@@ -465,6 +477,7 @@ namespace HTC.UnityPlugin.Vive
         private static VRPlatformSetting[] s_platformSettings;
 
         public const string URL_VIU_GITHUB_RELEASE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
+        public const string OPENXR_PLUGIN_PACKAGE_NAME = "com.unity.xr.openxr";
 
         private const string DEFAULT_ASSET_PATH = "Assets/VIUSettings/Resources/VIUSettings.asset";
 
@@ -472,11 +485,13 @@ namespace HTC.UnityPlugin.Vive
         private static float s_warningHeight;
         private static GUIStyle s_labelStyle;
         private static bool s_guiChanged;
+        private static bool s_symbolChanged;
         private static string s_defaultAssetPath;
         private static string s_VIUPackageName = null;
 
         private static Foldouter s_autoBindFoldouter = new Foldouter();
         private static Foldouter s_bindingUIFoldouter = new Foldouter();
+        private static Foldouter s_overrideModelFoldouter = new Foldouter();
 
         static VIUSettingsEditor()
         {
@@ -638,6 +653,7 @@ namespace HTC.UnityPlugin.Vive
             Foldouter.Initialize();
 
             s_guiChanged = false;
+            s_symbolChanged = false;
 
             s_scrollValue = EditorGUILayout.BeginScrollView(s_scrollValue);
 
@@ -765,14 +781,33 @@ namespace HTC.UnityPlugin.Vive
                 if (supportAnyStandaloneVR && VIUSettings.enableBindingInterfaceSwitch) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
             }
 
+            GUILayout.Space(5);
+
+            EditorGUILayout.LabelField("<b>Other</b>", s_labelStyle);
+            GUILayout.Space(5);
+
+            s_overrideModelFoldouter.ShowFoldoutWithLabel(new GUIContent("Globel Custom Render Model", "Override model object created by RenderModelHook with custom render model"));
+            if (s_overrideModelFoldouter.isExpended)
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.indentLevel += 1;
+                foreach (var e in EnumArrayBase<VRModuleDeviceModel>.StaticEnums)
+                {
+                    EditorGUILayout.ObjectField(ObjectNames.NicifyVariableName(e.ToString()), VIUSettings.GetOverrideDeviceModel(e), typeof(GameObject), false);
+                }
+                EditorGUI.indentLevel -= 1;
+                s_guiChanged |= EditorGUI.EndChangeCheck();
+            }
+
             //Foldouter.ApplyChanges();
             ApplySDKChanges();
 
-            var assetPath = AssetDatabase.GetAssetPath(VIUSettings.Instance);
-            
+            var viuSettingsAssetPath = AssetDatabase.GetAssetPath(VIUSettings.Instance);
+            var moduleSettingsAssetPath = AssetDatabase.GetAssetPath(VRModuleSettings.Instance);
+
             if (s_guiChanged)
             {
-                if (string.IsNullOrEmpty(assetPath))
+                if (string.IsNullOrEmpty(viuSettingsAssetPath))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(defaultAssetPath));
                     AssetDatabase.CreateAsset(VIUSettings.Instance, defaultAssetPath);
@@ -780,22 +815,34 @@ namespace HTC.UnityPlugin.Vive
 
                 EditorUtility.SetDirty(VIUSettings.Instance);
 
-                VIUVersionCheck.UpdateIgnoredNotifiedSettingsCount(false);
+                if (string.IsNullOrEmpty(moduleSettingsAssetPath))
+                {
+                    const string defaultModuleSettingsAssetPath = "Assets/VIUSettings/Resources/VRModuleSettings.asset";
+                    Directory.CreateDirectory(Path.GetDirectoryName(defaultModuleSettingsAssetPath));
+                    AssetDatabase.CreateAsset(VRModuleSettings.Instance, defaultModuleSettingsAssetPath);
+                }
 
-                VRModuleManagerEditor.UpdateScriptingDefineSymbols();
+                EditorUtility.SetDirty(VRModuleSettings.Instance);
+
+                VIUVersionCheck.UpdateIgnoredNotifiedSettingsCount(false);
             }
 
-            if (!string.IsNullOrEmpty(assetPath))
+            if (!string.IsNullOrEmpty(viuSettingsAssetPath) || !string.IsNullOrEmpty(moduleSettingsAssetPath))
             {
                 GUILayout.Space(10);
 
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("Use Default Settings"))
                 {
-                    AssetDatabase.DeleteAsset(assetPath);
+                    AssetDatabase.DeleteAsset(viuSettingsAssetPath);
+                    AssetDatabase.DeleteAsset(moduleSettingsAssetPath);
                     foreach (var ps in s_platformSettings)
                     {
-                        ps.support = ps.canSupport;
+                        if (ps.canSupport && !ps.support)
+                        {
+                            ps.support = true;
+                            s_symbolChanged |= ps.support;
+                        }
                     }
 
                     VRSDKSettings.ApplyChanges();
@@ -807,10 +854,15 @@ namespace HTC.UnityPlugin.Vive
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(new GUIContent("Repair Define Symbols", "Repair symbols that handled by VIU.")))
             {
-                VRModuleManagerEditor.UpdateScriptingDefineSymbols();
+                s_symbolChanged = true;
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+
+            if (s_symbolChanged)
+            {
+                VRModuleManagerEditor.UpdateScriptingDefineSymbols();
+            }
 
             //if (GUILayout.Button("Create Partial Action Set", GUILayout.ExpandWidth(false)))
             //{

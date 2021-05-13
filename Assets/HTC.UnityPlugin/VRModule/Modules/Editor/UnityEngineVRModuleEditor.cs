@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using System;
 using HTC.UnityPlugin.Vive;
@@ -119,6 +119,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 symbol = "VIU_XR_PACKAGE_METADATA_STORE",
                 reqTypeNames = new string[] { "UnityEditor.XR.Management.Metadata.XRPackageMetadataStore" },
                 reqFileNames = new string[] { "XRPackageMetadata.cs" },
+            });
+
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "VIU_OPENXR",
+                reqTypeNames = new string[]
+                {
+                    "UnityEditor.XR.OpenXR.OpenXRProjectValidation",
+                    "UnityEditor.XR.OpenXR.OpenXRProjectValidationWindow",
+                    "UnityEngine.XR.OpenXR.OpenXRSettings",
+                    "UnityEngine.XR.OpenXR.Features.OpenXRFeature",
+                },
+                reqFileNames = new string[]
+                {
+                    "OpenXRProjectValidation.cs",
+                    "OpenXRProjectValidationWindow.cs",
+                    "OpenXRFeature.cs",
+                },
             });
         }
     }

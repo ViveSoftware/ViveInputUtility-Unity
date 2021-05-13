@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using UnityEditor;
 using UnityEngine;
@@ -39,43 +39,71 @@ namespace HTC.UnityPlugin.PoseTracker
             EditorGUILayout.PropertyField(priorityProp);
             EditorGUILayout.PropertyField(durationProp);
 
-            var fieldWidth = (EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth) / 3f;
+            const float toggleLabelWidth = 12f;
+            var fieldWidth = (EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth + 2f) / 3f;
+            var toggleFieldWidth = fieldWidth - toggleLabelWidth;
 
             // ease position
             layoutRect = EditorGUILayout.GetControlRect();
 
             layoutRect.width = EditorGUIUtility.labelWidth;
             EditorGUI.LabelField(layoutRect, "Ease Position");
+            layoutRect.x += layoutRect.width + 2f;
+
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "X");
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.easePositionX = EditorGUI.ToggleLeft(layoutRect, "X", script.easePositionX);
+            layoutRect.width = toggleFieldWidth;
+            script.easePositionX = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionX);
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.easePositionY = EditorGUI.ToggleLeft(layoutRect, "Y", script.easePositionY);
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "Y");
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.easePositionZ = EditorGUI.ToggleLeft(layoutRect, "Z", script.easePositionZ);
+            layoutRect.width = toggleFieldWidth;
+            script.easePositionY = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionY);
+            layoutRect.x += layoutRect.width;
+
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "Z");
+            layoutRect.x += layoutRect.width;
+
+            layoutRect.width = toggleFieldWidth;
+            script.easePositionZ = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionZ);
+            layoutRect.x += layoutRect.width;
 
             // ease rotation
             layoutRect = EditorGUILayout.GetControlRect();
 
             layoutRect.width = EditorGUIUtility.labelWidth;
             EditorGUI.LabelField(layoutRect, "Ease Rotation");
+            layoutRect.x += layoutRect.width + 2f;
+
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "X");
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.easeRotationX = EditorGUI.ToggleLeft(layoutRect, "X", script.easeRotationX);
+            layoutRect.width = toggleFieldWidth;
+            script.easeRotationX = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationX);
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.easeRotationY = EditorGUI.ToggleLeft(layoutRect, "Y", script.easeRotationY);
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "Y");
             layoutRect.x += layoutRect.width;
 
-            layoutRect.width = fieldWidth;
-            script.easeRotationZ = EditorGUI.ToggleLeft(layoutRect, "Z", script.easeRotationZ);
+            layoutRect.width = toggleFieldWidth;
+            script.easeRotationY = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationY);
+            layoutRect.x += layoutRect.width;
+
+            layoutRect.width = toggleLabelWidth;
+            EditorGUI.LabelField(layoutRect, "Z");
+            layoutRect.x += layoutRect.width;
+
+            layoutRect.width = toggleFieldWidth;
+            script.easeRotationZ = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationZ);
+            layoutRect.x += layoutRect.width;
 
             if (EditorGUI.EndChangeCheck())
             {

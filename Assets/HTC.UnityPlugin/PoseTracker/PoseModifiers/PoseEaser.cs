@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using UnityEngine;
@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.PoseTracker
             ResetFirstPose();
         }
 
-        public override void ModifyPose(ref RigidPose pose, Transform origin)
+        public override void ModifyPose(ref RigidPose pose, bool useLocal)
         {
             if (firstPose)
             {

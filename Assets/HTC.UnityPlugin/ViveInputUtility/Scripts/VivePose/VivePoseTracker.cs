@@ -1,10 +1,12 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
+#pragma warning disable 0649
 using HTC.UnityPlugin.PoseTracker;
 using HTC.UnityPlugin.Utility;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -17,28 +19,30 @@ namespace HTC.UnityPlugin.Vive
 
         private bool m_isValid;
 
-        public Transform origin;
-
+        [SerializeField]
+        [FormerlySerializedAs("origin")]
+        private Transform m_origin;
         [SerializeField]
         private ViveRoleProperty m_viveRole = ViveRoleProperty.New(HandRole.RightHand);
-
-        public UnityEventBool onIsValidChanged;
-
-        [HideInInspector]
-        [Obsolete("Use VivePoseTracker.viveRole instead")]
-        public DeviceRole role = DeviceRole.Invalid;
+        [SerializeField]
+        [FormerlySerializedAs("onIsValidChanged")]
+        private UnityEventBool m_onIsValidChanged;
 
         public ViveRoleProperty viveRole { get { return m_viveRole; } }
 
         public bool isPoseValid { get { return m_isValid; } }
 
+        public Transform origin { get { return m_origin; } set { m_origin = value; } }
+
+        public UnityEventBool onIsValidChanged { get { return m_onIsValidChanged; } }
+
         protected void SetIsValid(bool value, bool forceSet = false)
         {
             if (ChangeProp.Set(ref m_isValid, value) || forceSet)
             {
-                if (onIsValidChanged != null)
+                if (m_onIsValidChanged != null)
                 {
-                    onIsValidChanged.Invoke(value);
+                    m_onIsValidChanged.Invoke(value);
                 }
             }
         }
@@ -47,47 +51,7 @@ namespace HTC.UnityPlugin.Vive
         {
             SetIsValid(VivePose.IsValid(m_viveRole), true);
         }
-#if UNITY_EDITOR
-        protected virtual void OnValidate()
-        {
-            // change old DeviceRole value to viveRole value
-            var serializedObject = new UnityEditor.SerializedObject(this);
 
-            var roleValueProp = serializedObject.FindProperty("role");
-            var oldRoleValue = roleValueProp.intValue;
-
-            if (oldRoleValue != (int)DeviceRole.Invalid)
-            {
-                Type newRoleType;
-                int newRoleValue;
-
-                if (oldRoleValue == -1)
-                {
-                    newRoleType = typeof(DeviceRole);
-                    newRoleValue = (int)DeviceRole.Hmd;
-                }
-                else
-                {
-                    newRoleType = typeof(HandRole);
-                    newRoleValue = oldRoleValue;
-                }
-
-                if (Application.isPlaying)
-                {
-                    roleValueProp.intValue = (int)DeviceRole.Invalid;
-                    m_viveRole.Set(newRoleType, newRoleValue);
-                }
-                else
-                {
-                    roleValueProp.intValue = (int)DeviceRole.Invalid;
-                    serializedObject.ApplyModifiedProperties();
-                    m_viveRole.Set(newRoleType, newRoleValue);
-                    serializedObject.Update();
-                }
-            }
-            serializedObject.Dispose();
-        }
-#endif
         protected virtual void OnEnable()
         {
             VivePose.AddNewPosesListener(this);
@@ -109,7 +73,16 @@ namespace HTC.UnityPlugin.Vive
 
             if (isValid)
             {
-                TrackPose(VivePose.GetPose(deviceIndex), origin);
+                var pose = VivePose.GetPose(deviceIndex);
+                if (m_origin != null && m_origin != transform.parent)
+                {
+                    pose = new RigidPose(m_origin.transform) * pose;
+                    TrackPose(pose, false);
+                }
+                else
+                {
+                    TrackPose(pose, true);
+                }
             }
 
             SetIsValid(isValid);

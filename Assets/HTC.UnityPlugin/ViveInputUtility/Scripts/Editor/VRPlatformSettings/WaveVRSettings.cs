@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
@@ -193,14 +193,21 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "WaveVR";
                 if (canSupport)
                 {
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE Focus, VIVE Focus Plus"), support);
+                    var wasSupported = support;
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE Focus, VIVE Focus Plus"), wasSupported);
+                    s_symbolChanged |= wasSupported != support;
                 }
                 else
                 {
                     const float wvrToggleWidth = 226f;
                     GUILayout.BeginHorizontal();
                     Foldouter.ShowFoldoutBlank();
-#if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
+
+#if !UNITY_5_6_OR_NEWER || UNITY_5_6_0 || UNITY_5_6_1 || UNITY_5_6_2
+                    GUI.enabled = false;
+                    ShowToggle(new GUIContent(title, "Unity 5.6.3 or later version required."), false, GUILayout.Width(wvrToggleWidth));
+                    GUI.enabled = true;
+#else
                     if (activeBuildTargetGroup != BuildTargetGroup.Android)
                     {
                         GUI.enabled = false;
@@ -237,11 +244,8 @@ namespace HTC.UnityPlugin.Vive
                         GUILayout.FlexibleSpace();
                         ShowUrlLinkButton(URL_WAVE_VR_PLUGIN);
                     }
-#else
-                    GUI.enabled = false;
-                    ShowToggle(new GUIContent(title, "Unity 5.6.3 or later version required."), false, GUILayout.Width(wvrToggleWidth));
-                    GUI.enabled = true;
 #endif
+
                     GUILayout.EndHorizontal();
                 }
 
@@ -250,6 +254,7 @@ namespace HTC.UnityPlugin.Vive
                     if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
                     {
                         EditorGUI.indentLevel += 2;
+
                         EditorGUILayout.BeginHorizontal();
 
                         EditorGUIUtility.labelWidth = 230;
@@ -266,11 +271,7 @@ namespace HTC.UnityPlugin.Vive
 
                         EditorGUILayout.BeginHorizontal();
 
-                        if (!File.Exists(VIUSettings.waveVRAndroidManifestPath) && (string.IsNullOrEmpty(defaultAndroidManifestPath) || !File.Exists(defaultAndroidManifestPath)))
-                        {
-                            EditorGUILayout.HelpBox("Default AndroidManifest.xml does not existed!", MessageType.Warning);
-                        }
-                        else if (!string.IsNullOrEmpty(VIUSettings.waveVRAndroidManifestPath) && !File.Exists(VIUSettings.waveVRAndroidManifestPath))
+                        if (!string.IsNullOrEmpty(VIUSettings.waveVRAndroidManifestPath) && !File.Exists(VIUSettings.waveVRAndroidManifestPath))
                         {
                             EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
                         }

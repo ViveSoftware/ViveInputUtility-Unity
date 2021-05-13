@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine.EventSystems;
 
@@ -12,6 +12,16 @@ namespace HTC.UnityPlugin.ColliderEvent
     public interface IColliderEventHoverExitHandler : IEventSystemHandler
     {
         void OnColliderEventHoverExit(ColliderHoverEventData eventData);
+    }
+
+    public interface IColliderEventLastHoverEnterHandler : IEventSystemHandler
+    {
+        void OnColliderEventLastHoverEnter(ColliderHoverEventData eventData);
+    }
+
+    public interface IColliderEventLastHoverExitHandler : IEventSystemHandler
+    {
+        void OnColliderEventLastHoverExit(ColliderHoverEventData eventData);
     }
 
     public interface IColliderEventPressDownHandler : IEventSystemHandler

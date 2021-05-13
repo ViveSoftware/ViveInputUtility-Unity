@@ -1,14 +1,18 @@
 {
     "name": "HTC.ViveInputUtility.Editor",
+    "rootNamespace": "",
     "references": [
         "HTC.ViveInputUtility",
+        "HTC.ViveInputUtility.UPMRegistryTool.Editor",
         "Unity.XR.Management",
         "Unity.XR.Management.Editor",
+        "Unity.XR.OpenVR",
         "SteamVR",
         "SteamVR_Input_Editor",
         "Oculus.VR",
-        "Unity.XR.OpenVR",
-        "HTC.ViveInputUtility.UPMRegistryTool.Editor"
+        "Oculus.VR.Editor",
+        "Unity.XR.OpenXR",
+        "Unity.XR.OpenXR.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 #pragma warning disable 0649
 using HTC.UnityPlugin.Utility;
@@ -806,7 +806,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             {
                 UInt64 dirtyMask = (ulong)1 << (int)i;
                 // We need to make sure that we fully update the initial position of
-                // Skinned mesh renderers, then, thereafter, we can only update dirty joints
+                // Skinned mesh renderers, then, thereafter, we can only update dirty handJoints
                 if ((firstSkinnedUpdate && i < bones.Length) ||
                     (dirtyMask & dirtyJoints) != 0)
                 {

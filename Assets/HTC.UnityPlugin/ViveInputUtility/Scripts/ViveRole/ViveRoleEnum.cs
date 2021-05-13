@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -250,22 +250,46 @@ namespace HTC.UnityPlugin.Vive
         static ViveRoleEnum()
         {
             // find all valid ViveRole enum type in current assemblies
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            var currentAsm = typeof(ViveRoleEnumAttribute).Assembly;
+            var currentAsmName = currentAsm.GetName().Name;
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
-                    foreach (var type in assembly.GetTypes())
+                    var referencingCurrentAsm = false;
+
+                    if (asm == currentAsm)
                     {
-                        if (ValidateViveRoleEnum(type) == ViveRoleEnumValidateResult.Valid)
+                        referencingCurrentAsm = true;
+                    }
+                    else
+                    {
+                        foreach (var asmref in asm.GetReferencedAssemblies())
                         {
-                            s_validViveRoleTable.Add(type.FullName, type);
+                            if (asmref.Name == currentAsmName)
+                            {
+                                referencingCurrentAsm = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (referencingCurrentAsm)
+                    {
+                        // try find valid role enum type in assembly
+                        foreach (var type in asm.GetTypes())
+                        {
+                            if (ValidateViveRoleEnum(type) == ViveRoleEnumValidateResult.Valid)
+                            {
+                                s_validViveRoleTable.Add(type.FullName, type);
+                            }
                         }
                     }
                 }
                 catch (System.Reflection.ReflectionTypeLoadException e)
                 {
                     Debug.LogWarning(e);
-                    Debug.LogWarning("load assembly " + assembly.FullName + " fail");
+                    Debug.LogWarning("load assembly " + asm.FullName + " fail");
                 }
                 catch (Exception e)
                 {

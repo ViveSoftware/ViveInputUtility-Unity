@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -204,7 +204,7 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
 
             ClearModel();
 
-            if (!m_isAppQuit && !string.IsNullOrEmpty(renderModelName))
+            if (enabled && !m_isAppQuit && !string.IsNullOrEmpty(renderModelName))
             {
                 //Debug.Log(transform.parent.parent.name + " LoadModel " + renderModelName);
                 m_loadingRenderModels.Add(renderModelName);
@@ -352,7 +352,7 @@ namespace HTC.UnityPlugin.Vive.SteamVRExtension
             componentState = default(RenderModel_ComponentState_t);
             var modeState = default(RenderModel_ControllerMode_State_t);
             var controllerState = default(VRControllerState_t);
-            if (!vrSystem.GetControllerState(m_deviceIndex, ref controllerState, s_sizeOfControllerStats)) { return false; }
+            if (!vrSystem.GetControllerState(SteamVRModule.GetTrackedIndexByModuleIndex(m_deviceIndex), ref controllerState, s_sizeOfControllerStats)) { return false; }
             if (!vrRenderModels.GetComponentState(loadedModelName, componentName, ref controllerState, ref modeState, ref componentState)) { return false; }
             return true;
         }

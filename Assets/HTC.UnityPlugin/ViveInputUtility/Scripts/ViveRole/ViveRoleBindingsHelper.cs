@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
 using HTC.UnityPlugin.Utility;
@@ -115,10 +115,12 @@ namespace HTC.UnityPlugin.Vive
 
             if (VIUSettings.enableBindingInterfaceSwitch)
             {
+#if ENABLE_LEGACY_INPUT_MANAGER
                 if (Input.GetKeyDown(VIUSettings.bindingInterfaceSwitchKey) && (VIUSettings.bindingInterfaceSwitchKeyModifier == KeyCode.None || Input.GetKey(VIUSettings.bindingInterfaceSwitchKeyModifier)))
                 {
                     ToggleBindingInterface();
                 }
+#endif
             }
         }
 

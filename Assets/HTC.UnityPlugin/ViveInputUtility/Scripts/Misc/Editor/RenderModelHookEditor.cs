@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2020, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
 using UnityEditor;
 using UnityEngine;
@@ -15,6 +15,7 @@ namespace HTC.UnityPlugin.Vive
         protected SerializedProperty deviceIndexProp;
         protected SerializedProperty overrideModelProp;
         protected SerializedProperty overrideShaderProp;
+        protected SerializedProperty customModelsProp;
 
         protected virtual void OnEnable()
         {
@@ -26,6 +27,7 @@ namespace HTC.UnityPlugin.Vive
             deviceIndexProp = serializedObject.FindProperty("m_deviceIndex");
             overrideModelProp = serializedObject.FindProperty("m_overrideModel");
             overrideShaderProp = serializedObject.FindProperty("m_overrideShader");
+            customModelsProp = serializedObject.FindProperty("m_customModels");
         }
 
         public override void OnInspectorGUI()
@@ -56,6 +58,8 @@ namespace HTC.UnityPlugin.Vive
                 default:
                     break;
             }
+
+            EditorGUILayout.PropertyField(customModelsProp);
 
             serializedObject.ApplyModifiedProperties();
         }
