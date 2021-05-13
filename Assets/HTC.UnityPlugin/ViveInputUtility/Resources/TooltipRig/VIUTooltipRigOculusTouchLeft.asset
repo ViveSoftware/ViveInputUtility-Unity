@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a1992a9d48a9b242a859e077b4275c0, type: 3}
+  m_Name: VIUTooltipRigOculusTouchLeft
+  m_EditorClassIdentifier: 
+  m_rigEntries:
+  - button: 14
+    tooltipRig:
+      buttonPosition: {x: 0.01023, y: 0.00942, z: -0.06738}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: 0.01023, y: 0.015, z: -0.0999}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 1
+  - button: 4
+    tooltipRig:
+      buttonPosition: {x: 0.02158, y: 0.003501, z: -0.047183}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: 0.0528, y: 0.015, z: -0.0254}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 3
+  - button: 7
+    tooltipRig:
+      buttonPosition: {x: 0.02158, y: 0.003501, z: -0.047183}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: 0.0528, y: 0.015, z: -0.0254}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 3
+  - button: 12
+    tooltipRig:
+      buttonPosition: {x: 0.01906, y: 0.00842, z: -0.05909}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: 0.0551, y: 0.015, z: -0.0583}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 3
+  - button: 13
+    tooltipRig:
+      buttonPosition: {x: 0.01906, y: 0.00842, z: -0.05909}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: 0.0551, y: 0.015, z: -0.0583}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 3
+  - button: 0
+    tooltipRig:
+      buttonPosition: {x: 0.00421, y: -0.03496, z: -0.04972}
+      buttonNormal: {x: 0.000000044318117, y: -0.7780256, z: 0.6282326}
+      labelPosition: {x: 0.0456, y: -0.0253, z: 0.0008}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 6
+  - button: 8
+    tooltipRig:
+      buttonPosition: {x: 0.00421, y: -0.03496, z: -0.04972}
+      buttonNormal: {x: 0.000000044318117, y: -0.7780256, z: 0.6282326}
+      labelPosition: {x: 0.0456, y: -0.0253, z: 0.0008}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 6
+  - button: 1
+    tooltipRig:
+      buttonPosition: {x: 0.00525, y: 0.0007, z: -0.05191}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: 0.00525, y: 0.015, z: 0.0275}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 7
+  - button: 3
+    tooltipRig:
+      buttonPosition: {x: 0.00525, y: 0.0007, z: -0.05191}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: 0.00525, y: 0.015, z: 0.0275}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 7
+  - button: 47
+    tooltipRig:
+      buttonPosition: {x: -0.01239, y: 0.00474, z: -0.04165}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: -0.0207, y: 0.015, z: -0.0145}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 8
+  - button: 48
+    tooltipRig:
+      buttonPosition: {x: -0.01239, y: 0.00474, z: -0.04165}
+      buttonNormal: {x: 0, y: 0.9091653, z: 0.41643554}
+      labelPosition: {x: -0.0207, y: 0.015, z: -0.0145}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 8
+  - button: 2
+    tooltipRig:
+      buttonPosition: {x: 0.0169, y: -0.009, z: -0.1011}
+      buttonNormal: {x: 0.90336007, y: -0.42596567, z: -0.04993803}
+      labelPosition: {x: 0.0533, y: -0, z: -0.0897}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 3
+  - button: 9
+    tooltipRig:
+      buttonPosition: {x: 0.0169, y: -0.009, z: -0.1011}
+      buttonNormal: {x: 0.90336007, y: -0.42596567, z: -0.04993803}
+      labelPosition: {x: 0.0533, y: -0, z: -0.0897}
+      labelNormal: {x: 0, y: -0.99999994, z: -0.00000011920929}
+      labelUp: {x: 0, y: -0.00000011920929, z: 0.99999994}
+      labelAnchor: 3
