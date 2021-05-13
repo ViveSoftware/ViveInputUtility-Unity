@@ -168,6 +168,7 @@ namespace HTC.UnityPlugin.Utility
         public abstract int Length { get; }
         public abstract int Capacity { get; }
         public abstract string EnumName(int enumInt);
+        public abstract string EnumNameWithAlias(int enumInt);
         public abstract bool IsValidIndex(int enumInt);
         public abstract void Clear();
         public abstract void FillCapacityToLength();
@@ -320,6 +321,7 @@ namespace HTC.UnityPlugin.Utility
 
         private static readonly TEnum[] enums;
         private static readonly string[] enumNames;
+        private static readonly string[] enumNameWithAliases;
         private static Func<TEnum, int> funcE2I;
         public static readonly int StaticMinInt;
         public static readonly TEnum StaticMin;
@@ -434,15 +436,40 @@ namespace HTC.UnityPlugin.Utility
             // create an int array with invalid enum values
             enums = new TEnum[StaticLength];
             enumNames = new string[StaticLength];
+            enumNameWithAliases = new string[StaticLength];
             for (int fi = 0, imax = fields.Length; fi < imax; ++fi)
             {
                 if (fieldNames[fi] == null) { continue; }
 
                 var i = fieldValues[fi] - StaticMinInt;
-                if (enumNames[i] != null) { continue; }
+                if (enumNames[i] == null)
+                {
+                    enums[i] = fieldEnums[fi];
+                    enumNames[i] = fieldNames[fi];
+                }
+                else if (enumNameWithAliases[i] == null)
+                {
+                    enumNameWithAliases[i] = fieldNames[fi];
+                }
+                else
+                {
+                    enumNameWithAliases[i] += ", " + fieldNames[fi];
+                }
+            }
 
-                enums[i] = fieldEnums[fi];
-                enumNames[i] = fieldNames[fi];
+            for (int i = 0, imax = StaticLength; i < imax; ++i)
+            {
+                if (enumNames[i] != null)
+                {
+                    if (enumNameWithAliases[i] != null)
+                    {
+                        enumNameWithAliases[i] = enumNames[i] + " (" + enumNameWithAliases[i] + ")";
+                    }
+                    else
+                    {
+                        enumNameWithAliases[i] = enumNames[i];
+                    }
+                }
             }
         }
 
@@ -453,6 +480,11 @@ namespace HTC.UnityPlugin.Utility
             return StaticEnumName(enumInt);
         }
 
+        public override string EnumNameWithAlias(int enumInt)
+        {
+            return StaticEnumNameWithAlias(enumInt);
+        }
+
         public static string StaticEnumName(TEnum e)
         {
             return StaticEnumName(E2I(e));
@@ -461,6 +493,11 @@ namespace HTC.UnityPlugin.Utility
         public static string StaticEnumName(int enumInt)
         {
             return enumNames[enumInt - StaticMinInt];
+        }
+
+        public static string StaticEnumNameWithAlias(int enumInt)
+        {
+            return enumNameWithAliases[enumInt - StaticMinInt];
         }
 
         public override bool IsValidIndex(int enumInt)

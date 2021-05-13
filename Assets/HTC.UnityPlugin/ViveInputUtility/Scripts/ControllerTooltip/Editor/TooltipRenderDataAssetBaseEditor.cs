@@ -107,7 +107,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 var button = ev.Key;
                 var visible = ev.Value;
-                var name = visibleInList.EnumName((int)button);
+                var name = visibleInList.EnumNameWithAlias((int)button);
                 if (visible)
                 {
                     menu.AddDisabledItem(new GUIContent(name));

@@ -125,26 +125,18 @@ namespace HTC.UnityPlugin.Vive
         private void ShowAddTriggerMenu()
         {
             var menu = new GenericMenu();
-            var displayedNames = new List<GUIContent>(btnEnumInfo.displayedLength);
-            var displayedValues = new List<int>(btnEnumInfo.displayedLength);
-            for (int i = 0, imax = btnEnumInfo.displayedLength; i < imax; ++i)
+            foreach (var ev in visibleInList.EnumValues)
             {
-                var v = btnEnumInfo.displayedValues[i];
-                displayedNames.Add(new GUIContent(btnEnumInfo.displayedNames[i]));
-                displayedValues.Add(v);
-            }
-            for (int i = 0, imax = btnEnumInfo.displayedLength; i < imax; ++i)
-            {
-                var value = btnEnumInfo.displayedValues[i];
-                //if (value == (int)ControllerButton.None) { continue; }
-                var name = btnEnumInfo.displayedNames[i];
-                if (visibleInList[value])
+                var button = ev.Key;
+                var visible = ev.Value;
+                var name = visibleInList.EnumNameWithAlias((int)button);
+                if (visible)
                 {
                     menu.AddDisabledItem(new GUIContent(name));
                 }
                 else
                 {
-                    menu.AddItem(new GUIContent(name), false, OnAddNewSelected, value);
+                    menu.AddItem(new GUIContent(name), false, OnAddNewSelected, (int)button);
                 }
             }
             menu.ShowAsContext();
