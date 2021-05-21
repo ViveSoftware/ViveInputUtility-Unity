@@ -639,7 +639,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch); // Touchpad
             bool secondary2DAxisClick = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisClick")); // No data
             bool secondary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisTouch")); // No data
-            bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton); // Trigger
+            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
             bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton); // No Data
             float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger); // No Data
             Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis); // Touchpad
@@ -647,7 +647,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Vector2 dPad = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<Vector2>("DPad")); // No Data
 
             state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
-            state.SetButtonPress(VRModuleRawButton.Trigger, gripButton);
+            state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
             state.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuButton);
             state.SetButtonPress(VRModuleRawButton.DPadUp, dPad.y > 0);
             state.SetButtonPress(VRModuleRawButton.DPadDown, dPad.y < 0);
