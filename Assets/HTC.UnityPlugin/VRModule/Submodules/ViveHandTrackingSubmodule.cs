@@ -4,6 +4,8 @@ using HTC.UnityPlugin.Utility;
 using UnityEngine;
 using System.Runtime.InteropServices;
 using System;
+using System.Collections;
+using HTC.UnityPlugin.LiteCoroutineSystem;
 #if VIU_VIVE_HAND_TRACKING
 using ViveHandTracking;
 #endif
@@ -16,12 +18,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private struct HandResultData
         {
             public bool isConnected;
-            public Vector3[] joints;
-            public GestureType gesture;
-            public float confidence;
-            public float pinchLevel;
+            public GestureResult rawData;
         }
 
+        private static readonly string LOG_PREFIX = "[" + typeof(ViveHandTrackingSubmodule).Name + "] ";
         private const int RETRY_COUNT = 5;
         private const float RETRY_INTERVAL = 1f;
         private static readonly int sizeofGestureResult = Marshal.SizeOf(typeof(GestureResult));
@@ -29,7 +29,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private GestureOption option = new GestureOption();
         private bool isStarted;
         private int retryCount;
-        private float nextRetryTime;
+        private WaitForTicks retryInterval = WaitForTicks.Seconds(RETRY_INTERVAL);
+        private LiteCoroutine startDetectionCoroutine;
+        private LiteTask startDetectionTask = new LiteTask();
 
         private int lastResultFrame;
         private HandResultData leftResult;
@@ -42,61 +44,75 @@ namespace HTC.UnityPlugin.VRModuleManagement
         protected override void OnActivated()
         {
             retryCount = RETRY_COUNT;
-            nextRetryTime = 0f;
             GestureInterface.UseExternalTransform(true);
         }
 
         protected override void OnDeactivated()
         {
             GestureInterface.StopGestureDetection();
+            startDetectionTask.Cancel();
         }
 
         public override uint GetRightHandedIndex() { return rightDeviceIndex; }
 
         public override uint GetLeftHandedIndex() { return leftDeviceIndex; }
 
-        protected override void OnUpdateDeviceConnectionAndPoses()
+        private IEnumerator StartDetectionCoroutine()
         {
-            // try start engine detection
-            if (!isStarted)
+            while (true)
             {
-                var now = Time.unscaledTime;
-                if (now >= nextRetryTime && retryCount >= 0)
-                {
-                    --retryCount;
-                    nextRetryTime = now + RETRY_INTERVAL;
+                var error = GestureInterface.StartGestureDetection(option);
 
-                    var error = GestureInterface.StartGestureDetection(option);
+                lock (this)
+                {
                     switch (error)
                     {
                         case GestureFailure.None:
                             retryCount = RETRY_COUNT;
                             lastResultFrame = -1;
                             isStarted = true;
-                            Debug.Log("[ViveHandTrackingSubmodule] StartGestureDetection");
+                            Debug.Log(LOG_PREFIX + "StartGestureDetection");
                             break;
                         case GestureFailure.Camera:
                             --retryCount;
-                            nextRetryTime = now + RETRY_INTERVAL;
                             if (retryCount >= 0)
                             {
-                                Debug.LogWarning("[ViveHandTrackingSubmodule] StartGestureDetection fail. Front camera function not found. retrying...");
+                                Debug.LogWarning(LOG_PREFIX + "StartGestureDetection fail. Front camera function not found. retrying(" + (retryCount + 1) + ")...");
                             }
                             else
                             {
-                                Debug.LogWarning("[ViveHandTrackingSubmodule] StartGestureDetection fail. Front camera function not found.");
+                                Debug.LogWarning(LOG_PREFIX + "StartGestureDetection fail. Front camera function not found.");
                             }
                             break;
                         default:
                             retryCount = 0;
-                            Debug.LogWarning("[ViveHandTrackingSubmodule] StartGestureDetection fail. error:" + error);
+                            Debug.LogWarning(LOG_PREFIX + "StartGestureDetection fail. error:" + error);
                             break;
 
                     }
+
+                    if (retryCount <= 0 || isStarted) { yield break; }
                 }
+
+                yield return retryInterval;
+            }
+        }
+
+        protected override void OnUpdateDeviceConnectionAndPoses()
+        {
+            lock (this)
+            {
+                if (!isStarted && retryCount > 0 && startDetectionTask.IsDone)
+                {
+                    // try start engine detection
+                    LiteCoroutine.StartCoroutine(ref startDetectionCoroutine, startDetectionTask.RestartTask(StartDetectionCoroutine()));
+                }
+
+                if (!isStarted) { return; }
             }
 
-            if (!isStarted) { return; }
+            var hmdPose = VRModule.GetDeviceState(VRModule.HMD_DEVICE_INDEX).pose;
+            GestureInterface.SetCameraTransform(hmdPose.pos, hmdPose.rot);
 
             // fetch raw data from engine
             IntPtr resultPtr;
@@ -109,7 +125,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 isStarted = false;
                 return;
             }
-            else if (resultFrame < lastResultFrame)
+            else if (resultFrame <= lastResultFrame)
             {
                 // skip frame
                 return;
@@ -128,10 +144,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     leftResult = new HandResultData()
                     {
                         isConnected = true,
-                        joints = result.points,
-                        gesture = result.gesture,
-                        confidence = result.confidence,
-                        pinchLevel = result.pinchLevel,
+                        rawData = result,
                     };
                 }
                 else
@@ -139,10 +152,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     rightResult = new HandResultData()
                     {
                         isConnected = true,
-                        joints = result.points,
-                        gesture = result.gesture,
-                        confidence = result.confidence,
-                        pinchLevel = result.pinchLevel,
+                        rawData = result,
                     };
                 }
 #if NET_4_6
@@ -184,7 +194,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 currState.isConnected = true;
                 currState.isPoseValid = true;
-                UpdateDeviceJoints(currState, resultData.joints, isLeft);
+                UpdateDeviceJoints(currState, ref resultData, isLeft);
             }
             else
             {
@@ -205,6 +215,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
             UpdateDeviceInput(ref rightResult, rightDeviceIndex);
         }
 
+#if VIU_VIVE_HAND_TRACKING_0_10_0_OR_NEWER
+        [StructLayout(LayoutKind.Sequential)]
+        private struct GestureResult
+        {
+            [MarshalAs(UnmanagedType.I1)]
+            public bool isLeft;
+            public Vector3 position;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 21)]
+            public Vector3[] points;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 21)]
+            public Quaternion[] rotations;
+            public GestureType gesture;
+            public float confidence;
+            public PinchInfo pinch;
+        }
+
         private void UpdateDeviceInput(ref HandResultData resultData, uint index)
         {
             if (!resultData.isConnected) { return; }
@@ -214,12 +240,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             EnsureValidDeviceState(index, out prevState, out currState);
 
-            var pinched = resultData.pinchLevel >= 0.95f;
-            var gFist = resultData.gesture == GestureType.Fist && resultData.confidence > 0.1f;
-            var gFive = resultData.gesture == GestureType.Five && resultData.confidence > 0.1f;
-            var gOK = resultData.gesture == GestureType.OK && resultData.confidence > 0.1f;
-            var gLike = resultData.gesture == GestureType.Like && resultData.confidence > 0.1f;
-            var gPoint = resultData.gesture == GestureType.Point && resultData.confidence > 0.1f;
+            var pinched = resultData.rawData.pinch.pinchLevel >= 0.95f;
+            var gFist = resultData.rawData.gesture == GestureType.Fist && resultData.rawData.confidence > 0.1f;
+            var gFive = resultData.rawData.gesture == GestureType.Five && resultData.rawData.confidence > 0.1f;
+            var gOK = resultData.rawData.gesture == GestureType.OK && resultData.rawData.confidence > 0.1f;
+            var gLike = resultData.rawData.gesture == GestureType.Like && resultData.rawData.confidence > 0.1f;
+            var gPoint = resultData.rawData.gesture == GestureType.Point && resultData.rawData.confidence > 0.1f;
             currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
             currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
             currState.SetButtonPress(VRModuleRawButton.GestureFist, gFist);
@@ -234,13 +260,93 @@ namespace HTC.UnityPlugin.VRModuleManagement
             currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gPoint);
             currState.SetButtonPress(VRModuleRawButton.Grip, gFist);
             currState.SetButtonTouch(VRModuleRawButton.Grip, gFist);
-            currState.SetAxisValue(VRModuleRawAxis.Trigger, resultData.pinchLevel);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, resultData.rawData.pinch.pinchLevel);
         }
 
-        private static void UpdateDeviceJoints(IVRModuleDeviceStateRW state, Vector3[] rawJoints, bool isLeft)
+        private static readonly Quaternion rotOffset = Quaternion.Inverse(Quaternion.LookRotation(Vector3.down, Vector3.forward));
+        private static void UpdateDeviceJoints(IVRModuleDeviceStateRW state, ref HandResultData resultData, bool isLeft)
         {
-            var hmdPose = VRModule.GetDeviceState(VRModule.HMD_DEVICE_INDEX).pose;
-            GestureInterface.SetCameraTransform(hmdPose.pos, hmdPose.rot);
+            var joints = resultData.rawData.points;
+            var rotations = resultData.rawData.rotations;
+
+            state.pose = new RigidPose(joints[0], rotations[0] * rotOffset);
+
+            state.handJoints[HandJointName.Wrist] = new JointPose(new RigidPose(joints[0], rotations[0] * rotOffset));
+
+            state.handJoints[HandJointName.ThumbMetacarpal] = new JointPose(new RigidPose(joints[1], rotations[1] * rotOffset));
+            state.handJoints[HandJointName.ThumbProximal] = new JointPose(new RigidPose(joints[2], rotations[2] * rotOffset));
+            state.handJoints[HandJointName.ThumbDistal] = new JointPose(new RigidPose(joints[3], rotations[3] * rotOffset));
+            state.handJoints[HandJointName.ThumbTip] = new JointPose(new RigidPose(joints[4], rotations[4] * rotOffset));
+
+            state.handJoints[HandJointName.IndexProximal] = new JointPose(new RigidPose(joints[5], rotations[5] * rotOffset));
+            state.handJoints[HandJointName.IndexIntermediate] = new JointPose(new RigidPose(joints[6], rotations[6] * rotOffset));
+            state.handJoints[HandJointName.IndexDistal] = new JointPose(new RigidPose(joints[7], rotations[7] * rotOffset));
+            state.handJoints[HandJointName.IndexTip] = new JointPose(new RigidPose(joints[8], rotations[8] * rotOffset));
+
+            state.handJoints[HandJointName.MiddleProximal] = new JointPose(new RigidPose(joints[9], rotations[9] * rotOffset));
+            state.handJoints[HandJointName.MiddleIntermediate] = new JointPose(new RigidPose(joints[10], rotations[10] * rotOffset));
+            state.handJoints[HandJointName.MiddleDistal] = new JointPose(new RigidPose(joints[11], rotations[11] * rotOffset));
+            state.handJoints[HandJointName.MiddleTip] = new JointPose(new RigidPose(joints[12], rotations[12] * rotOffset));
+
+            state.handJoints[HandJointName.RingProximal] = new JointPose(new RigidPose(joints[13], rotations[13] * rotOffset));
+            state.handJoints[HandJointName.RingIntermediate] = new JointPose(new RigidPose(joints[14], rotations[14] * rotOffset));
+            state.handJoints[HandJointName.RingDistal] = new JointPose(new RigidPose(joints[15], rotations[15] * rotOffset));
+            state.handJoints[HandJointName.RingTip] = new JointPose(new RigidPose(joints[16], rotations[16] * rotOffset));
+
+            state.handJoints[HandJointName.PinkyProximal] = new JointPose(new RigidPose(joints[17], rotations[17] * rotOffset));
+            state.handJoints[HandJointName.PinkyIntermediate] = new JointPose(new RigidPose(joints[18], rotations[18] * rotOffset));
+            state.handJoints[HandJointName.PinkyDistal] = new JointPose(new RigidPose(joints[19], rotations[19] * rotOffset));
+            state.handJoints[HandJointName.PinkyTip] = new JointPose(new RigidPose(joints[20], rotations[20] * rotOffset));
+        }
+#else
+        [StructLayout(LayoutKind.Sequential)]
+        private struct GestureResult
+        {
+            [MarshalAs(UnmanagedType.I1)]
+            public bool isLeft;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 21)]
+            public Vector3[] points;
+            public GestureType gesture;
+            public float confidence;
+            public float pinchLevel;
+        }
+
+        private void UpdateDeviceInput(ref HandResultData resultData, uint index)
+        {
+            if (!resultData.isConnected) { return; }
+
+            IVRModuleDeviceState prevState;
+            IVRModuleDeviceStateRW currState;
+
+            EnsureValidDeviceState(index, out prevState, out currState);
+
+            var pinched = resultData.rawData.pinchLevel >= 0.95f;
+            var gFist = resultData.rawData.gesture == GestureType.Fist && resultData.rawData.confidence > 0.1f;
+            var gFive = resultData.rawData.gesture == GestureType.Five && resultData.rawData.confidence > 0.1f;
+            var gOK = resultData.rawData.gesture == GestureType.OK && resultData.rawData.confidence > 0.1f;
+            var gLike = resultData.rawData.gesture == GestureType.Like && resultData.rawData.confidence > 0.1f;
+            var gPoint = resultData.rawData.gesture == GestureType.Point && resultData.rawData.confidence > 0.1f;
+            currState.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
+            currState.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
+            currState.SetButtonPress(VRModuleRawButton.GestureFist, gFist);
+            currState.SetButtonTouch(VRModuleRawButton.GestureFist, gFist);
+            currState.SetButtonPress(VRModuleRawButton.GestureFive, gFive);
+            currState.SetButtonTouch(VRModuleRawButton.GestureFive, gFive);
+            currState.SetButtonPress(VRModuleRawButton.GestureOk, gOK);
+            currState.SetButtonTouch(VRModuleRawButton.GestureOk, gOK);
+            currState.SetButtonPress(VRModuleRawButton.GestureThumbUp, gLike);
+            currState.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gLike);
+            currState.SetButtonPress(VRModuleRawButton.GestureIndexUp, gPoint);
+            currState.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gPoint);
+            currState.SetButtonPress(VRModuleRawButton.Grip, gFist);
+            currState.SetButtonTouch(VRModuleRawButton.Grip, gFist);
+            currState.SetAxisValue(VRModuleRawAxis.Trigger, resultData.rawData.pinchLevel);
+        }
+
+        private static void UpdateDeviceJoints(IVRModuleDeviceStateRW state, ref HandResultData resultData, bool isLeft)
+        {
+            var rawJoints = resultData.rawData.points;
+
             var roomSpaceWrist2index = rawJoints[5] - rawJoints[0];
             var roomSpaceWrist2middle = rawJoints[9] - rawJoints[0];
             var roomSpaceWrist2pinky = rawJoints[17] - rawJoints[0];
@@ -299,18 +405,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var forward = joints[iChild] - joints[i];
             return Quaternion.LookRotation(forward, Vector3.Cross(forward, right));
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct GestureResult
-        {
-            [MarshalAs(UnmanagedType.I1)]
-            public bool isLeft;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 21)]
-            public Vector3[] points;
-            public GestureType gesture;
-            public float confidence;
-            public float pinchLevel;
-        }
+#endif
 
         private static class GestureInterface
         {
@@ -332,5 +427,5 @@ namespace HTC.UnityPlugin.VRModuleManagement
             internal static extern void SetCameraTransform(Vector3 position, Quaternion rotation);
         }
 #endif
-            }
-        }
+    }
+}
