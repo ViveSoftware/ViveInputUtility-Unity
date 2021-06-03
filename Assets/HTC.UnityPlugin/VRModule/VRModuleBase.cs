@@ -386,6 +386,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
 
                 deviceState.deviceModel = VRModuleDeviceModel.Unknown;
+                deviceState.input2DType = VRModuleInput2DType.Unknown;
             }
 
             public static bool AxisToPress(bool previousPressedState, float currentAxisValue, float setThreshold, float unsetThreshold)

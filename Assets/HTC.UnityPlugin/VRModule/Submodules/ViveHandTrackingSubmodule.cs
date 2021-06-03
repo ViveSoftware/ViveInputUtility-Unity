@@ -71,7 +71,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             retryCount = RETRY_COUNT;
                             lastResultFrame = -1;
                             isStarted = true;
-                            Debug.Log(LOG_PREFIX + "StartGestureDetection");
+                            Debug.Log(LOG_PREFIX + "Detection started");
                             break;
                         case GestureFailure.Camera:
                             --retryCount;
@@ -121,7 +121,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             if (resultFrame < 0)
             {
-                Debug.Log("[ViveHandTrackingSubmodule] Detection stopped!");
+                Debug.Log(LOG_PREFIX + "Detection stopped");
                 isStarted = false;
                 return;
             }
