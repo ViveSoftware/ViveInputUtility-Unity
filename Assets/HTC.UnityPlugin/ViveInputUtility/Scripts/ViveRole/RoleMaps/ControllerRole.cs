@@ -72,7 +72,7 @@ namespace HTC.UnityPlugin.Vive
             }
             else
             {
-                var index = VRModule.GetRightControllerDeviceIndex();
+                var index = VRModule.GetLeftControllerDeviceIndex();
                 if (VRModule.GetDeviceState(index).deviceClass == VRModuleDeviceClass.Controller)
                 {
                     leftIndex = index;
