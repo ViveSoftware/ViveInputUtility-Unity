@@ -373,8 +373,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
-            state.SetAxisValue(VRModuleRawAxis.JoystickX, primary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.JoystickY, primary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
 
             if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenVR)
             {
