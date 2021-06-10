@@ -80,6 +80,10 @@ namespace HTC.UnityPlugin.Vive
         private bool m_allowMultipleGrabbers = true;
         [SerializeField]
         private bool m_grabOnLastEntered = false;
+        [SerializeField]
+        private float m_minStretchScale = 1f;
+        [SerializeField]
+        private float m_maxStretchScale = 1f;
         [FormerlySerializedAs("afterGrabbed")]
         [SerializeField]
         private UnityEventGrabbable m_afterGrabbed = new UnityEventGrabbable();
@@ -97,6 +101,10 @@ namespace HTC.UnityPlugin.Vive
         public bool unblockableGrab { get { return m_unblockableGrab; } set { m_unblockableGrab = value; } }
 
         public bool grabOnLastEntered { get { return m_grabOnLastEntered; } set { m_grabOnLastEntered = value; } }
+
+        public override float minScaleOnStretch { get { return m_minStretchScale; } set { m_minStretchScale = value; } }
+
+        public override float maxScaleOnStretch { get { return m_maxStretchScale; } set { m_maxStretchScale = value; } }
 
         public UnityEventGrabbable afterGrabbed { get { return m_afterGrabbed; } }
 

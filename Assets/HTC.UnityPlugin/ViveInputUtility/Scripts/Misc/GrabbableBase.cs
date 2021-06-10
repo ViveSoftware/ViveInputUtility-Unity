@@ -40,6 +40,8 @@ namespace HTC.UnityPlugin.Vive
         public abstract bool isGrabbed { get; }
         public abstract bool isChangingGrabber { get; }
         public abstract GrabberBase currentGrabberBase { get; }
+        public abstract float minScaleOnStretch { get; set; }
+        public abstract float maxScaleOnStretch { get; set; }
         public Rigidbody grabRigidbody { get; protected set; }
 
         private Queue<PoseSample> m_poseSamples = new Queue<PoseSample>();
@@ -63,32 +65,6 @@ namespace HTC.UnityPlugin.Vive
             });
         }
 
-        protected virtual void OnGrabRigidbody()
-        {
-            var currentGrabber = currentGrabberBase;
-            var targetPose = currentGrabber.grabberOrigin * currentGrabber.grabOffset;
-            ModifyPose(ref targetPose, true);
-
-            RigidPose.SetRigidbodyVelocity(grabRigidbody, grabRigidbody.position, targetPose.pos, followingDuration);
-            RigidPose.SetRigidbodyAngularVelocity(grabRigidbody, grabRigidbody.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
-        }
-
-        protected virtual void OnGrabTransform()
-        {
-            var currentGrabber = currentGrabberBase;
-            var targetPose = currentGrabber.grabberOrigin * currentGrabber.grabOffset;
-            ModifyPose(ref targetPose, true);
-
-            if (grabRigidbody != null)
-            {
-                grabRigidbody.velocity = Vector3.zero;
-                grabRigidbody.angularVelocity = Vector3.zero;
-            }
-
-            transform.position = targetPose.pos;
-            transform.rotation = targetPose.rot;
-        }
-
         protected virtual void DoDrop()
         {
             if (grabRigidbody != null && !grabRigidbody.isKinematic && m_poseSamples.Count > 0)
@@ -100,6 +76,82 @@ namespace HTC.UnityPlugin.Vive
                 RigidPose.SetRigidbodyAngularVelocity(grabRigidbody, framePose.pose.rot, transform.rotation, deltaTime, overrideMaxAngularVelocity);
 
                 m_poseSamples.Clear();
+            }
+        }
+
+        protected abstract void OnGrabRigidbody();
+
+        protected abstract void OnGrabTransform();
+
+        public struct StretchAnchors
+        {
+            // A1: first anchor
+            // A2: second anchor
+            // C: strethable center
+            // P: closest point on line A1-A2 away from C
+            private Vector3 originScale;
+            private float A1A2Len;
+            private float A1PLen;
+            private float PCLen;
+            private Quaternion originRotOffset;
+            private Quaternion lastRot;
+
+            public void SetupStartingAnchors(Vector3 anchor1, Vector3 anchor2, Vector3 originPos, Quaternion originRot, Vector3 originScale)
+            {
+                // FIXME: what if anchor1 == anchor2?
+                this.originScale = originScale;
+
+                var vectorS1S2 = anchor2 - anchor1;
+                A1A2Len = Vector3.Magnitude(vectorS1S2);
+
+                var vectorS1C = originPos - anchor1;
+                A1PLen = Vector3.Dot(vectorS1C, vectorS1S2) / A1A2Len;
+                PCLen = Mathf.Sqrt(vectorS1C.sqrMagnitude - A1PLen * A1PLen);
+
+                var normal = Vector3.Cross(vectorS1S2, vectorS1C);
+                var rot = Quaternion.LookRotation(vectorS1S2, normal);
+                originRotOffset = Quaternion.Inverse(rot) * originRot;
+
+                lastRot = rot;
+            }
+
+            public void UpdateAnchors(Vector3 anchor1, Vector3 anchor2, out Vector3 newPos, out Quaternion newRot, out Vector3 newScale, float minScale, float maxScale)
+            {
+                // determin scale ratio
+                var vectorS1S2 = anchor2 - anchor1;
+                var vectorS1S2Len = vectorS1S2.magnitude;
+                var vectorS1S2Norm = vectorS1S2 / vectorS1S2Len;
+                var posScale = vectorS1S2Len / A1A2Len;
+
+                lastRot = Quaternion.FromToRotation(lastRot * Vector3.forward, vectorS1S2Norm) * lastRot;
+                var tangent = lastRot * Vector3.right;
+
+                var transformScale = 1f;
+                minScale = Mathf.Abs(minScale);
+                maxScale = Mathf.Abs(maxScale);
+                if (minScale < maxScale)
+                {
+                    // FIXME: what if originScale have zero value?
+                    var originScaleAbs = new Vector3(Mathf.Abs(originScale.x), Mathf.Abs(originScale.y), Mathf.Abs(originScale.z));
+                    if (originScaleAbs.x == originScaleAbs.y && originScaleAbs.y == originScaleAbs.z)
+                    {
+                        transformScale = Mathf.Clamp(posScale, minScale / originScaleAbs.x, maxScale / originScaleAbs.x);
+                    }
+                    else
+                    {
+                        // when scale is irregular, clamp the scale factor to make sure no scale value is out of min/max range
+                        var minScaleAxis = Mathf.Min(originScaleAbs.x, originScaleAbs.y, originScaleAbs.z);
+                        var maxScaleAxis = Mathf.Max(originScaleAbs.x, originScaleAbs.y, originScaleAbs.z);
+                        if (minScaleAxis / maxScaleAxis >= minScale / maxScale)
+                        {
+                            transformScale = Mathf.Clamp(posScale, minScale / minScaleAxis, maxScale / maxScaleAxis);
+                        }
+                    }
+                }
+
+                newPos = anchor1 + vectorS1S2Norm * A1PLen * posScale + tangent * PCLen * transformScale;
+                newRot = lastRot * originRotOffset;
+                newScale = originScale * transformScale;
             }
         }
     }
@@ -119,6 +171,10 @@ namespace HTC.UnityPlugin.Vive
         public event Action beforeGrabberReleased; // get grabber that about to release here
         public event Action onGrabberDrop; // manually change drop velocity here
 
+        private TGrabber anchorGabber1;
+        private TGrabber anchorGabber2;
+        private StretchAnchors stretchAnchors;
+
         protected bool IsGrabberExists(TEventData eventData)
         {
             return m_grabbers.ContainsKey(eventData);
@@ -127,6 +183,35 @@ namespace HTC.UnityPlugin.Vive
         protected bool TryGetExistsGrabber(TEventData eventData, out TGrabber grabber)
         {
             return m_grabbers.TryGetValue(eventData, out grabber);
+        }
+
+        protected bool TryGetValidAnchors(out TGrabber grabber1, out TGrabber grabber2, out Vector3 pose1, out Vector3 pose2)
+        {
+            var i = m_grabbers.Count - 1;
+            if (i >= 1)
+            {
+                var g1 = m_grabbers.GetValueByIndex(i);
+                var p1 = g1.grabberOrigin.pos;
+                for (--i; i >= 0; --i)
+                {
+                    var g2 = m_grabbers.GetValueByIndex(i);
+                    var p2 = g2.grabberOrigin.pos;
+                    if (!Mathf.Approximately((p2 - p1).magnitude, 0f))
+                    {
+                        grabber1 = g1;
+                        grabber2 = g2;
+                        pose1 = p1;
+                        pose2 = p2;
+                        return true;
+                    }
+                }
+            }
+
+            grabber1 = default(TGrabber);
+            grabber2 = default(TGrabber);
+            pose1 = default(Vector3);
+            pose2 = default(Vector3);
+            return false;
         }
 
         protected abstract TGrabber CreateGrabber(TEventData eventData);
@@ -146,6 +231,18 @@ namespace HTC.UnityPlugin.Vive
 
                 if (isGrabbed) { beforeGrabberReleased(); }
                 m_grabbers.Add(eventData, newGrabber);
+
+                Vector3 p1, p2;
+                if (TryGetValidAnchors(out anchorGabber1, out anchorGabber2, out p1, out p2))
+                {
+                    stretchAnchors.SetupStartingAnchors(
+                        p1,
+                        p2,
+                        transform.position,
+                        transform.rotation,
+                        transform.localScale);
+                }
+
                 afterGrabberGrabbed();
                 return true;
             }
@@ -175,6 +272,21 @@ namespace HTC.UnityPlugin.Vive
                     afterGrabberGrabbed();
                 }
                 finally { ExitGrabberChangingLock(); }
+            }
+
+            Vector3 p1, p2;
+            if (TryGetValidAnchors(out anchorGabber1, out anchorGabber2, out p1, out p2))
+            {
+                stretchAnchors.SetupStartingAnchors(
+                    p1,
+                    p2,
+                    transform.position,
+                    transform.rotation,
+                    transform.localScale);
+            }
+            else if (m_grabbers.Count > 0)
+            {
+                currentGrabber.grabOffset = currentGrabber.grabberOrigin.GetInverse() * new RigidPose(transform);
             }
 
             return true;
@@ -216,9 +328,83 @@ namespace HTC.UnityPlugin.Vive
         {
             m_grabberChangingLock = false;
         }
+
+        protected override void OnGrabRigidbody()
+        {
+            if (anchorGabber1 != null && anchorGabber2 != null)
+            {
+                Vector3 pos;
+                Quaternion rot;
+                Vector3 scale;
+                stretchAnchors.UpdateAnchors(
+                    anchorGabber1.grabberOrigin.pos,
+                    anchorGabber2.grabberOrigin.pos,
+                    out pos,
+                    out rot,
+                    out scale,
+                    minScaleOnStretch,
+                    maxScaleOnStretch);
+
+                GrabRigidbodyToPose(new RigidPose(pos, rot));
+                transform.localScale = scale;
+            }
+            else
+            {
+                var currentGrabber = currentGrabberBase;
+                GrabRigidbodyToPose(currentGrabber.grabberOrigin * currentGrabber.grabOffset);
+            }
+        }
+
+        protected override void OnGrabTransform()
+        {
+            if (anchorGabber1 != null && anchorGabber2 != null)
+            {
+                Vector3 pos;
+                Quaternion rot;
+                Vector3 scale;
+                stretchAnchors.UpdateAnchors(
+                    anchorGabber1.grabberOrigin.pos,
+                    anchorGabber2.grabberOrigin.pos,
+                    out pos,
+                    out rot,
+                    out scale,
+                    minScaleOnStretch,
+                    maxScaleOnStretch);
+
+                GrabTransformToPose(new RigidPose(pos, rot));
+                transform.localScale = scale;
+            }
+            else
+            {
+                var currentGrabber = currentGrabberBase;
+                GrabTransformToPose(currentGrabber.grabberOrigin * currentGrabber.grabOffset);
+            }
+        }
+
+        protected void GrabRigidbodyToPose(RigidPose targetPose)
+        {
+            ModifyPose(ref targetPose, true);
+
+            RigidPose.SetRigidbodyVelocity(grabRigidbody, grabRigidbody.position, targetPose.pos, followingDuration);
+            RigidPose.SetRigidbodyAngularVelocity(grabRigidbody, grabRigidbody.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
+        }
+
+        protected void GrabTransformToPose(RigidPose targetPose)
+        {
+            ModifyPose(ref targetPose, true);
+
+            if (grabRigidbody != null)
+            {
+                grabRigidbody.velocity = Vector3.zero;
+                grabRigidbody.angularVelocity = Vector3.zero;
+            }
+
+            transform.position = targetPose.pos;
+            transform.rotation = targetPose.rot;
+        }
     }
 
-    [Obsolete("Use GrabbableBase.Generic<TGrabber> instead")]
+    [Obsolete("Use GrabbableBase<TEventData, TGrabber> instead")]
     public abstract class GrabbableBase<TGrabber> : BasePoseTracker where TGrabber : class, GrabbableBase<TGrabber>.IGrabber
     {
         public const float MIN_FOLLOWING_DURATION = 0.02f;
