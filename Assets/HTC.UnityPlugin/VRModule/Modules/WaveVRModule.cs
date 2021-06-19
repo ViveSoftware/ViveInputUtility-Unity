@@ -437,14 +437,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         WaveVR_ButtonList.EControllerButtons.Grip,
                         WaveVR_ButtonList.EControllerButtons.Menu,
                         WaveVR_ButtonList.EControllerButtons.Touchpad,
-                        WaveVR_ButtonList.EControllerButtons.Trigger
+                        WaveVR_ButtonList.EControllerButtons.Trigger,
+                        WaveVR_ButtonList.EControllerButtons.A_X,
+                        WaveVR_ButtonList.EControllerButtons.B_Y
                     };
                     buttonList.NonDominantButtons = new List<WaveVR_ButtonList.EControllerButtons>()
                     {
                         WaveVR_ButtonList.EControllerButtons.Grip,
                         WaveVR_ButtonList.EControllerButtons.Menu,
                         WaveVR_ButtonList.EControllerButtons.Touchpad,
-                        WaveVR_ButtonList.EControllerButtons.Trigger
+                        WaveVR_ButtonList.EControllerButtons.Trigger,
+                        WaveVR_ButtonList.EControllerButtons.A_X,
+                        WaveVR_ButtonList.EControllerButtons.B_Y
                     };
                 }
             }
@@ -584,6 +588,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var dpadUpPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Up);
                 var dpadRightPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Right);
                 var dpadDownPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Down);
+                var buttonAPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_A);
+                var buttonBPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_B);
+
                 currState.SetButtonPress(VRModuleRawButton.System, systemPressed);
                 currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPressed);
                 currState.SetButtonPress(VRModuleRawButton.Touchpad, touchpadPressed || dpadLeftPressed || dpadUpPressed || dpadRightPressed || dpadDownPressed);
@@ -593,6 +600,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState.SetButtonPress(VRModuleRawButton.DPadUp, dpadUpPressed);
                 currState.SetButtonPress(VRModuleRawButton.DPadRight, dpadRightPressed);
                 currState.SetButtonPress(VRModuleRawButton.DPadDown, dpadDownPressed);
+                currState.SetButtonPress(VRModuleRawButton.A, buttonAPressed);
+                currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, buttonBPressed);
 
                 var systemTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_System);
                 var menuTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Menu);
