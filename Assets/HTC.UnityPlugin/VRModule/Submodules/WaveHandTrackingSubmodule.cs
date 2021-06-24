@@ -87,7 +87,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     leftDeviceIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
 
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
                     currState.serialNumber = "WaveTrackedHandLeft";
                     currState.modelNumber = "WaveTrackedHandLeft";
                     currState.renderModelName = "WaveTrackedHandLeft";
@@ -120,7 +119,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     rightDeviceIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
 
-                    currState.deviceClass = VRModuleDeviceClass.TrackedHand;
                     currState.serialNumber = "WaveTrackedHandRight";
                     currState.modelNumber = "WaveTrackedHandRight";
                     currState.renderModelName = "WaveTrackedHandRight";
