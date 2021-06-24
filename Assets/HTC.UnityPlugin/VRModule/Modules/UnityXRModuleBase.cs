@@ -226,10 +226,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
             submodules.UpdateModulesDeviceConnectionAndPoses();
 
             // process hand role
+#if VIU_WAVE_XRSDK_4_1_0_OR_NEWER
+            var currentRight = submodules.GetFirstRightHandedIndex() != INVALID_DEVICE_INDEX ? submodules.GetFirstRightHandedIndex() : uxrRightIndex;
+            var currentLeft = submodules.GetFirstLeftHandedIndex() != INVALID_DEVICE_INDEX ? submodules.GetFirstLeftHandedIndex(): uxrLeftIndex;
+#else
             var currentRight = uxrRightIndex != INVALID_DEVICE_INDEX ? uxrRightIndex : submodules.GetFirstRightHandedIndex();
             var currentLeft = uxrLeftIndex != INVALID_DEVICE_INDEX ? uxrLeftIndex : submodules.GetFirstLeftHandedIndex();
+#endif
             var roleChanged = ChangeProp.Set(ref moduleRightIndex, currentRight);
             roleChanged |= ChangeProp.Set(ref moduleLeftIndex, currentLeft);
+
             if (roleChanged)
             {
                 InvokeControllerRoleChangedEvent();
