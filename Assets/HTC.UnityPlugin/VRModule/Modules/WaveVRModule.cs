@@ -625,7 +625,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 var triggerAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Trigger);
                 var touchAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Touchpad);
+                var gripAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Grip);
+
                 currState.SetAxisValue(VRModuleRawAxis.Trigger, triggerAxis.x);
+                currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, gripAxis.x);
                 currState.SetAxisValue(VRModuleRawAxis.TouchpadX, touchAxis.x);
                 currState.SetAxisValue(VRModuleRawAxis.TouchpadY, touchAxis.y);
             }
