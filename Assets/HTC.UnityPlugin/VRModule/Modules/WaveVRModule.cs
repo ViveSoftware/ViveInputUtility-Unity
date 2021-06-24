@@ -79,19 +79,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         UpdateDefaultRenderModel(false);
 
-                        m_modelObj = new GameObject("Model");
-                        m_modelObj.SetActive(false);
-                        m_modelObj.transform.SetParent(hook.transform, false);
+                        if (m_modelObj == null)
+                        {
+                            m_modelObj = new GameObject("Model");
+                            m_modelObj.transform.SetParent(hook.transform, false);
+                            m_modelObj.SetActive(false);
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
 #if VIU_WAVE_XRSDK_3_99_31_OR_NEWER
-                        m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
+                            m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
 #endif
-                        m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
-                        m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
+                            m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
+                            m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
 #elif VIU_WAVEXR_ESSENCE_RENDERMODEL
-                        m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
-                        m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                            m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
+                            m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
 #endif
+                        }
+
                         m_modelObj.SetActive(true);
                     }
                 }
@@ -112,24 +116,28 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         UpdateDefaultRenderModel(false);
 
-                        m_modelObj = new GameObject("Model");
-                        m_modelObj.SetActive(false);
-                        m_modelObj.transform.SetParent(hook.transform, false);
+                        if (m_modelObj == null)
+                        {
+                            m_modelObj = new GameObject("Model");
+                            m_modelObj.transform.SetParent(hook.transform, false);
+                            m_modelObj.SetActive(false);
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
 #if VIU_WAVE_XRSDK_3_99_31_OR_NEWER
-                        var pm = m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
-                        pm.WhichHand = XR_Hand.NonDominant;
+                            var pm = m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
+                            pm.WhichHand = XR_Hand.NonDominant;
 #endif
-                        var rm = m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
-                        rm.WhichHand = XR_Hand.NonDominant;
-                        var be = m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
-                        be.HandType = XR_Hand.NonDominant;
+                            var rm = m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
+                            rm.WhichHand = XR_Hand.NonDominant;
+                            var be = m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
+                            be.HandType = XR_Hand.NonDominant;
 #elif VIU_WAVEXR_ESSENCE_RENDERMODEL
-                        var rm = m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
-                        rm.WhichHand = XR_Hand.NonDominant;
-                        var be = m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
-                        be.HandType = XR_Hand.NonDominant;
+                            var rm = m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
+                            rm.WhichHand = XR_Hand.NonDominant;
+                            var be = m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                            be.HandType = XR_Hand.NonDominant;
 #endif
+                        }
+
                         m_modelObj.SetActive(true);
                     }
                 }
