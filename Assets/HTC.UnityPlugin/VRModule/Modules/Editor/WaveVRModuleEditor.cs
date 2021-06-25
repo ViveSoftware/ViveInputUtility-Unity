@@ -41,25 +41,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             Add(new SymbolRequirement()
             {
-                symbol = "VIU_WAVE_XRSDK_4_1_0_OR_NEWER",
-                reqTypeNames = new string[] { "Wave.Native.WVR_EventType" },
-                validateFunc = (req) =>
-                {
-                    Type wvrEventType;
-                    if (SymbolRequirement.s_foundTypes.TryGetValue("Wave.Native.WVR_EventType", out wvrEventType) && wvrEventType.IsEnum)
-                    {
-                        if (Enum.IsDefined(wvrEventType, "WVR_EventType_ArenaChanged"))
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-                reqFileNames = new string[] { "wvr.cs" },
-            });
-
-            Add(new SymbolRequirement()
-            {
                 symbol = "VIU_WAVE_XRSDK_3_99_31_OR_NEWER",
                 reqMethods = new SymbolRequirement.ReqMethodInfo[]
                 {

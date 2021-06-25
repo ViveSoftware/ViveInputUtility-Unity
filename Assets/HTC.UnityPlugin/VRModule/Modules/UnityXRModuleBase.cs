@@ -226,13 +226,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             submodules.UpdateModulesDeviceConnectionAndPoses();
 
             // process hand role
-#if VIU_WAVE_XRSDK_4_1_0_OR_NEWER
-            var currentRight = submodules.GetFirstRightHandedIndex() != INVALID_DEVICE_INDEX ? submodules.GetFirstRightHandedIndex() : uxrRightIndex;
-            var currentLeft = submodules.GetFirstLeftHandedIndex() != INVALID_DEVICE_INDEX ? submodules.GetFirstLeftHandedIndex(): uxrLeftIndex;
-#else
-            var currentRight = uxrRightIndex != INVALID_DEVICE_INDEX ? uxrRightIndex : submodules.GetFirstRightHandedIndex();
-            var currentLeft = uxrLeftIndex != INVALID_DEVICE_INDEX ? uxrLeftIndex : submodules.GetFirstLeftHandedIndex();
-#endif
+            var subRightIndex = submodules.GetFirstRightHandedIndex();
+            var currentRight = (subRightIndex == INVALID_DEVICE_INDEX || (TryGetValidDeviceState(uxrRightIndex, out prevState, out currState) && currState.isPoseValid)) ? uxrRightIndex : subRightIndex;
+            var subLeftIndex = submodules.GetFirstLeftHandedIndex();
+            var currentLeft = (subLeftIndex == INVALID_DEVICE_INDEX || (TryGetValidDeviceState(uxrLeftIndex, out prevState, out currState) && currState.isPoseValid)) ? uxrLeftIndex : subLeftIndex;
             var roleChanged = ChangeProp.Set(ref moduleRightIndex, currentRight);
             roleChanged |= ChangeProp.Set(ref moduleLeftIndex, currentLeft);
 
