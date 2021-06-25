@@ -130,6 +130,14 @@ namespace HTC.UnityPlugin.Vive
                         shouldActiveModelObj = Instantiate(shouldActiveModelPrefab);
                         shouldActiveModelObj.transform.position = Vector3.zero;
                         shouldActiveModelObj.transform.rotation = Quaternion.identity;
+                        if (hook.m_overrideShader != null)
+                        {
+                            var renderer = shouldActiveModelObj.GetComponentInChildren<Renderer>();
+                            if (renderer != null)
+                            {
+                                renderer.material.shader = hook.m_overrideShader;
+                            }
+                        }
                         shouldActiveModelObj.transform.SetParent(hook.transform, false);
                         m_modelObjs[shouldActiveModelNum] = shouldActiveModelObj;
                         m_activeModel = shouldActiveModelNum;
