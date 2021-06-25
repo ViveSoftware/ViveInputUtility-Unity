@@ -120,7 +120,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     updateFunc = UpdateWaveCRControllerState;
                     break;
                 default:
-                    updateFunc = null;
+                    updateFunc = UpdateUnknownControllerState;
                     break;
             }
 
@@ -174,6 +174,48 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     UpdateViveFocusFinchControllerState(state, device);
                     break;
             }
+        }
+
+        private void UpdateUnknownControllerState(IVRModuleDeviceStateRW state, InputDevice device)
+        {
+            bool primaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryButton);
+            bool primaryTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryTouch);
+            bool secondaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryButton);
+            bool secondaryTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryTouch);
+            bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
+            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
+            bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+            bool primary2DAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisClick);
+            bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch);
+            bool secondary2DAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxisClick);
+            bool secondary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxisTouch);
+
+            float triggerValue = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
+            float gripValue = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip);
+
+            Vector2 primary2DAxisValue = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
+            Vector2 secondary2DAxisValue = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxis);
+
+            state.SetButtonPress(VRModuleRawButton.A, primaryButton);
+            state.SetButtonPress(VRModuleRawButton.ApplicationMenu, secondaryButton | menuButton);
+            state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
+            state.SetButtonPress(VRModuleRawButton.Grip, gripButton);
+            state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
+            state.SetButtonPress(VRModuleRawButton.Joystick, secondary2DAxisClick);
+
+            state.SetButtonTouch(VRModuleRawButton.A, primaryTouch);
+            state.SetButtonTouch(VRModuleRawButton.ApplicationMenu, secondaryTouch | menuButton);
+            state.SetButtonTouch(VRModuleRawButton.Trigger, triggerButton);
+            state.SetButtonTouch(VRModuleRawButton.Grip, gripButton);
+            state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
+            state.SetButtonTouch(VRModuleRawButton.Joystick, secondary2DAxisTouch);
+            
+            state.SetAxisValue(VRModuleRawAxis.Trigger, triggerValue);
+            state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, gripValue);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxisValue.x);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxisValue.y);
+            state.SetAxisValue(VRModuleRawAxis.JoystickX, secondary2DAxisValue.x);
+            state.SetAxisValue(VRModuleRawAxis.JoystickY, secondary2DAxisValue.y);
         }
 
         private void UpdateViveControllerState(IVRModuleDeviceStateRW state, InputDevice device)
@@ -331,8 +373,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
             state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
-            state.SetAxisValue(VRModuleRawAxis.JoystickX, primary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.JoystickY, primary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
 
             if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenVR)
             {
@@ -639,7 +681,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch); // Touchpad
             bool secondary2DAxisClick = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisClick")); // No data
             bool secondary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisTouch")); // No data
-            bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton); // Trigger
+            bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
             bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton); // No Data
             float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger); // No Data
             Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis); // Touchpad
@@ -647,7 +689,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Vector2 dPad = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<Vector2>("DPad")); // No Data
 
             state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
-            state.SetButtonPress(VRModuleRawButton.Trigger, gripButton);
+            state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
             state.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuButton);
             state.SetButtonPress(VRModuleRawButton.DPadUp, dPad.y > 0);
             state.SetButtonPress(VRModuleRawButton.DPadDown, dPad.y < 0);

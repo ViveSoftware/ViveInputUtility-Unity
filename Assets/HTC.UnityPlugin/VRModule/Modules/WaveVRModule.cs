@@ -79,19 +79,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         UpdateDefaultRenderModel(false);
 
-                        m_modelObj = new GameObject("Model");
-                        m_modelObj.SetActive(false);
-                        m_modelObj.transform.SetParent(hook.transform, false);
+                        if (m_modelObj == null)
+                        {
+                            m_modelObj = new GameObject("Model");
+                            m_modelObj.transform.SetParent(hook.transform, false);
+                            m_modelObj.SetActive(false);
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
 #if VIU_WAVE_XRSDK_3_99_31_OR_NEWER
-                        m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
+                            m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
 #endif
-                        m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
-                        m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
+                            m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
+                            m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
 #elif VIU_WAVEXR_ESSENCE_RENDERMODEL
-                        m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
-                        m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                            m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
+                            m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
 #endif
+                        }
+
                         m_modelObj.SetActive(true);
                     }
                 }
@@ -112,24 +116,28 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         UpdateDefaultRenderModel(false);
 
-                        m_modelObj = new GameObject("Model");
-                        m_modelObj.SetActive(false);
-                        m_modelObj.transform.SetParent(hook.transform, false);
+                        if (m_modelObj == null)
+                        {
+                            m_modelObj = new GameObject("Model");
+                            m_modelObj.transform.SetParent(hook.transform, false);
+                            m_modelObj.SetActive(false);
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL
 #if VIU_WAVE_XRSDK_3_99_31_OR_NEWER
-                        var pm = m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
-                        pm.WhichHand = XR_Hand.NonDominant;
+                            var pm = m_modelObj.transform.parent.gameObject.AddComponent<PoseMode>();
+                            pm.WhichHand = XR_Hand.NonDominant;
 #endif
-                        var rm = m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
-                        rm.WhichHand = XR_Hand.NonDominant;
-                        var be = m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
-                        be.HandType = XR_Hand.NonDominant;
+                            var rm = m_modelObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
+                            rm.WhichHand = XR_Hand.NonDominant;
+                            var be = m_modelObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
+                            be.HandType = XR_Hand.NonDominant;
 #elif VIU_WAVEXR_ESSENCE_RENDERMODEL
-                        var rm = m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
-                        rm.WhichHand = XR_Hand.NonDominant;
-                        var be = m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
-                        be.HandType = XR_Hand.NonDominant;
+                            var rm = m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
+                            rm.WhichHand = XR_Hand.NonDominant;
+                            var be = m_modelObj.AddComponent<Wave.Essence.Controller.ButtonEffect>();
+                            be.HandType = XR_Hand.NonDominant;
 #endif
+                        }
+
                         m_modelObj.SetActive(true);
                     }
                 }
@@ -437,14 +445,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         WaveVR_ButtonList.EControllerButtons.Grip,
                         WaveVR_ButtonList.EControllerButtons.Menu,
                         WaveVR_ButtonList.EControllerButtons.Touchpad,
-                        WaveVR_ButtonList.EControllerButtons.Trigger
+                        WaveVR_ButtonList.EControllerButtons.Trigger,
+                        WaveVR_ButtonList.EControllerButtons.A_X,
+                        WaveVR_ButtonList.EControllerButtons.B_Y
                     };
                     buttonList.NonDominantButtons = new List<WaveVR_ButtonList.EControllerButtons>()
                     {
                         WaveVR_ButtonList.EControllerButtons.Grip,
                         WaveVR_ButtonList.EControllerButtons.Menu,
                         WaveVR_ButtonList.EControllerButtons.Touchpad,
-                        WaveVR_ButtonList.EControllerButtons.Trigger
+                        WaveVR_ButtonList.EControllerButtons.Trigger,
+                        WaveVR_ButtonList.EControllerButtons.A_X,
+                        WaveVR_ButtonList.EControllerButtons.B_Y
                     };
                 }
             }
@@ -584,6 +596,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var dpadUpPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Up);
                 var dpadRightPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Right);
                 var dpadDownPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_DPad_Down);
+                var buttonAPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_A);
+                var buttonBPressed = deviceInput.GetPress(WVR_InputId.WVR_InputId_Alias1_B);
+
                 currState.SetButtonPress(VRModuleRawButton.System, systemPressed);
                 currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuPressed);
                 currState.SetButtonPress(VRModuleRawButton.Touchpad, touchpadPressed || dpadLeftPressed || dpadUpPressed || dpadRightPressed || dpadDownPressed);
@@ -593,6 +608,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currState.SetButtonPress(VRModuleRawButton.DPadUp, dpadUpPressed);
                 currState.SetButtonPress(VRModuleRawButton.DPadRight, dpadRightPressed);
                 currState.SetButtonPress(VRModuleRawButton.DPadDown, dpadDownPressed);
+                currState.SetButtonPress(VRModuleRawButton.A, buttonAPressed);
+                currState.SetButtonPress(VRModuleRawButton.ApplicationMenu, buttonBPressed);
 
                 var systemTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_System);
                 var menuTouched = deviceInput.GetTouch(WVR_InputId.WVR_InputId_Alias1_Menu);
@@ -616,7 +633,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 var triggerAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Trigger);
                 var touchAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Touchpad);
+                var gripAxis = deviceInput.GetAxis(WVR_InputId.WVR_InputId_Alias1_Grip);
+
                 currState.SetAxisValue(VRModuleRawAxis.Trigger, triggerAxis.x);
+                currState.SetAxisValue(VRModuleRawAxis.CapSenseGrip, gripAxis.x);
                 currState.SetAxisValue(VRModuleRawAxis.TouchpadX, touchAxis.x);
                 currState.SetAxisValue(VRModuleRawAxis.TouchpadY, touchAxis.y);
             }

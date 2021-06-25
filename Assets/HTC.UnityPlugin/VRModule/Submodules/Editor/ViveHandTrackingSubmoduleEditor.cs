@@ -15,6 +15,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqTypeNames = new string[] { "ViveHandTracking.GestureInterface", "ViveHandTracking.GestureOption" },
                 reqFileNames = new string[] { "aristo_interface.dll", "GestureInterface.cs" },
             });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_VIVE_HAND_TRACKING_0_10_0_OR_NEWER",
+                reqFileNames = new string[] { "GestureResultExtension.cs" },
+            });
+
         }
     }
 }

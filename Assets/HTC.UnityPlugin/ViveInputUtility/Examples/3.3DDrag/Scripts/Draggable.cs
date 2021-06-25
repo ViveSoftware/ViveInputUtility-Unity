@@ -53,11 +53,11 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
             {
                 var cam = eventData.pointerPressRaycast.module.eventCamera;
                 var ray = cam.ScreenPointToRay(eventData.position);
-                return new RigidPose(ray.origin, Quaternion.LookRotation(ray.direction, cam.transform.up));
+                return new RigidPose(ray.origin, Quaternion.LookRotation(ray.direction, cam.transform.up)) * grabber2hit;
             }
         }
 
-        public override RigidPose grabOffset { get { return grabber2hit * hit2pivot; } set { hit2pivot = grabber2hit.GetInverse() * value; } }
+        public override RigidPose grabOffset { get { return hit2pivot; } set { hit2pivot = value; } }
 
         public RigidPose grabber2hit { get; set; }
 
@@ -94,6 +94,10 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
     [SerializeField]
     [FormerlySerializedAs("m_scrollDelta")]
     private float m_scrollingSpeed = 0.01f;
+    [SerializeField]
+    private float m_minStretchScale = 1f;
+    [SerializeField]
+    private float m_maxStretchScale = 1f;
     [FormerlySerializedAs("afterGrabbed")]
     [SerializeField]
     private UnityEventDraggable m_afterGrabbed = new UnityEventDraggable();
@@ -115,6 +119,10 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
     public override bool overrideMaxAngularVelocity { get { return m_overrideMaxAngularVelocity; } set { m_overrideMaxAngularVelocity = value; } }
 
     public bool unblockableGrab { get { return m_unblockableGrab; } set { m_unblockableGrab = value; } }
+
+    public override float minScaleOnStretch { get { return m_minStretchScale; } set { m_minStretchScale = value; } }
+
+    public override float maxScaleOnStretch { get { return m_maxStretchScale; } set { m_maxStretchScale = value; } }
 
     public UnityEventDraggable afterGrabbed { get { return m_afterGrabbed; } }
 
@@ -189,15 +197,16 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
         }
     }
 
+    private static WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
     private IEnumerator PhysicsGrabUpdate()
     {
-        yield return new WaitForFixedUpdate();
+        yield return waitForFixedUpdate;
 
         while (isGrabbed)
         {
             OnGrabRigidbody();
 
-            yield return new WaitForFixedUpdate();
+            yield return waitForFixedUpdate;
         }
 
         yield break;
@@ -209,11 +218,14 @@ public class Draggable : GrabbableBase<PointerEventData, Draggable.Grabber>
 
         while (isGrabbed)
         {
-            var grabber = currentGrabber;
-            var scrollDelta = grabber.eventData.scrollDelta * m_scrollingSpeed;
-            if (scrollDelta != Vector2.zero)
+            for (int i = allGrabbers.Count - 1; i >= 0; --i)
             {
-                grabber.hitDistance = Mathf.Max(0f, grabber.hitDistance + scrollDelta.y);
+                var grabber = allGrabbers.GetValueByIndex(i);
+                var scrollDelta = grabber.eventData.scrollDelta * m_scrollingSpeed;
+                if (scrollDelta != Vector2.zero)
+                {
+                    grabber.hitDistance = Mathf.Max(0f, grabber.hitDistance + scrollDelta.y);
+                }
             }
 
             if (!moveByVelocity)
