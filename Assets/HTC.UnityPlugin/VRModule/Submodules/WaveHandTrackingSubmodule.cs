@@ -475,7 +475,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     state.handJoints[handJointMapping[s_NaturalHandJoints[i]]] = new JointPose(p);
                 }
 
-                state.isPoseValid = data.isValidPose;
+                state.isPoseValid = data.isValidPose && !Interop.WVR_IsInputFocusCapturedBySystem();
                 state.pose = state.handJoints[HandJointName.Wrist].pose;
             }
 
