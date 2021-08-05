@@ -525,6 +525,26 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 state.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
                 state.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
                 state.SetAxisValue(VRModuleRawAxis.Trigger, pinch.pinch.strength);
+
+                var indexCurl = GetFingerCurl(state, HandJointName.IndexTip);
+                var middleCurl = GetFingerCurl(state, HandJointName.MiddleTip);
+                var ringCurl = GetFingerCurl(state, HandJointName.MiddleTip);
+                var pinkyCurl = GetFingerCurl(state, HandJointName.PinkyTip);
+                state.SetAxisValue(VRModuleRawAxis.IndexCurl, indexCurl);
+                state.SetAxisValue(VRModuleRawAxis.MiddleCurl, middleCurl);
+                state.SetAxisValue(VRModuleRawAxis.RingCurl, ringCurl);
+                state.SetAxisValue(VRModuleRawAxis.PinkyCurl, pinkyCurl);
+                state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, (indexCurl + middleCurl + ringCurl + pinkyCurl) * 0.25f);
+                state.SetButtonPress(VRModuleRawButton.Grip, indexCurl > 0.75f && middleCurl > 0.75f && ringCurl > 0.75f && pinkyCurl > 0.75f);
+                state.SetButtonTouch(VRModuleRawButton.Grip, indexCurl > 0.5f && middleCurl > 0.5f && ringCurl > 0.5f && pinkyCurl > 0.5f);
+            }
+
+            private float GetFingerCurl(IVRModuleDeviceStateRW state, HandJointName finger)
+            {
+                var palmDir = state.pose.forward;
+                var fingerDir = state.handJoints[finger].pose.forward;
+                var angle = Vector3.SignedAngle(palmDir, fingerDir, state.handJoints[finger].pose.right);
+                return Mathf.InverseLerp(0f, 180f, angle);
             }
 
             private static void InitializeHandTrackerInfo(ref WVR_HandTrackerInfo_t handTrackerInfo, ref WVR_HandJoint[] jointMappingArray, ref ulong[] jointValidFlagArray, uint count)
