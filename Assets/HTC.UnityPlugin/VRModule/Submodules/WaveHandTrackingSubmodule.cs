@@ -39,7 +39,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 
         private DeviceFeature deviceFeature;
-        private TrackingActivator trackingActivator = TrackingActivator.Default;
+        private static TrackingActivator trackingActivator = TrackingActivator.Default;
         private GestureActivator gestureActivator = GestureActivator.Default;
         private uint leftDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
         private uint rightDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
@@ -185,6 +185,40 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override uint GetLeftHandedIndex() { return leftDeviceIndex; }
 
         public override uint GetRightHandedIndex() { return rightDeviceIndex; }
+
+        public static bool TryGetLeftPinchRay(out Vector3 origin, out Vector3 direction)
+        {
+            if (!trackingActivator.isLeftValid)
+            {
+                origin = Vector3.zero;
+                direction = Vector3.zero;
+
+                return false;
+            }
+
+            var pinch = trackingActivator.getLeftPinchData;
+            Coordinate.GetVectorFromGL(pinch.pinch.origin, out origin);
+            Coordinate.GetVectorFromGL(pinch.pinch.direction, out direction);
+
+            return true;
+        }
+
+        public static bool TryGetRightPinchRay(out Vector3 origin, out Vector3 direction)
+        {
+            if (!trackingActivator.isRightValid)
+            {
+                origin = Vector3.zero;
+                direction = Vector3.zero;
+
+                return false;
+            }
+
+            var pinch = trackingActivator.getRightPinchData;
+            Coordinate.GetVectorFromGL(pinch.pinch.origin, out origin);
+            Coordinate.GetVectorFromGL(pinch.pinch.direction, out direction);
+
+            return true;
+        }
 
         private enum FeatureActivity
         {
@@ -462,6 +496,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public bool isRightValid { get { return trackingData.right.isValidPose; } }
 
+            public WVR_HandPoseState_t getLeftPinchData { get { return pinchData.left; } }
+
+            public WVR_HandPoseState_t getRightPinchData { get { return pinchData.right; } }
+
             public void UpdateJoints(IVRModuleDeviceStateRW state, bool isLeft)
             {
                 var data = isLeft ? trackingData.left : trackingData.right;
@@ -482,7 +520,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public void UpdateDeviceInput(IVRModuleDeviceStateRW state, bool isLeft)
             {
                 var pinch = isLeft ? pinchData.left : pinchData.right;
-                var pinched = pinch.pinch.strength >= 0.95f;
+                var pinched = pinch.pinch.strength >= 0.5f;
 
                 state.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
                 state.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
