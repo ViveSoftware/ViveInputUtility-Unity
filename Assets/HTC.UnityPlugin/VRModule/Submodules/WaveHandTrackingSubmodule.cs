@@ -492,9 +492,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return false;
             }
 
-            public bool isLeftValid { get { return trackingData.left.isValidPose; } }
+            public bool isLeftValid { get { return trackingData.left.isValidPose && !Interop.WVR_IsInputFocusCapturedBySystem(); } }
 
-            public bool isRightValid { get { return trackingData.right.isValidPose; } }
+            public bool isRightValid { get { return trackingData.right.isValidPose && !Interop.WVR_IsInputFocusCapturedBySystem(); } }
 
             public WVR_HandPoseState_t getLeftPinchData { get { return pinchData.left; } }
 
