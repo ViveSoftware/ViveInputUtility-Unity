@@ -261,6 +261,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+            submodules.UpdateAllModulesActivity();
             submodules.UpdateModulesDeviceInput();
 
             UpdateHapticVibration();

@@ -39,7 +39,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 
         private DeviceFeature deviceFeature;
-        private TrackingActivator trackingActivator = TrackingActivator.Default;
+        private static TrackingActivator trackingActivator = TrackingActivator.Default;
         private GestureActivator gestureActivator = GestureActivator.Default;
         private uint leftDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
         private uint rightDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
@@ -185,6 +185,40 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override uint GetLeftHandedIndex() { return leftDeviceIndex; }
 
         public override uint GetRightHandedIndex() { return rightDeviceIndex; }
+
+        public static bool TryGetLeftPinchRay(out Vector3 origin, out Vector3 direction)
+        {
+            if (!trackingActivator.isLeftValid)
+            {
+                origin = Vector3.zero;
+                direction = Vector3.zero;
+
+                return false;
+            }
+
+            var pinch = trackingActivator.getLeftPinchData;
+            Coordinate.GetVectorFromGL(pinch.pinch.origin, out origin);
+            Coordinate.GetVectorFromGL(pinch.pinch.direction, out direction);
+
+            return true;
+        }
+
+        public static bool TryGetRightPinchRay(out Vector3 origin, out Vector3 direction)
+        {
+            if (!trackingActivator.isRightValid)
+            {
+                origin = Vector3.zero;
+                direction = Vector3.zero;
+
+                return false;
+            }
+
+            var pinch = trackingActivator.getRightPinchData;
+            Coordinate.GetVectorFromGL(pinch.pinch.origin, out origin);
+            Coordinate.GetVectorFromGL(pinch.pinch.direction, out direction);
+
+            return true;
+        }
 
         private enum FeatureActivity
         {
@@ -458,9 +492,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return false;
             }
 
-            public bool isLeftValid { get { return trackingData.left.isValidPose; } }
+            public bool isLeftValid { get { return trackingData.left.isValidPose && !Interop.WVR_IsInputFocusCapturedBySystem(); } }
 
-            public bool isRightValid { get { return trackingData.right.isValidPose; } }
+            public bool isRightValid { get { return trackingData.right.isValidPose && !Interop.WVR_IsInputFocusCapturedBySystem(); } }
+
+            public WVR_HandPoseState_t getLeftPinchData { get { return pinchData.left; } }
+
+            public WVR_HandPoseState_t getRightPinchData { get { return pinchData.right; } }
 
             public void UpdateJoints(IVRModuleDeviceStateRW state, bool isLeft)
             {
@@ -475,18 +513,41 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     state.handJoints[handJointMapping[s_NaturalHandJoints[i]]] = new JointPose(p);
                 }
 
-                state.isPoseValid = data.isValidPose;
+                state.isPoseValid = data.isValidPose && !Interop.WVR_IsInputFocusCapturedBySystem();
                 state.pose = state.handJoints[HandJointName.Wrist].pose;
             }
 
             public void UpdateDeviceInput(IVRModuleDeviceStateRW state, bool isLeft)
             {
                 var pinch = isLeft ? pinchData.left : pinchData.right;
-                var pinched = pinch.pinch.strength >= 0.95f;
+                var pinched = pinch.pinch.strength >= 0.5f;
 
                 state.SetButtonPress(VRModuleRawButton.GestureIndexPinch, pinched);
                 state.SetButtonTouch(VRModuleRawButton.GestureIndexPinch, pinched);
                 state.SetAxisValue(VRModuleRawAxis.Trigger, pinch.pinch.strength);
+
+                var indexCurl = GetFingerCurl(state, HandJointName.IndexTip);
+                var middleCurl = GetFingerCurl(state, HandJointName.MiddleTip);
+                var ringCurl = GetFingerCurl(state, HandJointName.RingTip);
+                var pinkyCurl = GetFingerCurl(state, HandJointName.PinkyTip);
+                var curlAvg = (indexCurl + middleCurl + ringCurl + pinkyCurl) * 0.25f;
+
+                state.SetAxisValue(VRModuleRawAxis.IndexCurl, indexCurl);
+                state.SetAxisValue(VRModuleRawAxis.MiddleCurl, middleCurl);
+                state.SetAxisValue(VRModuleRawAxis.RingCurl, ringCurl);
+                state.SetAxisValue(VRModuleRawAxis.PinkyCurl, pinkyCurl);
+                state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, curlAvg);
+                state.SetButtonPress(VRModuleRawButton.Grip, curlAvg > 0.75f);
+                state.SetButtonTouch(VRModuleRawButton.Grip, curlAvg > 0.50f);
+            }
+
+            private float GetFingerCurl(IVRModuleDeviceStateRW state, HandJointName finger)
+            {
+                var palmDir = state.pose.forward;
+                var fingerDir = state.handJoints[finger].pose.forward;
+                var angle = Vector3.SignedAngle(palmDir, fingerDir, state.pose.right);
+                if (angle < -90f) { angle += 360f; }
+                return Mathf.InverseLerp(0f, 180f, angle);
             }
 
             private static void InitializeHandTrackerInfo(ref WVR_HandTrackerInfo_t handTrackerInfo, ref WVR_HandJoint[] jointMappingArray, ref ulong[] jointValidFlagArray, uint count)
