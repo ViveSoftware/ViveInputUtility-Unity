@@ -786,6 +786,12 @@ namespace HTC.UnityPlugin.Vive
             EditorGUILayout.LabelField("<b>Other</b>", s_labelStyle);
             GUILayout.Space(5);
 
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.indentLevel += 1;
+            VRModuleSettings.initializeOnStartup = EditorGUILayout.ToggleLeft(new GUIContent("Initialize on Startup", VRModuleSettings.INITIALIZE_ON_STARTUP_TOOLTIP), VRModuleSettings.initializeOnStartup);
+            EditorGUI.indentLevel -= 1;
+            s_guiChanged |= EditorGUI.EndChangeCheck();
+
             s_overrideModelFoldouter.ShowFoldoutWithLabel(new GUIContent("Globel Custom Render Model", "Override model object created by RenderModelHook with custom render model"));
             if (s_overrideModelFoldouter.isExpended)
             {
@@ -864,84 +870,95 @@ namespace HTC.UnityPlugin.Vive
                 VRModuleManagerEditor.UpdateScriptingDefineSymbols();
             }
 
-            //if (GUILayout.Button("Create Partial Action Set", GUILayout.ExpandWidth(false)))
-            //{
-            //    var actionFile = new SteamVRExtension.VIUSteamVRActionFile()
-            //    {
-            //        dirPath = VIUProjectSettings.partialActionDirPath,
-            //        fileName = VIUProjectSettings.partialActionFileName,
-            //    };
+            if (false && GUILayout.Button("Create Partial Action Set", GUILayout.ExpandWidth(false)))
+            {
+                var actionFile = new SteamVRExtension.VIUSteamVRActionFile()
+                {
+                    dirPath = VIUProjectSettings.partialActionDirPath,
+                    fileName = VIUProjectSettings.partialActionFileName,
+                };
 
-            //    actionFile.action_sets.Add(new SteamVRExtension.VIUSteamVRActionFile.ActionSet()
-            //    {
-            //        name = SteamVRModule.ACTION_SET_NAME,
-            //        usage = "leftright",
-            //    });
+                actionFile.action_sets.Add(new SteamVRExtension.VIUSteamVRActionFile.ActionSet()
+                {
+                    name = SteamVRModule.ACTION_SET_NAME,
+                    usage = "leftright",
+                });
 
-            //    actionFile.localization.Add(new SteamVRExtension.VIUSteamVRActionFile.Localization()
-            //    {
-            //        { "language_tag", "en_US" },
-            //    });
+                actionFile.localization.Add(new SteamVRExtension.VIUSteamVRActionFile.Localization()
+                {
+                    { "language_tag", "en_US" },
+                });
 
-            //    SteamVRModule.InitializePaths();
-            //    for (SteamVRModule.pressActions.Reset(); SteamVRModule.pressActions.IsCurrentValid(); SteamVRModule.pressActions.MoveNext())
-            //    {
-            //        if (string.IsNullOrEmpty(SteamVRModule.pressActions.CurrentPath)) { continue; }
-            //        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
-            //        {
-            //            name = SteamVRModule.pressActions.CurrentPath,
-            //            type = SteamVRModule.pressActions.DataType,
-            //            requirement = "optional",
-            //        });
-            //        actionFile.localization[0].Add(SteamVRModule.pressActions.CurrentPath, SteamVRModule.pressActions.CurrentAlias);
-            //    }
-            //    for (SteamVRModule.touchActions.Reset(); SteamVRModule.touchActions.IsCurrentValid(); SteamVRModule.touchActions.MoveNext())
-            //    {
-            //        if (string.IsNullOrEmpty(SteamVRModule.touchActions.CurrentPath)) { continue; }
-            //        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
-            //        {
-            //            name = SteamVRModule.touchActions.CurrentPath,
-            //            type = SteamVRModule.touchActions.DataType,
-            //            requirement = "optional",
-            //        });
-            //        actionFile.localization[0].Add(SteamVRModule.touchActions.CurrentPath, SteamVRModule.touchActions.CurrentAlias);
-            //    }
-            //    for (SteamVRModule.v1Actions.Reset(); SteamVRModule.v1Actions.IsCurrentValid(); SteamVRModule.v1Actions.MoveNext())
-            //    {
-            //        if (string.IsNullOrEmpty(SteamVRModule.v1Actions.CurrentPath)) { continue; }
-            //        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
-            //        {
-            //            name = SteamVRModule.v1Actions.CurrentPath,
-            //            type = SteamVRModule.v1Actions.DataType,
-            //            requirement = "optional",
-            //        });
-            //        actionFile.localization[0].Add(SteamVRModule.v1Actions.CurrentPath, SteamVRModule.v1Actions.CurrentAlias);
-            //    }
-            //    for (SteamVRModule.v2Actions.Reset(); SteamVRModule.v2Actions.IsCurrentValid(); SteamVRModule.v2Actions.MoveNext())
-            //    {
-            //        if (string.IsNullOrEmpty(SteamVRModule.v2Actions.CurrentPath)) { continue; }
-            //        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
-            //        {
-            //            name = SteamVRModule.v2Actions.CurrentPath,
-            //            type = SteamVRModule.v2Actions.DataType,
-            //            requirement = "optional",
-            //        });
-            //        actionFile.localization[0].Add(SteamVRModule.v2Actions.CurrentPath, SteamVRModule.v2Actions.CurrentAlias);
-            //    }
-            //    for (SteamVRModule.vibrateActions.Reset(); SteamVRModule.vibrateActions.IsCurrentValid(); SteamVRModule.vibrateActions.MoveNext())
-            //    {
-            //        if (string.IsNullOrEmpty(SteamVRModule.vibrateActions.CurrentPath)) { continue; }
-            //        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
-            //        {
-            //            name = SteamVRModule.vibrateActions.CurrentPath,
-            //            type = SteamVRModule.vibrateActions.DataType,
-            //            requirement = "optional",
-            //        });
-            //        actionFile.localization[0].Add(SteamVRModule.vibrateActions.CurrentPath, SteamVRModule.vibrateActions.CurrentAlias);
-            //    }
+                SteamVRModule.InitializePaths();
+                foreach (var rawBtn in EnumArrayBase<VRModuleRawButton>.StaticEnums)
+                {
+                    var pressPath = SteamVRModule.pressActions.ActionPaths[(int)rawBtn];
+                    if (!string.IsNullOrEmpty(pressPath))
+                    {
+                        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
+                        {
+                            name = pressPath,
+                            type = SteamVRModule.pressActions.DataTypeName,
+                            requirement = "optional",
+                        });
+                        actionFile.localization[0].Add(pressPath, SteamVRModule.pressActions.ActionAlias[(int)rawBtn]);
+                    }
 
-            //    actionFile.Save();
-            //}
+                    var touchPath = SteamVRModule.touchActions.ActionPaths[(int)rawBtn];
+                    if (!string.IsNullOrEmpty(touchPath))
+                    {
+                        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
+                        {
+                            name = touchPath,
+                            type = SteamVRModule.touchActions.DataTypeName,
+                            requirement = "optional",
+                        });
+                        actionFile.localization[0].Add(touchPath, SteamVRModule.touchActions.ActionAlias[(int)rawBtn]);
+                    }
+                }
+                foreach (var rawAxis in EnumArrayBase<VRModuleRawButton>.StaticEnums)
+                {
+                    var v1Path = SteamVRModule.v1Actions.ActionPaths[(int)rawAxis];
+                    if (!string.IsNullOrEmpty(v1Path))
+                    {
+                        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
+                        {
+                            name = v1Path,
+                            type = SteamVRModule.v1Actions.DataTypeName,
+                            requirement = "optional",
+                        });
+                        actionFile.localization[0].Add(v1Path, SteamVRModule.v1Actions.ActionAlias[(int)rawAxis]);
+                    }
+
+                    var v2Path = SteamVRModule.v2Actions.ActionPaths[(int)rawAxis];
+                    if (!string.IsNullOrEmpty(v2Path))
+                    {
+                        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
+                        {
+                            name = v2Path,
+                            type = SteamVRModule.v1Actions.DataTypeName,
+                            requirement = "optional",
+                        });
+                        actionFile.localization[0].Add(v2Path, SteamVRModule.v2Actions.ActionAlias[(int)rawAxis]);
+                    }
+                }
+                foreach (var haptic in EnumArrayBase<SteamVRModule.HapticStruct>.StaticEnums)
+                {
+                    var path = SteamVRModule.vibrateActions.ActionPaths[(int)haptic];
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        actionFile.actions.Add(new SteamVRExtension.VIUSteamVRActionFile.Action()
+                        {
+                            name = path,
+                            type = SteamVRModule.vibrateActions.DataTypeName,
+                            requirement = "optional",
+                        });
+                        actionFile.localization[0].Add(path, SteamVRModule.vibrateActions.ActionAlias[(int)haptic]);
+                    }
+                }
+
+                actionFile.Save();
+            }
 
             EditorGUILayout.EndScrollView();
         }

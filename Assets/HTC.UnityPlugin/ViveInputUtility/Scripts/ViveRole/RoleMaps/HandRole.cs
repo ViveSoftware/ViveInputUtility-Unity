@@ -33,6 +33,8 @@ namespace HTC.UnityPlugin.Vive
         Controller15,
     }
 
+    internal class HandRoleIntReslver : EnumToIntResolver<HandRole> { public override int Resolve(HandRole e) { return (int)e; } }
+
     public static class ConvertRoleExtension
     {
         [Obsolete("HandRole and DeviceRole are not related now")]

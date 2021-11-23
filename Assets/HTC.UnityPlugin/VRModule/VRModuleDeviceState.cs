@@ -106,7 +106,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public enum VRModuleRawAxis
     {
+        [HideInInspector]
         TouchpadX = Axis0X,
+        [HideInInspector]
         TouchpadY = Axis0Y,
         Trigger = Axis1X,
         CapSenseGrip = Axis2X,
@@ -115,8 +117,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
         RingCurl = Axis4X,
         PinkyCurl = Axis4Y,
 
+        [HideInInspector]
         JoystickX = Axis2X,
+        [HideInInspector]
         JoystickY = Axis2Y,
+
+        Primary2DX = Axis0X,
+        Primary2DY = Axis0Y,
+        Secondary2DX = Axis2X,
+        Secondary2DY = Axis2Y,
 
         // alias
         Axis0X = 0,

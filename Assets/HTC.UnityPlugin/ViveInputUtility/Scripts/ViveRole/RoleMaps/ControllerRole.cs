@@ -33,6 +33,8 @@ namespace HTC.UnityPlugin.Vive
         Controller15,
     }
 
+    internal class ControllerRoleIntReslver : EnumToIntResolver<ControllerRole> { public override int Resolve(ControllerRole e) { return (int)e; } }
+
 
     public class ControllerRoleHandler : ViveRole.MapHandler<ControllerRole>
     {

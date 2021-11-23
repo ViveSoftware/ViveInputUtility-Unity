@@ -14,7 +14,7 @@ namespace HTC.UnityPlugin.Vive
         public delegate void RoleEventListener<TRole>(TRole role, ControllerButton button, ButtonEventType eventType);
         public delegate void RoleValueEventListener(Type roleType, int roleValue, ControllerButton button, ButtonEventType eventType);
 
-        private interface ICtrlState
+        public interface ICtrlState
         {
             bool Update(); // return true if frame skipped
             void AddListener(ControllerButton button, Action listener, ButtonEventType type = ButtonEventType.Click);
@@ -31,6 +31,11 @@ namespace HTC.UnityPlugin.Vive
             Vector2 GetPadPressVector();
             Vector2 GetPadTouchVector();
             Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY);
+            Type RoleType { get; }
+            int RoleValue { get; }
+            ViveRole.IMap RoleMap { get; }
+            Vector2 PadPressAxis { get; }
+            Vector2 PadTouchAxis { get; }
             ulong PreviousButtonPressed { get; }
             ulong CurrentButtonPressed { get; }
         }
@@ -48,10 +53,15 @@ namespace HTC.UnityPlugin.Vive
             public virtual float LastPressDownTime(ControllerButton button) { return 0f; }
             public virtual int ClickCount(ControllerButton button) { return 0; }
             public virtual float GetAxis(ControllerAxis axis, bool usePrevState = false) { return 0f; }
-            public virtual Vector2 GetPadAxis(bool usePrevState = false) { return Vector2.zero; }
             public virtual Vector2 GetPadPressVector() { return Vector2.zero; }
             public virtual Vector2 GetPadTouchVector() { return Vector2.zero; }
+            public virtual Vector2 GetPadAxis(bool usePrevState = false) { return Vector2.zero; }
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
+            public virtual Type RoleType { get { return null; } }
+            public virtual int RoleValue { get { return 0; } }
+            public virtual ViveRole.IMap RoleMap { get { return null; } }
+            public virtual Vector2 PadPressAxis { get { return Vector2.zero; } }
+            public virtual Vector2 PadTouchAxis { get { return Vector2.zero; } }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
         }
@@ -60,7 +70,6 @@ namespace HTC.UnityPlugin.Vive
         {
             public readonly ViveRole.IMap m_map;
             public readonly int m_roleValue;
-            public readonly Type m_roleEnumType;
 
             private int updatedFrameCount = -1;
             private uint prevDeviceIndex;
@@ -78,11 +87,21 @@ namespace HTC.UnityPlugin.Vive
             private Action[][] listeners;
             private RoleValueEventListener[][] typeListeners;
 
-            private Vector2 padDownAxis;
-            private Vector2 padTouchDownAxis;
+            private Vector2 padPressAxis;
+            private Vector2 padTouchAxis;
 
             private const float hairDelta = 0.1f; // amount trigger must be pulled or released to change state
             private float hairTriggerLimit;
+
+            public override Type RoleType { get { return m_map.RoleValueInfo.RoleEnumType; } }
+
+            public override int RoleValue { get { return m_roleValue; } }
+
+            public override ViveRole.IMap RoleMap { get { return m_map; } }
+
+            public override Vector2 PadPressAxis { get { return padPressAxis; } }
+
+            public override Vector2 PadTouchAxis { get { return padTouchAxis; } }
 
             public override ulong PreviousButtonPressed { get { return prevButtonPressed; } }
 
@@ -92,7 +111,6 @@ namespace HTC.UnityPlugin.Vive
             {
                 m_map = ViveRole.GetMap(roleEnumType);
                 m_roleValue = roleValue;
-                m_roleEnumType = roleEnumType;
             }
 
             // return true if frame skipped
@@ -150,8 +168,6 @@ namespace HTC.UnityPlugin.Vive
 
                 // update axis values
                 float currTriggerValue;
-                currAxisValue[(int)ControllerAxis.PadX] = currState.GetAxisValue(VRModuleRawAxis.TouchpadX);
-                currAxisValue[(int)ControllerAxis.PadY] = currState.GetAxisValue(VRModuleRawAxis.TouchpadY);
                 currAxisValue[(int)ControllerAxis.Trigger] = currTriggerValue = currState.GetAxisValue(VRModuleRawAxis.Trigger);
                 currAxisValue[(int)ControllerAxis.CapSenseGrip] = currState.GetAxisValue(VRModuleRawAxis.CapSenseGrip);
                 currAxisValue[(int)ControllerAxis.IndexCurl] = currState.GetAxisValue(VRModuleRawAxis.IndexCurl);
@@ -173,7 +189,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     case VRModuleInput2DType.Unknown:
                     case VRModuleInput2DType.TrackpadOnly:
-                        padAxis = new Vector2(currState.GetAxisValue(VRModuleRawAxis.TouchpadX), currState.GetAxisValue(VRModuleRawAxis.TouchpadY));
+                        padAxis = new Vector2(currState.GetAxisValue(VRModuleRawAxis.Primary2DX), currState.GetAxisValue(VRModuleRawAxis.Primary2DY));
                         padPress = currState.GetButtonPress(VRModuleRawButton.Touchpad);
                         padTouch = currState.GetButtonTouch(VRModuleRawButton.Touchpad);
                         if (!VIUSettings.individualTouchpadJoystickValue)
@@ -184,7 +200,7 @@ namespace HTC.UnityPlugin.Vive
                         }
                         break;
                     case VRModuleInput2DType.JoystickOnly:
-                        stickAxis = new Vector2(currState.GetAxisValue(VRModuleRawAxis.TouchpadX), currState.GetAxisValue(VRModuleRawAxis.TouchpadY));
+                        stickAxis = new Vector2(currState.GetAxisValue(VRModuleRawAxis.Primary2DX), currState.GetAxisValue(VRModuleRawAxis.Primary2DY));
                         stickPress = currState.GetButtonPress(VRModuleRawButton.Touchpad);
                         stickTouch = currState.GetButtonTouch(VRModuleRawButton.Touchpad);
                         if (!VIUSettings.individualTouchpadJoystickValue)
@@ -195,10 +211,10 @@ namespace HTC.UnityPlugin.Vive
                         }
                         break;
                     case VRModuleInput2DType.Both:
-                        padAxis = new Vector2(currState.GetAxisValue(VRModuleRawAxis.TouchpadX), currState.GetAxisValue(VRModuleRawAxis.TouchpadY));
+                        padAxis = new Vector2(currState.GetAxisValue(VRModuleRawAxis.Primary2DX), currState.GetAxisValue(VRModuleRawAxis.Primary2DY));
                         padPress = currState.GetButtonPress(VRModuleRawButton.Touchpad);
                         padTouch = currState.GetButtonTouch(VRModuleRawButton.Touchpad);
-                        stickAxis = new Vector2(currState.GetAxisValue(VRModuleRawAxis.JoystickX), currState.GetAxisValue(VRModuleRawAxis.JoystickY));
+                        stickAxis = new Vector2(currState.GetAxisValue(VRModuleRawAxis.Secondary2DX), currState.GetAxisValue(VRModuleRawAxis.Secondary2DY));
                         stickPress = currState.GetButtonPress(VRModuleRawButton.Joystick);
                         stickTouch = currState.GetButtonTouch(VRModuleRawButton.Joystick);
                         break;
@@ -211,7 +227,7 @@ namespace HTC.UnityPlugin.Vive
                 currAxisValue[(int)ControllerAxis.JoystickX] = stickAxis.x;
                 currAxisValue[(int)ControllerAxis.JoystickY] = stickAxis.y;
                 EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.Joystick, stickPress);
-                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.JoystickToucn, stickTouch);
+                EnumUtils.SetFlag(ref currButtonPressed, (int)ControllerButton.JoystickTouch, stickTouch);
 
                 if (padPress || padTouch || stickPress || stickTouch)
                 {
@@ -302,15 +318,8 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 // record pad down axis values
-                if (GetPressDown(ControllerButton.Pad))
-                {
-                    padDownAxis = new Vector2(currAxisValue[(int)ControllerAxis.PadX], currAxisValue[(int)ControllerAxis.PadY]);
-                }
-
-                if (GetPressDown(ControllerButton.PadTouch))
-                {
-                    padTouchDownAxis = new Vector2(currAxisValue[(int)ControllerAxis.PadX], currAxisValue[(int)ControllerAxis.PadY]);
-                }
+                if (padPress) { padPressAxis = padAxis; }
+                if (padTouch) { padTouchAxis = padAxis; }
 
                 // record press down time and click count
                 var timeNow = Time.unscaledTime;
@@ -400,7 +409,7 @@ namespace HTC.UnityPlugin.Vive
                 if (typeListeners == null) { return; }
                 if (typeListeners[(int)button] == null) { return; }
                 if (typeListeners[(int)button][(int)type] == null) { return; }
-                typeListeners[(int)button][(int)type].Invoke(m_roleEnumType, m_roleValue, button, type);
+                typeListeners[(int)button][(int)type].Invoke(m_map.RoleValueInfo.RoleEnumType, m_roleValue, button, type);
             }
 
             public override void AddListener(ControllerButton button, RoleValueEventListener listener, ButtonEventType type = ButtonEventType.Click)
@@ -476,12 +485,12 @@ namespace HTC.UnityPlugin.Vive
 
             public override Vector2 GetPadPressVector()
             {
-                return GetPress(ControllerButton.Pad) ? (GetPadAxis() - padDownAxis) : Vector2.zero;
+                return GetPress(ControllerButton.Pad) ? (GetPadAxis() - padPressAxis) : Vector2.zero;
             }
 
             public override Vector2 GetPadTouchVector()
             {
-                return GetPress(ControllerButton.PadTouch) ? (GetPadAxis() - padTouchDownAxis) : Vector2.zero;
+                return GetPress(ControllerButton.PadTouch) ? (GetPadAxis() - padTouchAxis) : Vector2.zero;
             }
 
             public override Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY)
@@ -569,7 +578,7 @@ namespace HTC.UnityPlugin.Vive
             }
         }
 
-        private interface ICtrlState<TRole> : ICtrlState
+        public interface ICtrlState<TRole> : ICtrlState
         {
             void AddListener(ControllerButton button, RoleEventListener<TRole> listener, ButtonEventType type = ButtonEventType.Click);
             void RemoveListener(ControllerButton button, RoleEventListener<TRole> listener, ButtonEventType type = ButtonEventType.Click);
@@ -594,6 +603,11 @@ namespace HTC.UnityPlugin.Vive
             public virtual Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY) { return Vector2.zero; }
             public virtual ulong PreviousButtonPressed { get { return 0ul; } }
             public virtual ulong CurrentButtonPressed { get { return 0ul; } }
+            public virtual Type RoleType { get { return null; } }
+            public virtual int RoleValue { get { return 0; } }
+            public virtual ViveRole.IMap RoleMap { get { return null; } }
+            public virtual Vector2 PadPressAxis { get { return Vector2.zero; } }
+            public virtual Vector2 PadTouchAxis { get { return Vector2.zero; } }
 
             public virtual void AddListener(ControllerButton button, RoleEventListener<TRole> listener, ButtonEventType type = ButtonEventType.Click) { }
             public virtual void RemoveListener(ControllerButton button, RoleEventListener<TRole> listener, ButtonEventType type = ButtonEventType.Click) { }
@@ -611,6 +625,16 @@ namespace HTC.UnityPlugin.Vive
             private readonly TRole m_role;
 
             private RoleEventListener<TRole>[][] listeners;
+
+            public override Type RoleType { get { return m_state.RoleType; } }
+
+            public override int RoleValue { get { return m_state.RoleValue; } }
+
+            public override ViveRole.IMap RoleMap { get { return m_state.RoleMap; } }
+
+            public override Vector2 PadPressAxis { get { return m_state.PadPressAxis; } }
+
+            public override Vector2 PadTouchAxis { get { return m_state.PadTouchAxis; } }
 
             public override ulong PreviousButtonPressed { get { return m_state.PreviousButtonPressed; } }
 

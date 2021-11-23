@@ -19,6 +19,8 @@ namespace HTC.UnityPlugin.Vive
         LeftHand,
     }
 
+    internal class TrackedHandRoleIntReslver : EnumToIntResolver<TrackedHandRole> { public override int Resolve(TrackedHandRole e) { return (int)e; } }
+
     public class TrackedHandRoleHandler : ViveRole.MapHandler<TrackedHandRole>
     {
         public override void OnAssignedAsCurrentMapHandler() { Refresh(); }

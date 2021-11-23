@@ -13,7 +13,8 @@
         "Controller",
         "Hand",
         "HTC.ViveHandTracking",
-        "Wave.Essence.Controller.Model"
+        "Wave.Essence.Controller.Model",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
