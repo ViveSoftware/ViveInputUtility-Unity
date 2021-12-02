@@ -870,6 +870,7 @@ namespace HTC.UnityPlugin.Vive
                 VRModuleManagerEditor.UpdateScriptingDefineSymbols();
             }
 
+#if VIU_STEAMVR_2_0_0_OR_NEWER
             if (false && GUILayout.Button("Create Partial Action Set", GUILayout.ExpandWidth(false)))
             {
                 var actionFile = new SteamVRExtension.VIUSteamVRActionFile()
@@ -959,6 +960,7 @@ namespace HTC.UnityPlugin.Vive
 
                 actionFile.Save();
             }
+#endif
 
             EditorGUILayout.EndScrollView();
         }
