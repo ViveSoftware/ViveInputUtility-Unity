@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
+#pragma warning disable 0618
 using System.IO;
 using System.Linq;
 using UnityEngine;

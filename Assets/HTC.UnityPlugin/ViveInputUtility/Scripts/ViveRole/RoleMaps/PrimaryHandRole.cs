@@ -105,7 +105,6 @@ namespace HTC.UnityPlugin.Vive
 
         public void Refresh()
         {
-            UnityEngine.Debug.Log("Refresh");
             UnmappingAll();
 
             unmappedRoles.Reset(this);
