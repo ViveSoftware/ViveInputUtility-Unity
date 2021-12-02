@@ -130,6 +130,7 @@ namespace HTC.UnityPlugin.Vive
 
     public enum ControllerAxis
     {
+        [InvalidEnumArrayIndex]
         None = -1,
         PadX,
         PadY,
@@ -278,7 +279,9 @@ namespace HTC.UnityPlugin.Vive
             var roleOffset = info.RoleToRoleOffset(role);
             if (RGCtrolState<TRole>.s_roleStates[roleOffset] == null)
             {
-                s_roleStateTable[typeof(TRole)][roleOffset] = RGCtrolState<TRole>.s_roleStates[roleOffset] = new RGCtrolState<TRole>(role);
+                var state = new RGCtrolState<TRole>(role);
+                RGCtrolState<TRole>.s_roleStates[roleOffset] = state;
+                s_roleStateTable[typeof(TRole)][roleOffset] = state;
             }
 
             RGCtrolState<TRole>.s_roleStates[roleOffset].Update();
