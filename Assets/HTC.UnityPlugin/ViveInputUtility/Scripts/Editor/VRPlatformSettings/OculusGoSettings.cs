@@ -413,10 +413,17 @@ namespace HTC.UnityPlugin.Vive
 #endif
         }
     }
+
     public static partial class VIUSettingsEditor
     {
         public const string URL_OCULUS_VR_PLUGIN = "https://assetstore.unity.com/packages/slug/82022?";
         private const string OCULUS_ANDROID_PACKAGE_NAME = "com.unity.xr.oculus.android";
+        public const AndroidSdkVersions MIN_SUPPORTED_ANDROID_SDK_VERSION =
+#if UNITY_2020_1_OR_NEWER
+            AndroidSdkVersions.AndroidApiLevel22;
+#else
+            AndroidSdkVersions.AndroidApiLevel21;
+#endif
 
         public static bool canSupportOculusGo
         {
@@ -502,7 +509,7 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
                     if (!canSupport) { return false; }
-                    if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel21) { return false; }
+                    if (PlayerSettings.Android.minSdkVersion < MIN_SUPPORTED_ANDROID_SDK_VERSION) { return false; }
                     if (PlayerSettings.graphicsJobs) { return false; }
                     if ((PlayerSettings.colorSpace == ColorSpace.Linear || PlayerSettings.gpuSkinning) && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
 
@@ -527,9 +534,9 @@ namespace HTC.UnityPlugin.Vive
                         supportWaveVR = false;
                         supportDaydream = false;
 
-                        if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel21)
+                        if (PlayerSettings.Android.minSdkVersion < MIN_SUPPORTED_ANDROID_SDK_VERSION)
                         {
-                            PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel21;
+                            PlayerSettings.Android.minSdkVersion = MIN_SUPPORTED_ANDROID_SDK_VERSION;
                         }
 
                         PlayerSettings.graphicsJobs = false;
