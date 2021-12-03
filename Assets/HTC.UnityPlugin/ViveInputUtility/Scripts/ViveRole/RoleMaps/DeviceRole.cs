@@ -1,5 +1,6 @@
 ﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
 
+using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using UnityEngine;
@@ -75,6 +76,8 @@ namespace HTC.UnityPlugin.Vive
         [Obsolete("Use HandRole.Controller15 instead")]
         Controller15,
     }
+
+    internal class DeviceRoleIntReslver : EnumToIntResolver<DeviceRole> { public override int Resolve(DeviceRole e) { return (int)e; } }
 
     public class DeviceRoleHandler : ViveRole.MapHandler<DeviceRole>
     {

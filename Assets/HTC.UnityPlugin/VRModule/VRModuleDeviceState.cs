@@ -62,9 +62,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusTrackedHandLeft,
         OculusTrackedHandRight,
         KhronosSimpleController,
-        WaveCRControllerLeft,
-        WaveCRControllerRight,
+        ViveFocus3ControllerLeft,
+        ViveFocus3ControllerRight,
+        [HideInInspector, Obsolete("Use ViveFocus3ControllerLeft instead.")]
+        WaveCRControllerLeft = ViveFocus3ControllerLeft,
+        [HideInInspector, Obsolete("Use ViveFocus3ControllerRight instead.")]
+        WaveCRControllerRight = ViveFocus3ControllerRight,
         ViveTracker3,
+        ViveFlowPhoneController,
     }
 
     public enum VRModuleRawButton
@@ -106,7 +111,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public enum VRModuleRawAxis
     {
+        [HideInInspector]
         TouchpadX = Axis0X,
+        [HideInInspector]
         TouchpadY = Axis0Y,
         Trigger = Axis1X,
         CapSenseGrip = Axis2X,
@@ -115,8 +122,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
         RingCurl = Axis4X,
         PinkyCurl = Axis4Y,
 
+        [HideInInspector]
         JoystickX = Axis2X,
+        [HideInInspector]
         JoystickY = Axis2Y,
+
+        Primary2DX = Axis0X,
+        Primary2DY = Axis0Y,
+        Secondary2DX = Axis2X,
+        Secondary2DY = Axis2Y,
 
         // alias
         Axis0X = 0,
@@ -149,8 +163,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         JoystickOnly = ThumbstickOnly,
     }
 
-    internal class VRModuleDeviceClassReslver : EnumToIntResolver<VRModuleDeviceClass> { public override int Resolve(VRModuleDeviceClass e) { return (int)e; } }
-    internal class VRModuleDeviceModelReslver : EnumToIntResolver<VRModuleDeviceModel> { public override int Resolve(VRModuleDeviceModel e) { return (int)e; } }
+    internal class VRModuleDeviceClassResolver : EnumToIntResolver<VRModuleDeviceClass> { public override int Resolve(VRModuleDeviceClass e) { return (int)e; } }
+    internal class VRModuleDeviceModelResolver : EnumToIntResolver<VRModuleDeviceModel> { public override int Resolve(VRModuleDeviceModel e) { return (int)e; } }
     internal class VRModuleRawButtonReslver : EnumToIntResolver<VRModuleRawButton> { public override int Resolve(VRModuleRawButton e) { return (int)e; } }
     internal class VRModuleRawAxisReslver : EnumToIntResolver<VRModuleRawAxis> { public override int Resolve(VRModuleRawAxis e) { return (int)e; } }
     internal class VRModuleInput2DTypeReslver : EnumToIntResolver<VRModuleInput2DType> { public override int Resolve(VRModuleInput2DType e) { return (int)e; } }

@@ -51,6 +51,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private DeviceState[] m_prevStates;
         private DeviceState[] m_currStates;
 
+        [RuntimeInitializeOnLoadMethod]
+        private static void TryInitializeOnStartup()
+        {
+            if (VRModuleSettings.initializeOnStartup)
+            {
+                Initialize();
+            }
+        }
+
         private static GameObject GetDefaultInitGameObject()
         {
             return new GameObject("[ViveInputUtility]");

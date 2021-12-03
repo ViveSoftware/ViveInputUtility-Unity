@@ -84,6 +84,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     updateFunc = UpdateViveCosmosControllerState;
                     break;
                 case VRModuleDeviceModel.ViveTracker:
+                case VRModuleDeviceModel.ViveTracker3:
                     updateFunc = UpdateViveTrackerState;
                     break;
                 case VRModuleDeviceModel.OculusTouchLeft:
@@ -110,13 +111,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     updateFunc = UpdateViveFocusChirpControllerState;
                     break;
                 case VRModuleDeviceModel.ViveFocusFinch:
+                case VRModuleDeviceModel.ViveFlowPhoneController:
                     updateFunc = UpdateViveFocusFinchControllerState;
                     break;
                 case VRModuleDeviceModel.KhronosSimpleController:
                     updateFunc = UpdateKhronosSimpleControllerState;
                     break;
-                case VRModuleDeviceModel.WaveCRControllerLeft:
-                case VRModuleDeviceModel.WaveCRControllerRight:
+                case VRModuleDeviceModel.ViveFocus3ControllerLeft:
+                case VRModuleDeviceModel.ViveFocus3ControllerRight:
                     updateFunc = UpdateWaveCRControllerState;
                     break;
                 default:
@@ -209,7 +211,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             state.SetButtonTouch(VRModuleRawButton.Grip, gripButton);
             state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
             state.SetButtonTouch(VRModuleRawButton.Joystick, secondary2DAxisTouch);
-            
+
             state.SetAxisValue(VRModuleRawAxis.Trigger, triggerValue);
             state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, gripValue);
             state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxisValue.x);
@@ -245,7 +247,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 bool systemButton = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("SystemButton")); // Always false
                 float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip); // 0 or 1
-                
+
                 state.SetButtonPress(VRModuleRawButton.System, systemButton);
                 state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
             }
@@ -423,9 +425,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
             bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
             bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
-            
+
             float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
-            
+
             state.SetButtonPress(VRModuleRawButton.ApplicationMenu, menuButton);
             state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
             state.SetButtonPress(VRModuleRawButton.Grip, gripButton);

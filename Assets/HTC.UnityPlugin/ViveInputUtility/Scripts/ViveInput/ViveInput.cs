@@ -45,7 +45,7 @@ namespace HTC.UnityPlugin.Vive
         Pad = 1,
         PadTouch = 3,
         Joystick = 47,
-        JoystickToucn = 48,
+        JoystickTouch = 48,
         Grip = 2,
         GripTouch = 9,
         CapSenseGrip = 10, // on:1.00 off:0.90 // Knuckles, Oculus Touch only
@@ -122,10 +122,15 @@ namespace HTC.UnityPlugin.Vive
         Ok = 44,
         ThumbUp = 45,
         IndexUp = 46,
+
+        [Obsolete]
+        [HideInInspector]
+        JoystickToucn = 48,
     }
 
     public enum ControllerAxis
     {
+        [InvalidEnumArrayIndex]
         None = -1,
         PadX,
         PadY,
@@ -236,7 +241,7 @@ namespace HTC.UnityPlugin.Vive
 
         private static bool IsValidAxis(ControllerAxis axis) { return axis >= 0 && (int)axis < CONTROLLER_BUTTON_COUNT; }
 
-        private static ICtrlState GetState(Type roleType, int roleValue)
+        public static ICtrlState GetState(Type roleType, int roleValue)
         {
             Initialize();
             var info = ViveRoleEnum.GetInfo(roleType);
@@ -259,7 +264,7 @@ namespace HTC.UnityPlugin.Vive
             return stateList[roleOffset];
         }
 
-        private static ICtrlState<TRole> GetState<TRole>(TRole role)
+        public static ICtrlState<TRole> GetState<TRole>(TRole role)
         {
             Initialize();
             var info = ViveRoleEnum.GetInfo<TRole>();
@@ -274,8 +279,9 @@ namespace HTC.UnityPlugin.Vive
             var roleOffset = info.RoleToRoleOffset(role);
             if (RGCtrolState<TRole>.s_roleStates[roleOffset] == null)
             {
-                RGCtrolState<TRole>.s_roleStates[roleOffset] = new RGCtrolState<TRole>(role);
-                s_roleStateTable[typeof(TRole)][roleOffset] = RGCtrolState<TRole>.s_roleStates[roleOffset];
+                var state = new RGCtrolState<TRole>(role);
+                RGCtrolState<TRole>.s_roleStates[roleOffset] = state;
+                s_roleStateTable[typeof(TRole)][roleOffset] = state;
             }
 
             RGCtrolState<TRole>.s_roleStates[roleOffset].Update();

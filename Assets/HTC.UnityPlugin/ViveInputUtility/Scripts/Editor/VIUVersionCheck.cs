@@ -190,6 +190,17 @@ namespace HTC.UnityPlugin.Vive
 
             s_settings = new List<IPropSetting>();
 
+#if ENABLE_INPUT_SYSTEM
+            s_settings.Add(new RecommendedSetting<bool>()
+            {
+                settingTitle = "Initialize on Startup",
+                toolTip = VRModuleManagement.VRModuleSettings.INITIALIZE_ON_STARTUP_TOOLTIP,
+                recommendedValueFunc = () => true,
+                currentValueFunc = () => VRModuleManagement.VRModuleSettings.initializeOnStartup,
+                setValueFunc = (v) => VRModuleManagement.VRModuleSettings.initializeOnStartup = v,
+            });
+#endif
+
             foreach (var type in Assembly.GetAssembly(typeof(RecommendedSettingCollection)).GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(RecommendedSettingCollection))))
             {
                 s_settings.AddRange((RecommendedSettingCollection)Activator.CreateInstance(type));

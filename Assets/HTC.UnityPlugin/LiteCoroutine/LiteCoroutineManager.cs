@@ -59,10 +59,10 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
         {
             private readonly YieldStackPool pool = new YieldStackPool();
             private readonly List<YieldStack> workingStacks = new List<YieldStack>();
-            private readonly List<YieldStack> tempStageStackes = new List<YieldStack>();
-            private readonly List<YieldStack> lateUpdateStageStackes = new List<YieldStack>();
-            private readonly List<YieldStack> fixedUpdateStageStackes = new List<YieldStack>();
-            private readonly List<YieldStack> endOfFrameStageStackes = new List<YieldStack>();
+            private readonly List<YieldStack> tempStageStacks = new List<YieldStack>();
+            private readonly List<YieldStack> lateUpdateStageStacks = new List<YieldStack>();
+            private readonly List<YieldStack> fixedUpdateStageStacks = new List<YieldStack>();
+            private readonly List<YieldStack> endOfFrameStageStacks = new List<YieldStack>();
             private Predicate<YieldStack> removeAllInvalidYieldStackPredicate;
 
             private readonly object delayCallLock = new object();
@@ -189,7 +189,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 {
                     if (stack.waitForUpdate)
                     {
-                        tempStageStackes.Add(stack);
+                        tempStageStacks.Add(stack);
                     }
                 }
                 else
@@ -213,14 +213,15 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
             {
                 lock (workingStacks)
                 {
-                    if (workingStacks.Count == 0) { return; }
-
-                    workingStacks.RemoveAll(removeAllInvalidYieldStackPredicate);
+                    if (workingStacks.Count > 0)
+                    {
+                        workingStacks.RemoveAll(removeAllInvalidYieldStackPredicate);
+                    }
                 }
 
-                if (tempStageStackes.Count > 0)
+                if (tempStageStacks.Count > 0)
                 {
-                    foreach (var stack in tempStageStackes)
+                    foreach (var stack in tempStageStacks)
                     {
                         if (!stack.MoveNext())
                         {
@@ -248,28 +249,28 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                         }
                     }
 
-                    tempStageStackes.Clear();
+                    tempStageStacks.Clear();
                 }
 
                 ExecuteDelayAction(ref delayUpdateCall);
             }
 
-            public override void LateUpdate() { PerformOtherStaget(lateUpdateStageStackes); ExecuteDelayAction(ref delayLateUpdateCall); }
+            public override void LateUpdate() { PerformOtherStaget(lateUpdateStageStacks); ExecuteDelayAction(ref delayLateUpdateCall); }
 
-            public override void FixedeUpdate() { PerformOtherStaget(fixedUpdateStageStackes); ExecuteDelayAction(ref delayFixedUpdateCall); }
+            public override void FixedeUpdate() { PerformOtherStaget(fixedUpdateStageStacks); ExecuteDelayAction(ref delayFixedUpdateCall); }
 
-            public override void EndOfFrameUpdate() { PerformOtherStaget(endOfFrameStageStackes); ExecuteDelayAction(ref delayEndOfFrameCall); }
+            public override void EndOfFrameUpdate() { PerformOtherStaget(endOfFrameStageStacks); ExecuteDelayAction(ref delayEndOfFrameCall); }
 
             private void PerformOtherStaget(List<YieldStack> stacks)
             {
                 lock (stacks)
                 {
                     if (stacks.Count == 0) { return; }
-                    tempStageStackes.AddRange(stacks);
+                    tempStageStacks.AddRange(stacks);
                     stacks.Clear();
                 }
 
-                foreach (var stack in tempStageStackes)
+                foreach (var stack in tempStageStacks)
                 {
                     var handle = stack.handle;
                     lock (handle)
@@ -324,7 +325,7 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                     stack.waitForUpdate = true;
                 }
 
-                tempStageStackes.Clear();
+                tempStageStacks.Clear();
             }
 
             public override void StopAllCoroutine()
@@ -352,17 +353,17 @@ namespace HTC.UnityPlugin.LiteCoroutineSystem
                 {
                     if (yieldInst is WaitForLateUpdate)
                     {
-                        stageStacks = lateUpdateStageStackes;
+                        stageStacks = lateUpdateStageStacks;
                         return true;
                     }
                     else if (yieldInst is WaitForEndOfFrame)
                     {
-                        stageStacks = endOfFrameStageStackes;
+                        stageStacks = endOfFrameStageStacks;
                         return true;
                     }
                     else if (yieldInst is WaitForFixedUpdate)
                     {
-                        stageStacks = fixedUpdateStageStackes;
+                        stageStacks = fixedUpdateStageStacks;
                         return true;
                     }
                     else if (yieldInst is WaitForSeconds)
