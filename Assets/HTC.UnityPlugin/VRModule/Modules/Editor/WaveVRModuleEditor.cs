@@ -219,6 +219,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 },
                 reqFileNames = new string[] { "wvr.cs" },
             });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_HAND_TRACKING_CHECK",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.XR.BuildCheck.CheckIfHandTrackingEnabled",
+                        name = "ValidateEnabled",
+                        argTypeNames = new string[0],
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "WaveXRBuildCheck.cs" },
+            });
         }
     }
 }

@@ -43,8 +43,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private GestureActivator gestureActivator = GestureActivator.Default;
         private uint leftDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
         private uint rightDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
-        private static WVR_HandTrackerType preferredTrackerType =
-            VRModuleSettings.enableWaveNaturalHand ? WVR_HandTrackerType.WVR_HandTrackerType_Natural : WVR_HandTrackerType.WVR_HandTrackerType_Electronic;
+        private static WVR_HandTrackerType preferredTrackerType = WVR_HandTrackerType.WVR_HandTrackerType_Natural;
         private static WVR_HandModelType showElectronicHandWithController =
             VRModuleSettings.showWaveElectronicHandWithController ?
             WVR_HandModelType.WVR_HandModelType_WithController : WVR_HandModelType.WVR_HandModelType_WithoutController;

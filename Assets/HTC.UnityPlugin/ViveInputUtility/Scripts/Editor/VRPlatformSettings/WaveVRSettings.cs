@@ -64,6 +64,8 @@ namespace HTC.UnityPlugin.Vive
         public const string URL_WAVE_VR_PLUGIN = "https://developer.vive.com/resources/knowledgebase/wave-sdk/";
         public const string URL_WAVE_VR_6DOF_SUMULATOR_USAGE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Wave-VR-6-DoF-Controller-Simulator";
         private const string WAVE_XR_PACKAGE_NAME = "com.htc.upm.wave.xrsdk";
+        private const string WAVE_XR_PACKAGE_NATIVE_NAME = "com.htc.upm.wave.native";
+        private const string WAVE_XR_PACKAGE_ESSENCE_NAME = "com.htc.upm.wave.essence";
 
         public static bool canSupportWaveVR
         {
@@ -190,16 +192,16 @@ namespace HTC.UnityPlugin.Vive
 
             public override void OnPreferenceGUI()
             {
-                const string title = "WaveVR";
+                const string title = "Wave XR";
+                const float wvrToggleWidth = 226f;
                 if (canSupport)
                 {
                     var wasSupported = support;
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE Focus, VIVE Focus Plus"), wasSupported);
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE Focus, VIVE Flow"), wasSupported);
                     s_symbolChanged |= wasSupported != support;
                 }
                 else
                 {
-                    const float wvrToggleWidth = 226f;
                     GUILayout.BeginHorizontal();
                     Foldouter.ShowFoldoutBlank();
 
@@ -256,27 +258,100 @@ namespace HTC.UnityPlugin.Vive
                         EditorGUI.indentLevel += 2;
 
                         EditorGUILayout.BeginHorizontal();
-
-                        EditorGUIUtility.labelWidth = 230;
-                        var style = new GUIStyle(GUI.skin.textField) { alignment = TextAnchor.MiddleLeft };
-                        VIUSettings.waveVRAndroidManifestPath = EditorGUILayout.DelayedTextField(new GUIContent("Customized AndroidManifest Path:", "Default path: " + defaultAndroidManifestPath),
-                                                VIUSettings.waveVRAndroidManifestPath, style);
-                        if (GUILayout.Button("Open", new GUILayoutOption[] { GUILayout.Width(44), GUILayout.Height(18) }))
                         {
-                            VIUSettings.waveVRAndroidManifestPath = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
-                        }
+                            EditorGUIUtility.labelWidth = 230;
+                            var style = new GUIStyle(GUI.skin.textField) { alignment = TextAnchor.MiddleLeft };
+                            VIUSettings.waveVRAndroidManifestPath = EditorGUILayout.DelayedTextField(new GUIContent("Customized AndroidManifest Path:", "Default path: " + defaultAndroidManifestPath),
+                                                    VIUSettings.waveVRAndroidManifestPath, style);
 
-                        EditorGUI.BeginChangeCheck();
+                            s_guiChanged |= EditorGUI.EndChangeCheck();
+                            if (GUILayout.Button("Open", new GUILayoutOption[] { GUILayout.Width(44), GUILayout.Height(18) }))
+                            {
+                                VIUSettings.waveVRAndroidManifestPath = EditorUtility.OpenFilePanel("Select AndroidManifest.xml", string.Empty, "xml");
+                            }
+                            EditorGUI.BeginChangeCheck();
+                        }
                         EditorGUILayout.EndHorizontal();
 
                         EditorGUILayout.BeginHorizontal();
-
-                        if (!string.IsNullOrEmpty(VIUSettings.waveVRAndroidManifestPath) && !File.Exists(VIUSettings.waveVRAndroidManifestPath))
                         {
-                            EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
+                            if (!string.IsNullOrEmpty(VIUSettings.waveVRAndroidManifestPath) && !File.Exists(VIUSettings.waveVRAndroidManifestPath))
+                            {
+                                EditorGUILayout.HelpBox("File does not existed!", MessageType.Warning);
+                            }
                         }
+                        EditorGUILayout.EndHorizontal();
 
+                        const string enableWaveXRRenderModelTitle = "Enable Wave XR Render Model";
+                        EditorGUILayout.BeginHorizontal();
+#if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL
+                        VIUSettings.enableWaveXRRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, VIUSettings.ENABLE_WAVE_XR_RENDER_MODEL_TOOLTIP), VIUSettings.enableWaveXRRenderModel);
+#else
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, VIUSettings.ENABLE_WAVE_XR_RENDER_MODEL_TOOLTIP + ". Required Wave XR Plugin Essence"), false, GUILayout.ExpandWidth(true));
+                        GUI.enabled = true;
+                        
+                        s_guiChanged |= EditorGUI.EndChangeCheck();
+                        if (GUILayout.Button(new GUIContent("Add Wave XR Plugin Essence", "Add " + WAVE_XR_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
+                        {
+                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            {
+                                ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
+                            }
+
+                            if (!PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_ESSENCE_NAME))
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_ESSENCE_NAME);
+                            }
+
+                            VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
+                        }
                         EditorGUI.BeginChangeCheck();
+#endif
+                        EditorGUILayout.EndHorizontal();
+
+                        const string enableWaveHandTrackingTitle = "Enable Wave Hand Tracking";
+                        EditorGUILayout.BeginHorizontal();
+#if VIU_WAVEVR_HAND_TRACKING_CHECK
+                        {
+                            var supported = Wave.XR.BuildCheck.CheckIfHandTrackingEnabled.ValidateEnabled() && VRModuleSettings.activateWaveHandTrackingSubmodule;
+                            var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle), supported);
+                            if (supported != shouldSupport)
+                            {
+                                Wave.XR.BuildCheck.CheckIfHandTrackingEnabled.PerformAction(shouldSupport);
+                                VRModuleSettings.activateWaveHandTrackingSubmodule = shouldSupport;
+                            }
+                        }
+#else
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Wave XR Plugin Essence required."), false, GUILayout.ExpandWidth(true));
+                        GUI.enabled = true;
+
+                        s_guiChanged |= EditorGUI.EndChangeCheck();
+                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin", "Update " + WAVE_XR_PACKAGE_NAME + " to lateast version"), GUILayout.ExpandWidth(false)))
+                        {
+                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            {
+                                ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
+                            }
+
+                            if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_ESSENCE_NAME))
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_ESSENCE_NAME);
+                            }
+                            else if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NATIVE_NAME))
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
+                            }
+                            else
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NAME);
+                            }
+
+                            VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
+                        }
+                        EditorGUI.BeginChangeCheck();
+#endif
                         EditorGUILayout.EndHorizontal();
 
                         VIUSettings.waveVRAddVirtualArmTo3DoFController = EditorGUILayout.ToggleLeft(new GUIContent("Add Virtual Arm for 3 Dof Controller"), VIUSettings.waveVRAddVirtualArmTo3DoFController);

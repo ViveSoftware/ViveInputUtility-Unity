@@ -51,7 +51,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 get
                 {
 #if (VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL) && UNITY_ANDROID
-                    return true;
+                    return VIUSettings.enableWaveXRRenderModel;
 #else
                     return false;
 #endif

@@ -1,6 +1,5 @@
 {
     "name": "HTC.ViveInputUtility.Editor",
-    "rootNamespace": "",
     "references": [
         "HTC.ViveInputUtility",
         "HTC.ViveInputUtility.UPMRegistryTool.Editor",
@@ -12,7 +11,13 @@
         "Oculus.VR",
         "Oculus.VR.Editor",
         "Unity.XR.OpenXR",
-        "Unity.XR.OpenXR.Editor"
+        "Unity.XR.OpenXR.Editor",
+        "Wave.XRSDK",
+        "Wave.XRSDK.Editor",
+        "Wave.Essence",
+        "Wave.Essence.Editor",
+        "Wave.Native",
+        "Wave.Native.Editor"
     ],
     "includePlatforms": [
         "Editor"
