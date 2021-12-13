@@ -58,15 +58,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static WVRCtrlProfile[] s_wvrCtrlProfiles = new WVRCtrlProfile[]
             {
                 // WVR_CONTROLLER_FINCH3DOF_2_0_PAC_20_9_DARK
-                new WVRCtrlProfile { reg = new Regex("^.*(pac).*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFlowPhoneController, input2D = VRModuleInput2DType.TouchpadOnly },
+                new WVRCtrlProfile { reg = new Regex("pac", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFlowPhoneController, input2D = VRModuleInput2DType.TouchpadOnly },
                 // WVR_CONTROLLER_FINCH3DOF_2_0
-                new WVRCtrlProfile { reg = new Regex("^.*(finch).*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocusFinch, input2D = VRModuleInput2DType.TouchpadOnly },
+                new WVRCtrlProfile { reg = new Regex("finch", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocusFinch, input2D = VRModuleInput2DType.TouchpadOnly },
                 // WVR_CONTROLLER_ASPEN_MI6_1, WVR_CONTROLLER_ASPEN_XA_XB
-                new WVRCtrlProfile { reg = new Regex("^.*(aspen).*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocusChirp, input2D = VRModuleInput2DType.TouchpadOnly },
+                new WVRCtrlProfile { reg = new Regex("aspen", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocusChirp, input2D = VRModuleInput2DType.TouchpadOnly },
                 // WVR_CR_Left_001
-                new WVRCtrlProfile { reg = new Regex("^.*(cr).(left)*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerLeft, input2D = VRModuleInput2DType.TouchpadOnly },
+                new WVRCtrlProfile { reg = new Regex("cr.+left", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerLeft, input2D = VRModuleInput2DType.JoystickOnly },
                 // WVR_CR_Right_001
-                new WVRCtrlProfile { reg = new Regex("^.*(cr).(right)*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerRight, input2D = VRModuleInput2DType.TouchpadOnly },
+                new WVRCtrlProfile { reg = new Regex("cr.+right", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerRight, input2D = VRModuleInput2DType.JoystickOnly },
             };
 
             public bool isActivated { get; private set; }
