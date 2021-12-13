@@ -286,7 +286,7 @@ namespace HTC.UnityPlugin.Vive
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL
                         VIUSettings.enableWaveXRRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, VIUSettings.ENABLE_WAVE_XR_RENDER_MODEL_TOOLTIP), VIUSettings.enableWaveXRRenderModel);
-#else
+#elif UNITY_2018_1_OR_NEWER
                         GUI.enabled = false;
                         EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, VIUSettings.ENABLE_WAVE_XR_RENDER_MODEL_TOOLTIP + ". Required Wave XR Plugin Essence"), false, GUILayout.ExpandWidth(true));
                         GUI.enabled = true;
@@ -307,6 +307,10 @@ namespace HTC.UnityPlugin.Vive
                             VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
                         }
                         EditorGUI.BeginChangeCheck();
+#else
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, "Unity 2018.1 or later version required."), false, GUILayout.ExpandWidth(true));
+                        GUI.enabled = true;
 #endif
                         EditorGUILayout.EndHorizontal();
 
@@ -322,7 +326,7 @@ namespace HTC.UnityPlugin.Vive
                                 VRModuleSettings.activateWaveHandTrackingSubmodule = shouldSupport;
                             }
                         }
-#else
+#elif UNITY_2018_1_OR_NEWER
                         GUI.enabled = false;
                         EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Wave XR Plugin Essence required."), false, GUILayout.ExpandWidth(true));
                         GUI.enabled = true;
@@ -351,6 +355,10 @@ namespace HTC.UnityPlugin.Vive
                             VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
                         }
                         EditorGUI.BeginChangeCheck();
+#else
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Unity 2018.1 or later version required."), false, GUILayout.ExpandWidth(true));
+                        GUI.enabled = true;
 #endif
                         EditorGUILayout.EndHorizontal();
 
