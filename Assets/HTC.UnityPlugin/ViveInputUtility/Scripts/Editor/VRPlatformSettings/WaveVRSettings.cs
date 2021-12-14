@@ -324,6 +324,10 @@ namespace HTC.UnityPlugin.Vive
                             {
                                 Wave.XR.BuildCheck.CheckIfHandTrackingEnabled.PerformAction(shouldSupport);
                                 VRModuleSettings.activateWaveHandTrackingSubmodule = shouldSupport;
+                                // can manually disable gesture data fetching by setting enableWaveHandGesture to false if needed
+                                // so far the hardware/runtime will start gesture detaction whenever hand tracking detaction is started,
+                                // disabling enableWaveHandGesture only save some data fetching time, it doesn't stop hardware/runtime gesture detaction
+                                if (shouldSupport) { VRModuleSettings.enableWaveHandGesture = true; }
                             }
                         }
 #elif UNITY_2018_1_OR_NEWER

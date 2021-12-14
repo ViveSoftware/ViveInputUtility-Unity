@@ -17,8 +17,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public partial class VRModuleSettings : ScriptableObject
     {
-        public const bool ACTIVATE_WAVE_HAND_TRACKING_SUBMODULE_DEFAULT_VALUE = false;
-        public const bool ENABLE_WAVE_HAND_GESTURE_DEFAULT_VALUE = false;
+        public const bool ACTIVATE_WAVE_HAND_TRACKING_SUBMODULE_DEFAULT_VALUE = true;
+        public const bool ENABLE_WAVE_HAND_GESTURE_DEFAULT_VALUE = true;
         public const bool ENABLE_WAVE_NATURAL_HAND_DEFAULT_VALUE = false;
         public const bool ENABLE_WAVE_ELECTRONIC_HAND_DEFAULT_VALUE = false;
         public const bool SHOW_WAVE_ELECTRONIC_HAND_WITH_CONTROLLER = false;
