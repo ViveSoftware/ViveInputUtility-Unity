@@ -22,12 +22,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             private ulong featuresField;
 
-            public bool supportedTracking
+            public bool supportTracking
             {
                 get { return (featuresField & (ulong)WVR_SupportedFeature.WVR_SupportedFeature_HandTracking) > 0ul; }
             }
 
-            public bool supportedGesture
+            public bool supportGesture
             {
                 get { return (featuresField & (ulong)WVR_SupportedFeature.WVR_SupportedFeature_HandGesture) > 0ul; }
             }
@@ -43,8 +43,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private GestureActivator gestureActivator = GestureActivator.Default;
         private uint leftDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
         private uint rightDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
-        private static WVR_HandTrackerType preferredTrackerType =
-            VRModuleSettings.enableWaveNaturalHand ? WVR_HandTrackerType.WVR_HandTrackerType_Natural : WVR_HandTrackerType.WVR_HandTrackerType_Electronic;
+        private static WVR_HandTrackerType preferredTrackerType = WVR_HandTrackerType.WVR_HandTrackerType_Natural;
         private static WVR_HandModelType showElectronicHandWithController =
             VRModuleSettings.showWaveElectronicHandWithController ?
             WVR_HandModelType.WVR_HandModelType_WithController : WVR_HandModelType.WVR_HandModelType_WithoutController;
@@ -58,12 +57,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         protected override void OnDeactivated()
         {
-            //GestureInterface.StopGestureDetection();
+            trackingActivator.SetActive(false);
+            gestureActivator.SetActive(false);
         }
 
         protected override void OnUpdateDeviceConnectionAndPoses()
         {
-            trackingActivator.SetActive(VRModuleSettings.activateWaveHandTrackingSubmodule);
+            trackingActivator.SetActive(deviceFeature.supportTracking);
 
             if (VRModule.trackingSpaceType == VRModuleTrackingSpaceType.RoomScale)
             {
@@ -144,7 +144,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         protected override void OnUpdateDeviceInput()
         {
-            gestureActivator.SetActive(VRModuleSettings.enableWaveHandGesture);
+            gestureActivator.SetActive(VRModuleSettings.enableWaveHandGesture && deviceFeature.supportGesture);
 
             gestureActivator.TryFetchData();
 
@@ -788,11 +788,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 state.SetButtonPress(VRModuleRawButton.GestureIndexUp, gesture == WVR_HandGestureType.WVR_HandGestureType_IndexUp);
                 state.SetButtonPress(VRModuleRawButton.GestureOk, gesture == WVR_HandGestureType.WVR_HandGestureType_OK);
                 state.SetButtonPress(VRModuleRawButton.GestureThumbUp, gesture == WVR_HandGestureType.WVR_HandGestureType_ThumbUp);
+                state.SetButtonPress(VRModuleRawButton.System, gesture == WVR_HandGestureType.WVR_HandGestureType_Inverse);
                 state.SetButtonTouch(VRModuleRawButton.GestureFist, gesture == WVR_HandGestureType.WVR_HandGestureType_Fist);
                 state.SetButtonTouch(VRModuleRawButton.GestureFive, gesture == WVR_HandGestureType.WVR_HandGestureType_Five);
                 state.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gesture == WVR_HandGestureType.WVR_HandGestureType_IndexUp);
                 state.SetButtonTouch(VRModuleRawButton.GestureOk, gesture == WVR_HandGestureType.WVR_HandGestureType_OK);
                 state.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gesture == WVR_HandGestureType.WVR_HandGestureType_ThumbUp);
+                state.SetButtonTouch(VRModuleRawButton.System, gesture == WVR_HandGestureType.WVR_HandGestureType_Inverse);
             }
 
             public bool isLeftValid { get { return gestureData.left != WVR_HandGestureType.WVR_HandGestureType_Invalid; } }
