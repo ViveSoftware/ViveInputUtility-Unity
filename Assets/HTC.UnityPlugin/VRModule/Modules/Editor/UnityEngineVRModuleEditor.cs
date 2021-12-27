@@ -138,6 +138,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     "OpenXRFeature.cs",
                 },
             });
+
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "VIU_OPENXR_PLUGIN_POSE_CONTROL",
+                reqTypeNames = new string[]
+                {
+                    "UnityEngine.XR.OpenXR.Input.PoseControl",
+                },
+                reqFileNames = new string[]
+                {
+                    "PoseControl.cs",
+                },
+            });
         }
     }
 }

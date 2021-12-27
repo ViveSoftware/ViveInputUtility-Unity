@@ -13,6 +13,10 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.InputSystem.XR;
 using TrackingState = UnityEngine.XR.InputTrackingState;
+using UnityPoseControl = UnityEngine.InputSystem.XR.PoseControl;
+#if VIU_OPENXR_PLUGIN_POSE_CONTROL
+using OpenXRPoseControl = UnityEngine.XR.OpenXR.Input.PoseControl;
+#endif
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -263,7 +267,17 @@ namespace HTC.UnityPlugin.Vive
         public EnumArray<ControllerAxis, AxisControl>.IReadOnly axises { get { return _axises.ReadOnly; } }
         public StickControl pad { get; private set; }
         public StickControl joystick { get; private set; }
-        public PoseControl pose { get; private set; }
+
+        public UnityPoseControl pose { get; private set; }
+#if VIU_OPENXR_PLUGIN_POSE_CONTROL
+        public OpenXRPoseControl openxr_pose { get; private set; }
+#endif
+        public ButtonControl isTracked { get; private set; }
+        public IntegerControl trackingState { get; private set; }
+        public Vector3Control position { get; private set; }
+        public QuaternionControl rotation { get; private set; }
+        public Vector3Control velocity { get; private set; }
+        public Vector3Control angularVelocity { get; private set; }
 
         static VIUSyntheticDevice()
         {
@@ -491,9 +505,19 @@ namespace HTC.UnityPlugin.Vive
 
         protected override void FinishSetup()
         {
-            pose = GetChildControl<PoseControl>("pose");
-
             base.FinishSetup();
+
+            var poseGeneric = GetChildControl("pose");
+            pose = poseGeneric as UnityPoseControl;
+#if VIU_OPENXR_PLUGIN_POSE_CONTROL
+            openxr_pose = poseGeneric as OpenXRPoseControl;
+#endif
+            isTracked = GetChildControl<ButtonControl>("pose/isTracked");
+            trackingState = GetChildControl<IntegerControl>("pose/trackingState");
+            position = GetChildControl<Vector3Control>("pose/position");
+            rotation = GetChildControl<QuaternionControl>("pose/rotation");
+            velocity = GetChildControl<Vector3Control>("pose/velocity");
+            angularVelocity = GetChildControl<Vector3Control>("pose/angularVelocity");
 
             pad = GetChildControl<StickControl>("PadAxis");
             joystick = GetChildControl<StickControl>("JoystickAxis");
