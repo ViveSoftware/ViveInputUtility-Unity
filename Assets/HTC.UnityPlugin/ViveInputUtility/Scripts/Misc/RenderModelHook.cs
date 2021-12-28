@@ -521,27 +521,27 @@ namespace HTC.UnityPlugin.Vive
 
             if (shouldActiveCustomModel)
             {
-                var shouldActiveCustomModelObj = m_customModelObjs[shouldActiveCustomModelNum];
-                if (shouldActiveCustomModelObj == null)
+                if (!lastCustomModelActive || lastActiveCustomModelNum != shouldActiveCustomModelNum)
                 {
-                    // instantiate custom override model
-                    shouldActiveCustomModelObj = Instantiate(shouldActiveCustomModelPrefab);
-                    shouldActiveCustomModelObj.transform.position = Vector3.zero;
-                    shouldActiveCustomModelObj.transform.rotation = Quaternion.identity;
-                    shouldActiveCustomModelObj.transform.SetParent(transform, false);
-                    m_activeCustomModel = shouldActiveCustomModelNum;
-                    m_customModelObjs[shouldActiveCustomModelNum] = shouldActiveCustomModelObj;
-                    m_isCustomModelActivated = false;
-                    SendAfterModelCreatedMessage(shouldActiveCustomModelObj, this);
-                }
+                    var shouldActiveCustomModelObj = m_customModelObjs[shouldActiveCustomModelNum];
+                    if (shouldActiveCustomModelObj == null)
+                    {
+                        // instantiate custom override model
+                        shouldActiveCustomModelObj = Instantiate(shouldActiveCustomModelPrefab);
+                        shouldActiveCustomModelObj.transform.position = Vector3.zero;
+                        shouldActiveCustomModelObj.transform.rotation = Quaternion.identity;
+                        shouldActiveCustomModelObj.transform.SetParent(transform, false);
+                        m_customModelObjs[shouldActiveCustomModelNum] = shouldActiveCustomModelObj;
+                        SendAfterModelCreatedMessage(shouldActiveCustomModelObj, this);
+                    }
 
-                if (!m_isCustomModelActivated)
-                {
                     // active custom override model
                     if (SendBeforeModelActivatedMessage(shouldActiveCustomModelObj, this))
                     {
                         shouldActiveCustomModelObj.gameObject.SetActive(true);
                     }
+
+                    m_activeCustomModel = shouldActiveCustomModelNum;
                     m_isCustomModelActivated = true;
                 }
             }
