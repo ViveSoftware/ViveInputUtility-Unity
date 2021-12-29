@@ -13,6 +13,7 @@ ModelImporter:
     100010: __CM__TouchPad
     100012: __CM__TriggerKey
     100014: //RootNode
+    100016: __CM__TouchPad_Touch
     400000: __CM__AppButton
     400002: __CM__Battery
     400004: __CM__Body
@@ -21,6 +22,7 @@ ModelImporter:
     400010: __CM__TouchPad
     400012: __CM__TriggerKey
     400014: //RootNode
+    400016: __CM__TouchPad_Touch
     2300000: __CM__AppButton
     2300002: __CM__Battery
     2300004: __CM__Body
@@ -28,6 +30,7 @@ ModelImporter:
     2300008: __CM__HomeButton
     2300010: __CM__TouchPad
     2300012: __CM__TriggerKey
+    2300014: __CM__TouchPad_Touch
     3300000: __CM__AppButton
     3300002: __CM__Battery
     3300004: __CM__Body
@@ -35,6 +38,7 @@ ModelImporter:
     3300008: __CM__HomeButton
     3300010: __CM__TouchPad
     3300012: __CM__TriggerKey
+    3300014: __CM__TouchPad_Touch
     4300000: __CM__Body
     4300002: __CM__Battery
     4300004: __CM__Emitter
@@ -42,6 +46,7 @@ ModelImporter:
     4300008: __CM__HomeButton
     4300010: __CM__TouchPad
     4300012: __CM__TriggerKey
+    4300014: __CM__TouchPad_Touch
   materials:
     importMaterials: 0
     materialName: 0
