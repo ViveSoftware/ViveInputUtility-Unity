@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.LiteCoroutineSystem;
 using HTC.UnityPlugin.Utility;

@@ -1,4 +1,6 @@
-﻿#if ENABLE_INPUT_SYSTEM
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+
+#if ENABLE_INPUT_SYSTEM
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
