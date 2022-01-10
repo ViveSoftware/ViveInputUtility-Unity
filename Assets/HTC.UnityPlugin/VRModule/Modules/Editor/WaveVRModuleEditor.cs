@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
 using System;
 using System.Reflection;
@@ -37,26 +37,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 symbol = "VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL",
                 reqTypeNames = new string[] { "Wave.Essence.Controller.Model.RenderModel", "Wave.Essence.Controller.Model.ButtonEffect", "Wave.Essence.Controller.Model.ControllerTips" },
                 reqFileNames = new string[] { "RenderModel.cs", "ButtonEffect.cs", "ControllerTips.cs" },
-            });
-
-            Add(new SymbolRequirement()
-            {
-                symbol = "VIU_WAVE_XRSDK_3_99_31_OR_NEWER",
-                reqMethods = new SymbolRequirement.ReqMethodInfo[]
-                {
-                    new SymbolRequirement.ReqMethodInfo()
-                    {
-                        typeName = "Wave.Native.Interop",
-                        name = "WVR_SetControllerPoseMode",
-                        argTypeNames = new string[]
-                        {
-                            "Wave.Native.WVR_DeviceType",
-                            "Wave.Native.WVR_ControllerPoseMode",
-                        },
-                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
-                    }
-                },
-                reqFileNames = new string[] { "wvr.cs" },
             });
 
             Add(new SymbolRequirement()
@@ -151,6 +131,45 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         name = "WVR_PostInit",
                         bindingAttr = BindingFlags.Public | BindingFlags.Static,
                     }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVE_XRSDK_3_99_31_OR_NEWER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.Native.Interop",
+                        name = "WVR_SetControllerPoseMode",
+                        argTypeNames = new string[]
+                        {
+                            "Wave.Native.WVR_DeviceType",
+                            "Wave.Native.WVR_ControllerPoseMode",
+                        },
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVE_XRSDK_4_2_90_OR_NEWER",
+                reqTypeNames = new string[] { "Wave.Native.WVR_HandGestureType" },
+                validateFunc = (req) =>
+                {
+                    Type wvrGestureType;
+                    if (SymbolRequirement.s_foundTypes.TryGetValue("Wave.Native.WVR_HandGestureType", out wvrGestureType) && wvrGestureType.IsEnum)
+                    {
+                        if (Enum.IsDefined(wvrGestureType, "WVR_HandGestureType_Palm_Pinch"))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
                 },
                 reqFileNames = new string[] { "wvr.cs" },
             });

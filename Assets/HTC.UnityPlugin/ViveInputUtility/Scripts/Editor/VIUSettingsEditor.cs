@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -144,6 +144,7 @@ namespace HTC.UnityPlugin.Vive
                     OpenVR,
                     Daydream,
                     MockHMD,
+                    WindowsMR,
                 };
 
                 s_projectSettingAsset = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
@@ -478,6 +479,8 @@ namespace HTC.UnityPlugin.Vive
 
         public const string URL_VIU_GITHUB_RELEASE_PAGE = "https://github.com/ViveSoftware/ViveInputUtility-Unity/releases";
         public const string OPENXR_PLUGIN_PACKAGE_NAME = "com.unity.xr.openxr";
+        public const string OPENXR_PLUGIN_LOADER_NAME = "Open XR Loader";
+        public const string OPENXR_PLUGIN_LOADER_TYPE = "OpenXRLoader";
 
         private const string DEFAULT_ASSET_PATH = "Assets/VIUSettings/Resources/VIUSettings.asset";
 
@@ -870,7 +873,7 @@ namespace HTC.UnityPlugin.Vive
                 VRModuleManagerEditor.UpdateScriptingDefineSymbols();
             }
 
-#if VIU_STEAMVR_2_0_0_OR_NEWER
+#if VIU_STEAMVR_2_0_0_OR_NEWER && UNITY_STANDALONE
             if (false && GUILayout.Button("Create Partial Action Set", GUILayout.ExpandWidth(false)))
             {
                 var actionFile = new SteamVRExtension.VIUSteamVRActionFile()

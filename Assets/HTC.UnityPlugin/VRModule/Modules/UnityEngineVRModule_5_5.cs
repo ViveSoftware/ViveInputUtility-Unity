@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
 #if UNITY_5_5_OR_NEWER && !UNITY_2017_1_OR_NEWER
 using HTC.UnityPlugin.Utility;

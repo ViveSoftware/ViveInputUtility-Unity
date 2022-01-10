@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 using System;
@@ -741,6 +741,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
+            private const WVR_HandGestureType WVR_HandGestureType_WVR_HandGestureType_Palm_Pinch =
+#if VIU_WAVE_XRSDK_4_2_90_OR_NEWER
+                WVR_HandGestureType.WVR_HandGestureType_Palm_Pinch;
+#else
+                WVR_HandGestureType.WVR_HandGestureType_Inverse;
+#endif
+
             private static Func<WVR_Result> GenerateStarter()
             {
                 return () =>
@@ -750,7 +757,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     m_GestureValue |= 1 << (int)WVR_HandGestureType.WVR_HandGestureType_OK;
                     m_GestureValue |= 1 << (int)WVR_HandGestureType.WVR_HandGestureType_ThumbUp;
                     m_GestureValue |= 1 << (int)WVR_HandGestureType.WVR_HandGestureType_IndexUp;
-                    m_GestureValue |= 1 << (int)WVR_HandGestureType.WVR_HandGestureType_Inverse;
+                    m_GestureValue |= 1 << (int)WVR_HandGestureType_WVR_HandGestureType_Palm_Pinch;
                     return Interop.WVR_StartHandGesture(m_GestureValue);
                 };
             }
@@ -788,13 +795,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 state.SetButtonPress(VRModuleRawButton.GestureIndexUp, gesture == WVR_HandGestureType.WVR_HandGestureType_IndexUp);
                 state.SetButtonPress(VRModuleRawButton.GestureOk, gesture == WVR_HandGestureType.WVR_HandGestureType_OK);
                 state.SetButtonPress(VRModuleRawButton.GestureThumbUp, gesture == WVR_HandGestureType.WVR_HandGestureType_ThumbUp);
-                state.SetButtonPress(VRModuleRawButton.System, gesture == WVR_HandGestureType.WVR_HandGestureType_Inverse);
+                state.SetButtonPress(VRModuleRawButton.System, gesture == WVR_HandGestureType_WVR_HandGestureType_Palm_Pinch);
                 state.SetButtonTouch(VRModuleRawButton.GestureFist, gesture == WVR_HandGestureType.WVR_HandGestureType_Fist);
                 state.SetButtonTouch(VRModuleRawButton.GestureFive, gesture == WVR_HandGestureType.WVR_HandGestureType_Five);
                 state.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gesture == WVR_HandGestureType.WVR_HandGestureType_IndexUp);
                 state.SetButtonTouch(VRModuleRawButton.GestureOk, gesture == WVR_HandGestureType.WVR_HandGestureType_OK);
                 state.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gesture == WVR_HandGestureType.WVR_HandGestureType_ThumbUp);
-                state.SetButtonTouch(VRModuleRawButton.System, gesture == WVR_HandGestureType.WVR_HandGestureType_Inverse);
+                state.SetButtonTouch(VRModuleRawButton.System, gesture == WVR_HandGestureType_WVR_HandGestureType_Palm_Pinch);
             }
 
             public bool isLeftValid { get { return gestureData.left != WVR_HandGestureType.WVR_HandGestureType_Invalid; } }

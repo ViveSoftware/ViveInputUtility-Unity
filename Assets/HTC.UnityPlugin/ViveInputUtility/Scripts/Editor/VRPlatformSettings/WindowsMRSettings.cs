@@ -1,4 +1,4 @@
-//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
 using System;
@@ -112,7 +112,7 @@ namespace HTC.UnityPlugin.Vive
                 if (canSupport)
                 {
                     var wasSupported = support;
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "Windows MR"), wasSupported);
+                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title, "Windows MR"), wasSupported);
                     s_symbolChanged |= wasSupported != support;
                 }
                 else

@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -123,43 +123,43 @@ namespace HTC.UnityPlugin.Vive
 
                 if (shouldActiveModel)
                 {
-                    var shouldActiveModelObj = m_modelObjs[shouldActiveModelNum];
-                    if (shouldActiveModelObj == null)
+                    if (!lastModelActivated || lastActivatedModel != shouldActiveModelNum)
                     {
-                        // instantiate custom override model
-                        shouldActiveModelObj = Instantiate(shouldActiveModelPrefab);
-                        shouldActiveModelObj.transform.position = Vector3.zero;
-                        shouldActiveModelObj.transform.rotation = Quaternion.identity;
-                        if (hook.m_overrideMaterial != null)
+                        var shouldActiveModelObj = m_modelObjs[shouldActiveModelNum];
+                        if (shouldActiveModelObj == null)
                         {
-                            var renderer = shouldActiveModelObj.GetComponentInChildren<Renderer>();
-                            if (renderer != null)
+                            // instantiate custom override model
+                            shouldActiveModelObj = Instantiate(shouldActiveModelPrefab);
+                            shouldActiveModelObj.transform.position = Vector3.zero;
+                            shouldActiveModelObj.transform.rotation = Quaternion.identity;
+                            if (hook.m_overrideMaterial != null)
                             {
-                                renderer.material = hook.m_overrideMaterial;
+                                var renderer = shouldActiveModelObj.GetComponentInChildren<Renderer>();
+                                if (renderer != null)
+                                {
+                                    renderer.material = hook.m_overrideMaterial;
+                                }
                             }
-                        }
-                        if (hook.m_overrideShader != null)
-                        {
-                            var renderer = shouldActiveModelObj.GetComponentInChildren<Renderer>();
-                            if (renderer != null)
+                            if (hook.m_overrideShader != null)
                             {
-                                renderer.material.shader = hook.m_overrideShader;
+                                var renderer = shouldActiveModelObj.GetComponentInChildren<Renderer>();
+                                if (renderer != null)
+                                {
+                                    renderer.material.shader = hook.m_overrideShader;
+                                }
                             }
+                            shouldActiveModelObj.transform.SetParent(hook.transform, false);
+                            m_modelObjs[shouldActiveModelNum] = shouldActiveModelObj;
+                            SendAfterModelCreatedMessage(shouldActiveModelObj, hook);
                         }
-                        shouldActiveModelObj.transform.SetParent(hook.transform, false);
-                        m_modelObjs[shouldActiveModelNum] = shouldActiveModelObj;
-                        m_activeModel = shouldActiveModelNum;
-                        m_isModelActivated = false;
-                        SendAfterModelCreatedMessage(shouldActiveModelObj, hook);
-                    }
 
-                    if (!m_isModelActivated)
-                    {
                         // active custom override model
                         if (SendBeforeModelActivatedMessage(shouldActiveModelObj, hook))
                         {
                             shouldActiveModelObj.gameObject.SetActive(true);
                         }
+
+                        m_activeModel = shouldActiveModelNum;
                         m_isModelActivated = true;
                     }
                 }
@@ -521,27 +521,27 @@ namespace HTC.UnityPlugin.Vive
 
             if (shouldActiveCustomModel)
             {
-                var shouldActiveCustomModelObj = m_customModelObjs[shouldActiveCustomModelNum];
-                if (shouldActiveCustomModelObj == null)
+                if (!lastCustomModelActive || lastActiveCustomModelNum != shouldActiveCustomModelNum)
                 {
-                    // instantiate custom override model
-                    shouldActiveCustomModelObj = Instantiate(shouldActiveCustomModelPrefab);
-                    shouldActiveCustomModelObj.transform.position = Vector3.zero;
-                    shouldActiveCustomModelObj.transform.rotation = Quaternion.identity;
-                    shouldActiveCustomModelObj.transform.SetParent(transform, false);
-                    m_activeCustomModel = shouldActiveCustomModelNum;
-                    m_customModelObjs[shouldActiveCustomModelNum] = shouldActiveCustomModelObj;
-                    m_isCustomModelActivated = false;
-                    SendAfterModelCreatedMessage(shouldActiveCustomModelObj, this);
-                }
+                    var shouldActiveCustomModelObj = m_customModelObjs[shouldActiveCustomModelNum];
+                    if (shouldActiveCustomModelObj == null)
+                    {
+                        // instantiate custom override model
+                        shouldActiveCustomModelObj = Instantiate(shouldActiveCustomModelPrefab);
+                        shouldActiveCustomModelObj.transform.position = Vector3.zero;
+                        shouldActiveCustomModelObj.transform.rotation = Quaternion.identity;
+                        shouldActiveCustomModelObj.transform.SetParent(transform, false);
+                        m_customModelObjs[shouldActiveCustomModelNum] = shouldActiveCustomModelObj;
+                        SendAfterModelCreatedMessage(shouldActiveCustomModelObj, this);
+                    }
 
-                if (!m_isCustomModelActivated)
-                {
                     // active custom override model
                     if (SendBeforeModelActivatedMessage(shouldActiveCustomModelObj, this))
                     {
                         shouldActiveCustomModelObj.gameObject.SetActive(true);
                     }
+
+                    m_activeCustomModel = shouldActiveCustomModelNum;
                     m_isCustomModelActivated = true;
                 }
             }

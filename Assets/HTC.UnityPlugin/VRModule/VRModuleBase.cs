@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2021, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -36,6 +36,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", REGEX_OPTIONS);
             private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", REGEX_OPTIONS);
+            private static readonly Regex s_focus3Rgx = new Regex("focus3", REGEX_OPTIONS);
             private static readonly Regex s_ver3Rgx = new Regex("^.*3.0.*$", REGEX_OPTIONS);
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus|quest).*$", REGEX_OPTIONS);
             private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGEX_OPTIONS);
@@ -184,6 +185,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                 else if (s_rightRgx.IsMatch(deviceState.renderModelName))
                                 {
                                     deviceState.deviceModel = VRModuleDeviceModel.ViveCosmosControllerRight;
+                                }
+                                deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                            }
+                            else if (s_focus3Rgx.IsMatch(deviceState.modelNumber))
+                            {
+                                if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.ViveFocus3ControllerLeft;
+                                }
+                                else if (s_rightRgx.IsMatch(deviceState.modelNumber))
+                                {
+                                    deviceState.deviceModel = VRModuleDeviceModel.ViveFocus3ControllerRight;
                                 }
                                 deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
                             }
