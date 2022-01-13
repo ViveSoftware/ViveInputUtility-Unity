@@ -1,5 +1,6 @@
 {
     "name": "HTC.ViveInputUtility.Editor",
+    "rootNamespace": "",
     "references": [
         "HTC.ViveInputUtility",
         "HTC.ViveInputUtility.UPMRegistryTool.Editor",
@@ -17,7 +18,8 @@
         "Wave.Essence",
         "Wave.Essence.Editor",
         "Wave.Native",
-        "Wave.Native.Editor"
+        "Wave.Native.Editor",
+        "Wave.OpenXR"
     ],
     "includePlatforms": [
         "Editor"
