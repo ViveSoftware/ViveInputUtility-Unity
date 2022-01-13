@@ -32,7 +32,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 return false;
             }
-            
+
             foreach (XRLoader loader in xrSettings.AssignedSettings.loaders)
             {
                 if (loader.name == loaderName)
@@ -42,6 +42,27 @@ namespace HTC.UnityPlugin.Vive
             }
 #endif
             return false;
+        }
+
+        public static bool OnlyOneXRLoaderEnabled(string loaderName, BuildTargetGroup buildTargetGroup)
+        {
+#if VIU_XR_GENERAL_SETTINGS
+            XRGeneralSettings xrSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
+            if (!xrSettings)
+            {
+                return false;
+            }
+
+            if (!xrSettings.AssignedSettings)
+            {
+                return false;
+            }
+
+            var loaders = xrSettings.AssignedSettings.loaders;
+            return loaders.Count == 1 && loaders[0].name == loaderName;
+#else
+            return false;
+#endif
         }
 
         public static bool IsAnyXRLoaderEnabled(BuildTargetGroup buildTargetGroup)
@@ -69,7 +90,7 @@ namespace HTC.UnityPlugin.Vive
 #if VIU_XR_GENERAL_SETTINGS
             MethodInfo method = Type.GetType("UnityEditor.XR.Management.XRSettingsManager, Unity.XR.Management.Editor")
                 .GetProperty("currentSettings", BindingFlags.NonPublic | BindingFlags.Static).GetGetMethod(true);
-            XRGeneralSettingsPerBuildTarget generalSettings = (XRGeneralSettingsPerBuildTarget)method.Invoke(null, new object[]{});
+            XRGeneralSettingsPerBuildTarget generalSettings = (XRGeneralSettingsPerBuildTarget)method.Invoke(null, new object[] { });
 
             XRGeneralSettings xrSettings = generalSettings.SettingsForBuildTarget(buildTargetGroup);
 
@@ -94,31 +115,17 @@ namespace HTC.UnityPlugin.Vive
 
             if (enabled)
             {
-#if VIU_XR_PACKAGE_METADATA_STORE
-                if (!UnityEditor.XR.Management.Metadata.XRPackageMetadataStore.AssignLoader(xrSettings.AssignedSettings, loaderClassName, buildTargetGroup))
+                if (!AssignLoader(xrSettings.AssignedSettings, loaderClassName, buildTargetGroup))
                 {
                     Debug.LogWarning("Failed to assign XR loader: " + loaderClassName);
                 }
-#else
-                if (!AssignLoader(xrSettings.AssignedSettings, loaderClassName))
-                {
-                    Debug.LogWarning("Failed to assign XR loader: " + loaderClassName);
-                }
-#endif
             }
             else
             {
-#if VIU_XR_PACKAGE_METADATA_STORE
-                if (!UnityEditor.XR.Management.Metadata.XRPackageMetadataStore.RemoveLoader(xrSettings.AssignedSettings, loaderClassName, buildTargetGroup))
+                if (!RemoveLoader(xrSettings.AssignedSettings, loaderClassName, buildTargetGroup))
                 {
                     Debug.LogWarning("Failed to remove XR loader: " + loaderClassName);
                 }
-#else
-                if (!RemoveLoader(xrSettings.AssignedSettings, loaderClassName))
-                {
-                    Debug.LogWarning("Failed to remove XR loader: " + loaderClassName);
-                }
-#endif
             }
 #endif
         }
@@ -126,8 +133,11 @@ namespace HTC.UnityPlugin.Vive
 #if VIU_XR_GENERAL_SETTINGS
         private static readonly string[] s_loaderBlockList = { "DummyLoader", "SampleLoader", "XRLoaderHelper" };
 
-        private static bool AssignLoader(XRManagerSettings settings, string loaderTypeName)
+        private static bool AssignLoader(XRManagerSettings settings, string loaderTypeName, BuildTargetGroup buildTargetGroup)
         {
+#if VIU_XR_PACKAGE_METADATA_STORE
+            return UnityEditor.XR.Management.Metadata.XRPackageMetadataStore.AssignLoader(settings, loaderTypeName, buildTargetGroup);
+#else
             var instance = GetInstanceOfTypeWithNameFromAssetDatabase(loaderTypeName);
             if (instance == null || !(instance is XRLoader))
             {
@@ -160,10 +170,14 @@ namespace HTC.UnityPlugin.Vive
             }
 
             return true;
+#endif
         }
 
-        private static bool RemoveLoader(XRManagerSettings settings, string loaderTypeName)
+        private static bool RemoveLoader(XRManagerSettings settings, string loaderTypeName, BuildTargetGroup buildTargetGroup)
         {
+#if VIU_XR_PACKAGE_METADATA_STORE
+            return UnityEditor.XR.Management.Metadata.XRPackageMetadataStore.RemoveLoader(settings, loaderTypeName, buildTargetGroup);
+#else
             var instance = GetInstanceOfTypeWithNameFromAssetDatabase(loaderTypeName);
             if (instance == null || !(instance is XRLoader))
                 return false;
@@ -178,6 +192,7 @@ namespace HTC.UnityPlugin.Vive
             }
 
             return true;
+#endif
         }
 
         private static ScriptableObject GetInstanceOfTypeWithNameFromAssetDatabase(string typeName)
@@ -220,7 +235,7 @@ namespace HTC.UnityPlugin.Vive
                 return null;
 
             string path = root;
-            foreach( var pc in pathComponents)
+            foreach (var pc in pathComponents)
             {
                 string subFolder = Path.Combine(path, pc);
                 bool shouldCreate = true;
