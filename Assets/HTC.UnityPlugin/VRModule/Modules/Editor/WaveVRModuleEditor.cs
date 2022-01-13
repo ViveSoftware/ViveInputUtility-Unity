@@ -41,6 +41,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             Add(new SymbolRequirement()
             {
+                symbol = "VIU_WAVEXR_OPENXR",
+                reqTypeNames = new string[] { "Wave.OpenXR.VIVEFocus3Feature", "Wave.OpenXR.HTCViveFocus3Profile" },
+                reqFileNames = new string[] { "VIVEOpenXRFeature.cs", "HTCViveFocus3Profile.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
                 symbol = "VIU_WAVEVR_2_0_32_OR_NEWER",
                 reqMethods = new SymbolRequirement.ReqMethodInfo[]
                 {
