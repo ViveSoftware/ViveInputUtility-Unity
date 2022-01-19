@@ -52,14 +52,28 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (v)
                     {
-                        string asmdefFullPath = Path.GetFullPath(ASMDEFS_PATH);
-                        string oculusFullPath = Path.GetFullPath(OCULUS_SDK_PATH);
-                        File.Copy(asmdefFullPath + AVATAR_ASMDEF_FILE_NAME, oculusFullPath + "Avatar/" + AVATAR_ASMDEF_FILE_NAME);
-                        File.Copy(asmdefFullPath + LIPSYNC_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/" + LIPSYNC_ASMDEF_FILE_NAME);
-                        File.Copy(asmdefFullPath + LIPSYNC_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/Editor/" + LIPSYNC_EDITOR_ASMDEF_FILE_NAME);
-                        File.Copy(asmdefFullPath + SPATIALIZER_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/" + SPATIALIZER_ASMDEF_FILE_NAME);
-                        File.Copy(asmdefFullPath + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/Editor/" + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME);
-                        AssetDatabase.Refresh();
+                        try
+                        {
+                            string asmdefFullPath = Path.GetFullPath(ASMDEFS_PATH);
+                            if (!Directory.Exists(asmdefFullPath))
+                            {
+                                MonoScript script = MonoScript.FromScriptableObject(VIUProjectSettings.Instance);
+                                string path = AssetDatabase.GetAssetPath(script);
+                                asmdefFullPath = Path.GetFullPath(AssetDatabase.GetAssetPath(script) + "/../../../.asmdefs/Oculus/");
+                                Debug.Log("asmdefFullPath=" + asmdefFullPath);
+                            }
+                            string oculusFullPath = Path.GetFullPath(OCULUS_SDK_PATH);
+                            File.Copy(asmdefFullPath + AVATAR_ASMDEF_FILE_NAME, oculusFullPath + "Avatar/" + AVATAR_ASMDEF_FILE_NAME);
+                            File.Copy(asmdefFullPath + LIPSYNC_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/" + LIPSYNC_ASMDEF_FILE_NAME);
+                            File.Copy(asmdefFullPath + LIPSYNC_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/Editor/" + LIPSYNC_EDITOR_ASMDEF_FILE_NAME);
+                            File.Copy(asmdefFullPath + SPATIALIZER_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/" + SPATIALIZER_ASMDEF_FILE_NAME);
+                            File.Copy(asmdefFullPath + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/Editor/" + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME);
+                            AssetDatabase.Refresh();
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogException(e);
+                        }
                     }
                 },
                 recommendedValue = true,
@@ -97,15 +111,15 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
+                    if (activeBuildTargetGroup != requirdPlatform) { return false; }
 #if UNITY_2019_3_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME));
+                    if (!PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME)) { return false; }
 #elif UNITY_2018_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && (PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OCULUS_DESKTOP_PACKAGE_NAME));
-#elif UNITY_5_5_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone;
-#else
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && VRModule.isOculusVRPluginDetected;
+                    if (!PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME) && !PackageManagerHelper.IsPackageInList(OCULUS_DESKTOP_PACKAGE_NAME)) { return false; }
+#elif UNITY_5_6_OR_NEWER
+                    if (!VRModule.isOculusVRPluginDetected) { return false; }
 #endif
+                    return true;
                 }
             }
 
@@ -113,44 +127,49 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
+                    if (!canSupport) { return false; }
 #if UNITY_2019_3_OR_NEWER
-                    bool supportOculusXR = (VIUSettings.activateOculusVRModule || VIUSettings.activateUnityXRModule) && XRPluginManagementUtils.IsXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_NAME, requirdPlatform);
-                    bool supportOpenXR = VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.OPENXR_LOADER_NAME, requirdPlatform);
-
-                    return canSupport && (supportOculusXR || supportOpenXR);
+                    if (!VIUSettings.activateOculusVRModule && !VIUSettings.activateUnityXRModule) { return false; }
+                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_NAME, requirdPlatform)) { return false; }
 #elif UNITY_5_5_OR_NEWER
-                    return canSupport && (VIUSettings.activateOculusVRModule || VIUSettings.activateUnityNativeVRModule) && OculusSDK.enabled;
+                    if (!VIUSettings.activateOculusVRModule && !VIUSettings.activateUnityNativeVRModule) { return false; }
+                    if (!OculusSDK.enabled) { return false; }
 #elif UNITY_5_4_OR_NEWER
-                    return canSupport && VIUSettings.activateOculusVRModule && OculusSDK.enabled;
+                    if (!VIUSettings.activateOculusVRModule) { return false; }
+                    if (!OculusSDK.enabled) { return false; }
 #else
-                    return canSupport && VIUSettings.activateOculusVRModule && virtualRealitySupported;
+                    if (!VIUSettings.activateOculusVRModule) { return false; }
+                    if (!virtualRealitySupported) { return false; }
 #endif
+                    return true;
                 }
                 set
                 {
-                    if (support == value) { return; }
-
-                    VIUSettings.activateOculusVRModule = value;
+                    if (value)
+                    {
+                        VIUSettings.activateOculusVRModule = true;
+                        VIUSettings.activateUnityXRModule = true;
+                        VIUSettings.activateUnityNativeVRModule = true;
 #if UNITY_2019_3_OR_NEWER
-                    if (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
-                    {
-                        XRPluginManagementUtils.SetXRLoaderEnabled(UnityXRModule.OPENXR_LOADER_CLASS_NAME, requirdPlatform, value);
-                    }
-                    else if (PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME))
-                    {
-                        XRPluginManagementUtils.SetXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_CLASS_NAME, requirdPlatform, value);
-                    }
-
-                    OculusSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
-                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
-#elif UNITY_5_5_OR_NEWER
-                    OculusSDK.enabled = value;
-                    VIUSettings.activateUnityNativeVRModule = value || supportOpenVR;
+                        VRSDKSettings.vrEnabled = false;
+                        XRPluginManagementUtils.SetXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_CLASS_NAME, requirdPlatform, true);
 #elif UNITY_5_4_OR_NEWER
-                    OculusSDK.enabled = value;
+                        OculusSDK.enabled = true;
 #else
-                    virtualRealitySupported = value;
+                        virtualRealitySupported = true;
 #endif
+                    }
+                    else
+                    {
+                        VIUSettings.activateOculusVRModule = false;
+#if UNITY_2019_3_OR_NEWER
+                        XRPluginManagementUtils.SetXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_CLASS_NAME, requirdPlatform, false);
+#elif UNITY_5_4_OR_NEWER
+                        OculusSDK.enabled = false;
+#else
+                        virtualRealitySupported = false;
+#endif
+                    }
                 }
             }
 
@@ -160,8 +179,12 @@ namespace HTC.UnityPlugin.Vive
                 if (canSupport)
                 {
                     var wasSupported = support;
-                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title, "Oculus Rift, Oculus Rift S"), wasSupported);
-                    s_symbolChanged |= wasSupported != support;
+                    var shouldSupport = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title, "Oculus Rift, Oculus Rift S"), wasSupported);
+                    if (wasSupported != shouldSupport)
+                    {
+                        support = shouldSupport;
+                        s_symbolChanged = true;
+                    }
                 }
                 else
                 {

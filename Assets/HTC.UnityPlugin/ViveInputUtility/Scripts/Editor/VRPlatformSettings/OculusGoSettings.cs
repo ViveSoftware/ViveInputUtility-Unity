@@ -470,6 +470,17 @@ namespace HTC.UnityPlugin.Vive
 
             protected override BuildTargetGroup requirdPlatform { get { return BuildTargetGroup.Android; } }
 
+            private static bool editorGraphicsJobs
+            {
+#if UNITY_5_4_OR_NEWER
+                get { return PlayerSettings.graphicsJobs; }
+                set { PlayerSettings.graphicsJobs = value; }
+#else
+                get { return false; }
+                set { }
+#endif
+            }
+
             private string defaultAndroidManifestPath
             {
                 get
@@ -491,84 +502,73 @@ namespace HTC.UnityPlugin.Vive
             {
                 get
                 {
+                    if (activeBuildTargetGroup != requirdPlatform) { return false; }
 #if UNITY_2019_3_OR_NEWER
-                    return activeBuildTargetGroup == requirdPlatform && PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
+                    if (!PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME)) { return false; }
+                    if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME)) { return false; }
+                    if (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME)) { return false; }
 #elif UNITY_2018_1_OR_NEWER
-                    return activeBuildTargetGroup == requirdPlatform && (PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME));
+                    if (!PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME) && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME)) { return false; }
 #elif UNITY_5_6_OR_NEWER
-                    return activeBuildTargetGroup == requirdPlatform && VRModule.isOculusVRPluginDetected;
-#else
-                    return false;
+                    if (!VRModule.isOculusVRPluginDetected) { return false; }
 #endif
+                    return true;
                 }
             }
 
             public override bool support
             {
-#if UNITY_5_6_OR_NEWER
                 get
                 {
                     if (!canSupport) { return false; }
                     if (PlayerSettings.Android.minSdkVersion < MIN_SUPPORTED_ANDROID_SDK_VERSION) { return false; }
-                    if (PlayerSettings.graphicsJobs) { return false; }
                     if ((PlayerSettings.colorSpace == ColorSpace.Linear || PlayerSettings.gpuSkinning) && !GraphicsAPIContainsOnly(BuildTarget.Android, GraphicsDeviceType.OpenGLES3)) { return false; }
-
+                    if (editorGraphicsJobs) { return false; }
 #if UNITY_2019_3_OR_NEWER
-                    bool supportOculusXR = (VIUSettings.activateOculusVRModule || VIUSettings.activateUnityXRModule) && XRPluginManagementUtils.IsXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_NAME, requirdPlatform);
-                    bool supportOpenXR = VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.OPENXR_LOADER_NAME, requirdPlatform);
-
-                    return canSupport && (supportOculusXR || supportOpenXR);
+                    if (!VIUSettings.activateOculusVRModule && !VIUSettings.activateUnityXRModule) { return false; }
+                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_NAME, requirdPlatform)) { return false; }
 #else
-                    if (!VIUSettings.activateOculusVRModule) { return false; }
+                    if (!VIUSettings.activateOculusVRModule && !VIUSettings.activateUnityNativeVRModule) { return false; }
                     if (!OculusSDK.enabled) { return false; }
-
-                    return true;
 #endif
+                    return true;
                 }
                 set
                 {
-                    if (support == value) { return; }
-
                     if (value)
                     {
-                        supportWaveVR = false;
-                        supportDaydream = false;
-
                         if (PlayerSettings.Android.minSdkVersion < MIN_SUPPORTED_ANDROID_SDK_VERSION)
                         {
                             PlayerSettings.Android.minSdkVersion = MIN_SUPPORTED_ANDROID_SDK_VERSION;
                         }
 
-                        PlayerSettings.graphicsJobs = false;
-
                         if (PlayerSettings.colorSpace == ColorSpace.Linear || PlayerSettings.gpuSkinning)
                         {
                             SetGraphicsAPI(BuildTarget.Android, GraphicsDeviceType.OpenGLES3);
                         }
-                    }
 
-                    VIUSettings.activateOculusVRModule = value;
+                        editorGraphicsJobs = false;
+                        VIUSettings.activateOculusVRModule = true;
+                        VIUSettings.activateUnityXRModule = true;
+
 #if UNITY_2019_3_OR_NEWER
-                    if (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
-                    {
-                        XRPluginManagementUtils.SetXRLoaderEnabled(UnityXRModule.OPENXR_LOADER_CLASS_NAME, requirdPlatform, value);
-                    }
-                    else if (PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME))
-                    {
-                        XRPluginManagementUtils.SetXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_CLASS_NAME, requirdPlatform, value);
-                    }
-
-                    OculusSDK.enabled = value && !PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
-                    VIUSettings.activateUnityXRModule = XRPluginManagementUtils.IsAnyXRLoaderEnabled(requirdPlatform);
+                        VRSDKSettings.vrEnabled = false;
+                        XRPluginManagementUtils.SetXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_CLASS_NAME, requirdPlatform, true);
 #else
-                    OculusSDK.enabled = value;
-                    VIUSettings.activateUnityNativeVRModule = value;
+                        OculusSDK.enabled = true;
+                        VIUSettings.activateUnityNativeVRModule = true;
 #endif
+                    }
+                    else
+                    {
+                        VIUSettings.activateOculusVRModule = false;
+#if UNITY_2019_3_OR_NEWER
+                        XRPluginManagementUtils.SetXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_CLASS_NAME, requirdPlatform, false);
+#else
+                        OculusSDK.enabled = false;
+#endif
+                    }
                 }
-#else
-                get { return false; }
-                set { }
-#endif
             }
 
             public int callbackOrder { get { return 0; } }
@@ -579,8 +579,12 @@ namespace HTC.UnityPlugin.Vive
                 if (canSupport)
                 {
                     var wasSupported = support;
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "Oculus Go, Oculus Quest"), wasSupported);
-                    s_symbolChanged |= wasSupported != support;
+                    var shouldSupport = m_foldouter.ShowFoldoutButtonWithEnabledToggle(new GUIContent(title, "Oculus Go, Oculus Quest"), wasSupported);
+                    if (wasSupported != shouldSupport)
+                    {
+                        support = shouldSupport;
+                        s_symbolChanged = true;
+                    }
                 }
                 else
                 {
@@ -590,21 +594,12 @@ namespace HTC.UnityPlugin.Vive
                     if (activeBuildTargetGroup != requirdPlatform)
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "Android platform required."), false, GUILayout.Width(150f));
+                        ShowToggle(new GUIContent(title, requirdPlatform + " platform required."), false, GUILayout.Width(150f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
-                        ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
+                        ShowSwitchPlatformButton(requirdPlatform, BuildTarget.Android);
                     }
-#if UNITY_2020_2_OR_NEWER && FALSE // openxr not fully supported yet
-                    else if (!PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
-                    {
-                        GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "OpenXR Plugin package required."), false, GUILayout.Width(230f));
-                        GUI.enabled = true;
-                        GUILayout.FlexibleSpace();
-                        ShowAddPackageButton("OpenXR Plugin", OPENXR_PLUGIN_PACKAGE_NAME);
-                    }
-#elif UNITY_2019_3_OR_NEWER
+#if UNITY_2019_3_OR_NEWER
                     else if (!PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
@@ -612,6 +607,51 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         ShowAddPackageButton("Oculus XR Plugin", OCULUS_XR_PACKAGE_NAME);
+                    }
+                    else if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "Conflict package found."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+
+                        var btnLabel = new GUIContent();
+                        string tmPkgName;
+                        if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_ESSENCE_NAME))
+                        {
+                            btnLabel.text = "Remove Wave XR Plugin - Essence";
+                            btnLabel.tooltip = "Conflict package found. Remove " + WAVE_XR_PACKAGE_ESSENCE_NAME + " from Package Manager";
+                            tmPkgName = WAVE_XR_PACKAGE_ESSENCE_NAME;
+                        }
+                        else if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NATIVE_NAME))
+                        {
+                            btnLabel.text = "Remove Wave XR Plugin - Native";
+                            btnLabel.tooltip = "Conflict package found. Remove " + WAVE_XR_PACKAGE_NATIVE_NAME + " from Package Manager";
+                            tmPkgName = WAVE_XR_PACKAGE_NATIVE_NAME;
+                        }
+                        else
+                        {
+                            btnLabel.text = "Remove Wave XR Plugin";
+                            btnLabel.tooltip = "Conflict package found. Remove " + WAVE_XR_PACKAGE_NAME + " from Package Manager";
+                            tmPkgName = WAVE_XR_PACKAGE_NAME;
+                        }
+
+                        if (GUILayout.Button(btnLabel, GUILayout.ExpandWidth(false)))
+                        {
+                            PackageManagerHelper.RemovePackage(tmPkgName);
+                        }
+                    }
+                    else if (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title, "Conflict package found."), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+
+                        if (GUILayout.Button(new GUIContent("Remove OpenXR Plugin", "Conflict package found. Remove " + OPENXR_PLUGIN_PACKAGE_NAME + " from Package Manager"), GUILayout.ExpandWidth(false)))
+                        {
+                            PackageManagerHelper.RemovePackage(OPENXR_PLUGIN_PACKAGE_NAME);
+                        }
                     }
 #elif UNITY_2018_2_OR_NEWER
                     else if (!PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME))
@@ -641,12 +681,12 @@ namespace HTC.UnityPlugin.Vive
                     {
                         EditorGUI.indentLevel += 2;
 
-#if VIU_OCULUSVR
+#if VIU_OCULUSVR_20_0_OR_NEWER
                         // Hand tracking support
                         EditorGUILayout.BeginHorizontal();
                         OVRProjectConfig.HandTrackingSupport originalHandTrackingSupport = oculusProjectConfig.handTrackingSupport;
-                        oculusProjectConfig.handTrackingSupport = (OVRProjectConfig.HandTrackingSupport) EditorGUILayout.EnumPopup("Hand Tracking Support: ", originalHandTrackingSupport);
-                        
+                        oculusProjectConfig.handTrackingSupport = (OVRProjectConfig.HandTrackingSupport)EditorGUILayout.EnumPopup("Hand Tracking Support: ", originalHandTrackingSupport);
+
                         if (oculusProjectConfig.handTrackingSupport != originalHandTrackingSupport)
                         {
                             EditorUtility.SetDirty(oculusProjectConfig);
