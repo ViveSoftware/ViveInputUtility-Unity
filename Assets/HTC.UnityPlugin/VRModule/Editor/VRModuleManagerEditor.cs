@@ -450,23 +450,37 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (symbolReq.Validate())
                 {
-                    if (!string.IsNullOrEmpty(symbolReq.symbol)) { validSymbols.Add(symbolReq.symbol); }
+                    if (!string.IsNullOrEmpty(symbolReq.symbol))
+                    {
+                        invalidSymbols.Remove(symbolReq.symbol);
+                        validSymbols.Add(symbolReq.symbol);
+                    }
                     if (symbolReq.symbols != null)
                     {
                         foreach (var symbol in symbolReq.symbols)
                         {
-                            if (!string.IsNullOrEmpty(symbol)) { validSymbols.Add(symbol); }
+                            if (!string.IsNullOrEmpty(symbol))
+                            {
+                                invalidSymbols.Remove(symbol);
+                                validSymbols.Add(symbol);
+                            }
                         }
                     }
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(symbolReq.symbol)) { invalidSymbols.Add(symbolReq.symbol); }
+                    if (!string.IsNullOrEmpty(symbolReq.symbol) && !validSymbols.Contains(symbolReq.symbol))
+                    {
+                        invalidSymbols.Add(symbolReq.symbol);
+                    }
                     if (symbolReq.symbols != null)
                     {
                         foreach (var symbol in symbolReq.symbols)
                         {
-                            if (!string.IsNullOrEmpty(symbol)) { invalidSymbols.Add(symbol); }
+                            if (!string.IsNullOrEmpty(symbol) && !validSymbols.Contains(symbol))
+                            {
+                                invalidSymbols.Add(symbol);
+                            }
                         }
                     }
                 }
