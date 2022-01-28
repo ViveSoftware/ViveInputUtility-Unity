@@ -507,69 +507,49 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private void UpdateIndexControllerState(IVRModuleDeviceStateRW state, InputDevice device)
         {
+            bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+            bool menuTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("MenuTouch"));
             bool primaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryButton);
             bool primaryTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("PrimaryTouch"));
             bool secondaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondaryButton); // B
             bool secondaryTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("SecondaryTouch"));
+            float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip);
             bool gripButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.gripButton);
+            float gripForce = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("GripForce"));
+            float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
             bool triggerButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.triggerButton);
             bool triggerTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("TriggerTouch"));
+            // joystick
+            Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
             bool primary2DAxisClick = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisClick);
             bool primary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxisTouch);
-            bool secondary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisTouch")); // Joystick
-            float trigger = GetDeviceFeatureValueOrDefault(device, CommonUsages.trigger);
-            float grip = GetDeviceFeatureValueOrDefault(device, CommonUsages.grip);
-            Vector2 primary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.primary2DAxis);
+            // touchpad
             Vector2 secondary2DAxis = GetDeviceFeatureValueOrDefault(device, CommonUsages.secondary2DAxis);
+            float secondary2DAxisForce = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("Secondary2DAxisForce"));
+            bool secondary2DAxisTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisTouch"));
 
+            state.SetButtonPress(VRModuleRawButton.System, menuButton);
             state.SetButtonPress(VRModuleRawButton.A, primaryButton);
             state.SetButtonPress(VRModuleRawButton.ApplicationMenu, secondaryButton);
             state.SetButtonPress(VRModuleRawButton.Grip, gripButton);
             state.SetButtonPress(VRModuleRawButton.Trigger, triggerButton);
-            state.SetButtonPress(VRModuleRawButton.Touchpad, primary2DAxisClick);
+            state.SetButtonPress(VRModuleRawButton.Touchpad, secondary2DAxisForce > 0.5f);
+            state.SetButtonPress(VRModuleRawButton.Joystick, primary2DAxisClick);
 
+            state.SetButtonTouch(VRModuleRawButton.System, menuTouch);
             state.SetButtonTouch(VRModuleRawButton.A, primaryTouch);
             state.SetButtonTouch(VRModuleRawButton.ApplicationMenu, secondaryTouch);
+            state.SetButtonTouch(VRModuleRawButton.Grip, grip > 0f);
             state.SetButtonTouch(VRModuleRawButton.Trigger, triggerTouch);
-            state.SetButtonTouch(VRModuleRawButton.Touchpad, primary2DAxisTouch);
-            state.SetButtonTouch(VRModuleRawButton.Joystick, secondary2DAxisTouch);
+            state.SetButtonTouch(VRModuleRawButton.Touchpad, secondary2DAxisTouch);
+            state.SetButtonTouch(VRModuleRawButton.Joystick, primary2DAxisTouch);
 
-            state.SetAxisValue(VRModuleRawAxis.TouchpadX, primary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.TouchpadY, primary2DAxis.y);
-            state.SetAxisValue(VRModuleRawAxis.JoystickX, secondary2DAxis.x);
-            state.SetAxisValue(VRModuleRawAxis.JoystickY, secondary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadX, secondary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.TouchpadY, secondary2DAxis.y);
+            state.SetAxisValue(VRModuleRawAxis.JoystickX, primary2DAxis.x);
+            state.SetAxisValue(VRModuleRawAxis.JoystickY, primary2DAxis.y);
             state.SetAxisValue(VRModuleRawAxis.Trigger, trigger);
-
-            // conflict with JoystickX
-            //state.SetAxisValue(VRModuleRawAxis.CapSenseGrip, grip);
-
-            if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenVR)
-            {
-                // TODO: Get finger curl values once OpenVR XR Plugin supports
-                bool secondary2DAxisClick = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("Secondary2DAxisClick")); // Joystick
-                bool gripTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("GripTouch"));
-                bool gripGrab = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("GripGrab")); // gripCapacitive >= 0.7
-                float gripCapacitive = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("GripCapacitive")); // touch area on grip
-
-                state.SetButtonPress(VRModuleRawButton.Joystick, secondary2DAxisClick);
-                state.SetButtonTouch(VRModuleRawButton.Grip, gripTouch);
-            }
-            else if (KnownActiveInputSubsystem == VRModuleKnownXRInputSubsystem.OpenXR)
-            {
-                bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
-                bool menuTouch = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<bool>("MenuTouch"));
-                float gripForce = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("GripForce"));
-                float secondary2DAxisForce = GetDeviceFeatureValueOrDefault(device, new InputFeatureUsage<float>("Secondary2DAxisForce"));
-
-                state.SetButtonPress(VRModuleRawButton.Joystick, secondary2DAxisForce > 0.5f);
-                state.SetButtonTouch(VRModuleRawButton.Grip, grip > 0.0f);
-
-                // Unused
-                // [Vector3] PointerPosition
-                // [Quaternion] PointerRotation
-                // [Vector3] PointerVelocity
-                // [Vector3] PointerAngularVelocity
-            }
+            state.SetAxisValue(VRModuleRawAxis.Axis1Y, gripForce);
         }
 
         private void UpdateMagicLeapControllerState(IVRModuleDeviceStateRW state, InputDevice device)
