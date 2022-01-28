@@ -52,7 +52,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         private HashSet<string> m_loadingRenderModels = new HashSet<string>();
         private bool m_isAppQuit;
 
-#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
+#if VIU_OCULUSVR_1_32_0_OR_NEWER && VIU_OCULUSVR_AVATAR
         private IntPtr sdkAvatar = IntPtr.Zero;
         private HashSet<UInt64> assetLoadingIds = new HashSet<UInt64>();
         private Dictionary<string, OvrAvatarComponent> trackedComponents =
@@ -69,7 +69,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         private bool assetsFinishedLoading = false;
         private bool isMaterialInitilized = false;
         private bool isMeshInitilized = false;
-        private ovrAvatarControllerType m_controllerType = ovrAvatarControllerType.Quest;
+        private OVRAvatarControllerType m_controllerType = OVRAvatarControllerType.Quest;
 #endif
 
         private string preferedModelName
@@ -145,7 +145,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         {
             if (m_updateDynamically)
             {
-#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
+#if VIU_OCULUSVR_1_32_0_OR_NEWER && VIU_OCULUSVR_AVATAR
                 if (sdkAvatar == IntPtr.Zero)
                 {
                     return;
@@ -259,7 +259,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                     inputStateRight.isActive = true;
                 }
 
-                CAPI.ovrAvatarPose_UpdateHandsWithType(sdkAvatar, inputStateLeft, inputStateRight, m_controllerType);
+                CAPI.ovrAvatarPose_UpdateHandsWithType(sdkAvatar, inputStateLeft, inputStateRight, (ovrAvatarControllerType)m_controllerType);
                 CAPI.ovrAvatarPose_Finalize(sdkAvatar, Time.deltaTime);
 #endif
 
@@ -407,7 +407,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
         private void AvatarSpecificationCallback(IntPtr avatarSpecification)
         {
-#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
+#if VIU_OCULUSVR_1_32_0_OR_NEWER && VIU_OCULUSVR_AVATAR
             sdkAvatar = CAPI.ovrAvatar_Create(avatarSpecification, ovrAvatarCapabilities.All);
             CAPI.ovrAvatar_SetLeftControllerVisibility(sdkAvatar, true);
             CAPI.ovrAvatar_SetRightControllerVisibility(sdkAvatar, true);
@@ -430,7 +430,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
         }
 
-#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
+#if VIU_OCULUSVR_1_32_0_OR_NEWER && VIU_OCULUSVR_AVATAR
         private void AssetLoadedCallback(OvrAvatarAsset asset)
         {
             assetLoadingIds.Remove(asset.assetID);
@@ -452,7 +452,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
         private void UpdateComponents()
         {
-#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
+#if VIU_OCULUSVR_1_32_0_OR_NEWER && VIU_OCULUSVR_AVATAR
             if (assetLoadingIds.Count == 0)
             {
                 if (!assetsFinishedLoading)
@@ -464,10 +464,10 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
         }
 
-#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER || VIU_OCULUSVR_1_37_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
+#if VIU_OCULUSVR_1_32_0_OR_NEWER && VIU_OCULUSVR_AVATAR
         private void UpdateSDKAvatarUnityState()
         {
-#if VIU_OCULUSVR_1_37_0_OR_NEWER && VIU_OCULUSVR_AVATAR
+#if VIU_OCULUSVR_1_37_0_OR_NEWER
             ovrAvatarControllerComponent controllerComponent = new ovrAvatarControllerComponent();
             ovrAvatarComponent dummyComponent = new ovrAvatarComponent();
             OvrAvatarTouchController controller = null;
@@ -490,7 +490,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                     controller.isLeftHand = false;
                 }
             }
-#elif (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
+#else
             //Iterate through all the render components
             UInt32 componentCount = CAPI.ovrAvatarComponent_Count(sdkAvatar);
 
@@ -545,7 +545,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
         }
 
-#if VIU_OCULUSVR_1_37_0_OR_NEWER && VIU_OCULUSVR_AVATAR
+#if VIU_OCULUSVR_1_37_0_OR_NEWER
         private void AddAvatarComponent<T>(ref T root, ovrAvatarComponent nativeComponent) where T : OvrAvatarComponent
         {
             GameObject componentObject = new GameObject();
@@ -554,7 +554,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             root = componentObject.AddComponent<T>();
             AddRenderParts(root, nativeComponent, componentObject.transform);
         }
-#elif VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER
+#else
         private void AddAvatarComponent(GameObject componentObject, ovrAvatarComponent component)
         {
             OvrAvatarComponent ovrComponent = componentObject.AddComponent<OvrAvatarComponent>();
@@ -748,7 +748,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 }
             }
         }
-#elif VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER
+#else
         private void UpdateAvatarComponent(ovrAvatarComponent component)
         {
             for (UInt32 renderPartIndex = 0; renderPartIndex < component.renderPartCount; renderPartIndex++)
@@ -844,44 +844,50 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         }
 #endif
 
+        public enum OVRAvatarControllerType
+        {
+            Touch,
+            Malibu,
+            Go,
+            Quest,
+        }
+
         public void SetDeviceIndex(uint index)
         {
             //Debug.Log(transform.parent.parent.name + " SetDeviceIndex " + index);
             m_deviceIndex = index;
-#if (VIU_OCULUSVR_1_32_0_OR_NEWER || VIU_OCULUSVR_1_36_0_OR_NEWER) && VIU_OCULUSVR_AVATAR
+
+#if VIU_OCULUSVR_1_32_0_OR_NEWER && !VIU_OCULUSVR_1_36_0_OR_NEWER
             ovrController = this.GetComponent<OvrAvatarTouchController>();
 #endif
-#if VIU_OCULUSVR && VIU_OCULUSVR_AVATAR
+
+#if VIU_OCULUSVR
             var headsetType = OVRPlugin.GetSystemHeadsetType();
-            switch (headsetType)
+            switch ((OculusVRModule.OVRSystemHeadset)headsetType)
             {
-#if !VIU_OCULUSVR_19_0_OR_NEWER
-                case OVRPlugin.SystemHeadset.GearVR_R320:
-                case OVRPlugin.SystemHeadset.GearVR_R321:
-                case OVRPlugin.SystemHeadset.GearVR_R322:
-                case OVRPlugin.SystemHeadset.GearVR_R323:
-                case OVRPlugin.SystemHeadset.GearVR_R324:
-                case OVRPlugin.SystemHeadset.GearVR_R325:
-                    m_controllerType = ovrAvatarControllerType.Malibu;
+                case OculusVRModule.OVRSystemHeadset.GearVR_R320:
+                case OculusVRModule.OVRSystemHeadset.GearVR_R321:
+                case OculusVRModule.OVRSystemHeadset.GearVR_R322:
+                case OculusVRModule.OVRSystemHeadset.GearVR_R323:
+                case OculusVRModule.OVRSystemHeadset.GearVR_R324:
+                case OculusVRModule.OVRSystemHeadset.GearVR_R325:
+                    m_controllerType = OVRAvatarControllerType.Malibu;
                     break;
-                case OVRPlugin.SystemHeadset.Oculus_Go:
-                    m_controllerType = ovrAvatarControllerType.Go;
+                case OculusVRModule.OVRSystemHeadset.Oculus_Go:
+                    m_controllerType = OVRAvatarControllerType.Go;
                     break;
-#endif
-#if VIU_OCULUSVR_16_0_OR_NEWER
-                case OVRPlugin.SystemHeadset.Oculus_Link_Quest:
-#endif
-                case OVRPlugin.SystemHeadset.Oculus_Quest:
-#if VIU_OCULUSVR_1_37_0_OR_NEWER
-                case OVRPlugin.SystemHeadset.Rift_S:
-                    m_controllerType = ovrAvatarControllerType.Quest;
+                case OculusVRModule.OVRSystemHeadset.Oculus_Link_Quest:
+                case OculusVRModule.OVRSystemHeadset.Oculus_Link_Quest_2:
+                case OculusVRModule.OVRSystemHeadset.Oculus_Quest:
+                case OculusVRModule.OVRSystemHeadset.Oculus_Quest_2:
+                case OculusVRModule.OVRSystemHeadset.Rift_S:
+                    m_controllerType = OVRAvatarControllerType.Quest;
                     break;
-#endif
-                case OVRPlugin.SystemHeadset.Rift_DK1:
-                case OVRPlugin.SystemHeadset.Rift_DK2:
-                case OVRPlugin.SystemHeadset.Rift_CV1:
+                case OculusVRModule.OVRSystemHeadset.Rift_DK1:
+                case OculusVRModule.OVRSystemHeadset.Rift_DK2:
+                case OculusVRModule.OVRSystemHeadset.Rift_CV1:
                 default:
-                    m_controllerType = ovrAvatarControllerType.Touch;
+                    m_controllerType = OVRAvatarControllerType.Touch;
                     break;
             }
 #endif
