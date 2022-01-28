@@ -31,17 +31,13 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateUnityXRModule) { return false; }
-                    if (!XRPluginManagementUtils.OnlyOneXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform)) { return false; }
-                    if (!IsOpenXRFeatureGroupEnabled(requirdPlatform, WAVE_XR_OPENXR_FEATURE_ID)) { return false; }
-                    if (IsOpenXRFeatureGroupEnabled(requirdPlatform, OCULUS_QUEST_OPENXR_FEATURE_ID)) { return false; }
+                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform)) { return false; }
                     return true;
                 }
                 set
                 {
                     if (value) { VIUSettings.activateUnityXRModule = true; }
-                    if (value) { XRPluginManagementUtils.SetXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform, true); }
-                    SetOpenXRFeatureGroupEnable(requirdPlatform, WAVE_XR_OPENXR_FEATURE_ID, value);
-                    SetOpenXRFeatureGroupEnable(requirdPlatform, OCULUS_QUEST_OPENXR_FEATURE_ID, !value);
+                    XRPluginManagementUtils.SetXRLoaderEnabled(OPENXR_PLUGIN_LOADER_TYPE, requirdPlatform, value);
                 }
             }
 
@@ -50,7 +46,12 @@ namespace HTC.UnityPlugin.Vive
                 const string title = "OpenXR Desktop (Experimental)";
                 if (canSupport)
                 {
-                    support = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title), support);
+                    var wasSupported = support;
+                    var shouldSupport = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title), support);
+                    if (wasSupported != shouldSupport)
+                    {
+                        support = shouldSupport;
+                    }
                 }
                 else
                 {
@@ -64,6 +65,21 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(requirdPlatform, BuildTarget.StandaloneWindows64);
+                    }
+                    else if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(new GUIContent(title), false, GUILayout.Width(230f));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+
+                        if (GUILayout.Button(new GUIContent("Enable OpenXR Loader", "Enable OpenXR Loader in XR Plug-in Management"), GUILayout.ExpandWidth(false)))
+                        {
+                            if (!ShowXRPluginManagementSection())
+                            {
+                                Debug.LogError("Fail opening XR Plug-in Management page, please enable OpenXR Loader manually.");
+                            }
+                        }
                     }
 
                     GUILayout.EndHorizontal();

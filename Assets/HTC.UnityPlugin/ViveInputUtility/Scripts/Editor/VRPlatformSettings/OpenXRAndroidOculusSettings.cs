@@ -79,6 +79,7 @@ namespace HTC.UnityPlugin.Vive
                     if (PackageManagerHelper.IsPackageInList(WAVE_XR_OPENXR_PACKAGE)) { return false; }
                     if (PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME)) { return false; }
                     if (!PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME)) { return false; }
+                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform)) { return false; }
                     return true;
                 }
             }
