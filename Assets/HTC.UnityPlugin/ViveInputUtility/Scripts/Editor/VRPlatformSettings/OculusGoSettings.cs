@@ -492,11 +492,11 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
 #if UNITY_2019_3_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Android && (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME));
+                    return activeBuildTargetGroup == requirdPlatform && PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME);
 #elif UNITY_2018_1_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Android && (PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME));
+                    return activeBuildTargetGroup == requirdPlatform && (PackageManagerHelper.IsPackageInList(OCULUS_ANDROID_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME));
 #elif UNITY_5_6_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Android && VRModule.isOculusVRPluginDetected;
+                    return activeBuildTargetGroup == requirdPlatform && VRModule.isOculusVRPluginDetected;
 #else
                     return false;
 #endif
@@ -587,7 +587,7 @@ namespace HTC.UnityPlugin.Vive
                     GUILayout.BeginHorizontal();
                     Foldouter.ShowFoldoutBlank();
 
-                    if (activeBuildTargetGroup != BuildTargetGroup.Android)
+                    if (activeBuildTargetGroup != requirdPlatform)
                     {
                         GUI.enabled = false;
                         ShowToggle(new GUIContent(title, "Android platform required."), false, GUILayout.Width(150f));
