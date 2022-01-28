@@ -1,6 +1,5 @@
 ﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
 
-#if VIU_OCULUSVR_20_0_OR_NEWER
 using HTC.UnityPlugin.Utility;
 using System;
 using System.Reflection;
@@ -10,6 +9,8 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 {
     public class OculusHandRenderModel : MonoBehaviour
     {
+#if VIU_OCULUSVR_20_0_OR_NEWER
+        public const bool SUPPORTED = true;
         private bool m_isLeftHand;
         private OVRHand m_ovrHand;
         private OVRSkeleton m_ovrSkeleton;
@@ -109,6 +110,10 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 Debug.LogError("Failed to update OVRHand: " + e);
             }
         }
+#else
+        public const bool SUPPORTED = false;
+        public void Initialize(bool isLeftHand) { }
+        public void SetHand(bool isLeftHand) { }
+#endif
     }
 }
-#endif

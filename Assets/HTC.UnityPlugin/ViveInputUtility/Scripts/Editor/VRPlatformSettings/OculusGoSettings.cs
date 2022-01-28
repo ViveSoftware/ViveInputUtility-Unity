@@ -445,7 +445,7 @@ namespace HTC.UnityPlugin.Vive
         {
             private Foldouter m_foldouter = new Foldouter();
 
-#if VIU_OCULUSVR
+#if VIU_OCULUSVR_20_0_OR_NEWER
             private OVRProjectConfig m_oculusProjectConfig;
 
             private OVRProjectConfig oculusProjectConfig

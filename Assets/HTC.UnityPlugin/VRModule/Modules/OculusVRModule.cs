@@ -104,56 +104,101 @@ namespace HTC.UnityPlugin.VRModuleManagement
         }
 #endif
 
-#if VIU_OCULUSVR_20_0_OR_NEWER
-        private class RenderModelCreator : RenderModelHook.RenderModelCreator
+#if VIU_OCULUSVR_AVATAR
+        private class RenderModelCreator : RenderModelHook.DefaultRenderModelCreator
         {
+            private static VIUOvrAvatar s_avatar;
             private uint m_index = INVALID_DEVICE_INDEX;
-            private VIUOculusVRRenderModel m_controllerModel;
             private OculusHandRenderModel m_handModel;
+            private VIUOvrAvatarComponent m_rightModel;
+            private VIUOvrAvatarComponent m_leftModel;
 
-            public override bool shouldActive { get { return s_moduleInstance == null ? false : s_moduleInstance.isActivated; } }
+            public override bool shouldActive
+            {
+                get
+                {
+#pragma warning disable 0162
+                    if (!OculusHandRenderModel.SUPPORTED && !VIUOvrAvatar.SUPPORTED) { return false; }
+#pragma warning restore 0162
+                    return s_moduleInstance == null ? false : s_moduleInstance.isActivated;
+                }
+            }
 
             public override void UpdateRenderModel()
             {
                 if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
 
-                DisableAllModels();
                 if (!VRModule.IsValidDeviceIndex(m_index))
                 {
+                    if (m_handModel != null) { m_handModel.gameObject.SetActive(false); }
+                    if (m_rightModel != null) { m_rightModel.gameObject.SetActive(false); }
+                    if (m_leftModel != null) { m_leftModel.gameObject.SetActive(false); }
                     return;
                 }
 
-                if (IsHand())
+                if (IsHand() && OculusHandRenderModel.SUPPORTED)
                 {
-                    bool isLeftHand = m_index == s_leftHandIndex;
+                    var isLeftHand = m_index == s_leftHandIndex;
                     if (m_handModel == null)
                     {
-                        GameObject handObj = new GameObject("OculusHandModel");
+                        var handObj = new GameObject(typeof(OculusHandRenderModel).Name);
                         handObj.transform.SetParent(hook.transform.parent.parent, false);
                         m_handModel = handObj.AddComponent<OculusHandRenderModel>();
                         m_handModel.Initialize(isLeftHand);
                     }
 
+                    UpdateDefaultRenderModel(false);
                     m_handModel.gameObject.SetActive(true);
                     m_handModel.SetHand(isLeftHand);
                 }
                 else
                 {
-                    // create object for render model
-                    if (m_controllerModel == null)
+                    if (IsHand()) { UpdateDefaultRenderModel(true); }
+                    if (m_handModel != null) { m_handModel.gameObject.SetActive(false); }
+                }
+
+                if (m_index == s_rightControllerIndex && VIUOvrAvatar.SUPPORTED)
+                {
+                    Debug.Log("lawwong right ctrl " + m_index);
+                    LoadAvatar();
+                    if (m_rightModel == null)
                     {
-                        var go = new GameObject("OculusControllerModel");
+                        var go = new GameObject(typeof(VIUOvrAvatarComponent).Name);
                         go.transform.SetParent(hook.transform, false);
-                        m_controllerModel = go.AddComponent<VIUOculusVRRenderModel>();
+                        m_rightModel = go.AddComponent<VIUOvrAvatarComponent>();
+                        m_rightModel.IsLeft = false;
+                        m_rightModel.Owner = s_avatar;
                     }
 
-                    // set render model index
-                    m_controllerModel.gameObject.SetActive(true);
-                    m_controllerModel.shaderOverride = hook.overrideShader;
-#if !VIU_OCULUSVR_1_37_0_OR_NEWER
-                    m_controllerModel.gameObject.AddComponent(System.Type.GetType("OvrAvatarTouchController"));
-#endif
-                    m_controllerModel.SetDeviceIndex(m_index);
+                    UpdateDefaultRenderModel(false);
+                    m_rightModel.gameObject.SetActive(true);
+                }
+                else
+                {
+                    if (m_index == s_rightControllerIndex) { UpdateDefaultRenderModel(true); }
+                    if (m_rightModel != null) { m_rightModel.gameObject.SetActive(false); }
+                }
+
+                if (m_index == s_leftControllerIndex && VIUOvrAvatar.SUPPORTED)
+                {
+                    Debug.Log("lawwong left ctrl " + m_index);
+                    LoadAvatar();
+                    if (m_leftModel == null)
+                    {
+                        var go = new GameObject(typeof(VIUOvrAvatarComponent).Name);
+                        go.transform.SetParent(hook.transform, false);
+                        m_leftModel = go.AddComponent<VIUOvrAvatarComponent>();
+                        m_leftModel.IsLeft = true;
+                        m_leftModel.Owner = s_avatar;
+                    }
+
+                    UpdateDefaultRenderModel(false);
+                    m_leftModel.gameObject.SetActive(true);
+                }
+                else
+                {
+                    if (m_index == s_leftControllerIndex) { UpdateDefaultRenderModel(true); }
+                    if (m_leftModel != null) { m_leftModel.gameObject.SetActive(false); }
                 }
             }
 
@@ -165,25 +210,27 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     m_handModel = null;
                 }
 
-                if (m_controllerModel != null)
+                if (m_rightModel != null)
                 {
-                    Object.Destroy(m_controllerModel.gameObject);
-                    m_controllerModel = null;
+                    Object.Destroy(m_rightModel.gameObject);
+                    m_rightModel = null;
+                }
+
+                if (m_leftModel != null)
+                {
+                    Object.Destroy(m_leftModel.gameObject);
+                    m_leftModel = null;
                 }
 
                 m_index = INVALID_DEVICE_INDEX;
             }
 
-            private void DisableAllModels()
+            private void LoadAvatar()
             {
-                if (m_controllerModel != null)
+                if (s_avatar == null)
                 {
-                    m_controllerModel.gameObject.SetActive(false);
-                }
-
-                if (m_handModel != null)
-                {
-                    m_handModel.gameObject.SetActive(false);
+                    var go = new GameObject(typeof(VIUOvrAvatar).Name);
+                    s_avatar = go.AddComponent<VIUOvrAvatar>();
                 }
             }
 
@@ -280,15 +327,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override bool ShouldActiveModule()
         {
             if (!VIUSettings.activateOculusVRModule) { return false; }
-#if UNITY_2019_3_OR_NEWER
+#pragma warning disable 0162
 #if VIU_XR_GENERAL_SETTINGS
             return UnityXRModuleBase.HasActiveLoader(OCULUS_XR_LOADER_NAME);
-#else
-            return false;
 #endif
+#if UNITY_2019_3_OR_NEWER
+            return false;
 #else
             return XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus";
 #endif
+#pragma warning restore 0162
         }
 
         public override void OnActivated()
@@ -324,10 +372,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #endif
                     {
                         OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.FloorLevel);
+                        Debug.Log("lawwong SetTrackingOriginType FloorLevel");
                     }
                     break;
                 case VRModuleTrackingSpaceType.Stationary:
                     OVRPlugin.SetTrackingOriginType(OVRPlugin.TrackingOrigin.EyeLevel);
+                    Debug.Log("lawwong SetTrackingOriginType EyeLevel");
                     break;
             }
         }
