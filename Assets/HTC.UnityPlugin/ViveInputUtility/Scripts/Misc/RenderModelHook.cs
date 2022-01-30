@@ -103,7 +103,7 @@ namespace HTC.UnityPlugin.Vive
 
                 var lastModelActivated = m_isModelActivated;
                 var lastActivatedModel = m_activeModel;
-                var shouldActiveModelNum = deviceState.deviceModel;
+                var shouldActiveModelNum = hook.overrideModel == OverrideModelEnum.DontOverride ? deviceState.deviceModel : (VRModuleDeviceModel)hook.overrideModel;
                 var shouldActiveModelPrefab = shouldActive ? GetDefaultDeviceModelPrefab(shouldActiveModelNum) : null;
                 var shouldActiveModel = shouldActive && deviceState.isConnected && shouldActiveModelPrefab != null;
 
@@ -229,11 +229,11 @@ namespace HTC.UnityPlugin.Vive
             ViveCosmosControllerRight = VRModuleDeviceModel.ViveCosmosControllerRight,
             OculusQuestControllerLeft = VRModuleDeviceModel.OculusQuestControllerLeft,
             OculusQuestControllerRight = VRModuleDeviceModel.OculusQuestControllerRight,
-            IndexHMD = VRModuleDeviceModel.IndexHMD,
+            IndexHMD = VRModuleDeviceModel.IndexHMD, // no model
             IndexControllerLeft = VRModuleDeviceModel.IndexControllerLeft,
             IndexControllerRight = VRModuleDeviceModel.IndexControllerRight,
-            MagicLeapHMD = VRModuleDeviceModel.MagicLeapHMD,
-            MagicLeapController = VRModuleDeviceModel.MagicLeapController,
+            MagicLeapHMD = VRModuleDeviceModel.MagicLeapHMD, // no model
+            MagicLeapController = VRModuleDeviceModel.MagicLeapController, // no model
             ViveHandTrackingTrackedHandLeft = VRModuleDeviceModel.ViveHandTrackingTrackedHandLeft,
             ViveHandTrackingTrackedHandRight = VRModuleDeviceModel.ViveHandTrackingTrackedHandRight,
             WaveLegacyTrackedHandLeft = VRModuleDeviceModel.WaveLegacyTrackedHandLeft,
@@ -242,6 +242,11 @@ namespace HTC.UnityPlugin.Vive
             WaveTrackedHandRight = VRModuleDeviceModel.WaveTrackedHandRight,
             OculusTrackedHandLeft = VRModuleDeviceModel.OculusTrackedHandLeft,
             OculusTrackedHandRight = VRModuleDeviceModel.OculusTrackedHandRight,
+            ViveFocus3ControllerLeft = VRModuleDeviceModel.ViveFocus3ControllerLeft,
+            ViveFocus3ControllerRight = VRModuleDeviceModel.ViveFocus3ControllerRight,
+            ViveFocusChirp = VRModuleDeviceModel.ViveFocusChirp,
+            ViveTracker3 = VRModuleDeviceModel.ViveTracker3,
+            ViveFlowPhoneController = VRModuleDeviceModel.ViveFlowPhoneController,
         }
 
         [SerializeField]
