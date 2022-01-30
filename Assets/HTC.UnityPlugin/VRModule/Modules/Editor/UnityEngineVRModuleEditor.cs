@@ -151,6 +151,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     "PoseControl.cs",
                 },
             });
+
+            Add(new VRModuleManagerEditor.SymbolRequirement()
+            {
+                symbol = "VIU_UIS_POSE_CONTROL",
+                reqTypeNames = new string[]
+                {
+                    "UnityEngine.InputSystem.XR.PoseControl",
+                },
+                reqFileNames = new string[]
+                {
+                    "PoseControl.cs",
+                },
+            });
         }
     }
 }
