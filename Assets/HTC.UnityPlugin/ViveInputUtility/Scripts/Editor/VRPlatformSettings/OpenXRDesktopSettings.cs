@@ -110,6 +110,7 @@ namespace HTC.UnityPlugin.Vive
 
         private static bool ShowXRPluginManagementSection()
         {
+#if VIU_OPENXR
             try
             {
                 var projectSettingsType = Assembly.GetAssembly(typeof(SettingsProvider)).GetType("UnityEditor.ProjectSettingsWindow");
@@ -123,6 +124,9 @@ namespace HTC.UnityPlugin.Vive
                 return false;
             }
             return true;
+#else
+            return false;
+#endif
         }
     }
 }

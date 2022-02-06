@@ -207,7 +207,7 @@ namespace HTC.UnityPlugin.Vive
 
 #if !UNITY_5_6_OR_NEWER || UNITY_5_6_0 || UNITY_5_6_1 || UNITY_5_6_2
                     GUI.enabled = false;
-                    ShowToggle(new GUIContent(s_title.text, s_title.tooltip + ". Unity 5.6.3 or later version required."), false, GUILayout.Width(toggleWidth));
+                    ShowToggle(new GUIContent(s_title.text, s_title.tooltip + ". Unity 5.6.3 or later version required."), false, GUILayout.Width(wvrToggleWidth));
                     GUI.enabled = true;
 #else
                     if (activeBuildTargetGroup != BuildTargetGroup.Android)
