@@ -90,6 +90,12 @@ namespace HTC.UnityPlugin.Vive
             return deviceClass == VRModuleDeviceClass.GenericTracker;
         }
 
+        private bool IsControllerOrTracker(uint deviceIndex)
+        {
+            var deviceClass = VRModule.GetCurrentDeviceState(deviceIndex).deviceClass;
+            return IsController(deviceClass) || IsTracker(deviceClass);
+        }
+
         private bool IsTrackedHand(uint deviceIndex)
         {
             return IsTrackedHand(VRModule.GetCurrentDeviceState(deviceIndex).deviceClass);
@@ -128,139 +134,144 @@ namespace HTC.UnityPlugin.Vive
         private void MappingLeftRightHands()
         {
             // assign left/right controllers according to the hint
-            var rightIndex = VRModule.GetRightControllerDeviceIndex();
-            var leftIndex = VRModule.GetLeftControllerDeviceIndex();
+            uint rightIndex, leftIndex;
+            var rightBound = RoleMap.IsRoleBound(HandRole.RightHand);
+            var leftBound = RoleMap.IsRoleBound(HandRole.LeftHand);
+            var deviceCount = VRModule.GetDeviceStateCount();
 
-            if (VRModule.GetCurrentDeviceState(rightIndex).isConnected)
-            {
-                MappingRoleIfUnbound(HandRole.RightHand, rightIndex);
-                rightIndex = RoleMap.GetMappedDeviceByRole(HandRole.RightHand);
-            }
-            else if (RoleMap.IsRoleBound(HandRole.RightHand))
+            if (rightBound)
             {
                 rightIndex = RoleMap.GetMappedDeviceByRole(HandRole.RightHand);
             }
             else
             {
-                rightIndex = VRModule.INVALID_DEVICE_INDEX;
+                rightIndex = VRModule.GetRightControllerDeviceIndex();
+                if (rightIndex >= deviceCount || RoleMap.IsDeviceConnectedAndBound(rightIndex))
+                {
+                    rightIndex = VRModule.INVALID_DEVICE_INDEX;
+                }
             }
 
-            if (VRModule.GetCurrentDeviceState(leftIndex).isConnected && leftIndex != rightIndex)
-            {
-                MappingRoleIfUnbound(HandRole.LeftHand, leftIndex);
-                leftIndex = RoleMap.GetMappedDeviceByRole(HandRole.LeftHand);
-            }
-            else if (RoleMap.IsRoleBound(HandRole.LeftHand))
+            if (leftBound)
             {
                 leftIndex = RoleMap.GetMappedDeviceByRole(HandRole.LeftHand);
             }
             else
             {
-                leftIndex = VRModule.INVALID_DEVICE_INDEX;
+                leftIndex = VRModule.GetRightControllerDeviceIndex();
+                if (leftIndex >= deviceCount || RoleMap.IsDeviceConnectedAndBound(leftIndex))
+                {
+                    leftIndex = VRModule.INVALID_DEVICE_INDEX;
+                }
             }
 
             // if not both left/right controllers are assigned, find and assign them with left/right most controller
-            if (!VRModule.IsValidDeviceIndex(rightIndex) || !VRModule.IsValidDeviceIndex(leftIndex))
+            if (rightIndex >= deviceCount || leftIndex >= deviceCount)
             {
-                // find right to left sorted controllers
-                // FIXME: GetSortedTrackedDeviceIndicesOfClass doesn't return correct devices count right after device connected
-#if __VIU_STEAMVR
-                if (VRModule.activeModule == SupportedVRModule.SteamVR)
+                for (uint i = 0u, imax = deviceCount; i < imax; ++i)
                 {
-                    var count = 0;
-                    var system = Valve.VR.OpenVR.System;
-                    if (system != null)
-                    {
-                        count = (int)system.GetSortedTrackedDeviceIndicesOfClass(Valve.VR.ETrackedDeviceClass.Controller, m_sortedDevices, Valve.VR.OpenVR.k_unTrackedDeviceIndex_Hmd);
-                    }
-
-                    foreach (var deviceIndex in m_sortedDevices)
-                    {
-                        if (m_sortedDeviceList.Count >= count) { break; }
-                        if (IsController(deviceIndex) && deviceIndex != rightIndex && deviceIndex != leftIndex && !RoleMap.IsDeviceConnectedAndBound(deviceIndex))
-                        {
-                            m_sortedDeviceList.Add(deviceIndex);
-                        }
-                    }
-                }
-                else
-#endif
-                {
-                    for (uint deviceIndex = 1u, imax = VRModule.GetDeviceStateCount(); deviceIndex < imax; ++deviceIndex)
-                    {
-                        if (IsController(deviceIndex) && deviceIndex != rightIndex && deviceIndex != leftIndex && !RoleMap.IsDeviceConnectedAndBound(deviceIndex))
-                        {
-                            m_sortedDeviceList.Add(deviceIndex);
-                        }
-                    }
-
-                    if (m_sortedDeviceList.Count > 1)
-                    {
-                        SortDeviceIndicesByDirection(m_sortedDeviceList, VRModule.GetCurrentDeviceState(VRModule.HMD_DEVICE_INDEX).pose);
-                    }
+                    if (i == rightIndex || i == leftIndex) { continue; }
+                    var state = VRModule.GetCurrentDeviceState(i);
+                    if (state.deviceClass != VRModuleDeviceClass.Controller) { continue; }
+                    if (RoleMap.IsDeviceBound(state.serialNumber)) { continue; }
+                    m_sortedDeviceList.Add(i);
                 }
 
-                if (m_sortedDeviceList.Count > 0 && !VRModule.IsValidDeviceIndex(rightIndex))
+                if (m_sortedDeviceList.Count > 1)
                 {
-                    rightIndex = m_sortedDeviceList[0];
-                    m_sortedDeviceList.RemoveAt(0);
-                    // mapping right most controller
-                    MappingRole(HandRole.RightHand, rightIndex);
+                    SortDeviceIndicesByDirection(m_sortedDeviceList, VRModule.GetCurrentDeviceState(VRModule.HMD_DEVICE_INDEX).pose);
+                    if (rightIndex >= deviceCount) { rightIndex = m_sortedDeviceList[0]; }
+                    if (leftIndex >= deviceCount) { leftIndex = m_sortedDeviceList[m_sortedDeviceList.Count - 1]; }
+                    m_sortedDeviceList.Clear();
                 }
-
-                if (m_sortedDeviceList.Count > 0 && !VRModule.IsValidDeviceIndex(leftIndex))
+                else if (m_sortedDeviceList.Count == 1)
                 {
-                    leftIndex = m_sortedDeviceList[m_sortedDeviceList.Count - 1];
-                    // mapping left most controller
-                    MappingRole(HandRole.LeftHand, leftIndex);
+                    if (rightIndex >= deviceCount) { rightIndex = m_sortedDeviceList[0]; }
+                    else if (leftIndex >= deviceCount) { leftIndex = m_sortedDeviceList[0]; }
+                    m_sortedDeviceList.Clear();
                 }
-
-                m_sortedDeviceList.Clear();
             }
 
-            if (!VRModule.IsValidDeviceIndex(rightIndex)) { UnmappingRole(HandRole.RightHand); }
-            if (!VRModule.IsValidDeviceIndex(leftIndex)) { UnmappingRole(HandRole.LeftHand); }
+            if (!rightBound)
+            {
+                if (rightIndex < deviceCount) { MappingRole(HandRole.RightHand, rightIndex); }
+                else { UnmappingRole(HandRole.RightHand); }
+            }
+
+            if (!leftBound)
+            {
+                if (leftIndex < deviceCount) { MappingRole(HandRole.LeftHand, leftIndex); }
+                else { UnmappingRole(HandRole.LeftHand); }
+            }
         }
 
         private void MappingOtherControllers()
         {
-            // mapping other controllers in order of device index
             var deviceIndex = 0u;
-            var firstFoundTracker = VRModule.INVALID_DEVICE_INDEX;
+            var nextRole = HandRole.LeftHand;
             var rightIndex = RoleMap.GetMappedDeviceByRole(HandRole.RightHand);
             var leftIndex = RoleMap.GetMappedDeviceByRole(HandRole.LeftHand);
+            var exCamIndex = VRModule.INVALID_DEVICE_INDEX;
 
-            for (var role = RoleInfo.MinValidRole; role <= RoleInfo.MaxValidRole; ++role)
+            // mapping ExternalCamera (skip if already bound)
+            if (RoleMap.IsRoleBound(HandRole.ExternalCamera))
             {
-                if (!RoleInfo.IsValidRole(role)) { continue; }
-                if (role == HandRole.RightHand || role == HandRole.LeftHand) { continue; }
-                if (RoleMap.IsRoleBound(role)) { continue; }
-
-                // find next valid device
-                if (VRModule.IsValidDeviceIndex(deviceIndex))
+                nextRole = HandRole.ExternalCamera;
+                exCamIndex = RoleMap.GetMappedDeviceByRole(HandRole.ExternalCamera);
+            }
+            else
+            {
+                // mapping first found tracker as ExternalCamera
+                for (uint i = 0u, imax = VRModule.GetDeviceStateCount(); deviceIndex < imax; ++deviceIndex)
                 {
-                    while (!IsController(deviceIndex) || RoleMap.IsDeviceConnectedAndBound(deviceIndex) || deviceIndex == rightIndex || deviceIndex == leftIndex)
-                    {
-                        if (!VRModule.IsValidDeviceIndex(firstFoundTracker) && IsTracker(deviceIndex)) { firstFoundTracker = deviceIndex; }
-                        if (!VRModule.IsValidDeviceIndex(++deviceIndex)) { break; }
-                    }
+                    if (VRModule.GetCurrentDeviceState(i).deviceClass != VRModuleDeviceClass.GenericTracker) { continue; }
+                    if (i == rightIndex || i == leftIndex) { continue; }
+
+                    exCamIndex = deviceIndex;
+                    MappingRole(HandRole.ExternalCamera, deviceIndex);
+                    nextRole = HandRole.ExternalCamera;
+                    break;
                 }
+            }
 
-                if (VRModule.IsValidDeviceIndex(deviceIndex))
+            // mapping other controllers in order of device index
+            while (NextUnboundRole(ref nextRole))
+            {
+                if (NextUnboundCtrlOrTracker(ref deviceIndex, exCamIndex))
                 {
-                    MappingRole(role, deviceIndex++);
+                    MappingRole(nextRole, deviceIndex);
                 }
                 else
                 {
-                    UnmappingRole(role);
+                    UnmappingRole(nextRole);
                 }
             }
+        }
 
-            // if external camera is not mapped, try mapping first found tracker
-            if (!RoleMap.IsRoleMapped(HandRole.ExternalCamera) && VRModule.IsValidDeviceIndex(firstFoundTracker) && !RoleMap.IsDeviceConnectedAndBound(firstFoundTracker))
+        private bool NextUnboundRole(ref HandRole r)
+        {
+            while ((r + 1) <= HandRole.Controller15)
             {
-                MappingRole(HandRole.ExternalCamera, firstFoundTracker);
+                ++r;
+                if (RoleMap.IsRoleBound(r)) { continue; }
+                return true;
             }
+            return false;
+        }
+
+        private bool NextUnboundCtrlOrTracker(ref uint i, uint skip = VRModule.INVALID_DEVICE_INDEX)
+        {
+            var imax = VRModule.GetDeviceStateCount();
+            while (i != VRModule.INVALID_DEVICE_INDEX && (i + 1) < imax)
+            {
+                ++i;
+                var state = VRModule.GetCurrentDeviceState(i);
+                if (i == skip) { continue; }
+                if (IsController(state.deviceClass) && IsTracker(state.deviceClass)) { continue; }
+                if (RoleMap.IsDeviceBound(state.serialNumber)) { continue; }
+                return true;
+            }
+            return false;
         }
 
         private static readonly float[] s_deviceDirPoint = new float[VRModule.MAX_DEVICE_COUNT];
