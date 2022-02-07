@@ -195,13 +195,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     EnsureValidDeviceState(deviceIndex, out prevState, out currState);
                 }
+
                 currState.isConnected = true;
                 // update device Poses
                 currState.isPoseValid = GetDeviceFeatureValueOrDefault(device, CommonUsages.isTracked);
-                currState.position = GetDeviceFeatureValueOrDefault(device, CommonUsages.devicePosition);
-                currState.rotation = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceRotation);
-                currState.velocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceVelocity);
-                currState.angularVelocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceAngularVelocity);
+                if (Vive.VIUSettings.preferUnityXRPointerPose)
+                {
+                    currState.position = GetDeviceFeatureValueOrDefault(device, pointerPositionFeature, CommonUsages.devicePosition);
+                    currState.rotation = GetDeviceFeatureValueOrDefault(device, pointerRotationFeature, CommonUsages.deviceRotation);
+                    currState.velocity = GetDeviceFeatureValueOrDefault(device, pointerVelocityFeature, CommonUsages.deviceVelocity);
+                    currState.angularVelocity = GetDeviceFeatureValueOrDefault(device, pointerAngularVelocityFeature, CommonUsages.deviceAngularVelocity);
+                }
+                else
+                {
+                    currState.position = GetDeviceFeatureValueOrDefault(device, CommonUsages.devicePosition);
+                    currState.rotation = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceRotation);
+                    currState.velocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceVelocity);
+                    currState.angularVelocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceAngularVelocity);
+                }
 
                 // TODO: update hand skeleton pose
             }

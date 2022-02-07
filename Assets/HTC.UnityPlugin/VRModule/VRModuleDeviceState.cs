@@ -436,12 +436,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.KnucklesRight:
                 case VRModuleDeviceModel.WMRControllerRight:
                 case VRModuleDeviceModel.ViveCosmosControllerRight:
-                case VRModuleDeviceModel.OculusQuestControllerRight:
+                case VRModuleDeviceModel.OculusQuestOrRiftSControllerRight:
                 case VRModuleDeviceModel.IndexControllerRight:
                 case VRModuleDeviceModel.ViveHandTrackingTrackedHandRight:
                 case VRModuleDeviceModel.WaveLegacyTrackedHandRight:
                 case VRModuleDeviceModel.WaveTrackedHandRight:
                 case VRModuleDeviceModel.OculusTrackedHandRight:
+                case VRModuleDeviceModel.ViveFocus3ControllerRight:
                     return true;
                 default:
                     return false;
@@ -456,12 +457,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.KnucklesLeft:
                 case VRModuleDeviceModel.WMRControllerLeft:
                 case VRModuleDeviceModel.ViveCosmosControllerLeft:
-                case VRModuleDeviceModel.OculusQuestControllerLeft:
+                case VRModuleDeviceModel.OculusQuestOrRiftSControllerLeft:
                 case VRModuleDeviceModel.IndexControllerLeft:
                 case VRModuleDeviceModel.ViveHandTrackingTrackedHandLeft:
                 case VRModuleDeviceModel.WaveLegacyTrackedHandLeft:
                 case VRModuleDeviceModel.WaveTrackedHandLeft:
                 case VRModuleDeviceModel.OculusTrackedHandLeft:
+                case VRModuleDeviceModel.ViveFocus3ControllerLeft:
                     return true;
                 default:
                     return false;

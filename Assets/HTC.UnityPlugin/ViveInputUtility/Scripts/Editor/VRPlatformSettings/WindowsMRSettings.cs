@@ -64,7 +64,7 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
 #if UNITY_2019_3_OR_NEWER
-                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && (PackageManagerHelper.IsPackageInList(WINDOWSMR_XR_PACKAGE_NAME) || PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME));
+                    return activeBuildTargetGroup == BuildTargetGroup.Standalone && PackageManagerHelper.IsPackageInList(WINDOWSMR_XR_PACKAGE_NAME);
 #elif UNITY_2018_2_OR_NEWER
                     return activeBuildTargetGroup == BuildTargetGroup.Standalone && PackageManagerHelper.IsPackageInList(WINDOWSMR_PACKAGE_NAME);
 #else
@@ -78,7 +78,7 @@ namespace HTC.UnityPlugin.Vive
                 get
                 {
 #if UNITY_2019_3_OR_NEWER
-                    return canSupport && VIUSettings.activateUnityXRModule && (XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.OPENXR_LOADER_NAME, requirdPlatform) || XRPluginManagementUtils.IsXRLoaderEnabled(WINDOWSMR_XR_LOADER_NAME, requirdPlatform));
+                    return canSupport && VIUSettings.activateUnityXRModule && XRPluginManagementUtils.IsXRLoaderEnabled(WINDOWSMR_XR_LOADER_NAME, requirdPlatform);
 #elif UNITY_2018_2_OR_NEWER
                     return canSupport && VIUSettings.activateUnityNativeVRModule && WindowsMRSDK.enabled;
 #else
@@ -89,11 +89,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (support == value) { return; }
 #if UNITY_2019_3_OR_NEWER
-                    if (PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
-                    {
-                        XRPluginManagementUtils.SetXRLoaderEnabled(UnityXRModule.OPENXR_LOADER_CLASS_NAME, requirdPlatform, value);
-                    }
-                    else if (PackageManagerHelper.IsPackageInList(WINDOWSMR_PACKAGE_NAME))
+                    if (PackageManagerHelper.IsPackageInList(WINDOWSMR_PACKAGE_NAME))
                     {
                         XRPluginManagementUtils.SetXRLoaderEnabled(WINDOWSMR_XR_LOADER_CLASS_NAME, requirdPlatform, value);
                     }

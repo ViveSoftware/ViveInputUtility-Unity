@@ -48,6 +48,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
 
             public string symbol = string.Empty;
+            public string[] symbols = null;
             public string[] reqTypeNames = null;
             public string[] reqAnyTypeNames = null;
             public string[] reqFileNames = null;
@@ -442,23 +443,63 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             var defineSymbols = GetDefineSymbols();
             var defineSymbolsChanged = false;
+            var validSymbols = new HashSet<string>();
+            var invalidSymbols = new HashSet<string>();
 
             foreach (var symbolReq in s_symbolReqList)
             {
                 if (symbolReq.Validate())
                 {
-                    if (!defineSymbols.Contains(symbolReq.symbol))
+                    if (!string.IsNullOrEmpty(symbolReq.symbol))
                     {
-                        defineSymbols.Add(symbolReq.symbol);
-                        defineSymbolsChanged = true;
+                        invalidSymbols.Remove(symbolReq.symbol);
+                        validSymbols.Add(symbolReq.symbol);
+                    }
+                    if (symbolReq.symbols != null)
+                    {
+                        foreach (var symbol in symbolReq.symbols)
+                        {
+                            if (!string.IsNullOrEmpty(symbol))
+                            {
+                                invalidSymbols.Remove(symbol);
+                                validSymbols.Add(symbol);
+                            }
+                        }
                     }
                 }
                 else
                 {
-                    if (defineSymbols.RemoveAll((symbol) => symbol == symbolReq.symbol) > 0)
+                    if (!string.IsNullOrEmpty(symbolReq.symbol) && !validSymbols.Contains(symbolReq.symbol))
                     {
-                        defineSymbolsChanged = true;
+                        invalidSymbols.Add(symbolReq.symbol);
                     }
+                    if (symbolReq.symbols != null)
+                    {
+                        foreach (var symbol in symbolReq.symbols)
+                        {
+                            if (!string.IsNullOrEmpty(symbol) && !validSymbols.Contains(symbol))
+                            {
+                                invalidSymbols.Add(symbol);
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (var symbol in invalidSymbols)
+            {
+                if (defineSymbols.RemoveAll((s) => s == symbol) > 0)
+                {
+                    defineSymbolsChanged = true;
+                }
+            }
+
+            foreach (var symbol in validSymbols)
+            {
+                if (!defineSymbols.Contains(symbol))
+                {
+                    defineSymbols.Add(symbol);
+                    defineSymbolsChanged = true;
                 }
             }
 

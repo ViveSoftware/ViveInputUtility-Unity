@@ -190,14 +190,14 @@ namespace HTC.UnityPlugin.Vive
 
             public int callbackOrder { get { return 10; } }
 
+            private static GUIContent s_title = new GUIContent("Wave XR", "VIVE Focus, VIVE Flow");
             public override void OnPreferenceGUI()
             {
-                const string title = "Wave XR";
                 const float wvrToggleWidth = 226f;
                 if (canSupport)
                 {
                     var wasSupported = support;
-                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(new GUIContent(title, "VIVE Focus, VIVE Flow"), wasSupported);
+                    support = m_foldouter.ShowFoldoutButtonOnToggleEnabled(s_title, wasSupported);
                     s_symbolChanged |= wasSupported != support;
                 }
                 else
@@ -207,13 +207,13 @@ namespace HTC.UnityPlugin.Vive
 
 #if !UNITY_5_6_OR_NEWER || UNITY_5_6_0 || UNITY_5_6_1 || UNITY_5_6_2
                     GUI.enabled = false;
-                    ShowToggle(new GUIContent(title, "Unity 5.6.3 or later version required."), false, GUILayout.Width(wvrToggleWidth));
+                    ShowToggle(new GUIContent(s_title.text, s_title.tooltip + ". Unity 5.6.3 or later version required."), false, GUILayout.Width(wvrToggleWidth));
                     GUI.enabled = true;
 #else
                     if (activeBuildTargetGroup != BuildTargetGroup.Android)
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "Android platform required."), false, GUILayout.Width(wvrToggleWidth));
+                        ShowToggle(s_title, false, GUILayout.Width(wvrToggleWidth));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(BuildTargetGroup.Android, BuildTarget.Android);
@@ -222,11 +222,11 @@ namespace HTC.UnityPlugin.Vive
                     else if (!PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME))
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "Wave XR Plugin package required."), false, GUILayout.Width(230f));
+                        ShowToggle(s_title, false, GUILayout.Width(230f));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
 
-                        if (GUILayout.Button(new GUIContent("Add Wave XR Plugin Package", "Add " + WAVE_XR_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(new GUIContent("Add Wave XR Plugin", "Add " + WAVE_XR_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
                         {
                             if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
                             {
@@ -241,7 +241,7 @@ namespace HTC.UnityPlugin.Vive
                     else if (!VRModule.isWaveVRPluginDetected)
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, "Wave VR plugin required."), false, GUILayout.Width(wvrToggleWidth));
+                        ShowToggle(s_title, false, GUILayout.Width(wvrToggleWidth));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         ShowUrlLinkButton(URL_WAVE_VR_PLUGIN);

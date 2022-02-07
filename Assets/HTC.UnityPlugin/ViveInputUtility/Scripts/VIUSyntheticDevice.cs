@@ -6,6 +6,7 @@ using HTC.UnityPlugin.VRModuleManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,7 +16,9 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.InputSystem.XR;
 using TrackingState = UnityEngine.XR.InputTrackingState;
+#if VIU_UIS_POSE_CONTROL
 using UnityPoseControl = UnityEngine.InputSystem.XR.PoseControl;
+#endif
 #if VIU_OPENXR_PLUGIN_POSE_CONTROL
 using OpenXRPoseControl = UnityEngine.XR.OpenXR.Input.PoseControl;
 #endif
@@ -25,6 +28,25 @@ namespace HTC.UnityPlugin.Vive
     public struct VIUSyntheticDeviceState : IInputStateTypeInfo
     {
         public FourCC format => new FourCC('V', 'I', 'U', 'D');
+
+        [StructLayout(LayoutKind.Explicit, Size = kSizeInBytes)]
+        public struct PoseState : IInputStateTypeInfo
+        {
+            internal const int kSizeInBytes = 60;
+            public FourCC format => new FourCC('P', 'o', 's', 'e');
+            [FieldOffset(0), InputControl(displayName = "Is Tracked", layout = "Button")]
+            public bool isTracked;
+            [FieldOffset(4), InputControl(displayName = "Tracking State", layout = "Integer")]
+            public TrackingState trackingState;
+            [FieldOffset(8), InputControl(displayName = "Position", noisy = true)]
+            public Vector3 position;
+            [FieldOffset(20), InputControl(displayName = "Rotation", noisy = true)]
+            public Quaternion rotation;
+            [FieldOffset(36), InputControl(displayName = "Velocity", noisy = true)]
+            public Vector3 velocity;
+            [FieldOffset(48), InputControl(displayName = "Angular Velocity", noisy = true)]
+            public Vector3 angularVelocity;
+        }
 
         [InputControl(name = "pose", layout = "Pose")]
         public PoseState pose;
@@ -270,7 +292,9 @@ namespace HTC.UnityPlugin.Vive
         public StickControl pad { get; private set; }
         public StickControl joystick { get; private set; }
 
+#if VIU_UIS_POSE_CONTROL
         public UnityPoseControl pose { get; private set; }
+#endif
 #if VIU_OPENXR_PLUGIN_POSE_CONTROL
         public OpenXRPoseControl openxr_pose { get; private set; }
 #endif
@@ -443,7 +467,7 @@ namespace HTC.UnityPlugin.Vive
                 middlePinch = ctrlState.GetAxis(ControllerAxis.MiddlePinch),
                 ringPinch = ctrlState.GetAxis(ControllerAxis.RingPinch),
                 pinkyPinch = ctrlState.GetAxis(ControllerAxis.PinkyPinch),
-                pose = new PoseState()
+                pose = new VIUSyntheticDeviceState.PoseState()
                 {
                     isTracked = deviceState.isPoseValid,
                     trackingState = TrackingState.Position | TrackingState.Rotation | TrackingState.Velocity | TrackingState.AngularVelocity,
@@ -509,10 +533,11 @@ namespace HTC.UnityPlugin.Vive
         {
             base.FinishSetup();
 
-            var poseGeneric = GetChildControl("pose");
-            pose = poseGeneric as UnityPoseControl;
+#if VIU_UIS_POSE_CONTROL
+            pose = GetChildControl("pose") as UnityPoseControl;
+#endif
 #if VIU_OPENXR_PLUGIN_POSE_CONTROL
-            openxr_pose = poseGeneric as OpenXRPoseControl;
+            openxr_pose = GetChildControl("pose") as OpenXRPoseControl;
 #endif
             isTracked = GetChildControl<ButtonControl>("pose/isTracked");
             trackingState = GetChildControl<IntegerControl>("pose/trackingState");
@@ -540,6 +565,222 @@ namespace HTC.UnityPlugin.Vive
             _axises[(int)ControllerAxis.PadY] = GetChildControl<AxisControl>("PadAxis/y");
             _axises[(int)ControllerAxis.JoystickX] = GetChildControl<AxisControl>("JoystickAxis/x");
             _axises[(int)ControllerAxis.JoystickY] = GetChildControl<AxisControl>("JoystickAxis/y");
+        }
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = kSizeInBytes)]
+    public struct VIUSyntheticXRHMDState : IInputStateTypeInfo
+    {
+        public const int kSizeInBytes = 120;
+        public FourCC format => new FourCC('V', 'I', 'U', 'H');
+        [FieldOffset(0), InputControl(layout = "Button")]
+        public bool isTracked;
+        [FieldOffset(4), InputControl(layout = "Integer")]
+        public TrackingState trackingState;
+        [FieldOffset(8), InputControl(noisy = true)]
+        public Vector3 devicePosition;
+        [FieldOffset(20), InputControl(noisy = true)]
+        public Quaternion deviceRotation;
+
+        [FieldOffset(36), InputControl(noisy = true)]
+        public Vector3 leftEyePosition;
+        [FieldOffset(48), InputControl(noisy = true)]
+        public Quaternion leftEyeRotation;
+        [FieldOffset(64), InputControl(noisy = true)]
+        public Vector3 rightEyePosition;
+        [FieldOffset(76), InputControl(noisy = true)]
+        public Quaternion rightEyeRotation;
+        [FieldOffset(92), InputControl(noisy = true)]
+        public Vector3 centerEyePosition;
+        [FieldOffset(104), InputControl(noisy = true)]
+        public Quaternion centerEyeRotation;
+    }
+
+#if UNITY_EDITOR
+    [UnityEditor.InitializeOnLoad]
+#endif
+    [InputControlLayout(displayName = "VIU Synthetic XR HMD", stateType = typeof(VIUSyntheticXRHMDState), hideInUI = true)]
+    public class VIUSyntheticXRHMD : XRHMD, IInputUpdateCallbackReceiver
+    {
+        private ViveInput.ICtrlState<DeviceRole> ctrlState;
+        private static VIUSyntheticXRHMD hmdDevice;
+        private static readonly RigidPose leftEyeLocalPose = new RigidPose(new Vector3(-0.033f, 0f, 0f), Quaternion.identity);
+        private static readonly RigidPose rightEyeLocalPose = new RigidPose(new Vector3(0.033f, 0f, 0f), Quaternion.identity);
+
+        static VIUSyntheticXRHMD()
+        {
+            InputSystem.RegisterLayout<VIUSyntheticXRHMD>();
+
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+#endif
+            {
+                var roleMap = ViveRole.GetMap<DeviceRole>();
+
+                HandleDevice(ref hmdDevice, VRModule.IsValidDeviceIndex(roleMap.GetMappedDeviceByRole(DeviceRole.Hmd)));
+
+                roleMap.onRoleMappingChanged += (map, arg) =>
+                {
+                    if (arg.role == DeviceRole.Hmd)
+                    {
+                        HandleDevice(ref hmdDevice, VRModule.IsValidDeviceIndex(arg.currentDeviceIndex));
+                    }
+                };
+            }
+        }
+
+        private static void HandleDevice(ref VIUSyntheticXRHMD device, bool connected)
+        {
+            try
+            {
+                if (connected)
+                {
+                    if (device == null)
+                    {
+                        device = InputSystem.AddDevice<VIUSyntheticXRHMD>("VIUSyntheticXRHMD");
+                        device.ctrlState = ViveInput.GetState(DeviceRole.Hmd);
+                    }
+                    else
+                    {
+                        InputSystem.AddDevice(device);
+                    }
+                }
+                else
+                {
+                    if (device != null)
+                    {
+                        InputSystem.RemoveDevice(device);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        void IInputUpdateCallbackReceiver.OnUpdate()
+        {
+            if (ctrlState == null) { return; }
+
+            var deviceIndex = ctrlState.RoleMap.GetMappedDeviceByRoleValue(ctrlState.RoleValue);
+            var deviceState = VRModule.GetCurrentDeviceState(deviceIndex);
+            var leftEyePose = deviceState.pose * leftEyeLocalPose;
+            var rightEyePose = deviceState.pose * rightEyeLocalPose;
+            InputSystem.QueueStateEvent(this, new VIUSyntheticXRHMDState()
+            {
+                isTracked = deviceState.isPoseValid,
+                trackingState = TrackingState.Position | TrackingState.Rotation,
+                devicePosition = deviceState.position,
+                deviceRotation = deviceState.rotation,
+                // TODO: should get eye pose from IPD property or eye tracking sdk
+                leftEyePosition = leftEyePose.pos,
+                leftEyeRotation = leftEyePose.rot,
+                rightEyePosition = rightEyePose.pos,
+                rightEyeRotation = rightEyePose.rot,
+                centerEyePosition = deviceState.position,
+                centerEyeRotation = deviceState.rotation,
+            });
+        }
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = kSizeInBytes)]
+    public struct VIUSyntheticXRControllerState : IInputStateTypeInfo
+    {
+        public const int kSizeInBytes = 36;
+        public FourCC format => new FourCC('V', 'I', 'U', 'C');
+        [FieldOffset(0), InputControl(layout = "Button")]
+        public bool isTracked;
+        [FieldOffset(4), InputControl(layout = "Integer")]
+        public TrackingState trackingState;
+        [FieldOffset(8), InputControl(noisy = true)]
+        public Vector3 devicePosition;
+        [FieldOffset(20), InputControl(noisy = true)]
+        public Quaternion deviceRotation;
+    }
+
+#if UNITY_EDITOR
+    [UnityEditor.InitializeOnLoad]
+#endif
+    [InputControlLayout(displayName = "VIU Synthetic XR Controller", stateType = typeof(VIUSyntheticXRControllerState), hideInUI = true)]
+    public class VIUSyntheticXRController : XRController, IInputUpdateCallbackReceiver
+    {
+        private ViveInput.ICtrlState<HandRole> ctrlState;
+
+        private static VIUSyntheticXRController rightDevice;
+        private static VIUSyntheticXRController leftDevice;
+
+        static VIUSyntheticXRController()
+        {
+            InputSystem.RegisterLayout<VIUSyntheticXRController>();
+
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+#endif
+            {
+                var roleMap = ViveRole.GetMap<HandRole>();
+
+                HandleDevice(ref rightDevice, HandRole.RightHand, CommonUsages.RightHand, VRModule.IsValidDeviceIndex(roleMap.GetMappedDeviceByRole(HandRole.RightHand)));
+                HandleDevice(ref leftDevice, HandRole.LeftHand, CommonUsages.LeftHand, VRModule.IsValidDeviceIndex(roleMap.GetMappedDeviceByRole(HandRole.LeftHand)));
+
+                roleMap.onRoleMappingChanged += (map, arg) =>
+                {
+                    if (arg.role == HandRole.RightHand)
+                    {
+                        HandleDevice(ref rightDevice, HandRole.RightHand, CommonUsages.RightHand, VRModule.IsValidDeviceIndex(arg.currentDeviceIndex));
+                    }
+                    else if (arg.role == HandRole.LeftHand)
+                    {
+                        HandleDevice(ref leftDevice, HandRole.LeftHand, CommonUsages.LeftHand, VRModule.IsValidDeviceIndex(arg.currentDeviceIndex));
+                    }
+                };
+            }
+        }
+
+        private static void HandleDevice(ref VIUSyntheticXRController device, HandRole hand, InternedString handStr, bool connected)
+        {
+            try
+            {
+                if (connected)
+                {
+                    if (device == null)
+                    {
+                        device = InputSystem.AddDevice<VIUSyntheticXRController>("VIUSyntheticXRController" + hand.ToString());
+                        InputSystem.AddDeviceUsage(device, handStr);
+                        device.ctrlState = ViveInput.GetState(hand);
+                    }
+                    else
+                    {
+                        InputSystem.AddDevice(device);
+                    }
+                }
+                else
+                {
+                    if (device != null)
+                    {
+                        InputSystem.RemoveDevice(device);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        void IInputUpdateCallbackReceiver.OnUpdate()
+        {
+            if (ctrlState == null) { return; }
+
+            var deviceIndex = ctrlState.RoleMap.GetMappedDeviceByRoleValue(ctrlState.RoleValue);
+            var deviceState = VRModule.GetCurrentDeviceState(deviceIndex);
+            InputSystem.QueueStateEvent(this, new VIUSyntheticXRControllerState()
+            {
+                isTracked = deviceState.isPoseValid,
+                trackingState = TrackingState.Position | TrackingState.Rotation,
+                devicePosition = deviceState.position,
+                deviceRotation = deviceState.rotation,
+            });
         }
     }
 }

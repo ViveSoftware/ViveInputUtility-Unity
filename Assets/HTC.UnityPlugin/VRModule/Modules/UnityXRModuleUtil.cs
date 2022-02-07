@@ -277,6 +277,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        public static InputFeatureUsage<Vector3> pointerPositionFeature = new InputFeatureUsage<Vector3>("PointerPosition");
+        public static InputFeatureUsage<Quaternion> pointerRotationFeature = new InputFeatureUsage<Quaternion>("PointerRotation");
+        public static InputFeatureUsage<Vector3> pointerVelocityFeature = new InputFeatureUsage<Vector3>("PointerVelocity");
+        public static InputFeatureUsage<Vector3> pointerAngularVelocityFeature = new InputFeatureUsage<Vector3>("PointerAngularVelocity");
+
 #if UNITY_EDITOR
         public static bool GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<bool> feature, bool defaultValue = default(bool))
         {
@@ -313,11 +318,32 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return defaultValue;
         }
 
+        public static Vector3 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector3> feature, InputFeatureUsage<Vector3> fallbackFeature, Vector3 defaultValue = default(Vector3))
+        {
+            Vector3 value;
+            if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            if (device.TryGetFeatureValue(fallbackFeature, out value)) { return value; }
+            LogWarningFeatureNotFound(device, feature);
+            LogWarningFeatureNotFound(device, fallbackFeature);
+            return defaultValue;
+        }
+
         public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature) { return GetDeviceFeatureValueOrDefault(device, feature, Quaternion.identity); }
         public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, Quaternion defaultValue)
         {
             Quaternion value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
             LogWarningFeatureNotFound(device, feature);
+            return defaultValue;
+        }
+
+        public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, InputFeatureUsage<Quaternion> fallbackFeature) { return GetDeviceFeatureValueOrDefault(device, feature, fallbackFeature, Quaternion.identity); }
+        public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, InputFeatureUsage<Quaternion> fallbackFeature, Quaternion defaultValue)
+        {
+            Quaternion value;
+            if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            if (device.TryGetFeatureValue(fallbackFeature, out value)) { return value; }
+            LogWarningFeatureNotFound(device, feature);
+            LogWarningFeatureNotFound(device, fallbackFeature);
             return defaultValue;
         }
 
@@ -386,10 +412,27 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return defaultValue;
         }
 
+        public static Vector3 GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Vector3> feature, InputFeatureUsage<Vector3> fallbackFeature, Vector3 defaultValue = default(Vector3))
+        {
+            Vector3 value; 
+            if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            if (device.TryGetFeatureValue(fallbackFeature, out value)) { return value; }
+            return defaultValue;
+        }
+
         public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature) { return GetDeviceFeatureValueOrDefault(device, feature, Quaternion.identity); }
         public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, Quaternion defaultValue)
         {
             Quaternion value; if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            return defaultValue;
+        }
+
+        public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, InputFeatureUsage<Quaternion> fallbackFeature) { return GetDeviceFeatureValueOrDefault(device, feature, fallbackFeature, Quaternion.identity); }
+        public static Quaternion GetDeviceFeatureValueOrDefault(InputDevice device, InputFeatureUsage<Quaternion> feature, InputFeatureUsage<Quaternion> fallbackFeature, Quaternion defaultValue)
+        {
+            Quaternion value;
+            if (device.TryGetFeatureValue(feature, out value)) { return value; }
+            if (device.TryGetFeatureValue(fallbackFeature, out value)) { return value; }
             return defaultValue;
         }
 
