@@ -31,12 +31,33 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #else
         private bool forceMobileTextureFormat = false;
 #endif
+        [SerializeField]
+        private bool showHand = true;
+
+        [SerializeField]
+        private bool showController = true;
+
+        // if true, manual update OVRInput if OVRManager not found
+        [SerializeField]
+        private bool manualUpdateOVRInput = true;
 
         public bool isAvatarReady { get; private set; }
         public IntPtr sdkAvatar { get; private set; }
         public OvrAvatar ovrAvatar { get; private set; }
         public OvrAvatarLocalDriver ovrAvatarDriver { get; private set; }
         public OvrAvatarMaterialManager ovrMaterialManager { get; private set; }
+
+        public bool ShowHand
+        {
+            get { return showHand; }
+            set { showHand = value; }
+        }
+
+        public bool ShowController
+        {
+            get { return showController; }
+            set { showController = value; }
+        }
 
         public bool CombineMeshes
         {
@@ -56,6 +77,14 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             set { forceMobileTextureFormat = value; }
         }
 
+        public bool ShouldManuallyUpdateOVRInput
+        {
+            get
+            {
+                return manualUpdateOVRInput && (OVRManager.instance == null || OVRManager.instance.isActiveAndEnabled);
+            }
+        }
+
         private void Start()
         {
             GetReady();
@@ -65,10 +94,37 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         {
             if (sdkAvatar == IntPtr.Zero) { return; }
 
+            CAPI.ovrAvatar_SetLeftControllerVisibility(sdkAvatar, showController);
+            CAPI.ovrAvatar_SetRightControllerVisibility(sdkAvatar, showController);
+            CAPI.ovrAvatar_SetLeftHandVisibility(sdkAvatar, showHand);
+            CAPI.ovrAvatar_SetRightHandVisibility(sdkAvatar, showHand);
+
+            if (ShouldManuallyUpdateOVRInput)
+            {
+                OVRInput.Update();
+            }
+
             if (ovrAvatarDriver != null)
             {
                 ovrAvatarDriver.UpdateTransforms(sdkAvatar);
                 CAPI.ovrAvatarPose_Finalize(sdkAvatar, Time.deltaTime);
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            if (ShouldManuallyUpdateOVRInput)
+            {
+                OVRInput.FixedUpdate();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (sdkAvatar != IntPtr.Zero)
+            {
+                CAPI.ovrAvatar_Destroy(sdkAvatar);
+                sdkAvatar = IntPtr.Zero;
             }
         }
 
@@ -127,12 +183,12 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         private void AvatarSpecificationCallback(IntPtr spec)
         {
             sdkAvatar = CAPI.ovrAvatar_Create(spec, ovrAvatarCapabilities.Hands);
-            CAPI.ovrAvatar_SetLeftControllerVisibility(sdkAvatar, true);
-            CAPI.ovrAvatar_SetRightControllerVisibility(sdkAvatar, true);
-            CAPI.ovrAvatar_SetLeftHandVisibility(sdkAvatar, true);
-            CAPI.ovrAvatar_SetRightHandVisibility(sdkAvatar, true);
-            ovrAvatarDriver.UpdateTransforms(sdkAvatar);
+            CAPI.ovrAvatar_SetLeftControllerVisibility(sdkAvatar, showController);
+            CAPI.ovrAvatar_SetRightControllerVisibility(sdkAvatar, showController);
+            CAPI.ovrAvatar_SetLeftHandVisibility(sdkAvatar, showHand);
+            CAPI.ovrAvatar_SetRightHandVisibility(sdkAvatar, showHand);
             ovrAvatar.sdkAvatar = sdkAvatar;
+            ovrAvatarDriver.UpdateTransforms(sdkAvatar);
 
             //Fetch all the assets that this avatar uses.
             var assetCount = CAPI.ovrAvatar_GetReferencedAssetCount(sdkAvatar);

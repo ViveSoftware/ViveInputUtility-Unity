@@ -38,23 +38,25 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
             try
             {
-                if (ctrlComp == null)
+                var compData = default(ovrAvatarComponent);
+                var ctrlCompData = default(ovrAvatarControllerComponent);
+                var handCompData = default(ovrAvatarHandComponent);
+
+                if (TryGetCtrlComponent(owner.sdkAvatar, ref ctrlCompData, ref compData))
                 {
-                    var ctrlCompData = default(ovrAvatarControllerComponent);
-                    var ctrlCompDataBase = default(ovrAvatarComponent);
-                    if (TryGetCtrlComponent(owner.sdkAvatar, ref ctrlCompDataBase, ref ctrlCompData))
+                    if (ctrlComp == null)
                     {
-                        var goParent = new GameObject(ctrlCompDataBase.name);
+                        var goParent = new GameObject(compData.name);
                         goParent.transform.SetParent(transform, false);
                         ctrlComp = AddAvatarCtrlComp(goParent);
 
-                        for (uint i = 0, imax = ctrlCompDataBase.renderPartCount; i < imax; ++i)
+                        for (uint i = 0, imax = compData.renderPartCount; i < imax; ++i)
                         {
-                            var goPart = new GameObject(ctrlCompDataBase.name + "_renderPart_" + (int)i);
+                            var goPart = new GameObject(compData.name + "_renderPart_" + (int)i);
                             goPart.transform.SetParent(goParent.transform, false);
-                            IntPtr renderPart = OvrAvatar.GetRenderPart(ctrlCompDataBase, i);
+                            IntPtr renderPart = OvrAvatar.GetRenderPart(compData, i);
                             ovrAvatarRenderPartType type = CAPI.ovrAvatarRenderPart_GetType(renderPart);
-                            var ovrRenderPart = AddAvatarRenderComp(goPart, type, renderPart, ctrlCompDataBase, true);
+                            var ovrRenderPart = AddAvatarRenderComp(goPart, type, renderPart, compData, true);
                             if (ovrRenderPart != null)
                             {
                                 ctrlComp.RenderParts.Add(ovrRenderPart);
@@ -62,28 +64,24 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                         }
                     }
 
-                    PrintHierarchy(ctrlComp.transform, 0);
+                    UpdateAvatarCtrlComp(ctrlComp, ref ctrlCompData, ref compData);
                 }
 
-                UpdateAvatarCtrlComp(ctrlComp);
-
-                if (handComp == null)
+                if (TryGetHandComponent(owner.sdkAvatar, ref handCompData, ref compData))
                 {
-                    var handCompDataBase = default(ovrAvatarComponent);
-                    var handCompData = default(ovrAvatarHandComponent);
-                    if (TryGetHandComponent(owner.sdkAvatar, ref handCompDataBase, ref handCompData))
+                    if (handComp == null)
                     {
-                        var goParent = new GameObject(handCompDataBase.name);
+                        var goParent = new GameObject(compData.name);
                         goParent.transform.SetParent(transform, false);
                         handComp = AddAvatarHandComp(goParent);
 
-                        for (uint i = 0, imax = handCompDataBase.renderPartCount; i < imax; ++i)
+                        for (uint i = 0, imax = compData.renderPartCount; i < imax; ++i)
                         {
-                            var goPart = new GameObject(handCompDataBase.name + "_renderPart_" + (int)i);
+                            var goPart = new GameObject(compData.name + "_renderPart_" + (int)i);
                             goPart.transform.SetParent(goParent.transform, false);
-                            IntPtr renderPart = OvrAvatar.GetRenderPart(handCompDataBase, i);
+                            IntPtr renderPart = OvrAvatar.GetRenderPart(compData, i);
                             ovrAvatarRenderPartType type = CAPI.ovrAvatarRenderPart_GetType(renderPart);
-                            var ovrRenderPart = AddAvatarRenderComp(goPart, type, renderPart, handCompDataBase, false);
+                            var ovrRenderPart = AddAvatarRenderComp(goPart, type, renderPart, compData, false);
                             if (ovrRenderPart != null)
                             {
                                 handComp.RenderParts.Add(ovrRenderPart);
@@ -91,10 +89,8 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                         }
                     }
 
-                    PrintHierarchy(handComp.transform, 0);
+                    UpdateAvatarHandComp(handComp, ref handCompData, ref compData);
                 }
-
-                UpdateAvatarHandComp(handComp);
             }
             catch (Exception e)
             {
@@ -102,56 +98,22 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             }
         }
 
-        private void PrintHierarchy(Transform t, int indent)
-        {
-            var indentStr = string.Empty;
-            for (int i = indent; i > 0; --i) { indentStr += "  "; }
-            Debug.Log("lawwongPH " + indentStr + "Trans: " + t.name + " " + (t.gameObject.activeInHierarchy ? "O" : "X"));
-            indentStr += "  ";
-            var comps = Utility.ListPool<Component>.Get();
-            try
-            {
-                t.GetComponents(comps);
-                for (int i = 0, imax = comps.Count; i < imax; ++i)
-                {
-                    var compType = comps[i].GetType();
-                    if (comps[i] is MonoBehaviour)
-                    {
-                        Debug.Log("lawwongPH " + indentStr + "Comps: " + compType.Name + " " + (((MonoBehaviour)comps[i]).enabled ? "O" : "X"));
-                    }
-                    else if (compType != typeof(Transform))
-                    {
-                        Debug.Log("lawwongPH " + indentStr + "Comps: " + compType.Name);
-                    }
-                }
-            }
-            finally
-            {
-                Utility.ListPool<Component>.Release(comps);
-                comps = null;
-            }
-            for (int i = 0, imax = t.childCount; i < imax; ++i)
-            {
-                PrintHierarchy(t.GetChild(i), indent + 1);
-            }
-        }
-
-        private bool TryGetCtrlComponent(IntPtr avatar, ref ovrAvatarComponent compDataBase, ref ovrAvatarControllerComponent compData)
+        private bool TryGetCtrlComponent(IntPtr avatar, ref ovrAvatarControllerComponent ctrlCompData, ref ovrAvatarComponent compData)
         {
 #if VIU_OCULUSVR_20_0_OR_NEWER
             if (isLeft)
             {
-                if (CAPI.ovrAvatarPose_GetLeftControllerComponent(avatar, ref compData))
+                if (CAPI.ovrAvatarPose_GetLeftControllerComponent(avatar, ref ctrlCompData))
                 {
-                    CAPI.ovrAvatarComponent_Get(compData.renderComponent, true, ref compDataBase);
+                    CAPI.ovrAvatarComponent_Get(ctrlCompData.renderComponent, true, ref compData);
                     return true;
                 }
             }
             else
             {
-                if (CAPI.ovrAvatarPose_GetRightControllerComponent(avatar, ref compData))
+                if (CAPI.ovrAvatarPose_GetRightControllerComponent(avatar, ref ctrlCompData))
                 {
-                    CAPI.ovrAvatarComponent_Get(compData.renderComponent, true, ref compDataBase);
+                    CAPI.ovrAvatarComponent_Get(ctrlCompData.renderComponent, true, ref compData);
                     return true;
                 }
             }
@@ -162,30 +124,30 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 CAPI.ovrAvatarPose_GetRightControllerComponent(owner.sdkAvatar);
             if (compDataRef.HasValue)
             {
-                compData = compDataRef.Value;
-                compDataBase = (ovrAvatarComponent)Marshal.PtrToStructure(compData.renderComponent, typeof(ovrAvatarComponent));
+                ctrlCompData = compDataRef.Value;
+                compData = (ovrAvatarComponent)Marshal.PtrToStructure(ctrlCompData.renderComponent, typeof(ovrAvatarComponent));
                 return true;
             }
             return false;
 #endif
         }
 
-        private bool TryGetHandComponent(IntPtr avatar, ref ovrAvatarComponent compDataBase, ref ovrAvatarHandComponent compData)
+        private bool TryGetHandComponent(IntPtr avatar, ref ovrAvatarHandComponent handCompData, ref ovrAvatarComponent compData)
         {
 #if VIU_OCULUSVR_20_0_OR_NEWER
             if (isLeft)
             {
-                if (CAPI.ovrAvatarPose_GetLeftHandComponent(avatar, ref compData))
+                if (CAPI.ovrAvatarPose_GetLeftHandComponent(avatar, ref handCompData))
                 {
-                    CAPI.ovrAvatarComponent_Get(compData.renderComponent, true, ref compDataBase);
+                    CAPI.ovrAvatarComponent_Get(handCompData.renderComponent, true, ref compData);
                     return true;
                 }
             }
             else
             {
-                if (CAPI.ovrAvatarPose_GetRightHandComponent(avatar, ref compData))
+                if (CAPI.ovrAvatarPose_GetRightHandComponent(avatar, ref handCompData))
                 {
-                    CAPI.ovrAvatarComponent_Get(compData.renderComponent, true, ref compDataBase);
+                    CAPI.ovrAvatarComponent_Get(handCompData.renderComponent, true, ref compData);
                     return true;
                 }
             }
@@ -196,8 +158,8 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 CAPI.ovrAvatarPose_GetRightHandComponent(owner.sdkAvatar);
             if (compDataRef.HasValue)
             {
-                compData = compDataRef.Value;
-                compDataBase = (ovrAvatarComponent)Marshal.PtrToStructure(compData.renderComponent, typeof(ovrAvatarComponent));
+                handCompData = compDataRef.Value;
+                compData = (ovrAvatarComponent)Marshal.PtrToStructure(handCompData.renderComponent, typeof(ovrAvatarComponent));
                 return true;
             }
             return false;
@@ -207,9 +169,8 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         private OvrAvatarComponent AddAvatarCtrlComp(GameObject go)
         {
 #if VIU_OCULUSVR_20_0_OR_NEWER
-            var comp = go.AddComponent<OvrAvatarTouchController>();
+            var comp = go.AddComponent<OvrAvatarComponent>();
             comp.SetOvrAvatarOwner(owner.ovrAvatar);
-            comp.isLeftHand = isLeft;
             return comp;
 #else
             go.AddComponent<OvrAvatarTouchController>();
@@ -220,9 +181,8 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         private OvrAvatarComponent AddAvatarHandComp(GameObject go)
         {
 #if VIU_OCULUSVR_20_0_OR_NEWER
-            var comp = go.AddComponent<OvrAvatarHand>();
+            var comp = go.AddComponent<OvrAvatarComponent>();
             comp.SetOvrAvatarOwner(owner.ovrAvatar);
-            comp.isLeftHand = isLeft;
             return comp;
 #else
             go.AddComponent<OvrAvatarHand>();
@@ -230,30 +190,30 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
         }
 
-        private void UpdateAvatarCtrlComp(OvrAvatarComponent comp)
+        private void UpdateAvatarCtrlComp(OvrAvatarComponent comp, ref ovrAvatarControllerComponent ctrlCompData, ref ovrAvatarComponent compData)
         {
+            var recoverPos = comp.transform.localPosition;
+            var recoverRot = comp.transform.localRotation;
 #if VIU_OCULUSVR_20_0_OR_NEWER
+            comp.UpdateAvatar(ctrlCompData.renderComponent);
 #else
-            var compDataBase = default(ovrAvatarComponent);
-            var compData = default(ovrAvatarControllerComponent);
-            if (TryGetCtrlComponent(owner.sdkAvatar, ref compDataBase, ref compData))
-            {
-                comp.UpdateAvatar(compDataBase, owner.ovrAvatar);
-            }
+            comp.UpdateAvatar(compData, owner.ovrAvatar);
 #endif
+            comp.transform.localPosition = recoverPos;
+            comp.transform.localRotation = recoverRot;
         }
 
-        private void UpdateAvatarHandComp(OvrAvatarComponent comp)
+        private void UpdateAvatarHandComp(OvrAvatarComponent comp, ref ovrAvatarHandComponent handCompData, ref ovrAvatarComponent compData)
         {
+            var recoverPos = comp.transform.localPosition;
+            var recoverRot = comp.transform.localRotation;
 #if VIU_OCULUSVR_20_0_OR_NEWER
+            comp.UpdateAvatar(handCompData.renderComponent);
 #else
-            var compDataBase = default(ovrAvatarComponent);
-            var compData = default(ovrAvatarHandComponent);
-            if (TryGetHandComponent(owner.sdkAvatar, ref compDataBase, ref compData))
-            {
-                comp.UpdateAvatar(compDataBase, owner.ovrAvatar);
-            }
+            comp.UpdateAvatar(compData, owner.ovrAvatar);
 #endif
+            comp.transform.localPosition = recoverPos;
+            comp.transform.localRotation = recoverRot;
         }
 
         private OvrAvatarRenderComponent AddAvatarRenderComp(GameObject go, ovrAvatarRenderPartType type, IntPtr renderPart, ovrAvatarComponent compData, bool isController)
@@ -279,7 +239,6 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                         var wasActive = go.activeSelf;
                         typeof(OvrAvatarSkinnedMeshRenderPBSComponent).GetMethod("Initialize", flags).Invoke(renderer, new object[]
                         { rendererData, null, 0, 0 });
-                        Debug.Log("lawwong AddAvatarRenderComp " + go.name + " " + (wasActive ? "O" : "X") + " >> " + (go.activeSelf ? "O" : "X"));
                         return renderer;
                     }
                 case ovrAvatarRenderPartType.SkinnedMeshRenderPBS_V2:
