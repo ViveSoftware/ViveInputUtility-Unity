@@ -53,6 +53,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
     public sealed class OculusVRModule : VRModule.ModuleBase
     {
+        // Should align OVRPlugin.SystemHeadset
         public enum OVRSystemHeadset
         {
             None = 0,

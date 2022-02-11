@@ -33,13 +33,17 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 #endif
         [SerializeField]
         private bool showHand = true;
+        private bool isShowingHand = true;
 
         [SerializeField]
         private bool showController = true;
+        private bool isShowingCtrl = true;
 
         // if true, manual update OVRInput if OVRManager not found
         [SerializeField]
         private bool manualUpdateOVRInput = true;
+
+        private bool visibilityChanged = true;
 
         public bool isAvatarReady { get; private set; }
         public IntPtr sdkAvatar { get; private set; }
@@ -94,10 +98,19 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         {
             if (sdkAvatar == IntPtr.Zero) { return; }
 
-            CAPI.ovrAvatar_SetLeftControllerVisibility(sdkAvatar, showController);
-            CAPI.ovrAvatar_SetRightControllerVisibility(sdkAvatar, showController);
-            CAPI.ovrAvatar_SetLeftHandVisibility(sdkAvatar, showHand);
-            CAPI.ovrAvatar_SetRightHandVisibility(sdkAvatar, showHand);
+            if (isShowingCtrl != showController)
+            {
+                CAPI.ovrAvatar_SetLeftControllerVisibility(sdkAvatar, showController);
+                CAPI.ovrAvatar_SetRightControllerVisibility(sdkAvatar, showController);
+                isShowingCtrl = showController;
+            }
+
+            if (isShowingHand != showHand)
+            {
+                CAPI.ovrAvatar_SetLeftHandVisibility(sdkAvatar, showHand);
+                CAPI.ovrAvatar_SetRightHandVisibility(sdkAvatar, showHand);
+                isShowingHand = showHand;
+            }
 
             if (ShouldManuallyUpdateOVRInput)
             {
@@ -138,6 +151,12 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             ovrAvatar = gameObject.AddComponent<OvrAvatar>();
             ovrAvatar.enabled = false;
 
+            ovrAvatar.ShowFirstPerson = true;
+            ovrAvatar.ShowThirdPerson = false;
+
+            gameObject.SetActive(true);
+
+#if VIU_OCULUSVR_20_0_OR_NEWER
             ovrAvatar.Monochrome_SurfaceShader = Shader.Find("OvrAvatar/AvatarSurfaceShader");
             ovrAvatar.Monochrome_SurfaceShader_SelfOccluding = Shader.Find("OvrAvatar/AvatarSurfaceShaderSelfOccluding");
             ovrAvatar.Monochrome_SurfaceShader_PBS = Shader.Find("OvrAvatar/AvatarSurfaceShaderPBS");
@@ -152,12 +171,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             ovrAvatar.ControllerShader = Shader.Find("OvrAvatar/AvatarPBRV2Simple");
 
             ovrAvatar.EnableExpressive = false;
-            ovrAvatar.ShowFirstPerson = true;
-            ovrAvatar.ShowThirdPerson = false;
 
-            gameObject.SetActive(true);
-
-#if VIU_OCULUSVR_20_0_OR_NEWER
             var avatarSpecRequest = new OvrAvatarSDKManager.AvatarSpecRequestParams(
                 0ul,
                 this.AvatarSpecificationCallback,
@@ -171,6 +185,14 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             OvrAvatarSDKManager.Instance.RequestAvatarSpecification(avatarSpecRequest);
             OvrAvatarSDKManager.Instance.AddLoadingAvatar(ovrAvatar.GetInstanceID());
 #else
+            ovrAvatar.SurfaceShader = Shader.Find("OvrAvatar/AvatarSurfaceShader");
+            ovrAvatar.SurfaceShaderSelfOccluding = Shader.Find("OvrAvatar/AvatarSurfaceShaderSelfOccluding");
+            ovrAvatar.SurfaceShaderPBS = Shader.Find("OvrAvatar/AvatarSurfaceShaderPBS");
+            ovrAvatar.SurfaceShaderPBSV2Single = Shader.Find("OvrAvatar/Avatar_Mobile_SingleComponent");
+            ovrAvatar.SurfaceShaderPBSV2Combined = Shader.Find("OvrAvatar/Avatar_Mobile_CombinedMesh");
+            ovrAvatar.SurfaceShaderPBSV2Simple = Shader.Find("OvrAvatar/Avatar_PC_SingleComponent");
+            ovrAvatar.SurfaceShaderPBSV2Loading = Shader.Find("OvrAvatar/Avatar_Mobile_Loader");
+
             OvrAvatarSDKManager.Instance.RequestAvatarSpecification(
                 0ul,
                 AvatarSpecificationCallback,
@@ -187,6 +209,8 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             CAPI.ovrAvatar_SetRightControllerVisibility(sdkAvatar, showController);
             CAPI.ovrAvatar_SetLeftHandVisibility(sdkAvatar, showHand);
             CAPI.ovrAvatar_SetRightHandVisibility(sdkAvatar, showHand);
+            isShowingCtrl = showController;
+            isShowingHand = showHand;
             ovrAvatar.sdkAvatar = sdkAvatar;
             ovrAvatarDriver.UpdateTransforms(sdkAvatar);
 
