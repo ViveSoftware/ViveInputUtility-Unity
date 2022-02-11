@@ -42,8 +42,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         // if true, manual update OVRInput if OVRManager not found
         [SerializeField]
         private bool manualUpdateOVRInput = true;
-
-        private bool visibilityChanged = true;
+        private static VIUOvrAvatar updateOvrInputUpdateInstance = null;
 
         public bool isAvatarReady { get; private set; }
         public IntPtr sdkAvatar { get; private set; }
@@ -114,7 +113,22 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
             if (ShouldManuallyUpdateOVRInput)
             {
-                OVRInput.Update();
+                if (updateOvrInputUpdateInstance == this)
+                {
+                    OVRInput.Update();
+                }
+                else if (updateOvrInputUpdateInstance == null)
+                {
+                    updateOvrInputUpdateInstance = this;
+                    OVRInput.Update();
+                }
+            }
+            else
+            {
+                if (updateOvrInputUpdateInstance == this)
+                {
+                    updateOvrInputUpdateInstance = null;
+                }
             }
 
             if (ovrAvatarDriver != null)
@@ -124,9 +138,17 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             }
         }
 
+        private void OnDisable()
+        {
+            if (updateOvrInputUpdateInstance == this)
+            {
+                updateOvrInputUpdateInstance = null;
+            }
+        }
+
         private void FixedUpdate()
         {
-            if (ShouldManuallyUpdateOVRInput)
+            if (ShouldManuallyUpdateOVRInput && updateOvrInputUpdateInstance == this)
             {
                 OVRInput.FixedUpdate();
             }
