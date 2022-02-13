@@ -1,4 +1,6 @@
-﻿using Oculus.Avatar;
+﻿#if VIU_OCULUSVR_AVATAR
+using Oculus.Avatar;
+#endif
 using System;
 using System.Collections;
 using System.Collections.Generic;
