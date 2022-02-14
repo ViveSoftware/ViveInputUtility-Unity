@@ -1,16 +1,19 @@
-﻿#if VIU_OCULUSVR_AVATAR
-using Oculus.Avatar;
-#endif
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if VIU_OCULUSVR_AVATAR
+using Oculus.Avatar;
+#endif
+
 namespace HTC.UnityPlugin.Vive.OculusVRExtension
 {
     public class VIUOvrAvatar : MonoBehaviour
     {
-#if VIU_OCULUSVR_1_32_0_OR_NEWER
+#if VIU_OCULUSVR_AVATAR
         public const bool SUPPORTED = true;
 #if UNITY_ANDROID && !UNITY_EDITOR
         public const bool USE_MOBILE_TEXTURE_FORMAT = true;

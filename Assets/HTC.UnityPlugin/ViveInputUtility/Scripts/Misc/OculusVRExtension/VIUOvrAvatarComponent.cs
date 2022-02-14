@@ -1,9 +1,11 @@
-﻿using System;
+﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+
+using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using System.Reflection;
 
-#if VIU_OCULUSVR_1_32_0_OR_NEWER
+#if VIU_OCULUSVR_AVATAR
 using Oculus.Avatar;
 #endif
 
@@ -11,7 +13,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 {
     public class VIUOvrAvatarComponent : MonoBehaviour
     {
-#if VIU_OCULUSVR_1_32_0_OR_NEWER
+#if VIU_OCULUSVR_AVATAR
         [SerializeField]
         private VIUOvrAvatar owner;
         [SerializeField]

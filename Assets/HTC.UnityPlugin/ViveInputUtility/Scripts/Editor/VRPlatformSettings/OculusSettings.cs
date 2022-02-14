@@ -52,32 +52,43 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (v)
                     {
-                        try
+                        string asmdefFullPath = Path.GetFullPath(ASMDEFS_PATH);
+                        if (!Directory.Exists(asmdefFullPath))
                         {
-                            string asmdefFullPath = Path.GetFullPath(ASMDEFS_PATH);
-                            if (!Directory.Exists(asmdefFullPath))
-                            {
-                                MonoScript script = MonoScript.FromScriptableObject(VIUProjectSettings.Instance);
-                                string path = AssetDatabase.GetAssetPath(script);
-                                asmdefFullPath = Path.GetFullPath(AssetDatabase.GetAssetPath(script) + "/../../../.asmdefs/Oculus/");
-                                Debug.Log("asmdefFullPath=" + asmdefFullPath);
-                            }
-                            string oculusFullPath = Path.GetFullPath(OCULUS_SDK_PATH);
-                            File.Copy(asmdefFullPath + AVATAR_ASMDEF_FILE_NAME, oculusFullPath + "Avatar/" + AVATAR_ASMDEF_FILE_NAME);
-                            File.Copy(asmdefFullPath + LIPSYNC_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/" + LIPSYNC_ASMDEF_FILE_NAME);
-                            File.Copy(asmdefFullPath + LIPSYNC_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/Editor/" + LIPSYNC_EDITOR_ASMDEF_FILE_NAME);
-                            File.Copy(asmdefFullPath + SPATIALIZER_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/" + SPATIALIZER_ASMDEF_FILE_NAME);
-                            File.Copy(asmdefFullPath + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/Editor/" + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME);
-                            AssetDatabase.Refresh();
+                            MonoScript script = MonoScript.FromScriptableObject(VIUProjectSettings.Instance);
+                            string path = AssetDatabase.GetAssetPath(script);
+                            asmdefFullPath = Path.GetFullPath(AssetDatabase.GetAssetPath(script) + "/../../../.asmdefs/Oculus/");
+                            //Debug.Log("asmdefFullPath=" + asmdefFullPath);
                         }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogException(e);
-                        }
+                        string oculusFullPath = Path.GetFullPath(OCULUS_SDK_PATH);
+                        SafeCopy(asmdefFullPath + AVATAR_ASMDEF_FILE_NAME, oculusFullPath + "Avatar/" + AVATAR_ASMDEF_FILE_NAME);
+                        SafeCopy(asmdefFullPath + LIPSYNC_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/" + LIPSYNC_ASMDEF_FILE_NAME);
+                        SafeCopy(asmdefFullPath + LIPSYNC_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/Editor/" + LIPSYNC_EDITOR_ASMDEF_FILE_NAME);
+                        SafeCopy(asmdefFullPath + SPATIALIZER_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/" + SPATIALIZER_ASMDEF_FILE_NAME);
+                        SafeCopy(asmdefFullPath + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/Editor/" + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME);
+                        AssetDatabase.Refresh();
                     }
                 },
                 recommendedValue = true,
             });
+        }
+
+        private static bool SafeCopy(string src, string dst)
+        {
+            try
+            {
+                if (!File.Exists(dst))
+                {
+                    File.Copy(src, dst);
+                    return true;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            return false;
         }
     }
 
