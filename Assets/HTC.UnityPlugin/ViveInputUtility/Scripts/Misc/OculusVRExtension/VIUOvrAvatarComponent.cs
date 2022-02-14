@@ -260,6 +260,28 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                         });
                         return renderer;
                     }
+#elif VIU_OCULUSVR_1_37_0_OR_NEWER
+                case ovrAvatarRenderPartType.SkinnedMeshRender:
+                    {
+                        var rendererData = CAPI.ovrAvatarRenderPart_GetSkinnedMeshRender(renderPart);
+                        var renderer = go.AddComponent<OvrAvatarSkinnedMeshRenderComponent>();
+                        renderer.Initialize(rendererData, null, null, 0, 0, ctrlComp.RenderParts.Count);
+                        return renderer;
+                    }
+                case ovrAvatarRenderPartType.SkinnedMeshRenderPBS:
+                    {
+                        var rendererData = CAPI.ovrAvatarRenderPart_GetSkinnedMeshRenderPBS(renderPart);
+                        var renderer = go.AddComponent<OvrAvatarSkinnedMeshRenderPBSComponent>();
+                        renderer.Initialize(rendererData, null, 0, 0, ctrlComp.RenderParts.Count);
+                        return renderer;
+                    }
+                case ovrAvatarRenderPartType.SkinnedMeshRenderPBS_V2:
+                    {
+                        var rendererData = CAPI.ovrAvatarRenderPart_GetSkinnedMeshRenderPBSV2(renderPart);
+                        var renderer = go.AddComponent<OvrAvatarSkinnedMeshPBSV2RenderComponent>();
+                        renderer.Initialize(renderPart, rendererData, owner.ovrMaterialManager, 0, 0, ctrlComp.RenderParts.Count, false, owner.LevelOfDetail, false, owner.ovrAvatar, isController);
+                        return renderer;
+                    }
 #elif VIU_OCULUSVR_1_36_0_OR_NEWER
                 case ovrAvatarRenderPartType.SkinnedMeshRender:
                     {
