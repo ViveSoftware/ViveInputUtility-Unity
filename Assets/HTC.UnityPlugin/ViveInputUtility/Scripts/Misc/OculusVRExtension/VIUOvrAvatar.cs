@@ -208,6 +208,28 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
             OvrAvatarSDKManager.Instance.RequestAvatarSpecification(avatarSpecRequest);
             OvrAvatarSDKManager.Instance.AddLoadingAvatar(ovrAvatar.GetInstanceID());
+#elif VIU_OCULUSVR_1_36_0_OR_NEWER
+            ovrAvatar.Monochrome_SurfaceShader = Shader.Find("OvrAvatar/AvatarSurfaceShader");
+            ovrAvatar.Monochrome_SurfaceShader_SelfOccluding = Shader.Find("OvrAvatar/AvatarSurfaceShaderSelfOccluding");
+            ovrAvatar.Monochrome_SurfaceShader_PBS = Shader.Find("OvrAvatar/AvatarSurfaceShaderPBS");
+            ovrAvatar.Skinshaded_SurfaceShader_SingleComponent = Shader.Find("OvrAvatar/Avatar_PC_SingleComponent");
+            ovrAvatar.Skinshaded_VertFrag_SingleComponent = Shader.Find("OvrAvatar/Avatar_Mobile_SingleComponent");
+            ovrAvatar.Skinshaded_VertFrag_CombinedMesh = Shader.Find("OvrAvatar/Avatar_Mobile_CombinedMesh");
+            ovrAvatar.Skinshaded_Expressive_SurfaceShader_SingleComponent = Shader.Find("OvrAvatar/Avatar_PC_SingleComponentExpressive");
+            ovrAvatar.Skinshaded_Expressive_VertFrag_SingleComponent = Shader.Find("OvrAvatar/Avatar_Mobile_SingleComponentExpressive");
+            ovrAvatar.Skinshaded_Expressive_VertFrag_CombinedMesh = Shader.Find("OvrAvatar/Avatar_Mobile_CombinedMeshExpressive");
+            ovrAvatar.Loader_VertFrag_CombinedMesh = Shader.Find("OvrAvatar/Avatar_Mobile_Loader");
+            ovrAvatar.EyeLens = Shader.Find("OvrAvatar/Avatar_EyeLens");
+
+            OvrAvatarSDKManager.Instance.RequestAvatarSpecification(
+                0ul,
+                AvatarSpecificationCallback,
+                CombineMeshes,
+                LevelOfDetail,
+                ForceMobileTextureFormat,
+                ovrAvatarLookAndFeelVersion.Two,
+                ovrAvatarLookAndFeelVersion.One,
+                false);
 #elif VIU_OCULUSVR_1_35_0_OR_NEWER
             ovrAvatar.SurfaceShader = Shader.Find("OvrAvatar/AvatarSurfaceShader");
             ovrAvatar.SurfaceShaderSelfOccluding = Shader.Find("OvrAvatar/AvatarSurfaceShaderSelfOccluding");
