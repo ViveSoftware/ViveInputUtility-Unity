@@ -208,6 +208,23 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 
             OvrAvatarSDKManager.Instance.RequestAvatarSpecification(avatarSpecRequest);
             OvrAvatarSDKManager.Instance.AddLoadingAvatar(ovrAvatar.GetInstanceID());
+#elif VIU_OCULUSVR_1_35_0_OR_NEWER
+            ovrAvatar.SurfaceShader = Shader.Find("OvrAvatar/AvatarSurfaceShader");
+            ovrAvatar.SurfaceShaderSelfOccluding = Shader.Find("OvrAvatar/AvatarSurfaceShaderSelfOccluding");
+            ovrAvatar.SurfaceShaderPBS = Shader.Find("OvrAvatar/AvatarSurfaceShaderPBS");
+            ovrAvatar.SurfaceShaderPBSV2Single = Shader.Find("OvrAvatar/Avatar_Mobile_SingleComponent");
+            ovrAvatar.SurfaceShaderPBSV2Combined = Shader.Find("OvrAvatar/Avatar_Mobile_CombinedMesh");
+            ovrAvatar.SurfaceShaderPBSV2Simple = Shader.Find("OvrAvatar/Avatar_PC_SingleComponent");
+            ovrAvatar.SurfaceShaderPBSV2Loading = Shader.Find("OvrAvatar/Avatar_Mobile_Loader");
+
+            OvrAvatarSDKManager.Instance.RequestAvatarSpecification(
+                0ul,
+                AvatarSpecificationCallback,
+                CombineMeshes,
+                LevelOfDetail,
+                ForceMobileTextureFormat,
+                ovrAvatarLookAndFeelVersion.Two,
+                ovrAvatarLookAndFeelVersion.One);
 #else
             ovrAvatar.SurfaceShader = Shader.Find("OvrAvatar/AvatarSurfaceShader");
             ovrAvatar.SurfaceShaderSelfOccluding = Shader.Find("OvrAvatar/AvatarSurfaceShaderSelfOccluding");

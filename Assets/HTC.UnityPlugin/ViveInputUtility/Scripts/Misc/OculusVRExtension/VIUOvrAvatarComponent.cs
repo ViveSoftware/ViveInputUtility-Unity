@@ -290,6 +290,9 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                     return null;
             }
         }
+#else
+        public VIUOvrAvatar Owner { get; set; }
+        public bool IsLeft { get; set; }
 #endif
     }
 }
