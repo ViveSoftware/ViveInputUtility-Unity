@@ -49,7 +49,7 @@ namespace HTC.UnityPlugin.Vive
 
         private class WindowsMRSettings : VRPlatformSetting
         {
-            private Foldouter m_foldouter = new Foldouter();
+            //private Foldouter m_foldouter = new Foldouter();
 
             public static WindowsMRSettings instance { get; private set; }
 

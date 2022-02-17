@@ -56,9 +56,7 @@ namespace HTC.UnityPlugin.Vive
                         if (!Directory.Exists(asmdefFullPath))
                         {
                             MonoScript script = MonoScript.FromScriptableObject(VIUProjectSettings.Instance);
-                            string path = AssetDatabase.GetAssetPath(script);
                             asmdefFullPath = Path.GetFullPath(AssetDatabase.GetAssetPath(script) + "/../../../.asmdefs/Oculus/");
-                            //Debug.Log("asmdefFullPath=" + asmdefFullPath);
                         }
                         string oculusFullPath = Path.GetFullPath(OCULUS_SDK_PATH);
                         SafeCopy(asmdefFullPath + AVATAR_ASMDEF_FILE_NAME, oculusFullPath + "Avatar/" + AVATAR_ASMDEF_FILE_NAME);
