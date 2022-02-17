@@ -96,7 +96,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             }
             catch (Exception e)
             {
-                Debug.Log("lawwong CompUpdate " + (isLeft ? "L" : "R") + " " + e.Message + " -- " + e.StackTrace);
+                Debug.LogException(e);
             }
         }
 

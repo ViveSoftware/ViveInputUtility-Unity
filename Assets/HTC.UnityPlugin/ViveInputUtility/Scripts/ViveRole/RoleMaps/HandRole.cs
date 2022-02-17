@@ -158,7 +158,7 @@ namespace HTC.UnityPlugin.Vive
             }
             else
             {
-                leftIndex = VRModule.GetRightControllerDeviceIndex();
+                leftIndex = VRModule.GetLeftControllerDeviceIndex();
                 if (leftIndex >= deviceCount || RoleMap.IsDeviceConnectedAndBound(leftIndex))
                 {
                     leftIndex = VRModule.INVALID_DEVICE_INDEX;
