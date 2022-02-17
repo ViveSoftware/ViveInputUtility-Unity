@@ -143,7 +143,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (m_handModel == null)
                     {
                         var handObj = new GameObject(typeof(OculusHandRenderModel).Name);
-                        handObj.transform.SetParent(hook.transform.parent.parent, false);
+                        handObj.transform.SetParent(hook.transform, false);
+                        handObj.transform.localRotation *=
+                            Quaternion.Inverse(
+                                isLeftHand ?
+                                Quaternion.LookRotation(Vector3.right, Vector3.down) :
+                                Quaternion.LookRotation(Vector3.left, Vector3.up));
                         m_handModel = handObj.AddComponent<OculusHandRenderModel>();
                         m_handModel.Initialize(isLeftHand);
                     }

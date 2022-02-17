@@ -32,7 +32,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 updateRootScaleField.SetValue(m_ovrSkeleton, true);
 
                 FieldInfo updateRootPoseField = m_ovrSkeleton.GetType().GetField("_updateRootPose", BindingFlags.NonPublic | BindingFlags.Instance);
-                updateRootPoseField.SetValue(m_ovrSkeleton, true);
+                updateRootPoseField.SetValue(m_ovrSkeleton, false);
 
                 MethodInfo skeletonInitializeMethod = m_ovrSkeleton.GetType().GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
                 skeletonInitializeMethod.Invoke(m_ovrSkeleton, new object[] { });
