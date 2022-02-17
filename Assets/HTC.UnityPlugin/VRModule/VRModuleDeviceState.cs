@@ -70,6 +70,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         WaveCRControllerRight = ViveFocus3ControllerRight,
         ViveTracker3,
         ViveFlowPhoneController,
+        OculusQuest2ControllerLeft,
+        OculusQuest2ControllerRight,
     }
 
     public enum VRModuleRawButton
