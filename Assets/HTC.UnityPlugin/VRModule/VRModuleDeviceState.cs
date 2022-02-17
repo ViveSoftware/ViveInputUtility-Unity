@@ -72,6 +72,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         ViveFlowPhoneController,
         OculusQuest2ControllerLeft,
         OculusQuest2ControllerRight,
+        ViveWristTracker,
     }
 
     public enum VRModuleRawButton

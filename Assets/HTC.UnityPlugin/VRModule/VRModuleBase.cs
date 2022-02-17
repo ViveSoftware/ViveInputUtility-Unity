@@ -44,7 +44,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGEX_OPTIONS);
             private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr|windows).*(mr|$))|spatial", REGEX_OPTIONS);
             private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", REGEX_OPTIONS);
-            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", REGEX_OPTIONS);
+            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr|wave).*$", REGEX_OPTIONS);
             private static readonly Regex s_khrRgx = new Regex("^.*(khr).*$", REGEX_OPTIONS);
             private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", REGEX_OPTIONS);
             private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", REGEX_OPTIONS);
@@ -68,6 +68,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 new WVRCtrlProfile { reg = new Regex("cr.+left", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerLeft, input2D = VRModuleInput2DType.JoystickOnly },
                 // WVR_CR_Right_001
                 new WVRCtrlProfile { reg = new Regex("cr.+right", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerRight, input2D = VRModuleInput2DType.JoystickOnly },
+                // Wave Tracker0 HTC-211012-Tracker0, Wave Tracker1 HTC-211012-Tracker1
+                new WVRCtrlProfile { reg = new Regex("^.*(tracker).*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveWristTracker, input2D = VRModuleInput2DType.None },
             };
 
             public bool isActivated { get; private set; }
@@ -389,6 +391,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.ViveFocusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
+                            {
+                                foreach (var p in s_wvrCtrlProfiles)
+                                {
+                                    if (p.reg.IsMatch(deviceState.modelNumber))
+                                    {
+                                        deviceState.deviceModel = p.model;
+                                        deviceState.input2DType = p.input2D;
+                                        return;
+                                    }
+                                }
+                            }
+                            break;
+                        case VRModuleDeviceClass.GenericTracker:
                             {
                                 foreach (var p in s_wvrCtrlProfiles)
                                 {

@@ -332,11 +332,59 @@ namespace HTC.UnityPlugin.Vive
                         }
 #elif UNITY_2018_1_OR_NEWER
                         GUI.enabled = false;
-                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Wave XR Plugin Essence required."), false, GUILayout.ExpandWidth(true));
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Latest Wave XR Plugin required."), false, GUILayout.ExpandWidth(true));
                         GUI.enabled = true;
 
                         s_guiChanged |= EditorGUI.EndChangeCheck();
-                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin", "Update " + WAVE_XR_PACKAGE_NAME + " to lateast version"), GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin", "Update " + WAVE_XR_PACKAGE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
+                        {
+                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            {
+                                ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
+                            }
+
+                            if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_ESSENCE_NAME))
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_ESSENCE_NAME);
+                            }
+                            else if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NATIVE_NAME))
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
+                            }
+                            else
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NAME);
+                            }
+
+                            VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
+                        }
+                        EditorGUI.BeginChangeCheck();
+#else
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Unity 2018.1 or later version required."), false, GUILayout.ExpandWidth(true));
+                        GUI.enabled = true;
+#endif
+                        EditorGUILayout.EndHorizontal();
+
+                        const string enableWaveTrackerTitle = "Enable Wave Tracker";
+                        EditorGUILayout.BeginHorizontal();
+#if VIU_WAVEVR_TRACKER_CHECK
+                        {
+                            var supported = Wave.XR.BuildCheck.CheckIfTrackerEnabled.ValidateEnabled() && VRModuleSettings.activateWaveTrackerSubmodule;
+                            var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle), supported);
+                            if (supported != shouldSupport)
+                            {
+                                Wave.XR.BuildCheck.CheckIfTrackerEnabled.PerformAction(shouldSupport);
+                                VRModuleSettings.activateWaveTrackerSubmodule = shouldSupport;
+                            }
+                        }
+#elif UNITY_2018_1_OR_NEWER
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle, "Latest Wave XR Plugin required."), false, GUILayout.ExpandWidth(true));
+                        GUI.enabled = true;
+
+                        s_guiChanged |= EditorGUI.EndChangeCheck();
+                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin", "Update " + WAVE_XR_PACKAGE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
                         {
                             if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
                             {

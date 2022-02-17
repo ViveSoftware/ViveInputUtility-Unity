@@ -84,7 +84,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint moduleLeftIndex = INVALID_DEVICE_INDEX;
         private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection(
             new ViveHandTrackingSubmodule(),
-            new WaveHandTrackingSubmodule()
+            new WaveHandTrackingSubmodule(),
+            new WaveTrackerSubmodule()
             );
 
         protected VRModuleKnownXRLoader KnownActiveLoader { get { return knownActiveLoader; } }
@@ -238,9 +239,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             // process hand role
             var subRightIndex = submodules.GetFirstRightHandedIndex();
-            var currentRight = (subRightIndex == INVALID_DEVICE_INDEX || (TryGetValidDeviceState(uxrRightIndex, out prevState, out currState) && currState.isPoseValid)) ? uxrRightIndex : subRightIndex;
+            var currentRight = (subRightIndex == INVALID_DEVICE_INDEX || (TryGetValidDeviceState(uxrRightIndex, out prevState, out currState) && currState.isPoseValid && currState.deviceClass == VRModuleDeviceClass.Controller)) ? uxrRightIndex : subRightIndex;
             var subLeftIndex = submodules.GetFirstLeftHandedIndex();
-            var currentLeft = (subLeftIndex == INVALID_DEVICE_INDEX || (TryGetValidDeviceState(uxrLeftIndex, out prevState, out currState) && currState.isPoseValid)) ? uxrLeftIndex : subLeftIndex;
+            var currentLeft = (subLeftIndex == INVALID_DEVICE_INDEX || (TryGetValidDeviceState(uxrLeftIndex, out prevState, out currState) && currState.isPoseValid && currState.deviceClass == VRModuleDeviceClass.Controller)) ? uxrLeftIndex : subLeftIndex;
             var roleChanged = ChangeProp.Set(ref moduleRightIndex, currentRight);
             roleChanged |= ChangeProp.Set(ref moduleLeftIndex, currentLeft);
 
@@ -262,7 +263,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 InputDevice device;
                 if (indexMap.TryGetDevice(deviceIndex, out device))
                 {
-                    if ((device.characteristics & InputDeviceCharacteristics.Controller) > 0)
+                    if ((device.characteristics & InputDeviceCharacteristics.Controller) > 0
+                        || (device.characteristics & InputDeviceCharacteristics.TrackedDevice) > 0)
                     {
                         IVRModuleDeviceState prevState;
                         IVRModuleDeviceStateRW currState;

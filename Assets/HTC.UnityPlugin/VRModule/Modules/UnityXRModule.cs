@@ -123,6 +123,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.ViveFocus3ControllerRight:
                     updateFunc = UpdateWaveCRControllerState;
                     break;
+                case VRModuleDeviceModel.ViveWristTracker:
+                    updateFunc = UpdateViveWristTrackerState;
+                    break;
                 default:
                     updateFunc = UpdateUnknownControllerState;
                     break;
@@ -593,6 +596,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             // [Quaternion] PointerRotation
             // [Vector3] PointerVelocity
             // [Vector3] PointerAngularVelocity
+        }
+
+        private void UpdateViveWristTrackerState(IVRModuleDeviceStateRW state, InputDevice device)
+        {
+            bool primaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryButton);
+            bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
+
+            state.SetButtonPress(VRModuleRawButton.A, primaryButton);
+            state.SetButtonPress(VRModuleRawButton.System, menuButton);
         }
 
         private void UpdateWaveCRControllerState(IVRModuleDeviceStateRW state, InputDevice device)
