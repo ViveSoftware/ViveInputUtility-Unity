@@ -730,7 +730,7 @@ MonoBehaviour:
     m_roleTypeFullName: HTC.UnityPlugin.Vive.HandRole
     m_roleValueName: RightHand
     m_roleValueInt: 0
-  m_rigMode: 0
+  m_rigMode: 1
   m_modelHanded: 0
   m_debugJoint: {fileID: 0}
   m_modelJoints:
