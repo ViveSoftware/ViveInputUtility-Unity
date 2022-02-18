@@ -92,6 +92,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.OculusGoController:
                 case VRModuleDeviceModel.OculusQuestControllerLeft:
                 case VRModuleDeviceModel.OculusQuestControllerRight:
+                case VRModuleDeviceModel.OculusQuest2ControllerLeft:
+                case VRModuleDeviceModel.OculusQuest2ControllerRight:
                     updateFunc = UpdateOculusControllerState;
                     break;
                 case VRModuleDeviceModel.WMRControllerLeft:

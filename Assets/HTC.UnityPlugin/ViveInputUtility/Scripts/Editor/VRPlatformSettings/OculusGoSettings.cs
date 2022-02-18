@@ -675,38 +675,74 @@ namespace HTC.UnityPlugin.Vive
                     GUILayout.EndHorizontal();
                 }
 
-                if (support && m_foldouter.isExpended)
+                if (m_foldouter.isExpended)
                 {
                     if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
                     {
                         EditorGUI.indentLevel += 2;
 
-#if VIU_OCULUSVR_20_0_OR_NEWER
                         // Hand tracking support
-                        EditorGUILayout.BeginHorizontal();
-                        OVRProjectConfig.HandTrackingSupport originalHandTrackingSupport = oculusProjectConfig.handTrackingSupport;
-                        oculusProjectConfig.handTrackingSupport = (OVRProjectConfig.HandTrackingSupport)EditorGUILayout.EnumPopup("Hand Tracking Support: ", originalHandTrackingSupport);
-
-                        if (oculusProjectConfig.handTrackingSupport != originalHandTrackingSupport)
+                        const string enableHandTrackingTitle = "Enable Oculus Hand Tracking";
+                        const string enableHandRenderModelTitle = "Enable Oculus Tracked Hand Render Model";
+#if VIU_OCULUSVR_20_0_OR_NEWER
                         {
-                            EditorUtility.SetDirty(oculusProjectConfig);
+                            var oldEnableHandTracking = oculusProjectConfig.handTrackingSupport != OVRProjectConfig.HandTrackingSupport.ControllersOnly;
+                            var newEnableHandTracking = EditorGUILayout.ToggleLeft(enableHandTrackingTitle, oldEnableHandTracking);
+                            if (newEnableHandTracking)
+                            { if (!oldEnableHandTracking) { oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersAndHands; } }
+                            else
+                            { if (oldEnableHandTracking) { oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersOnly; } }
+
+                            if (newEnableHandTracking)
+                            {
+                                VIUSettings.EnableOculusSDKHandRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableHandRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_TOOLTIP), VIUSettings.EnableOculusSDKHandRenderModel);
+                            }
+                            else
+                            {
+                                var wasGUIEnabled = GUI.enabled;
+                                GUI.enabled = false;
+                                EditorGUILayout.ToggleLeft(new GUIContent(enableHandRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_TOOLTIP), false);
+                                GUI.enabled = wasGUIEnabled;
+                            }
                         }
-                        EditorGUILayout.EndHorizontal();
 #else
-                        EditorGUILayout.BeginHorizontal();
+                        {
+                            EditorGUILayout.BeginHorizontal();
 
-                        EditorGUILayout.HelpBox("Hand tracking not supported. Please install Oculus Integration.", MessageType.Info);
-                        GUILayout.FlexibleSpace();
+                            var wasGUIEnabled = GUI.enabled;
+                            GUI.enabled = false;
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableHandTrackingTitle, "Hand tracking not supported. Please install latest Oculus Integration."), false);
+                            GUI.enabled = wasGUIEnabled;
 
-                        s_warningHeight = Mathf.Max(s_warningHeight, GUILayoutUtility.GetLastRect().height);
-                        GUILayout.BeginVertical(GUILayout.Height(s_warningHeight));
-                        GUILayout.FlexibleSpace();
-                        ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN, "Get Oculus Integration");
-                        GUILayout.FlexibleSpace();
-                        GUILayout.EndVertical();
+                            GUILayout.FlexibleSpace();
+                            ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN, "Get Oculus Integration");
 
-                        EditorGUILayout.EndHorizontal();
+                            EditorGUILayout.EndHorizontal();
+                        }
 #endif
+                        // Controller Render Model
+                        const string enableControllerRenderModelTitle = "Enable Oculus Controller Render Model";
+                        const string enableControllerRenderModelSkeletonTitle = "Enable Hand Attached to Oculus Controller Render Model";
+                        if (OculusVRExtension.VIUOvrAvatar.SUPPORTED)
+                        {
+                            VIUSettings.EnableOculusSDKControllerRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModel);
+
+                            if (VIUSettings.EnableOculusSDKControllerRenderModel)
+                            {
+                                VIUSettings.EnableOculusSDKControllerRenderModelSkeleton = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModelSkeleton);
+                            }
+                            else
+                            {
+                                var wasGUIEnabled = GUI.enabled;
+                                GUI.enabled = false;
+                                EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), false);
+                                GUI.enabled = wasGUIEnabled;
+                            }
+                        }
+                        else
+                        {
+
+                        }
 
                         // Custom Android manifest
                         EditorGUILayout.BeginHorizontal();

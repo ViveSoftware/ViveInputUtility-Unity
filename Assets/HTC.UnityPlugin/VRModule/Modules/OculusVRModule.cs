@@ -121,7 +121,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #pragma warning disable 0162
                     if (!OculusHandRenderModel.SUPPORTED && !VIUOvrAvatar.SUPPORTED) { return false; }
 #pragma warning restore 0162
-                    return s_moduleInstance == null ? false : s_moduleInstance.isActivated;
+                    if (!VIUSettings.EnableOculusSDKHandRenderModel && !VIUSettings.EnableOculusSDKControllerRenderModel) { return false; }
+                    if (s_moduleInstance == null) { return false; }
+                    if (!s_moduleInstance.isActivated) { return false; }
+                    return true;
                 }
             }
 
@@ -137,7 +140,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     return;
                 }
 
-                if (IsHand() && OculusHandRenderModel.SUPPORTED)
+                if (IsHand() && OculusHandRenderModel.SUPPORTED && VIUSettings.EnableOculusSDKHandRenderModel)
                 {
                     var isLeftHand = m_index == s_leftHandIndex;
                     if (m_handModel == null)
@@ -163,7 +166,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (m_handModel != null) { m_handModel.gameObject.SetActive(false); }
                 }
 
-                if (m_index == s_rightControllerIndex && VIUOvrAvatar.SUPPORTED)
+                if (m_index == s_rightControllerIndex && VIUOvrAvatar.SUPPORTED && VIUSettings.EnableOculusSDKControllerRenderModel)
                 {
                     LoadAvatar();
                     if (m_rightModel == null)
@@ -184,7 +187,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     if (m_rightModel != null) { m_rightModel.gameObject.SetActive(false); }
                 }
 
-                if (m_index == s_leftControllerIndex && VIUOvrAvatar.SUPPORTED)
+                if (m_index == s_leftControllerIndex && VIUOvrAvatar.SUPPORTED && VIUSettings.EnableOculusSDKControllerRenderModel)
                 {
                     LoadAvatar();
                     if (m_leftModel == null)
@@ -229,13 +232,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 m_index = INVALID_DEVICE_INDEX;
             }
 
-            private void LoadAvatar()
+            public static VIUOvrAvatar LoadAvatar()
             {
                 if (s_avatar == null)
                 {
                     var go = new GameObject(typeof(VIUOvrAvatar).Name);
                     s_avatar = go.AddComponent<VIUOvrAvatar>();
                 }
+                s_avatar.ShowHand = VIUSettings.EnableOculusSDKControllerRenderModelSkeleton;
+                return s_avatar;
             }
 
             private bool IsHand()
@@ -380,6 +385,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override void OnDeactivated()
         {
             OVRPlugin.SetTrackingOriginType(m_prevTrackingSpace);
+            s_moduleInstance = null;
         }
 
         public override void UpdateTrackingSpaceType()
@@ -502,7 +508,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         if (prevState.isConnected)
                         {
-                            Debug.Log("[VIU][OculusVRModule] device disconnected. name:" + prevState.modelNumber + " model:" + prevState.deviceModel);
+                            Debug.Log("[VIU][OculusVRModule] " + prevState.deviceModel + " device disconnected.");
                             currState.Reset();
                         }
                         continue;
@@ -514,7 +520,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     if (prevState.isConnected)
                     {
-                        Debug.Log("[VIU][OculusVRModule] device disconnected. name:" + prevState.modelNumber + " model:" + prevState.deviceModel);
+                        Debug.Log("[VIU][OculusVRModule] " + prevState.deviceModel + " device disconnected.");
                         currState.Reset();
                     }
                     continue;
@@ -608,7 +614,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             break;
                     }
 
-                    Debug.Log("[VIU][OculusVRModule] device connected. name:" + deviceName + " model:" + currState.deviceModel);
+                    Debug.Log("[VIU][OculusVRModule] " + currState.deviceModel + " device connected. deviceName=\"" + deviceName + "\"");
                 }
 
                 // update device pose
@@ -822,14 +828,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     if (currState.isPoseValid)
                     {
-                        Debug.Log("[VIU][OculusVRModule] pose valid. name:" + prevState.modelNumber + " model:" + prevState.deviceModel);
+                        Debug.Log("[VIU][OculusVRModule] " + currState.deviceModel + " pose valid.");
                     }
                 }
                 else
                 {
                     if (!currState.isPoseValid)
                     {
-                        Debug.Log("[VIU][OculusVRModule] pose invalid. name:" + prevState.modelNumber + " model:" + prevState.deviceModel);
+                        Debug.Log("[VIU][OculusVRModule] " + prevState.deviceModel + " pose invalid.");
                     }
                 }
             }
