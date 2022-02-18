@@ -4,6 +4,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using HTC.UnityPlugin.VRModuleManagement;
+using System.Reflection;
 
 #if VIU_OCULUSVR_AVATAR
 using Oculus.Avatar;
@@ -13,6 +15,15 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
 {
     public class VIUOvrAvatar : MonoBehaviour
     {
+        // Should align ovrAvatarControllerType
+        public enum OVRControllerType
+        {
+            Touch,
+            Malibu,
+            Go,
+            Quest,
+        }
+
 #if VIU_OCULUSVR_AVATAR
         public const bool SUPPORTED = true;
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -182,6 +193,50 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             ovrAvatar.ShowThirdPerson = false;
 
             gameObject.SetActive(true);
+
+            // FIXME: try load Quest model instead of Rift model for Quest 2
+            // Also notice that at this point there's no Quest 2 render model from runtime
+            LiteCoroutineSystem.LiteCoroutine.DelayUpdateCall += () =>
+            {
+                try
+                {
+                    var controllerType = OVRControllerType.Quest;
+                    switch ((OculusVRModule.OVRSystemHeadset)OVRPlugin.GetSystemHeadsetType())
+                    {
+                        case OculusVRModule.OVRSystemHeadset.Oculus_Go:
+                            controllerType = OVRControllerType.Go;
+                            break;
+                        case OculusVRModule.OVRSystemHeadset.GearVR_R320:
+                        case OculusVRModule.OVRSystemHeadset.GearVR_R321:
+                        case OculusVRModule.OVRSystemHeadset.GearVR_R322:
+                        case OculusVRModule.OVRSystemHeadset.GearVR_R323:
+                        case OculusVRModule.OVRSystemHeadset.GearVR_R324:
+                        case OculusVRModule.OVRSystemHeadset.GearVR_R325:
+                            controllerType = OVRControllerType.Malibu;
+                            break;
+                        case OculusVRModule.OVRSystemHeadset.Rift_DK1:
+                        case OculusVRModule.OVRSystemHeadset.Rift_DK2:
+                        case OculusVRModule.OVRSystemHeadset.Rift_CV1:
+                            controllerType = OVRControllerType.Touch;
+                            break;
+                        case OculusVRModule.OVRSystemHeadset.Oculus_Link_Quest:
+                        case OculusVRModule.OVRSystemHeadset.Oculus_Quest:
+                        case OculusVRModule.OVRSystemHeadset.Rift_S:
+                        case OculusVRModule.OVRSystemHeadset.Oculus_Link_Quest_2:
+                        case OculusVRModule.OVRSystemHeadset.Oculus_Quest_2:
+                            controllerType = OVRControllerType.Quest;
+                            break;
+                    }
+                    typeof(OvrAvatarDriver).GetField("ControllerType", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(ovrAvatarDriver, (ovrAvatarControllerType)controllerType);
+                    Debug.Log("[VIUOvrAvatar] OvrAvatarDriver.ControllerType set to " + controllerType);
+                }
+                catch (Exception e)
+                {
+                    Debug.Log("[VIUOvrAvatar] fail to fix ovrAvatarDriver controller type");
+                    Debug.LogError(e);
+                }
+            };
+            LiteCoroutineSystem.LiteCoroutine.WakeUp();
 
 #if VIU_OCULUSVR_20_0_OR_NEWER
             ovrAvatar.Monochrome_SurfaceShader = Shader.Find("OvrAvatar/AvatarSurfaceShader");
