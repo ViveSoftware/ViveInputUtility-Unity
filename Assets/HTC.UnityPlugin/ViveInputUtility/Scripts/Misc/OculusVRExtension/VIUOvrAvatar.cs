@@ -170,14 +170,15 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             }
         }
 
-        private void OnDestroy()
-        {
-            if (sdkAvatar != IntPtr.Zero)
-            {
-                CAPI.ovrAvatar_Destroy(sdkAvatar);
-                sdkAvatar = IntPtr.Zero;
-            }
-        }
+        // FIXME: sdkAvatar should be destroy by OvrAvatar.OnDestroy
+        //private void OnDestroy()
+        //{
+        //    if (sdkAvatar != IntPtr.Zero)
+        //    {
+        //        CAPI.ovrAvatar_Destroy(sdkAvatar);
+        //        sdkAvatar = IntPtr.Zero;
+        //    }
+        //}
 
         public void GetReady()
         {
