@@ -318,7 +318,7 @@ namespace HTC.UnityPlugin.Vive
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEVR_HAND_TRACKING_CHECK
                         {
-                            var supported = Wave.XR.BuildCheck.CheckIfHandTrackingEnabled.ValidateEnabled() && VRModuleSettings.activateWaveHandTrackingSubmodule;
+                            var supported = EditorPrefs.GetBool("Wave/HandTracking/EnableHandTracking", false) && VRModuleSettings.activateWaveHandTrackingSubmodule;
                             var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle), supported);
                             if (supported != shouldSupport)
                             {
@@ -370,7 +370,7 @@ namespace HTC.UnityPlugin.Vive
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEVR_TRACKER_CHECK
                         {
-                            var supported = Wave.XR.BuildCheck.CheckIfTrackerEnabled.ValidateEnabled() && VRModuleSettings.activateWaveTrackerSubmodule;
+                            var supported = EditorPrefs.GetBool("Wave/Tracker/EnableTracker", false) && VRModuleSettings.activateWaveTrackerSubmodule;
                             var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle), supported);
                             if (supported != shouldSupport)
                             {
