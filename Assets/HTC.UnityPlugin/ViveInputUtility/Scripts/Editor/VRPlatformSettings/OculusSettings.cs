@@ -108,6 +108,8 @@ namespace HTC.UnityPlugin.Vive
 
         private class OculusSettings : VRPlatformSetting
         {
+            private Foldouter m_foldouter = new Foldouter();
+
             public static OculusSettings instance { get; private set; }
 
             public OculusSettings() { instance = this; }
@@ -188,7 +190,7 @@ namespace HTC.UnityPlugin.Vive
                 if (canSupport)
                 {
                     var wasSupported = support;
-                    var shouldSupport = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title, "Oculus Rift, Oculus Rift S"), wasSupported);
+                    var shouldSupport = m_foldouter.ShowFoldoutButtonWithEnabledToggle(new GUIContent(title, "Oculus Rift, Oculus Rift S, Oculus Link"), wasSupported);
                     if (wasSupported != shouldSupport)
                     {
                         support = shouldSupport;
@@ -246,6 +248,56 @@ namespace HTC.UnityPlugin.Vive
                     }
 
                     GUILayout.EndHorizontal();
+                }
+
+                if (support && m_foldouter.isExpended)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        EditorGUI.indentLevel += 2;
+
+#pragma warning disable 0162
+                        // Controller Render Model
+                        const string enableControllerRenderModelTitle = "Enable Oculus Controller Render Model";
+                        const string enableControllerRenderModelSkeletonTitle = "Enable Hand Attached to Oculus Controller Render Model";
+                        if (OculusVRExtension.VIUOvrAvatar.SUPPORTED)
+                        {
+                            VIUSettings.EnableOculusSDKControllerRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModel);
+
+                            if (VIUSettings.EnableOculusSDKControllerRenderModel)
+                            {
+                                VIUSettings.EnableOculusSDKControllerRenderModelSkeleton = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModelSkeleton);
+                            }
+                            else
+                            {
+                                var wasGUIEnabled = GUI.enabled;
+                                GUI.enabled = false;
+                                EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), false);
+                                GUI.enabled = wasGUIEnabled;
+                            }
+                        }
+                        else
+                        {
+                            var wasGUIEnabled = GUI.enabled;
+                            GUI.enabled = false;
+
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, "OvrAvatar not found. Please import latest Oculus Integration."), false, GUILayout.Width(280f));
+                            GUILayout.FlexibleSpace();
+                            GUI.enabled = true;
+                            ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN, "Update Oculus Integration");
+                            EditorGUILayout.EndHorizontal();
+
+                            GUI.enabled = false;
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), false);
+
+                            GUI.enabled = wasGUIEnabled;
+                        }
+#pragma warning restore 0162
+
+                        EditorGUI.indentLevel -= 2;
+                    }
+                    s_guiChanged |= EditorGUI.EndChangeCheck();
                 }
             }
         }

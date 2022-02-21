@@ -675,9 +675,9 @@ namespace HTC.UnityPlugin.Vive
                     GUILayout.EndHorizontal();
                 }
 
-                if (m_foldouter.isExpended)
+                if (support && m_foldouter.isExpended)
                 {
-                    if (support) { EditorGUI.BeginChangeCheck(); } else { GUI.enabled = false; }
+                    EditorGUI.BeginChangeCheck();
                     {
                         EditorGUI.indentLevel += 2;
 
@@ -797,7 +797,7 @@ namespace HTC.UnityPlugin.Vive
 
                         EditorGUI.indentLevel -= 2;
                     }
-                    if (support) { s_guiChanged |= EditorGUI.EndChangeCheck(); } else { GUI.enabled = true; }
+                    s_guiChanged |= EditorGUI.EndChangeCheck();
                 }
             }
 
