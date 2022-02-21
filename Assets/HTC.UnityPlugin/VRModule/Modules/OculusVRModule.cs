@@ -824,20 +824,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         break;
                 }
 
-                if (!prevState.isPoseValid)
-                {
-                    if (currState.isPoseValid)
-                    {
-                        Debug.Log("[VIU][OculusVRModule] " + currState.deviceModel + " pose valid.");
-                    }
-                }
-                else
-                {
-                    if (!currState.isPoseValid)
-                    {
-                        Debug.Log("[VIU][OculusVRModule] " + prevState.deviceModel + " pose invalid.");
-                    }
-                }
+                //if (!prevState.isPoseValid)
+                //{
+                //    if (currState.isPoseValid)
+                //    {
+                //        Debug.Log("[VIU][OculusVRModule] " + currState.deviceModel + " pose valid.");
+                //    }
+                //}
+                //else
+                //{
+                //    if (!currState.isPoseValid)
+                //    {
+                //        Debug.Log("[VIU][OculusVRModule] " + prevState.deviceModel + " pose invalid.");
+                //    }
+                //}
             }
 
             ProcessConnectedDeviceChanged();

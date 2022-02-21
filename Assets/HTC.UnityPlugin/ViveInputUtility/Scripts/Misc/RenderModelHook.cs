@@ -364,12 +364,12 @@ namespace HTC.UnityPlugin.Vive
 
         protected virtual void OnEnable()
         {
+            UpdateModel();
+
             VRModule.onActiveModuleChanged += OnActiveModuleChanged;
             VRModule.onControllerRoleChanged += UpdateModel;
             m_viveRole.onDeviceIndexChanged += OnDeviceIndexChanged;
             m_viveRole.onRoleChanged += UpdateModel;
-
-            UpdateModel();
         }
 
         protected virtual void OnDisable()
