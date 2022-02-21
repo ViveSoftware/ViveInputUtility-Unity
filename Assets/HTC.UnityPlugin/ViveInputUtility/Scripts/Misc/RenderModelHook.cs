@@ -247,6 +247,9 @@ namespace HTC.UnityPlugin.Vive
             ViveFocusChirp = VRModuleDeviceModel.ViveFocusChirp,
             ViveTracker3 = VRModuleDeviceModel.ViveTracker3,
             ViveFlowPhoneController = VRModuleDeviceModel.ViveFlowPhoneController,
+            OculusQuest2ControllerLeft = VRModuleDeviceModel.OculusQuest2ControllerLeft,
+            OculusQuest2ControllerRight = VRModuleDeviceModel.OculusQuest2ControllerRight,
+            ViveWristTracker = VRModuleDeviceModel.ViveWristTracker,
         }
 
         [SerializeField]
