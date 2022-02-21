@@ -1,6 +1,5 @@
 {
     "name": "HTC.ViveInputUtility",
-    "rootNamespace": "",
     "references": [
         "Unity.XR.Management",
         "SteamVR",
@@ -16,7 +15,8 @@
         "HTC.ViveHandTracking",
         "Wave.Essence.Controller.Model",
         "Unity.InputSystem",
-        "Unity.XR.OpenXR"
+        "Unity.XR.OpenXR",
+        "Wave.XRSDK"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

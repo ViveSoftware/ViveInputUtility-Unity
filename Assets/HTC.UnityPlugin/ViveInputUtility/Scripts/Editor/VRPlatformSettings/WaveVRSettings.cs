@@ -282,7 +282,7 @@ namespace HTC.UnityPlugin.Vive
                         }
                         EditorGUILayout.EndHorizontal();
 
-                        const string enableWaveXRRenderModelTitle = "Enable Wave XR Render Model";
+                        const string enableWaveXRRenderModelTitle = "Enable Wave XR Render Model Support";
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL
                         VIUSettings.enableWaveXRRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, VIUSettings.ENABLE_WAVE_XR_RENDER_MODEL_TOOLTIP), VIUSettings.enableWaveXRRenderModel);
@@ -314,7 +314,7 @@ namespace HTC.UnityPlugin.Vive
 #endif
                         EditorGUILayout.EndHorizontal();
 
-                        const string enableWaveHandTrackingTitle = "Enable Wave Hand Tracking";
+                        const string enableWaveHandTrackingTitle = "Enable Wave Hand Tracking Support";
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEVR_HAND_TRACKING_CHECK
                         {
@@ -366,7 +366,7 @@ namespace HTC.UnityPlugin.Vive
 #endif
                         EditorGUILayout.EndHorizontal();
 
-                        const string enableWaveTrackerTitle = "Enable Wave Tracker";
+                        const string enableWaveTrackerTitle = "Enable Wave Tracker Support";
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEVR_TRACKER_CHECK
                         {
