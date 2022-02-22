@@ -256,15 +256,85 @@ namespace HTC.UnityPlugin.Vive
                     {
                         EditorGUI.indentLevel += 2;
 
+                        // Hand tracking support
+                        const string enableHandTrackingTitle = "Enable Oculus Hand Tracking";
+                        const string enableHandRenderModelTitle = "Enable Oculus Tracked Hand Render Model";
+#if VIU_OCULUSVR_20_0_OR_NEWER
+                        {
+                            var oldEnableHandTracking = VIUSettings.activateOculusVRModule && OculusGoSettings.oculusProjectConfig.handTrackingSupport != OVRProjectConfig.HandTrackingSupport.ControllersOnly;
+                            var newEnableHandTracking = EditorGUILayout.ToggleLeft(enableHandTrackingTitle, oldEnableHandTracking);
+                            if (newEnableHandTracking)
+                            {
+                                if (!oldEnableHandTracking)
+                                {
+                                    VIUSettings.activateOculusVRModule = true;
+                                    OculusGoSettings.oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersAndHands;
+                                }
+                            }
+                            else
+                            {
+                                if (oldEnableHandTracking)
+                                {
+                                    OculusGoSettings.oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersOnly;
+                                }
+                            }
+
+                            if (newEnableHandTracking)
+                            {
+                                VIUSettings.EnableOculusSDKHandRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableHandRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_TOOLTIP), VIUSettings.EnableOculusSDKHandRenderModel);
+                            }
+                            else
+                            {
+                                var wasGUIEnabled = GUI.enabled;
+                                GUI.enabled = false;
+                                EditorGUILayout.ToggleLeft(new GUIContent(enableHandRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_TOOLTIP), false);
+                                GUI.enabled = wasGUIEnabled;
+                            }
+                        }
+#else
+                        {
+                            var wasGUIEnabled = GUI.enabled;
+                            GUI.enabled = false;
+
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableHandTrackingTitle, "Hand tracking not supported. Please import latest Oculus Integration."), false, GUILayout.Width(280f));
+                            GUILayout.FlexibleSpace();
+                            GUI.enabled = true;
+                            ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN, "Update Oculus Integration");
+                            EditorGUILayout.EndHorizontal();
+
+                            GUI.enabled = false;
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableHandRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_TOOLTIP), false);
+
+                            GUI.enabled = wasGUIEnabled;
+                        }
+#endif
+
 #pragma warning disable 0162
                         // Controller Render Model
                         const string enableControllerRenderModelTitle = "Enable Oculus Controller Render Model";
                         const string enableControllerRenderModelSkeletonTitle = "Enable Hand Attached to Oculus Controller Render Model";
                         if (OculusVRExtension.VIUOvrAvatar.SUPPORTED)
                         {
-                            VIUSettings.EnableOculusSDKControllerRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModel);
+                            var oldValue = VIUSettings.activateOculusVRModule && VIUSettings.EnableOculusSDKControllerRenderModel;
+                            var newValue = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), oldValue);
+                            if (newValue)
+                            {
+                                if (!oldValue)
+                                {
+                                    VIUSettings.activateOculusVRModule = true;
+                                    VIUSettings.EnableOculusSDKControllerRenderModel = true;
+                                }
+                            }
+                            else
+                            {
+                                if (oldValue)
+                                {
+                                    VIUSettings.EnableOculusSDKControllerRenderModel = false;
+                                }
+                            }
 
-                            if (VIUSettings.EnableOculusSDKControllerRenderModel)
+                            if (newValue)
                             {
                                 VIUSettings.EnableOculusSDKControllerRenderModelSkeleton = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModelSkeleton);
                             }

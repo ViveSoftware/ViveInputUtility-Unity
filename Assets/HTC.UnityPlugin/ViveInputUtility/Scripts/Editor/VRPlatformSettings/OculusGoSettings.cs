@@ -446,18 +446,18 @@ namespace HTC.UnityPlugin.Vive
             private Foldouter m_foldouter = new Foldouter();
 
 #if VIU_OCULUSVR_20_0_OR_NEWER
-            private OVRProjectConfig m_oculusProjectConfig;
+            private static OVRProjectConfig s_oculusProjectConfig;
 
-            private OVRProjectConfig oculusProjectConfig
+            public static OVRProjectConfig oculusProjectConfig
             {
                 get
                 {
-                    if (m_oculusProjectConfig == null)
+                    if (s_oculusProjectConfig == null)
                     {
-                        m_oculusProjectConfig = OVRProjectConfig.GetProjectConfig();
+                        s_oculusProjectConfig = OVRProjectConfig.GetProjectConfig();
                     }
 
-                    return m_oculusProjectConfig;
+                    return s_oculusProjectConfig;
                 }
             }
 #endif
@@ -686,12 +686,23 @@ namespace HTC.UnityPlugin.Vive
                         const string enableHandRenderModelTitle = "Enable Oculus Tracked Hand Render Model";
 #if VIU_OCULUSVR_20_0_OR_NEWER
                         {
-                            var oldEnableHandTracking = oculusProjectConfig.handTrackingSupport != OVRProjectConfig.HandTrackingSupport.ControllersOnly;
+                            var oldEnableHandTracking = VIUSettings.activateOculusVRModule && oculusProjectConfig.handTrackingSupport != OVRProjectConfig.HandTrackingSupport.ControllersOnly;
                             var newEnableHandTracking = EditorGUILayout.ToggleLeft(enableHandTrackingTitle, oldEnableHandTracking);
                             if (newEnableHandTracking)
-                            { if (!oldEnableHandTracking) { oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersAndHands; } }
+                            {
+                                if (!oldEnableHandTracking)
+                                {
+                                    VIUSettings.activateOculusVRModule = true;
+                                    oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersAndHands;
+                                }
+                            }
                             else
-                            { if (oldEnableHandTracking) { oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersOnly; } }
+                            {
+                                if (oldEnableHandTracking)
+                                {
+                                    oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersOnly;
+                                }
+                            }
 
                             if (newEnableHandTracking)
                             {
@@ -730,9 +741,25 @@ namespace HTC.UnityPlugin.Vive
                         const string enableControllerRenderModelSkeletonTitle = "Enable Hand Attached to Oculus Controller Render Model";
                         if (OculusVRExtension.VIUOvrAvatar.SUPPORTED)
                         {
-                            VIUSettings.EnableOculusSDKControllerRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModel);
+                            var oldValue = VIUSettings.activateOculusVRModule && VIUSettings.EnableOculusSDKControllerRenderModel;
+                            var newValue = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), oldValue);
+                            if (newValue)
+                            {
+                                if (!oldValue)
+                                {
+                                    VIUSettings.activateOculusVRModule = true;
+                                    VIUSettings.EnableOculusSDKControllerRenderModel = true;
+                                }
+                            }
+                            else
+                            {
+                                if (oldValue)
+                                {
+                                    VIUSettings.EnableOculusSDKControllerRenderModel = false;
+                                }
+                            }
 
-                            if (VIUSettings.EnableOculusSDKControllerRenderModel)
+                            if (newValue)
                             {
                                 VIUSettings.EnableOculusSDKControllerRenderModelSkeleton = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModelSkeleton);
                             }
