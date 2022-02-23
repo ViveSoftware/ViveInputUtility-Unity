@@ -292,7 +292,7 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
                         
                         s_guiChanged |= EditorGUI.EndChangeCheck();
-                        if (GUILayout.Button(new GUIContent("Add Wave XR Plugin Essence", "Add " + WAVE_XR_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(new GUIContent("Add Wave XR Plugin Essence", "Add " + WAVE_XR_PACKAGE_ESSENCE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
                         {
                             if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
                             {
@@ -316,7 +316,7 @@ namespace HTC.UnityPlugin.Vive
 
                         const string enableWaveHandTrackingTitle = "Enable Wave Hand Tracking Support";
                         EditorGUILayout.BeginHorizontal();
-#if VIU_WAVEVR_HAND_TRACKING_CHECK
+#if VIU_WAVEVR_HAND_TRACKING_CHECK && VIU_WAVEVR_HAND_TRACKING
                         {
                             var supported = EditorPrefs.GetBool("Wave/HandTracking/EnableHandTracking", false) && VRModuleSettings.activateWaveHandTrackingSubmodule;
                             var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle), supported);
@@ -336,7 +336,7 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
 
                         s_guiChanged |= EditorGUI.EndChangeCheck();
-                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin", "Update " + WAVE_XR_PACKAGE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin Native", "Update " + WAVE_XR_PACKAGE_NATIVE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
                         {
                             if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
                             {
@@ -347,13 +347,9 @@ namespace HTC.UnityPlugin.Vive
                             {
                                 PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_ESSENCE_NAME);
                             }
-                            else if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NATIVE_NAME))
-                            {
-                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
-                            }
                             else
                             {
-                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NAME);
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
                             }
 
                             VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
@@ -368,7 +364,7 @@ namespace HTC.UnityPlugin.Vive
 
                         const string enableWaveTrackerTitle = "Enable Wave Tracker Support";
                         EditorGUILayout.BeginHorizontal();
-#if VIU_WAVEVR_TRACKER_CHECK
+#if VIU_WAVEVR_TRACKER_CHECK && VIU_WAVEVR_TRACKER
                         {
                             var supported = EditorPrefs.GetBool("Wave/Tracker/EnableTracker", false) && VRModuleSettings.activateWaveTrackerSubmodule;
                             var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle), supported);
@@ -384,7 +380,7 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = true;
 
                         s_guiChanged |= EditorGUI.EndChangeCheck();
-                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin", "Update " + WAVE_XR_PACKAGE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin Native", "Update " + WAVE_XR_PACKAGE_NATIVE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
                         {
                             if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
                             {
@@ -395,13 +391,9 @@ namespace HTC.UnityPlugin.Vive
                             {
                                 PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_ESSENCE_NAME);
                             }
-                            else if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NATIVE_NAME))
-                            {
-                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
-                            }
                             else
                             {
-                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NAME);
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
                             }
 
                             VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
