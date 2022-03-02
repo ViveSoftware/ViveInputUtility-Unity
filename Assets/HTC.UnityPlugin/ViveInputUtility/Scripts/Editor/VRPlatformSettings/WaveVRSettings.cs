@@ -16,6 +16,8 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.Callbacks;
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
+using HTC.UnityPlugin.Utility;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -228,7 +230,7 @@ namespace HTC.UnityPlugin.Vive
 
                         if (GUILayout.Button(new GUIContent("Add Wave XR Plugin", "Add " + WAVE_XR_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
                         {
-                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
                             {
                                 ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }
@@ -290,11 +292,11 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = false;
                         EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, VIUSettings.ENABLE_WAVE_XR_RENDER_MODEL_TOOLTIP + ". Required Wave XR Plugin Essence"), false, GUILayout.ExpandWidth(true));
                         GUI.enabled = true;
-                        
+
                         s_guiChanged |= EditorGUI.EndChangeCheck();
                         if (GUILayout.Button(new GUIContent("Add Wave XR Plugin Essence", "Add " + WAVE_XR_PACKAGE_ESSENCE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
                         {
-                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
                             {
                                 ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }
@@ -338,7 +340,7 @@ namespace HTC.UnityPlugin.Vive
                         s_guiChanged |= EditorGUI.EndChangeCheck();
                         if (GUILayout.Button(new GUIContent("Update Wave XR Plugin Native", "Update " + WAVE_XR_PACKAGE_NATIVE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
                         {
-                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
                             {
                                 ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }
@@ -382,7 +384,7 @@ namespace HTC.UnityPlugin.Vive
                         s_guiChanged |= EditorGUI.EndChangeCheck();
                         if (GUILayout.Button(new GUIContent("Update Wave XR Plugin Native", "Update " + WAVE_XR_PACKAGE_NATIVE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
                         {
-                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
                             {
                                 ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }
@@ -501,6 +503,61 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 #endif
+        }
+
+        [Serializable]
+        private class UPMMenifestInfo
+        {
+            [Serializable]
+            public struct ScopedRegistry
+            {
+                public string name;
+                public string url;
+                public List<string> scopes;
+            }
+
+            public List<ScopedRegistry> scopedRegistries;
+        }
+
+        private static UPMMenifestInfo menifestInfoTemp = new UPMMenifestInfo();
+        private static bool CheckScopeExists(List<string> scopes)
+        {
+            if (scopes == null || scopes.Count == 0) { return true; }
+
+            var allScopes = ListPool<string>.Get();
+            try
+            {
+                var manifestString = File.ReadAllText(RegistryToolSettings.Instance().ProjectManifestPath);
+                JsonUtility.FromJsonOverwrite(manifestString, menifestInfoTemp);
+
+                if (menifestInfoTemp.scopedRegistries == null || menifestInfoTemp.scopedRegistries.Count == 0) { return false; }
+                foreach (var reg in menifestInfoTemp.scopedRegistries)
+                {
+                    var regScopes = reg.scopes;
+                    if (regScopes == null || regScopes.Count == 0) { continue; }
+                    allScopes.AddRange(regScopes);
+                }
+
+                if (allScopes.Count > 0)
+                {
+                    foreach (var scope in scopes)
+                    {
+                        if (!allScopes.Contains(scope)) { return false; }
+                    }
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            finally
+            {
+                ListPool<string>.Release(allScopes);
+                allScopes = null;
+            }
+
+            return false;
         }
     }
 }
