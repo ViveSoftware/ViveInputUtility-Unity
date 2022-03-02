@@ -505,6 +505,7 @@ namespace HTC.UnityPlugin.Vive
 #endif
         }
 
+#if UNITY_2018_1_OR_NEWER
         [Serializable]
         private class UPMMenifestInfo
         {
@@ -559,5 +560,6 @@ namespace HTC.UnityPlugin.Vive
 
             return false;
         }
+#endif
     }
 }
