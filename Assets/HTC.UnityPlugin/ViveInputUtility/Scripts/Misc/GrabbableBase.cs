@@ -383,7 +383,7 @@ namespace HTC.UnityPlugin.Vive
 
         protected void GrabRigidbodyToPose(RigidPose targetPose)
         {
-            ModifyPose(ref targetPose, true);
+            ModifyPose(ref targetPose, false);
 
             RigidPose.SetRigidbodyVelocity(grabRigidbody, grabRigidbody.position, targetPose.pos, followingDuration);
             RigidPose.SetRigidbodyAngularVelocity(grabRigidbody, grabRigidbody.rotation, targetPose.rot, followingDuration, overrideMaxAngularVelocity);
@@ -391,7 +391,7 @@ namespace HTC.UnityPlugin.Vive
 
         protected void GrabTransformToPose(RigidPose targetPose)
         {
-            ModifyPose(ref targetPose, true);
+            ModifyPose(ref targetPose, false);
 
             if (grabRigidbody != null)
             {
