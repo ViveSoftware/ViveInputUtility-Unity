@@ -403,7 +403,7 @@ namespace HTC.UnityPlugin.Vive
                         EditorGUI.BeginChangeCheck();
 #else
                         GUI.enabled = false;
-                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Unity 2018.1 or later version required."), false, GUILayout.ExpandWidth(true));
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle, "Unity 2018.1 or later version required."), false, GUILayout.ExpandWidth(true));
                         GUI.enabled = true;
 #endif
                         EditorGUILayout.EndHorizontal();

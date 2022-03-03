@@ -241,7 +241,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
                                     return;
                                 }
-                                else if (modelNumWithHmd.Contains("Rift S") || modelNumWithHmd.Contains("Quest"))
+                                else if (s_questRgx.IsMatch(modelNumWithHmd) || modelNumWithHmd.Contains("Rift S"))
                                 {
                                     deviceState.deviceModel = s_leftRgx.IsMatch(modelNumWithHmd) ? VRModuleDeviceModel.OculusQuestOrRiftSControllerLeft : VRModuleDeviceModel.OculusQuestOrRiftSControllerRight;
                                     deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
