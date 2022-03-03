@@ -82,7 +82,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private uint uxrLeftIndex = INVALID_DEVICE_INDEX;
         private uint moduleRightIndex = INVALID_DEVICE_INDEX;
         private uint moduleLeftIndex = INVALID_DEVICE_INDEX;
-        private string hmdDeviceName = string.Empty;
         private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection(
             new ViveHandTrackingSubmodule(),
             new WaveHandTrackingSubmodule(),
@@ -161,14 +160,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceIndex = VRModule.HMD_DEVICE_INDEX;
                         EnsureValidDeviceState(deviceIndex, out prevState, out currState);
                         deviceName = device.name;
-                        hmdDeviceName = deviceName + " - ";
                     }
                     else
                     {
                         // this function will skip VRModule.HMD_DEVICE_INDEX (preserved index for HMD)
                         deviceIndex = FindAndEnsureUnusedNotHMDDeviceState(out prevState, out currState);
                         indexMap.MapNonHMD(device, deviceIndex);
-                        deviceName = hmdDeviceName + device.name;
+                        deviceName = device.name;
                     }
 
                     currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
