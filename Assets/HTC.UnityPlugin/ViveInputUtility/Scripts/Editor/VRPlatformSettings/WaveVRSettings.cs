@@ -16,6 +16,8 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.Callbacks;
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
+using HTC.UnityPlugin.Utility;
 
 namespace HTC.UnityPlugin.Vive
 {
@@ -228,7 +230,7 @@ namespace HTC.UnityPlugin.Vive
 
                         if (GUILayout.Button(new GUIContent("Add Wave XR Plugin", "Add " + WAVE_XR_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
                         {
-                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
                             {
                                 ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }
@@ -282,7 +284,7 @@ namespace HTC.UnityPlugin.Vive
                         }
                         EditorGUILayout.EndHorizontal();
 
-                        const string enableWaveXRRenderModelTitle = "Enable Wave XR Render Model";
+                        const string enableWaveXRRenderModelTitle = "Enable Wave XR Render Model Support";
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEXR_ESSENCE_CONTROLLER_MODEL || VIU_WAVEXR_ESSENCE_RENDERMODEL
                         VIUSettings.enableWaveXRRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, VIUSettings.ENABLE_WAVE_XR_RENDER_MODEL_TOOLTIP), VIUSettings.enableWaveXRRenderModel);
@@ -290,11 +292,11 @@ namespace HTC.UnityPlugin.Vive
                         GUI.enabled = false;
                         EditorGUILayout.ToggleLeft(new GUIContent(enableWaveXRRenderModelTitle, VIUSettings.ENABLE_WAVE_XR_RENDER_MODEL_TOOLTIP + ". Required Wave XR Plugin Essence"), false, GUILayout.ExpandWidth(true));
                         GUI.enabled = true;
-                        
+
                         s_guiChanged |= EditorGUI.EndChangeCheck();
-                        if (GUILayout.Button(new GUIContent("Add Wave XR Plugin Essence", "Add " + WAVE_XR_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(new GUIContent("Add Wave XR Plugin Essence", "Add " + WAVE_XR_PACKAGE_ESSENCE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
                         {
-                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
                             {
                                 ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }
@@ -314,11 +316,11 @@ namespace HTC.UnityPlugin.Vive
 #endif
                         EditorGUILayout.EndHorizontal();
 
-                        const string enableWaveHandTrackingTitle = "Enable Wave Hand Tracking";
+                        const string enableWaveHandTrackingTitle = "Enable Wave Hand Tracking Support";
                         EditorGUILayout.BeginHorizontal();
-#if VIU_WAVEVR_HAND_TRACKING_CHECK
+#if VIU_WAVEVR_HAND_TRACKING_CHECK && VIU_WAVEVR_HAND_TRACKING
                         {
-                            var supported = Wave.XR.BuildCheck.CheckIfHandTrackingEnabled.ValidateEnabled() && VRModuleSettings.activateWaveHandTrackingSubmodule;
+                            var supported = EditorPrefs.GetBool("Wave/HandTracking/EnableHandTracking", false) && VRModuleSettings.activateWaveHandTrackingSubmodule;
                             var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle), supported);
                             if (supported != shouldSupport)
                             {
@@ -332,13 +334,13 @@ namespace HTC.UnityPlugin.Vive
                         }
 #elif UNITY_2018_1_OR_NEWER
                         GUI.enabled = false;
-                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Wave XR Plugin Essence required."), false, GUILayout.ExpandWidth(true));
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Latest Wave XR Plugin required."), false, GUILayout.ExpandWidth(true));
                         GUI.enabled = true;
 
                         s_guiChanged |= EditorGUI.EndChangeCheck();
-                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin", "Update " + WAVE_XR_PACKAGE_NAME + " to lateast version"), GUILayout.ExpandWidth(false)))
+                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin Native", "Update " + WAVE_XR_PACKAGE_NATIVE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
                         {
-                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
                             {
                                 ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }
@@ -347,13 +349,9 @@ namespace HTC.UnityPlugin.Vive
                             {
                                 PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_ESSENCE_NAME);
                             }
-                            else if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NATIVE_NAME))
-                            {
-                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
-                            }
                             else
                             {
-                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NAME);
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
                             }
 
                             VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
@@ -362,6 +360,50 @@ namespace HTC.UnityPlugin.Vive
 #else
                         GUI.enabled = false;
                         EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle, "Unity 2018.1 or later version required."), false, GUILayout.ExpandWidth(true));
+                        GUI.enabled = true;
+#endif
+                        EditorGUILayout.EndHorizontal();
+
+                        const string enableWaveTrackerTitle = "Enable Wave Tracker Support";
+                        EditorGUILayout.BeginHorizontal();
+#if VIU_WAVEVR_TRACKER_CHECK && VIU_WAVEVR_TRACKER
+                        {
+                            var supported = EditorPrefs.GetBool("Wave/Tracker/EnableTracker", false) && VRModuleSettings.activateWaveTrackerSubmodule;
+                            var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle), supported);
+                            if (supported != shouldSupport)
+                            {
+                                Wave.XR.BuildCheck.CheckIfTrackerEnabled.PerformAction(shouldSupport);
+                                VRModuleSettings.activateWaveTrackerSubmodule = shouldSupport;
+                            }
+                        }
+#elif UNITY_2018_1_OR_NEWER
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle, "Latest Wave XR Plugin required."), false, GUILayout.ExpandWidth(true));
+                        GUI.enabled = true;
+
+                        s_guiChanged |= EditorGUI.EndChangeCheck();
+                        if (GUILayout.Button(new GUIContent("Update Wave XR Plugin Native", "Update " + WAVE_XR_PACKAGE_NATIVE_NAME + " to latest version"), GUILayout.ExpandWidth(false)))
+                        {
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
+                            {
+                                ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
+                            }
+
+                            if (PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_ESSENCE_NAME))
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_ESSENCE_NAME);
+                            }
+                            else
+                            {
+                                PackageManagerHelper.AddToPackageList(WAVE_XR_PACKAGE_NATIVE_NAME);
+                            }
+
+                            VIUProjectSettings.Instance.isInstallingWaveXRPlugin = true;
+                        }
+                        EditorGUI.BeginChangeCheck();
+#else
+                        GUI.enabled = false;
+                        EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle, "Unity 2018.1 or later version required."), false, GUILayout.ExpandWidth(true));
                         GUI.enabled = true;
 #endif
                         EditorGUILayout.EndHorizontal();
@@ -462,5 +504,62 @@ namespace HTC.UnityPlugin.Vive
             }
 #endif
         }
+
+#if UNITY_2018_1_OR_NEWER
+        [Serializable]
+        private class UPMMenifestInfo
+        {
+            [Serializable]
+            public struct ScopedRegistry
+            {
+                public string name;
+                public string url;
+                public List<string> scopes;
+            }
+
+            public List<ScopedRegistry> scopedRegistries;
+        }
+
+        private static UPMMenifestInfo menifestInfoTemp = new UPMMenifestInfo();
+        private static bool CheckScopeExists(List<string> scopes)
+        {
+            if (scopes == null || scopes.Count == 0) { return true; }
+
+            var allScopes = ListPool<string>.Get();
+            try
+            {
+                var manifestString = File.ReadAllText(RegistryToolSettings.Instance().ProjectManifestPath);
+                JsonUtility.FromJsonOverwrite(manifestString, menifestInfoTemp);
+
+                if (menifestInfoTemp.scopedRegistries == null || menifestInfoTemp.scopedRegistries.Count == 0) { return false; }
+                foreach (var reg in menifestInfoTemp.scopedRegistries)
+                {
+                    var regScopes = reg.scopes;
+                    if (regScopes == null || regScopes.Count == 0) { continue; }
+                    allScopes.AddRange(regScopes);
+                }
+
+                if (allScopes.Count > 0)
+                {
+                    foreach (var scope in scopes)
+                    {
+                        if (!allScopes.Contains(scope)) { return false; }
+                    }
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            finally
+            {
+                ListPool<string>.Release(allScopes);
+                allScopes = null;
+            }
+
+            return false;
+        }
+#endif
     }
 }

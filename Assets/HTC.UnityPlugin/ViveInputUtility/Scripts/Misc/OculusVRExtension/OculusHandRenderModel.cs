@@ -10,6 +10,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
     public class OculusHandRenderModel : MonoBehaviour
     {
 #if VIU_OCULUSVR_20_0_OR_NEWER
+        public const bool SUPPORTED = true;
         private bool m_isLeftHand;
         private OVRHand m_ovrHand;
         private OVRSkeleton m_ovrSkeleton;
@@ -31,7 +32,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 updateRootScaleField.SetValue(m_ovrSkeleton, true);
 
                 FieldInfo updateRootPoseField = m_ovrSkeleton.GetType().GetField("_updateRootPose", BindingFlags.NonPublic | BindingFlags.Instance);
-                updateRootPoseField.SetValue(m_ovrSkeleton, true);
+                updateRootPoseField.SetValue(m_ovrSkeleton, false);
 
                 MethodInfo skeletonInitializeMethod = m_ovrSkeleton.GetType().GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
                 skeletonInitializeMethod.Invoke(m_ovrSkeleton, new object[] { });
@@ -110,6 +111,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             }
         }
 #else
+        public const bool SUPPORTED = false;
         public void Initialize(bool isLeftHand) { }
         public void SetHand(bool isLeftHand) { }
 #endif

@@ -196,7 +196,7 @@ namespace HTC.UnityPlugin.Vive
 
                         if (GUILayout.Button(new GUIContent("Add Wave XR Plugin - OpenXR", "Add " + WAVE_XR_OPENXR_PACKAGE + " to Package Manager"), GUILayout.ExpandWidth(false)))
                         {
-                            if (!ManifestUtils.CheckRegistryExists(RegistryToolSettings.Instance().Registry))
+                            if (!CheckScopeExists(RegistryToolSettings.Instance().Registry.Scopes))
                             {
                                 ManifestUtils.AddRegistry(RegistryToolSettings.Instance().Registry);
                             }

@@ -39,12 +39,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static readonly Regex s_focus3Rgx = new Regex("focus3", REGEX_OPTIONS);
             private static readonly Regex s_ver3Rgx = new Regex("^.*3.0.*$", REGEX_OPTIONS);
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus|quest).*$", REGEX_OPTIONS);
+            private static readonly Regex s_questRgx = new Regex("(quest)", REGEX_OPTIONS);
+            private static readonly Regex s_quest2Rgx = new Regex("(quest2|quest 2)", REGEX_OPTIONS);
             private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGEX_OPTIONS);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", REGEX_OPTIONS);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGEX_OPTIONS);
             private static readonly Regex s_wmrRgx = new Regex("(^.*(asus|acer|dell|lenovo|hp|samsung|windowsmr|windows).*(mr|$))|spatial", REGEX_OPTIONS);
             private static readonly Regex s_magicLeapRgx = new Regex("^.*(magicleap).*$", REGEX_OPTIONS);
-            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr).*$", REGEX_OPTIONS);
+            private static readonly Regex s_waveVrRgx = new Regex("^.*(wvr|wave).*$", REGEX_OPTIONS);
             private static readonly Regex s_khrRgx = new Regex("^.*(khr).*$", REGEX_OPTIONS);
             private static readonly Regex s_leftRgx = new Regex("^.*(left|_l).*$", REGEX_OPTIONS);
             private static readonly Regex s_rightRgx = new Regex("^.*(right|_r).*$", REGEX_OPTIONS);
@@ -68,6 +70,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 new WVRCtrlProfile { reg = new Regex("cr.+left", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerLeft, input2D = VRModuleInput2DType.JoystickOnly },
                 // WVR_CR_Right_001
                 new WVRCtrlProfile { reg = new Regex("cr.+right", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerRight, input2D = VRModuleInput2DType.JoystickOnly },
+                // Wave Tracker0 HTC-211012-Tracker0, Wave Tracker1 HTC-211012-Tracker1
+                new WVRCtrlProfile { reg = new Regex("^.*(tracker).*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveWristTracker, input2D = VRModuleInput2DType.None },
             };
 
             public bool isActivated { get; private set; }
@@ -229,58 +233,37 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.OculusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
-                            if (Application.platform == RuntimePlatform.Android)
                             {
-                                if (deviceState.modelNumber.Contains("Go"))
+                                var modelNumWithHmd = GetDeviceState(HMD_DEVICE_INDEX).modelNumber + " " + deviceState.modelNumber;
+                                if (s_quest2Rgx.IsMatch(modelNumWithHmd))
+                                {
+                                    deviceState.deviceModel = s_leftRgx.IsMatch(modelNumWithHmd) ? VRModuleDeviceModel.OculusQuest2ControllerLeft : VRModuleDeviceModel.OculusQuest2ControllerRight;
+                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    return;
+                                }
+                                else if (s_questRgx.IsMatch(modelNumWithHmd) || modelNumWithHmd.Contains("Rift S"))
+                                {
+                                    deviceState.deviceModel = s_leftRgx.IsMatch(modelNumWithHmd) ? VRModuleDeviceModel.OculusQuestOrRiftSControllerLeft : VRModuleDeviceModel.OculusQuestOrRiftSControllerRight;
+                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    return;
+                                }
+                                else if (modelNumWithHmd.Contains("Touch"))
+                                {
+                                    deviceState.deviceModel = s_leftRgx.IsMatch(modelNumWithHmd) ? VRModuleDeviceModel.OculusTouchLeft : VRModuleDeviceModel.OculusTouchRight;
+                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    return;
+                                }
+                                else if (modelNumWithHmd.Contains("Go"))
                                 {
                                     deviceState.deviceModel = VRModuleDeviceModel.OculusGoController;
                                     deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
                                     return;
                                 }
-                                else if (s_leftRgx.IsMatch(deviceState.modelNumber))
+                                else if (modelNumWithHmd.Contains("Gear"))
                                 {
-                                    deviceState.deviceModel = VRModuleDeviceModel.OculusQuestControllerLeft;
-                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    deviceState.deviceModel = VRModuleDeviceModel.OculusGearVrController;
+                                    deviceState.input2DType = VRModuleInput2DType.TouchpadOnly;
                                     return;
-                                }
-                                else if (s_rightRgx.IsMatch(deviceState.modelNumber))
-                                {
-                                    deviceState.deviceModel = VRModuleDeviceModel.OculusQuestControllerRight;
-                                    deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                if (deviceState.modelNumber.Contains("Rift S") || deviceState.modelNumber.Contains("Quest"))
-                                {
-                                    if (s_leftRgx.IsMatch(deviceState.modelNumber))
-                                    {
-                                        deviceState.deviceModel = VRModuleDeviceModel.OculusQuestControllerLeft;
-                                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                        return;
-                                    }
-                                    else if (s_rightRgx.IsMatch(deviceState.modelNumber))
-                                    {
-                                        deviceState.deviceModel = VRModuleDeviceModel.OculusQuestControllerRight;
-                                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                        return;
-                                    }
-                                }
-                                else
-                                {
-                                    if (s_leftRgx.IsMatch(deviceState.modelNumber))
-                                    {
-                                        deviceState.deviceModel = VRModuleDeviceModel.OculusTouchLeft;
-                                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                        return;
-                                    }
-                                    else if (s_rightRgx.IsMatch(deviceState.modelNumber))
-                                    {
-                                        deviceState.deviceModel = VRModuleDeviceModel.OculusTouchRight;
-                                        deviceState.input2DType = VRModuleInput2DType.JoystickOnly;
-                                        return;
-                                    }
                                 }
                             }
                             break;
@@ -389,6 +372,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             deviceState.deviceModel = VRModuleDeviceModel.ViveFocusHMD;
                             return;
                         case VRModuleDeviceClass.Controller:
+                            {
+                                foreach (var p in s_wvrCtrlProfiles)
+                                {
+                                    if (p.reg.IsMatch(deviceState.modelNumber))
+                                    {
+                                        deviceState.deviceModel = p.model;
+                                        deviceState.input2DType = p.input2D;
+                                        return;
+                                    }
+                                }
+                            }
+                            break;
+                        case VRModuleDeviceClass.GenericTracker:
                             {
                                 foreach (var p in s_wvrCtrlProfiles)
                                 {

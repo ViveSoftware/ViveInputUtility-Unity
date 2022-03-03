@@ -52,32 +52,41 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (v)
                     {
-                        try
+                        string asmdefFullPath = Path.GetFullPath(ASMDEFS_PATH);
+                        if (!Directory.Exists(asmdefFullPath))
                         {
-                            string asmdefFullPath = Path.GetFullPath(ASMDEFS_PATH);
-                            if (!Directory.Exists(asmdefFullPath))
-                            {
-                                MonoScript script = MonoScript.FromScriptableObject(VIUProjectSettings.Instance);
-                                string path = AssetDatabase.GetAssetPath(script);
-                                asmdefFullPath = Path.GetFullPath(AssetDatabase.GetAssetPath(script) + "/../../../.asmdefs/Oculus/");
-                                Debug.Log("asmdefFullPath=" + asmdefFullPath);
-                            }
-                            string oculusFullPath = Path.GetFullPath(OCULUS_SDK_PATH);
-                            File.Copy(asmdefFullPath + AVATAR_ASMDEF_FILE_NAME, oculusFullPath + "Avatar/" + AVATAR_ASMDEF_FILE_NAME);
-                            File.Copy(asmdefFullPath + LIPSYNC_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/" + LIPSYNC_ASMDEF_FILE_NAME);
-                            File.Copy(asmdefFullPath + LIPSYNC_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/Editor/" + LIPSYNC_EDITOR_ASMDEF_FILE_NAME);
-                            File.Copy(asmdefFullPath + SPATIALIZER_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/" + SPATIALIZER_ASMDEF_FILE_NAME);
-                            File.Copy(asmdefFullPath + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/Editor/" + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME);
-                            AssetDatabase.Refresh();
+                            MonoScript script = MonoScript.FromScriptableObject(VIUProjectSettings.Instance);
+                            asmdefFullPath = Path.GetFullPath(AssetDatabase.GetAssetPath(script) + "/../../../.asmdefs/Oculus/");
                         }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogException(e);
-                        }
+                        string oculusFullPath = Path.GetFullPath(OCULUS_SDK_PATH);
+                        SafeCopy(asmdefFullPath + AVATAR_ASMDEF_FILE_NAME, oculusFullPath + "Avatar/" + AVATAR_ASMDEF_FILE_NAME);
+                        SafeCopy(asmdefFullPath + LIPSYNC_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/" + LIPSYNC_ASMDEF_FILE_NAME);
+                        SafeCopy(asmdefFullPath + LIPSYNC_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "LipSync/Editor/" + LIPSYNC_EDITOR_ASMDEF_FILE_NAME);
+                        SafeCopy(asmdefFullPath + SPATIALIZER_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/" + SPATIALIZER_ASMDEF_FILE_NAME);
+                        SafeCopy(asmdefFullPath + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME, oculusFullPath + "Spatializer/Editor/" + SPATIALIZER_EDITOR_ASMDEF_FILE_NAME);
+                        AssetDatabase.Refresh();
                     }
                 },
                 recommendedValue = true,
             });
+        }
+
+        private static bool SafeCopy(string src, string dst)
+        {
+            try
+            {
+                if (!File.Exists(dst))
+                {
+                    File.Copy(src, dst);
+                    return true;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            return false;
         }
     }
 
@@ -99,6 +108,8 @@ namespace HTC.UnityPlugin.Vive
 
         private class OculusSettings : VRPlatformSetting
         {
+            private Foldouter m_foldouter = new Foldouter();
+
             public static OculusSettings instance { get; private set; }
 
             public OculusSettings() { instance = this; }
@@ -179,7 +190,7 @@ namespace HTC.UnityPlugin.Vive
                 if (canSupport)
                 {
                     var wasSupported = support;
-                    var shouldSupport = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title, "Oculus Rift, Oculus Rift S"), wasSupported);
+                    var shouldSupport = m_foldouter.ShowFoldoutButtonWithEnabledToggle(new GUIContent(title, "Oculus Rift, Oculus Rift S, Oculus Link"), wasSupported);
                     if (wasSupported != shouldSupport)
                     {
                         support = shouldSupport;
@@ -237,6 +248,126 @@ namespace HTC.UnityPlugin.Vive
                     }
 
                     GUILayout.EndHorizontal();
+                }
+
+                if (support && m_foldouter.isExpended)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        EditorGUI.indentLevel += 2;
+
+                        // Hand tracking support
+                        const string enableHandTrackingTitle = "Enable Oculus Hand Tracking";
+                        const string enableHandRenderModelTitle = "Enable Oculus Tracked Hand Render Model";
+#if VIU_OCULUSVR_20_0_OR_NEWER
+                        {
+                            var oldEnableHandTracking = VIUSettings.activateOculusVRModule && OculusGoSettings.oculusProjectConfig.handTrackingSupport != OVRProjectConfig.HandTrackingSupport.ControllersOnly;
+                            var newEnableHandTracking = EditorGUILayout.ToggleLeft(enableHandTrackingTitle, oldEnableHandTracking);
+                            if (newEnableHandTracking)
+                            {
+                                if (!oldEnableHandTracking)
+                                {
+                                    VIUSettings.activateOculusVRModule = true;
+                                    OculusGoSettings.oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersAndHands;
+                                }
+                            }
+                            else
+                            {
+                                if (oldEnableHandTracking)
+                                {
+                                    OculusGoSettings.oculusProjectConfig.handTrackingSupport = OVRProjectConfig.HandTrackingSupport.ControllersOnly;
+                                }
+                            }
+
+                            if (newEnableHandTracking)
+                            {
+                                VIUSettings.EnableOculusSDKHandRenderModel = EditorGUILayout.ToggleLeft(new GUIContent(enableHandRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_TOOLTIP), VIUSettings.EnableOculusSDKHandRenderModel);
+                            }
+                            else
+                            {
+                                var wasGUIEnabled = GUI.enabled;
+                                GUI.enabled = false;
+                                EditorGUILayout.ToggleLeft(new GUIContent(enableHandRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_TOOLTIP), false);
+                                GUI.enabled = wasGUIEnabled;
+                            }
+                        }
+#else
+                        {
+                            var wasGUIEnabled = GUI.enabled;
+                            GUI.enabled = false;
+
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableHandTrackingTitle, "Hand tracking not supported. Please import latest Oculus Integration."), false, GUILayout.Width(280f));
+                            GUILayout.FlexibleSpace();
+                            GUI.enabled = true;
+                            ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN, "Update Oculus Integration");
+                            EditorGUILayout.EndHorizontal();
+
+                            GUI.enabled = false;
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableHandRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_TOOLTIP), false);
+
+                            GUI.enabled = wasGUIEnabled;
+                        }
+#endif
+
+#pragma warning disable 0162
+                        // Controller Render Model
+                        const string enableControllerRenderModelTitle = "Enable Oculus Controller Render Model";
+                        const string enableControllerRenderModelSkeletonTitle = "Enable Hand Attached to Oculus Controller Render Model";
+                        if (OculusVRExtension.VIUOvrAvatar.SUPPORTED)
+                        {
+                            var oldValue = VIUSettings.activateOculusVRModule && VIUSettings.EnableOculusSDKControllerRenderModel;
+                            var newValue = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), oldValue);
+                            if (newValue)
+                            {
+                                if (!oldValue)
+                                {
+                                    VIUSettings.activateOculusVRModule = true;
+                                    VIUSettings.EnableOculusSDKControllerRenderModel = true;
+                                }
+                            }
+                            else
+                            {
+                                if (oldValue)
+                                {
+                                    VIUSettings.EnableOculusSDKControllerRenderModel = false;
+                                }
+                            }
+
+                            if (newValue)
+                            {
+                                VIUSettings.EnableOculusSDKControllerRenderModelSkeleton = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModelSkeleton);
+                            }
+                            else
+                            {
+                                var wasGUIEnabled = GUI.enabled;
+                                GUI.enabled = false;
+                                EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), false);
+                                GUI.enabled = wasGUIEnabled;
+                            }
+                        }
+                        else
+                        {
+                            var wasGUIEnabled = GUI.enabled;
+                            GUI.enabled = false;
+
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, "OvrAvatar not found. Please import latest Oculus Integration."), false, GUILayout.Width(280f));
+                            GUILayout.FlexibleSpace();
+                            GUI.enabled = true;
+                            ShowUrlLinkButton(URL_OCULUS_VR_PLUGIN, "Update Oculus Integration");
+                            EditorGUILayout.EndHorizontal();
+
+                            GUI.enabled = false;
+                            EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), false);
+
+                            GUI.enabled = wasGUIEnabled;
+                        }
+#pragma warning restore 0162
+
+                        EditorGUI.indentLevel -= 2;
+                    }
+                    s_guiChanged |= EditorGUI.EndChangeCheck();
                 }
             }
         }

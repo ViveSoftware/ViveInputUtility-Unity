@@ -1,0 +1,114 @@
+fileFormatVersion: 2
+guid: 0b5dc0e0e853c5a45ace6b886cae147d
+timeCreated: 1645157952
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: b_button_a
+    100002: b_button_b
+    100004: b_button_oculus
+    100006: b_button_oculus 1
+    100008: b_button_x
+    100010: b_button_y
+    100012: b_thumbstick
+    100014: b_thumbstick 1
+    100016: b_trigger_front
+    100018: b_trigger_front 1
+    100020: b_trigger_grip
+    100022: b_trigger_grip 1
+    100024: left_quest2_controller_world
+    100026: left_quest2_mesh
+    100028: //RootNode
+    100030: right_quest2_controller_world
+    100032: right_quest2_mesh
+    400000: b_button_a
+    400002: b_button_b
+    400004: b_button_oculus
+    400006: b_button_oculus 1
+    400008: b_button_x
+    400010: b_button_y
+    400012: b_thumbstick
+    400014: b_thumbstick 1
+    400016: b_trigger_front
+    400018: b_trigger_front 1
+    400020: b_trigger_grip
+    400022: b_trigger_grip 1
+    400024: left_quest2_controller_world
+    400026: left_quest2_mesh
+    400028: //RootNode
+    400030: right_quest2_controller_world
+    400032: right_quest2_mesh
+    2300000: left_quest2_mesh
+    2300002: right_quest2_mesh
+    3300000: left_quest2_mesh
+    3300002: right_quest2_mesh
+    4300000: left_quest2_mesh
+    4300002: right_quest2_mesh
+    9500000: //RootNode
+    13700000: left_quest2_mesh
+    13700002: right_quest2_mesh
+  materials:
+    importMaterials: 0
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleRotations: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

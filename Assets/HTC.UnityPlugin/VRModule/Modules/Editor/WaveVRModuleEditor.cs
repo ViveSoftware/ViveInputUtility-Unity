@@ -261,6 +261,37 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 },
                 reqFileNames = new string[] { "WaveXRBuildCheck.cs" },
             });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_TRACKER",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.Native.Interop",
+                        name = "WVR_StartTracker",
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "wvr.cs" },
+            });
+
+            Add(new SymbolRequirement()
+            {
+                symbol = "VIU_WAVEVR_TRACKER_CHECK",
+                reqMethods = new SymbolRequirement.ReqMethodInfo[]
+                {
+                    new SymbolRequirement.ReqMethodInfo()
+                    {
+                        typeName = "Wave.XR.BuildCheck.CheckIfTrackerEnabled",
+                        name = "ValidateEnabled",
+                        argTypeNames = new string[0],
+                        bindingAttr = BindingFlags.Public | BindingFlags.Static,
+                    }
+                },
+                reqFileNames = new string[] { "WaveXRBuildCheck.cs" },
+            });
         }
     }
 }

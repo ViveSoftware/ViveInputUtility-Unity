@@ -62,20 +62,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
 
-                if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetRightControllerDeviceIndex())
+                if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.Controller)
                 {
-                    if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand)
-                    {
-                        // VIUWaveVRRenderModel currently doesn't support tracked hand
-                        // Fallback to default model instead
-                        UpdateDefaultRenderModel(true);
-
-                        if (m_modelObj != null)
-                        {
-                            m_modelObj.SetActive(false);
-                        }
-                    }
-                    else
+                    if (m_index == VRModule.GetRightControllerDeviceIndex())
                     {
                         UpdateDefaultRenderModel(false);
 
@@ -99,20 +88,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         }
 
                         m_modelObj.SetActive(true);
-                    }
-                }
-                else if (VRModule.IsValidDeviceIndex(m_index) && m_index == VRModule.GetLeftControllerDeviceIndex())
-                {
-                    if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand)
-                    {
-                        // VIUSteamVRRenderModel currently doesn't support tracked hand
-                        // Fallback to default model instead
-                        UpdateDefaultRenderModel(true);
-
-                        if (m_modelObj != null)
-                        {
-                            m_modelObj.SetActive(false);
-                        }
                     }
                     else
                     {
@@ -143,6 +118,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         }
 
                         m_modelObj.SetActive(true);
+                    }
+                }
+                else if (VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.TrackedHand
+                         || VRModule.GetDeviceState(m_index).deviceClass == VRModuleDeviceClass.GenericTracker)
+                {
+                    //VIUWaveVRRenderModel currently doesn't support tracked hand
+                    // Fallback to default model instead
+                    UpdateDefaultRenderModel(true);
+
+                    if (m_modelObj != null)
+                    {
+                        m_modelObj.SetActive(false);
                     }
                 }
                 else

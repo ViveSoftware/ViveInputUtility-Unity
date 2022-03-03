@@ -41,13 +41,14 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
+            private static GUIContent s_title = new GUIContent("OpenXR Desktop (Experimental)");
             public override void OnPreferenceGUI()
             {
-                const string title = "OpenXR Desktop (Experimental)";
+                const float toggleWidth = 263f;
                 if (canSupport)
                 {
                     var wasSupported = support;
-                    var shouldSupport = Foldouter.ShowFoldoutBlankWithEnabledToggle(new GUIContent(title), support);
+                    var shouldSupport = Foldouter.ShowFoldoutBlankWithEnabledToggle(s_title, support);
                     if (wasSupported != shouldSupport)
                     {
                         support = shouldSupport;
@@ -58,18 +59,35 @@ namespace HTC.UnityPlugin.Vive
                     GUILayout.BeginHorizontal();
                     Foldouter.ShowFoldoutBlank();
 
+#if !UNITY_2020_2_OR_NEWER
+                    GUI.enabled = false;
+                    ShowToggle(new GUIContent(s_title.text, "Unity 2020.2 or later version required."), false, GUILayout.Width(toggleWidth));
+                    GUI.enabled = true;
+#else
                     if (activeBuildTargetGroup != requirdPlatform)
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title, requirdPlatform + " platform required."), false, GUILayout.Width(230f));
+                        ShowToggle(new GUIContent(s_title.text, requirdPlatform + " platform required."), false, GUILayout.Width(toggleWidth));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
                         ShowSwitchPlatformButton(requirdPlatform, BuildTarget.StandaloneWindows64);
                     }
+                    else if (!PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME))
+                    {
+                        GUI.enabled = false;
+                        ShowToggle(s_title, false, GUILayout.Width(toggleWidth));
+                        GUI.enabled = true;
+                        GUILayout.FlexibleSpace();
+
+                        if (GUILayout.Button(new GUIContent("Add OpenXR Plugin", "Add " + OPENXR_PLUGIN_PACKAGE_NAME + " to Package Manager"), GUILayout.ExpandWidth(false)))
+                        {
+                            PackageManagerHelper.AddToPackageList(OPENXR_PLUGIN_PACKAGE_NAME);
+                        }
+                    }
                     else if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform))
                     {
                         GUI.enabled = false;
-                        ShowToggle(new GUIContent(title), false, GUILayout.Width(230f));
+                        ShowToggle(s_title, false, GUILayout.Width(toggleWidth));
                         GUI.enabled = true;
                         GUILayout.FlexibleSpace();
 
@@ -81,7 +99,7 @@ namespace HTC.UnityPlugin.Vive
                             }
                         }
                     }
-
+#endif
                     GUILayout.EndHorizontal();
                 }
             }
