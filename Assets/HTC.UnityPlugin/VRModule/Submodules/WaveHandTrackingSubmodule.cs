@@ -200,7 +200,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Coordinate.GetVectorFromGL(pinch.pinch.origin, out origin);
             Coordinate.GetVectorFromGL(pinch.pinch.direction, out direction);
 
-            return true;
+            return pinch.state.type != WVR_HandPoseType.WVR_HandPoseType_Invalid;
         }
 
         public static bool TryGetRightPinchRay(out Vector3 origin, out Vector3 direction)
@@ -217,7 +217,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Coordinate.GetVectorFromGL(pinch.pinch.origin, out origin);
             Coordinate.GetVectorFromGL(pinch.pinch.direction, out direction);
 
-            return true;
+            return pinch.state.type != WVR_HandPoseType.WVR_HandPoseType_Invalid;
         }
 
         private enum FeatureActivity
