@@ -64,6 +64,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         protected override void OnUpdateDeviceConnectionAndPoses()
         {
             trackingActivator.SetActive(deviceFeature.supportTracking);
+            gestureActivator.SetActive(VRModuleSettings.enableWaveHandGesture && deviceFeature.supportGesture);
 
             if (VRModule.trackingSpaceType == VRModuleTrackingSpaceType.RoomScale)
             {
@@ -73,6 +74,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 trackingActivator.TryFetchData(WVR_PoseOriginModel.WVR_PoseOriginModel_OriginOnHead);
             }
+
+            gestureActivator.TryFetchData();
 
             var isFocused = Interop.WVR_IsInputFocusCapturedBySystem();
             var isLeftValid = !isFocused && (trackingActivator.isLeftValid || gestureActivator.isLeftValid);
@@ -105,6 +108,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (trackingActivator.isLeftValid)
                 {
                     trackingActivator.UpdateJoints(currState, true);
+                    trackingActivator.UpdateDeviceInput(currState, true);
+                }
+
+                if (gestureActivator.isLeftValid)
+                {
+                    gestureActivator.UpdateDeviceInput(currState, true);
                 }
             }
             else
@@ -141,6 +150,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (trackingActivator.isRightValid)
                 {
                     trackingActivator.UpdateJoints(currState, false);
+                    trackingActivator.UpdateDeviceInput(currState, false);
+                }
+
+                if (gestureActivator.isRightValid)
+                {
+                    gestureActivator.UpdateDeviceInput(currState, false);
                 }
             }
             else
@@ -152,24 +167,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     rightDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
                 }
             }
-        }
-
-        protected override void OnUpdateDeviceInput()
-        {
-            gestureActivator.SetActive(VRModuleSettings.enableWaveHandGesture && deviceFeature.supportGesture);
-
-            gestureActivator.TryFetchData();
-
-            IVRModuleDeviceState prevState;
-            IVRModuleDeviceStateRW currState;
-
-            EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
-            gestureActivator.UpdateDeviceInput(currState, true);
-            trackingActivator.UpdateDeviceInput(currState, true);
-
-            EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-            gestureActivator.UpdateDeviceInput(currState, false);
-            trackingActivator.UpdateDeviceInput(currState, false);
         }
 
         public override uint GetLeftHandedIndex() { return leftDeviceIndex; }
