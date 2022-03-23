@@ -105,16 +105,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 currState.isConnected = true;
 
-                if (trackingActivator.isLeftValid)
-                {
-                    trackingActivator.UpdateJoints(currState, true);
-                    trackingActivator.UpdateDeviceInput(currState, true);
-                }
-
-                if (gestureActivator.isLeftValid)
-                {
-                    gestureActivator.UpdateDeviceInput(currState, true);
-                }
+                trackingActivator.UpdateJoints(currState, true);
+                trackingActivator.UpdateDeviceInput(currState, true);
+                gestureActivator.UpdateDeviceInput(currState, true);
             }
             else
             {
@@ -147,16 +140,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                 currState.isConnected = true;
 
-                if (trackingActivator.isRightValid)
-                {
-                    trackingActivator.UpdateJoints(currState, false);
-                    trackingActivator.UpdateDeviceInput(currState, false);
-                }
-
-                if (gestureActivator.isRightValid)
-                {
-                    gestureActivator.UpdateDeviceInput(currState, false);
-                }
+                trackingActivator.UpdateJoints(currState, false);
+                trackingActivator.UpdateDeviceInput(currState, false);
+                gestureActivator.UpdateDeviceInput(currState, false);
             }
             else
             {
