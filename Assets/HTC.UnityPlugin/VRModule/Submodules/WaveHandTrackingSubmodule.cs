@@ -64,6 +64,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         protected override void OnUpdateDeviceConnectionAndPoses()
         {
             trackingActivator.SetActive(deviceFeature.supportTracking);
+            gestureActivator.SetActive(VRModuleSettings.enableWaveHandGesture && deviceFeature.supportGesture);
 
             if (VRModule.trackingSpaceType == VRModuleTrackingSpaceType.RoomScale)
             {
@@ -74,10 +75,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 trackingActivator.TryFetchData(WVR_PoseOriginModel.WVR_PoseOriginModel_OriginOnHead);
             }
 
+            gestureActivator.TryFetchData();
+
+            var isFocused = Interop.WVR_IsInputFocusCapturedBySystem();
+            var isLeftValid = !isFocused && (trackingActivator.isLeftValid || gestureActivator.isLeftValid);
+            var isRightValid = !isFocused && (trackingActivator.isRightValid || gestureActivator.isRightValid);
+
             IVRModuleDeviceState prevState;
             IVRModuleDeviceStateRW currState;
             // update connection/pose for left hand devices
-            if (trackingActivator.isLeftValid)
+            if (isLeftValid)
             {
                 if (leftDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
                 {
@@ -97,7 +104,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
 
                 currState.isConnected = true;
+
                 trackingActivator.UpdateJoints(currState, true);
+                trackingActivator.UpdateDeviceInput(currState, true);
+                gestureActivator.UpdateDeviceInput(currState, true);
             }
             else
             {
@@ -109,7 +119,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
             }
 
-            if (trackingActivator.isRightValid)
+            if (isRightValid)
             {
                 if (rightDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
                 {
@@ -129,7 +139,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
 
                 currState.isConnected = true;
+
                 trackingActivator.UpdateJoints(currState, false);
+                trackingActivator.UpdateDeviceInput(currState, false);
+                gestureActivator.UpdateDeviceInput(currState, false);
             }
             else
             {
@@ -138,46 +151,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
                     currState.Reset();
                     rightDeviceIndex = VRModule.INVALID_DEVICE_INDEX;
-                }
-            }
-        }
-
-        protected override void OnUpdateDeviceInput()
-        {
-            gestureActivator.SetActive(VRModuleSettings.enableWaveHandGesture && deviceFeature.supportGesture);
-
-            gestureActivator.TryFetchData();
-
-            IVRModuleDeviceState prevState;
-            IVRModuleDeviceStateRW currState;
-
-            if (leftDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
-            {
-                if (gestureActivator.isLeftValid)
-                {
-                    EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
-                    gestureActivator.UpdateGestureInput(currState, true);
-                }
-
-                if (trackingActivator.isLeftValid)
-                {
-                    EnsureValidDeviceState(leftDeviceIndex, out prevState, out currState);
-                    trackingActivator.UpdateDeviceInput(currState, true);
-                }
-            }
-
-            if (rightDeviceIndex != VRModule.INVALID_DEVICE_INDEX)
-            {
-                if (gestureActivator.isRightValid)
-                {
-                    EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-                    gestureActivator.UpdateGestureInput(currState, false);
-                }
-
-                if (trackingActivator.isRightValid)
-                {
-                    EnsureValidDeviceState(rightDeviceIndex, out prevState, out currState);
-                    trackingActivator.UpdateDeviceInput(currState, false);
                 }
             }
         }
@@ -492,9 +465,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return false;
             }
 
-            public bool isLeftValid { get { return trackingData.left.isValidPose && !Interop.WVR_IsInputFocusCapturedBySystem(); } }
+            public bool isLeftValid { get { return trackingData.left.isValidPose; } }
 
-            public bool isRightValid { get { return trackingData.right.isValidPose && !Interop.WVR_IsInputFocusCapturedBySystem(); } }
+            public bool isRightValid { get { return trackingData.right.isValidPose; } }
 
             public WVR_HandPoseState_t getLeftPinchData { get { return pinchData.left; } }
 
@@ -787,20 +760,21 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return false;
             }
 
-            public void UpdateGestureInput(IVRModuleDeviceStateRW state, bool isLeft)
+            public void UpdateDeviceInput(IVRModuleDeviceStateRW state, bool isLeft)
             {
                 var gesture = isLeft ? gestureData.left : gestureData.right;
+
                 state.SetButtonPress(VRModuleRawButton.GestureFist, gesture == WVR_HandGestureType.WVR_HandGestureType_Fist);
-                state.SetButtonPress(VRModuleRawButton.GestureFive, gesture == WVR_HandGestureType.WVR_HandGestureType_Five);
-                state.SetButtonPress(VRModuleRawButton.GestureIndexUp, gesture == WVR_HandGestureType.WVR_HandGestureType_IndexUp);
-                state.SetButtonPress(VRModuleRawButton.GestureOk, gesture == WVR_HandGestureType.WVR_HandGestureType_OK);
-                state.SetButtonPress(VRModuleRawButton.GestureThumbUp, gesture == WVR_HandGestureType.WVR_HandGestureType_ThumbUp);
-                state.SetButtonPress(VRModuleRawButton.System, gesture == WVR_HandGestureType_WVR_HandGestureType_Palm_Pinch);
                 state.SetButtonTouch(VRModuleRawButton.GestureFist, gesture == WVR_HandGestureType.WVR_HandGestureType_Fist);
+                state.SetButtonPress(VRModuleRawButton.GestureFive, gesture == WVR_HandGestureType.WVR_HandGestureType_Five);
                 state.SetButtonTouch(VRModuleRawButton.GestureFive, gesture == WVR_HandGestureType.WVR_HandGestureType_Five);
+                state.SetButtonPress(VRModuleRawButton.GestureIndexUp, gesture == WVR_HandGestureType.WVR_HandGestureType_IndexUp);
                 state.SetButtonTouch(VRModuleRawButton.GestureIndexUp, gesture == WVR_HandGestureType.WVR_HandGestureType_IndexUp);
+                state.SetButtonPress(VRModuleRawButton.GestureOk, gesture == WVR_HandGestureType.WVR_HandGestureType_OK);
                 state.SetButtonTouch(VRModuleRawButton.GestureOk, gesture == WVR_HandGestureType.WVR_HandGestureType_OK);
+                state.SetButtonPress(VRModuleRawButton.GestureThumbUp, gesture == WVR_HandGestureType.WVR_HandGestureType_ThumbUp);
                 state.SetButtonTouch(VRModuleRawButton.GestureThumbUp, gesture == WVR_HandGestureType.WVR_HandGestureType_ThumbUp);
+                state.SetButtonPress(VRModuleRawButton.System, gesture == WVR_HandGestureType_WVR_HandGestureType_Palm_Pinch);
                 state.SetButtonTouch(VRModuleRawButton.System, gesture == WVR_HandGestureType_WVR_HandGestureType_Palm_Pinch);
             }
 
