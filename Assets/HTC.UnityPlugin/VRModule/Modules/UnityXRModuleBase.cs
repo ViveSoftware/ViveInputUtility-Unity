@@ -88,6 +88,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
             new WaveTrackerSubmodule()
             );
 
+        private bool[] prevDeviceConnected = new bool[VRModule.MAX_DEVICE_COUNT];
+        private bool[] currDeviceConnected = new bool[VRModule.MAX_DEVICE_COUNT];
+        private void FlushDeviceConnectedState()
+        {
+            var temp = prevDeviceConnected;
+            prevDeviceConnected = currDeviceConnected;
+            currDeviceConnected = temp;
+            Array.Clear(currDeviceConnected, 0, (int)VRModule.MAX_DEVICE_COUNT);
+        }
+
         protected VRModuleKnownXRLoader KnownActiveLoader { get { return knownActiveLoader; } }
         protected VRModuleKnownXRInputSubsystem KnownActiveInputSubsystem { get { return knownActiveInputSubsystem; } }
 
@@ -219,25 +229,39 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     currState.angularVelocity = GetDeviceFeatureValueOrDefault(device, CommonUsages.deviceAngularVelocity);
                 }
 
+                currDeviceConnected[deviceIndex] = true;
+
                 // TODO: update hand skeleton pose
             }
 
             // unmap index for disconnected device state
-            deviceIndex = 0u;
-            for (var len = GetDeviceStateLength(); deviceIndex < len; ++deviceIndex)
+            for (uint i = 0u, imax = VRModule.MAX_DEVICE_COUNT; i < imax; ++i)
             {
-                if (indexMap.IsMapped(deviceIndex))
+                if (prevDeviceConnected[i] && !currDeviceConnected[i])
                 {
-                    EnsureValidDeviceState(deviceIndex, out prevState, out currState);
-                    if (prevState.isConnected && !currState.isConnected)
+                    if (indexMap.IsMapped(deviceIndex))
                     {
                         indexMap.UnmapByIndex(deviceIndex);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[UnityXRModule] Disconnected device[" + deviceIndex + "] already unmapped");
+                    }
+
+                    if (TryGetValidDeviceState(deviceIndex, out prevState, out currState) && currState.isConnected)
+                    {
                         currState.Reset();
                         if (uxrRightIndex == deviceIndex) { uxrRightIndex = INVALID_DEVICE_INDEX; }
                         if (uxrLeftIndex == deviceIndex) { uxrLeftIndex = INVALID_DEVICE_INDEX; }
                     }
+                    else
+                    {
+                        Debug.LogWarning("[UnityXRModule] Disconnected device[" + deviceIndex + "] already been reset");
+                    }
                 }
             }
+
+            FlushDeviceConnectedState();
 
             submodules.UpdateModulesDeviceConnectionAndPoses();
 
