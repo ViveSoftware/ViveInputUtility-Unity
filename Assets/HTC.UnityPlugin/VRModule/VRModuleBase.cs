@@ -80,6 +80,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             public abstract int moduleIndex { get; }
 
+            // reserved device index, so any device index less then this will not be occupied by submodule
+            public virtual uint reservedDeviceIndex { get { return HMD_DEVICE_INDEX; } }
+
             public virtual bool ShouldActiveModule() { return false; }
 
             public void Activated()
