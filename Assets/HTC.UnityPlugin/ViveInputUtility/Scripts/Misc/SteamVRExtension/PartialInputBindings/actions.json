@@ -321,6 +321,10 @@
     {
       "controller_type": "vive_tracker_keyboard",
       "binding_url": "bindings_vive_tracker_keyboard.json"
+    },
+    {
+      "controller_type": "vive_focus3_tracker",
+      "binding_url": "bindings_vive_focus3_tracker.json"
     }
   ],
   "localization": [
