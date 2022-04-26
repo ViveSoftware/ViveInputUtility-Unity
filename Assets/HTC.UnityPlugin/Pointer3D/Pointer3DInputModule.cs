@@ -227,7 +227,7 @@ namespace HTC.UnityPlugin.Pointer3D
 
                 buttonEventData.Reset();
 
-                if (buttonEventData.pressPrecessed)
+                if (buttonEventData.pressProcessed)
                 {
                     ProcessPressUp(buttonEventData);
                     HandlePressExitAndEnter(buttonEventData, null);
@@ -378,14 +378,14 @@ namespace HTC.UnityPlugin.Pointer3D
         {
             if (eventData.GetPress())
             {
-                if (!eventData.pressPrecessed)
+                if (!eventData.pressProcessed)
                 {
                     ProcessPressDown(eventData);
                 }
 
                 HandlePressExitAndEnter(eventData, eventData.pointerCurrentRaycast.gameObject);
             }
-            else if (eventData.pressPrecessed)
+            else if (eventData.pressProcessed)
             {
                 ProcessPressUp(eventData);
                 HandlePressExitAndEnter(eventData, null);
@@ -396,7 +396,7 @@ namespace HTC.UnityPlugin.Pointer3D
         {
             var currentOverGo = eventData.pointerCurrentRaycast.gameObject;
 
-            eventData.pressPrecessed = true;
+            eventData.pressProcessed = true;
             eventData.eligibleForClick = true;
             eventData.delta = Vector2.zero;
             eventData.dragging = false;
@@ -473,7 +473,7 @@ namespace HTC.UnityPlugin.Pointer3D
                 ExecuteEvents.ExecuteHierarchy(currentOverGo, eventData, ExecuteEvents.dropHandler);
             }
 
-            eventData.pressPrecessed = false;
+            eventData.pressProcessed = false;
             eventData.eligibleForClick = false;
             eventData.pointerPress = null;
             eventData.rawPointerPress = null;

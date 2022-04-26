@@ -66,7 +66,9 @@ namespace HTC.UnityPlugin.Pointer3D
 
         public float pressDistance;
         public GameObject pressEnter;
-        public bool pressPrecessed;
+        public bool pressProcessed;
+        [System.Obsolete("Use pressProcessed instead.")]
+        public bool pressPrecessed { get { return pressProcessed; } set { pressProcessed = value; } }
 
         public Pointer3DEventData(Pointer3DRaycaster ownerRaycaster, EventSystem eventSystem) : base(eventSystem)
         {
