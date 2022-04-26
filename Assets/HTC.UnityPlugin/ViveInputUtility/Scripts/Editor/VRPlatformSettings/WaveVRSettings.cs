@@ -47,17 +47,6 @@ namespace HTC.UnityPlugin.Vive
 #endif
                 recommendedValue = true,
             });
-
-#if UNITY_5_4_OR_NEWER
-            Add(new VIUVersionCheck.RecommendedSetting<bool>()
-            {
-                settingTitle = "Graphic Jobs",
-                skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR,
-                currentValueFunc = () => PlayerSettings.graphicsJobs,
-                setValueFunc = v => PlayerSettings.graphicsJobs = v,
-                recommendedValue = true,
-            });
-#endif
         }
     }
 
