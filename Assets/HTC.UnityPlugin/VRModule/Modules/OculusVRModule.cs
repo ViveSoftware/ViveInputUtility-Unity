@@ -264,6 +264,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private string m_systemHeadsetName;
         private OVRPlugin.TrackingOrigin m_prevTrackingSpace;
 
+        private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection();
+
+        public override uint reservedDeviceIndex { get { return (uint)(s_index2node.Length - 1); } }
+
 #if VIU_OCULUSVR_20_0_OR_NEWER
         private struct SkeletonData
         {
@@ -366,11 +370,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus";
 #endif
 #pragma warning restore 0162
+
+            submodules.ActivateAllModules();
         }
 
         public override void OnActivated()
         {
             Debug.Log("OculusVRModule activated.");
+
+            submodules.DeactivateAllModules();
 
             m_systemHeadsetType = OVRPlugin.GetSystemHeadsetType();
             m_systemHeadsetName = m_systemHeadsetType.ToString();
@@ -480,7 +488,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             FlushDeviceState();
 
-            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
+            for (uint i = 0u, imax = (uint)s_index2node.Length; i < imax; ++i)
             {
                 var node = s_index2node[i];
                 var deviceClass = s_index2class[i];
@@ -839,6 +847,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 //    }
                 //}
             }
+
+            submodules.UpdateAllModulesActivity();
+            submodules.UpdateModulesDeviceConnectionAndPoses();
+            submodules.UpdateModulesDeviceInput();
 
             ProcessConnectedDeviceChanged();
             ProcessDevicePoseChanged();

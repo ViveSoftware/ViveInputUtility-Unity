@@ -7,7 +7,7 @@ The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity
 
 ## How Do I Use This?
 
-[Read this step-by-step guide to using the Vive Input Utility for Unity.](https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Example-0.Tutorial)
+[Read this step-by-step guide to using the Vive Input Utility for Unity.](https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki/Example-0.Tutorial) - also see [https://developer.vive.com]
 
 ## Requirements
 
@@ -20,6 +20,9 @@ The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity
 - UI Pointer (EventSystem compatible)
 - Teleport
 - Object Grabbing/Throwing example
+- Role Binding
+- OpenXR Support
+- cross platform hand tracking
 
 ## Supporting device
 
@@ -36,6 +39,8 @@ The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity
 Email: ViveSoftware@htc.com
 
 Repository: [GitHub](https://github.com/ViveSoftware/ViveInputUtility-Unity)
+
+Forum: [https://forum.vive.com/forum/72-vive-input-utility/]
 
 ## Contributing guidelines:
 

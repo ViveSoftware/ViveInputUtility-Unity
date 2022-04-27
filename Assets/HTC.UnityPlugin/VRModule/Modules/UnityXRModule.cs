@@ -603,7 +603,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             bool primaryButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.primaryButton);
             bool menuButton = GetDeviceFeatureValueOrDefault(device, CommonUsages.menuButton);
 
-            state.SetButtonPress(VRModuleRawButton.A, primaryButton);
+            state.SetButtonPress(VRModuleRawButton.ApplicationMenu, primaryButton);
             state.SetButtonPress(VRModuleRawButton.System, menuButton);
         }
 
