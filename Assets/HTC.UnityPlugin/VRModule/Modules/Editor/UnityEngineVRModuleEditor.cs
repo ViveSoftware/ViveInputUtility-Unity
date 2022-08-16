@@ -127,14 +127,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqTypeNames = new string[]
                 {
                     "UnityEditor.XR.OpenXR.OpenXRProjectValidation",
-                    "UnityEditor.XR.OpenXR.OpenXRProjectValidationWindow",
+                    "UnityEditor.XR.OpenXR.OpenXRProjectValidationRulesSetup",
                     "UnityEngine.XR.OpenXR.OpenXRSettings",
                     "UnityEngine.XR.OpenXR.Features.OpenXRFeature",
                 },
                 reqFileNames = new string[]
                 {
                     "OpenXRProjectValidation.cs",
-                    "OpenXRProjectValidationWindow.cs",
+                    "OpenXRProjectValidationRulesSetup.cs",
                     "OpenXRFeature.cs",
                 },
             });
