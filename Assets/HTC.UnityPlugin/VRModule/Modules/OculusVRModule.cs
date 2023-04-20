@@ -485,15 +485,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus";
 #endif
 #pragma warning restore 0162
-
-            submodules.ActivateAllModules();
         }
 
         public override void OnActivated()
         {
             Debug.Log("OculusVRModule activated.");
 
-            submodules.DeactivateAllModules();
+            submodules.ActivateAllModules();
 
             m_systemHeadsetType = OVRPlugin.GetSystemHeadsetType();
             m_systemHeadsetName = m_systemHeadsetType.ToString();
@@ -509,6 +507,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             OVRPlugin.SetTrackingOriginType(m_prevTrackingSpace);
             s_moduleInstance = null;
+
+            submodules.DeactivateAllModules();
         }
 
         public override void UpdateTrackingSpaceType()
