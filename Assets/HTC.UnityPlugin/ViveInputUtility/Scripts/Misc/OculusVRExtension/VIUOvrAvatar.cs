@@ -25,7 +25,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
         }
 
 #if VIU_OCULUSVR_AVATAR
-        public const bool SUPPORTED = true;
+        public static readonly bool SUPPORTED = true;
 #if UNITY_ANDROID && !UNITY_EDITOR
         public const bool USE_MOBILE_TEXTURE_FORMAT = true;
 #else
@@ -395,7 +395,7 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             }
         }
 #else
-        public const bool SUPPORTED = false;
+        public static readonly bool SUPPORTED = false;
 #endif
     }
 }

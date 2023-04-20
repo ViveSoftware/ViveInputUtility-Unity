@@ -436,6 +436,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (deviceModel)
             {
                 case VRModuleDeviceModel.OculusTouchRight:
+                case VRModuleDeviceModel.OculusQuest2ControllerRight:
                 case VRModuleDeviceModel.KnucklesRight:
                 case VRModuleDeviceModel.WMRControllerRight:
                 case VRModuleDeviceModel.ViveCosmosControllerRight:
@@ -457,6 +458,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (deviceModel)
             {
                 case VRModuleDeviceModel.OculusTouchLeft:
+                case VRModuleDeviceModel.OculusQuest2ControllerLeft:
                 case VRModuleDeviceModel.KnucklesLeft:
                 case VRModuleDeviceModel.WMRControllerLeft:
                 case VRModuleDeviceModel.ViveCosmosControllerLeft:

@@ -424,6 +424,13 @@ namespace HTC.UnityPlugin.Vive
 #else
             AndroidSdkVersions.AndroidApiLevel21;
 #endif
+        public static readonly Version oculusVRPlugin_warpperVersion =
+#if VIU_OCULUSVR
+            OVRPlugin.wrapperVersion;
+#else
+            new System.Version(0, 0, 0);
+#endif
+        public static readonly Version oculusVRPlugin_v39_warpperVersion = new Version(1, 71, 0);
 
         public static bool canSupportOculusGo
         {
@@ -684,6 +691,7 @@ namespace HTC.UnityPlugin.Vive
                         // Hand tracking support
                         const string enableHandTrackingTitle = "Enable Oculus Hand Tracking";
                         const string enableHandRenderModelTitle = "Enable Oculus Tracked Hand Render Model";
+
 #if VIU_OCULUSVR_20_0_OR_NEWER
                         {
                             var oldEnableHandTracking = VIUSettings.activateOculusVRModule && oculusProjectConfig.handTrackingSupport != OVRProjectConfig.HandTrackingSupport.ControllersOnly;
@@ -735,20 +743,28 @@ namespace HTC.UnityPlugin.Vive
                         }
 #endif
 
-#pragma warning disable 0162
                         // Controller Render Model
                         const string enableControllerRenderModelTitle = "Enable Oculus Controller Render Model";
                         const string enableControllerRenderModelSkeletonTitle = "Enable Hand Attached to Oculus Controller Render Model";
-                        if (OculusVRExtension.VIUOvrAvatar.SUPPORTED)
+
+                        if (OculusVRExtension.VIUOvrAvatar.SUPPORTED || oculusVRPlugin_warpperVersion >= oculusVRPlugin_v39_warpperVersion)
                         {
                             var oldValue = VIUSettings.activateOculusVRModule && VIUSettings.EnableOculusSDKControllerRenderModel;
                             var newValue = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), oldValue);
+
+                            if (!oldValue && newValue && !VRModule.isOculusVRAvatarSupported && FindControllerRenderModelPrefab() == null)
+                            {
+                                Debug.LogError("missing \"OVRControllerPrefab\"");
+                                newValue = false;
+                            }
+
                             if (newValue)
                             {
                                 if (!oldValue)
                                 {
                                     VIUSettings.activateOculusVRModule = true;
                                     VIUSettings.EnableOculusSDKControllerRenderModel = true;
+                                    VIUSettings.oculusVRControllerPrefab = FindControllerRenderModelPrefab();
                                 }
                             }
                             else
@@ -759,15 +775,17 @@ namespace HTC.UnityPlugin.Vive
                                 }
                             }
 
-                            if (newValue)
+                            if (newValue && VRModule.isOculusVRAvatarSupported)
                             {
                                 VIUSettings.EnableOculusSDKControllerRenderModelSkeleton = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModelSkeleton);
                             }
                             else
                             {
+                                var tooltip = VRModule.isOculusVRAvatarSupported ? VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP : "Currently only support lagacy OVR Avatar in Oculus Integration SDK v38 or before";
+
                                 var wasGUIEnabled = GUI.enabled;
                                 GUI.enabled = false;
-                                EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), false);
+                                EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, tooltip), false);
                                 GUI.enabled = wasGUIEnabled;
                             }
                         }
@@ -788,7 +806,6 @@ namespace HTC.UnityPlugin.Vive
 
                             GUI.enabled = wasGUIEnabled;
                         }
-#pragma warning restore 0162
 
                         // Custom Android manifest
                         EditorGUILayout.BeginHorizontal();
@@ -826,10 +843,17 @@ namespace HTC.UnityPlugin.Vive
                     }
                     s_guiChanged |= EditorGUI.EndChangeCheck();
                 }
+
+                if (!support || !VIUSettings.EnableOculusSDKControllerRenderModel)
+                {
+                    VIUSettings.oculusVRControllerPrefab = null;
+                }
             }
 
             public void OnPreprocessBuild(BuildTarget target, string path)
             {
+                VIUSettings.oculusVRControllerPrefab = support && VIUSettings.EnableOculusSDKControllerRenderModel ? FindControllerRenderModelPrefab() : null;
+
                 if (!support) { return; }
 
                 if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
@@ -845,6 +869,8 @@ namespace HTC.UnityPlugin.Vive
 #if UNITY_2018_1_OR_NEWER
             public void OnPreprocessBuild(BuildReport report)
             {
+                VIUSettings.oculusVRControllerPrefab = support && VIUSettings.EnableOculusSDKControllerRenderModel ? FindControllerRenderModelPrefab() : null;
+
                 if (!support) { return; }
 
                 if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
@@ -872,6 +898,27 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
             }
+#endif
+#if UNITY_2020_3_OR_NEWER && VIU_OCULUSVR_20_0_OR_NEWER
+            private GameObject FindControllerRenderModelPrefab()
+            {
+                var results = AssetDatabase.FindAssets("OVRControllerPrefab t:Prefab");
+                if (results != null || results.Length > 0)
+                {
+                    foreach (var result in results)
+                    {
+                        var go = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(result));
+                        if (go != null && go.TryGetComponent<OVRControllerHelper>(out _))
+                        {
+                            VIUSettings.oculusVRControllerPrefab = go;
+                            return go;
+                        }
+                    }
+                }
+                return null;
+            }
+#else
+            private GameObject FindControllerRenderModelPrefab() { return null; }
 #endif
         }
     }
