@@ -69,6 +69,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Oculus_Go = 7,
             Oculus_Quest,
             Oculus_Quest_2,
+            Meta_Quest_Pro,
 
             // PC headsets
             Rift_DK1 = 0x1000,
@@ -78,6 +79,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Rift_S,
             Oculus_Link_Quest,
             Oculus_Link_Quest_2,
+            Meta_Link_Quest_Pro,
         }
 
         public override int moduleOrder { get { return (int)DefaultModuleOrder.OculusVR; } }
@@ -720,6 +722,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     else
                                     {
                                         currState.deviceModel = VRModuleDeviceModel.OculusQuest2ControllerRight;
+                                    }
+                                    currState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    break;
+                                case OVRSystemHeadset.Meta_Link_Quest_Pro:
+                                case OVRSystemHeadset.Meta_Quest_Pro:
+                                    if (node == OVRPlugin.Node.HandLeft)
+                                    {
+                                        currState.deviceModel = VRModuleDeviceModel.OculusTouchProLeft;
+                                    }
+                                    else
+                                    {
+                                        currState.deviceModel = VRModuleDeviceModel.OculusTouchProRight;
                                     }
                                     currState.input2DType = VRModuleInput2DType.JoystickOnly;
                                     break;
