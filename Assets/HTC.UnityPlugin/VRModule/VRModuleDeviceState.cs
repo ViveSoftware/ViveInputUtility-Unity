@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -73,6 +73,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusQuest2ControllerLeft,
         OculusQuest2ControllerRight,
         ViveWristTracker,
+        OculusTouchProLeft,
+        OculusTouchProRight,
     }
 
     public enum VRModuleRawButton
@@ -436,6 +438,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (deviceModel)
             {
                 case VRModuleDeviceModel.OculusTouchRight:
+                case VRModuleDeviceModel.OculusQuest2ControllerRight:
                 case VRModuleDeviceModel.KnucklesRight:
                 case VRModuleDeviceModel.WMRControllerRight:
                 case VRModuleDeviceModel.ViveCosmosControllerRight:
@@ -446,6 +449,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.WaveTrackedHandRight:
                 case VRModuleDeviceModel.OculusTrackedHandRight:
                 case VRModuleDeviceModel.ViveFocus3ControllerRight:
+                case VRModuleDeviceModel.OculusTouchProRight:
                     return true;
                 default:
                     return false;
@@ -457,6 +461,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             switch (deviceModel)
             {
                 case VRModuleDeviceModel.OculusTouchLeft:
+                case VRModuleDeviceModel.OculusQuest2ControllerLeft:
                 case VRModuleDeviceModel.KnucklesLeft:
                 case VRModuleDeviceModel.WMRControllerLeft:
                 case VRModuleDeviceModel.ViveCosmosControllerLeft:
@@ -467,6 +472,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.WaveTrackedHandLeft:
                 case VRModuleDeviceModel.OculusTrackedHandLeft:
                 case VRModuleDeviceModel.ViveFocus3ControllerLeft:
+                case VRModuleDeviceModel.OculusTouchProLeft:
                     return true;
                 default:
                     return false;

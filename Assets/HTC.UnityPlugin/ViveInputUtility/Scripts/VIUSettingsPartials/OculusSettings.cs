@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 
@@ -26,10 +26,15 @@ namespace HTC.UnityPlugin.Vive
         [SerializeField, Tooltip(ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP)]
         private bool m_enableOculusSDKControllerRenderModelSkeleton = ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_DEFAULT_VALUE;
 
+        [SerializeField]
+        private GameObject m_oculusVRControllerPrefab;
+
         public static bool activateOculusVRModule { get { return Instance == null ? ACTIVATE_OCULUS_VR_MODULE_DEFAULT_VALUE : s_instance.m_activateOculusVRModule; } set { if (Instance != null) { Instance.m_activateOculusVRModule = value; } } }
         public static string oculusVRAndroidManifestPath { get { return Instance == null ? "" : s_instance.m_oculusVRAndroidManifestPath; } set { if (Instance != null) { Instance.m_oculusVRAndroidManifestPath = value; } } }
         public static bool EnableOculusSDKHandRenderModel { get { return Instance == null ? ENABLE_OCULUS_SDK_HAND_RENDER_MODEL_DEFAULT_VALUE : s_instance.m_enableOculusSDKHandRenderModel; } set { if (Instance != null) { Instance.m_enableOculusSDKHandRenderModel = value; } } }
         public static bool EnableOculusSDKControllerRenderModel { get { return Instance == null ? ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_DEFAULT_VALUE : s_instance.m_enableOculusSDKControllerRenderModel; } set { if (Instance != null) { Instance.m_enableOculusSDKControllerRenderModel = value; } } }
         public static bool EnableOculusSDKControllerRenderModelSkeleton { get { return Instance == null ? ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_DEFAULT_VALUE : s_instance.m_enableOculusSDKControllerRenderModelSkeleton; } set { if (Instance != null) { Instance.m_enableOculusSDKControllerRenderModelSkeleton = value; } } }
+
+        public static GameObject oculusVRControllerPrefab { get { return Instance == null ? null : Instance.m_oculusVRControllerPrefab; } set { if (Instance != null) { Instance.m_oculusVRControllerPrefab = value; } } }
     }
 }

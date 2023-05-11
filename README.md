@@ -1,5 +1,5 @@
 # VIVE Input Utility for Unity
-Copyright 2016-2020, HTC Corporation. All rights reserved.
+Copyright 2016-2023, HTC Corporation. All rights reserved.
 
 ## About
 
@@ -49,6 +49,6 @@ Forum: [https://forum.vive.com/forum/72-vive-input-utility/]
 3. [Fork this project](https://github.com/ViveSoftware/ViveInputUtility-Unity/fork) on GitHub.
 4. Create a new branch (based on master branch) for your work on your fork.
 5. After you finish your work
-    - Make sure all files start with `//========= Copyright 2016-2019, HTC Corporation. All rights reserved. ===========`
+    - Make sure all files start with `//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========`
     - Try leaving [good commit message](https://chris.beams.io/posts/git-commit/) and [keeping commit histories clean](https://www.notion.so/Keeping-Commit-Histories-Clean-0f717c4e802c4a0ebd852cf9337ce5d2).
 6. Submit a pull request from your new branch to our develop branch.

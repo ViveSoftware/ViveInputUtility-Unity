@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 #pragma warning disable 0649
 using HTC.UnityPlugin.Utility;
@@ -145,18 +145,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             FlushDeviceState();
 
-            // mark all devices as disconnected
-            // therefore, if a device should stay alive in this frame
-            // should be set as connected in the next stage
-            deviceIndex = 0u;
-            for (var len = GetDeviceStateLength(); deviceIndex < len; ++deviceIndex)
-            {
-                if (TryGetValidDeviceState(deviceIndex, out prevState, out currState))
-                {
-                    currState.isConnected = false;
-                }
-            }
-
             InputDevices.GetDevices(connectedDevices);
 
             foreach (var device in connectedDevices)
@@ -239,24 +227,24 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 if (prevDeviceConnected[i] && !currDeviceConnected[i])
                 {
-                    if (indexMap.IsMapped(deviceIndex))
+                    if (indexMap.IsMapped(i))
                     {
-                        indexMap.UnmapByIndex(deviceIndex);
+                        indexMap.UnmapByIndex(i);
                     }
                     else
                     {
-                        Debug.LogWarning("[UnityXRModule] Disconnected device[" + deviceIndex + "] already unmapped");
+                        Debug.LogWarning("[UnityXRModule] Disconnected device[" + i + "] already unmapped");
                     }
 
-                    if (TryGetValidDeviceState(deviceIndex, out prevState, out currState) && currState.isConnected)
+                    if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
                     {
                         currState.Reset();
-                        if (uxrRightIndex == deviceIndex) { uxrRightIndex = INVALID_DEVICE_INDEX; }
-                        if (uxrLeftIndex == deviceIndex) { uxrLeftIndex = INVALID_DEVICE_INDEX; }
+                        if (uxrRightIndex == i) { uxrRightIndex = INVALID_DEVICE_INDEX; }
+                        if (uxrLeftIndex == i) { uxrLeftIndex = INVALID_DEVICE_INDEX; }
                     }
                     else
                     {
-                        Debug.LogWarning("[UnityXRModule] Disconnected device[" + deviceIndex + "] already been reset");
+                        Debug.LogWarning("[UnityXRModule] Disconnected device[" + i + "] already been reset");
                     }
                 }
             }

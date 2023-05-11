@@ -1,4 +1,4 @@
-//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 using System;
 using UnityEngine;
@@ -46,12 +46,12 @@ namespace HTC.UnityPlugin.Vive
                             }
                         }
 
-                        MethodInfo openWindowMethod = openXREditorAsm.GetType("UnityEditor.XR.OpenXR.OpenXRProjectValidationWindow", true).GetMethod("ShowWindow", BindingFlags.NonPublic | BindingFlags.Static);
+                        MethodInfo openWindowMethod = openXREditorAsm.GetType("UnityEditor.XR.OpenXR.OpenXRProjectValidationRulesSetup", true).GetMethod("ShowWindow", BindingFlags.NonPublic | BindingFlags.Static);
                         openWindowMethod.Invoke(null, new object[] {VIUSettingsEditor.activeBuildTargetGroup});
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError("Failed to open OpenXRProjectValidationWindow: " + e);
+                        Debug.LogError("Failed to open OpenXRProjectValidationRulesSetup: " + e);
                     }
                 },
                 recommendedValue = 0,

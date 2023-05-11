@@ -1,4 +1,4 @@
-//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 using System;
 using UnityEngine;
@@ -69,6 +69,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Oculus_Go = 7,
             Oculus_Quest,
             Oculus_Quest_2,
+            Meta_Quest_Pro,
 
             // PC headsets
             Rift_DK1 = 0x1000,
@@ -78,6 +79,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Rift_S,
             Oculus_Link_Quest,
             Oculus_Link_Quest_2,
+            Meta_Link_Quest_Pro,
         }
 
         public override int moduleOrder { get { return (int)DefaultModuleOrder.OculusVR; } }
@@ -248,6 +250,121 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return m_index == s_leftHandIndex || m_index == s_rightHandIndex;
             }
         }
+#elif UNITY_2020_3_OR_NEWER && VIU_OCULUSVR_20_0_OR_NEWER
+        private class RenderModelCreator : RenderModelHook.DefaultRenderModelCreator
+        {
+            private static bool s_mgrInit;
+            private uint m_index = INVALID_DEVICE_INDEX;
+            private bool m_isLeft;
+            private bool m_isController;
+            private bool m_isTrackedHand;
+
+            private OVRControllerHelper m_controllerModel;
+            private OculusHandRenderModel m_trackedHandModel;
+
+            public override bool shouldActive
+            {
+                get
+                {
+                    if (!VIUSettings.EnableOculusSDKHandRenderModel && !VIUSettings.EnableOculusSDKControllerRenderModel) { return false; }
+                    if (s_moduleInstance == null) { return false; }
+                    if (!s_moduleInstance.isActivated) { return false; }
+                    return true;
+                }
+            }
+
+            public override void UpdateRenderModel()
+            {
+                if (!ChangeProp.Set(ref m_index, hook.GetModelDeviceIndex())) { return; }
+
+                var isValidDevice = VRModule.IsValidDeviceIndex(m_index);
+                if (!isValidDevice)
+                {
+                    m_isController = false;
+                    m_isTrackedHand = false;
+                }
+                else
+                {
+                    var dvc = VRModule.GetDeviceState(m_index);
+                    m_isLeft = dvc.deviceModel.IsLeft();
+                    m_isController = dvc.deviceClass == VRModuleDeviceClass.Controller;
+                    m_isTrackedHand = dvc.deviceClass == VRModuleDeviceClass.TrackedHand;
+                }
+
+                if (m_isController && VIUSettings.oculusVRControllerPrefab == null)
+                {
+                    m_isController = false;
+                }
+
+                if (m_isController)
+                {
+                    if (!s_mgrInit && !OVRManager.OVRManagerinitialized)
+                    {
+                        var go = new GameObject("OVRManager");
+                        go.transform.SetParent(VRModule.GetInstanceGameObject().transform, false);
+                        go.AddComponent<OVRManager>();
+                        s_mgrInit = true;
+                    }
+
+                    if (m_controllerModel != null)
+                    {
+                        var modelIsLeft = m_controllerModel.m_controller == OVRInput.Controller.LTouch;
+                        if (modelIsLeft != m_isLeft)
+                        {
+                            Object.Destroy(m_controllerModel.gameObject);
+                            m_controllerModel = null;
+                        }
+                    }
+
+                    if (m_controllerModel == null)
+                    {
+                        var go = Object.Instantiate(VIUSettings.oculusVRControllerPrefab);
+                        go.name = VIUSettings.oculusVRControllerPrefab.name;
+                        go.transform.SetParent(hook.transform, false);
+                        go.SetActive(false);
+                        m_controllerModel = go.GetComponent<OVRControllerHelper>();
+                        m_controllerModel.m_controller = m_isLeft ? OVRInput.Controller.LTouch : OVRInput.Controller.RTouch;
+                    }
+
+                    m_controllerModel.gameObject.SetActive(true);
+                }
+                else
+                {
+                    if (m_controllerModel != null)
+                    {
+                        m_controllerModel.gameObject.SetActive(false);
+                    }
+                }
+
+                if (m_isTrackedHand)
+                {
+                    if (m_trackedHandModel == null)
+                    {
+                        var go = new GameObject(typeof(OculusHandRenderModel).Name);
+                        go.transform.SetParent(hook.transform, false);
+                        go.transform.localRotation *=
+                            Quaternion.Inverse(
+                                m_isLeft ?
+                                Quaternion.LookRotation(Vector3.right, Vector3.down) :
+                                Quaternion.LookRotation(Vector3.left, Vector3.up));
+                        m_trackedHandModel = go.AddComponent<OculusHandRenderModel>();
+                        m_trackedHandModel.Initialize(m_isLeft);
+                    }
+
+                    m_trackedHandModel.SetHand(m_isLeft);
+                    m_trackedHandModel.gameObject.SetActive(true);
+                }
+                else
+                {
+                    if (m_trackedHandModel != null)
+                    {
+                        m_trackedHandModel.gameObject.SetActive(false);
+                    }
+                }
+
+                UpdateDefaultRenderModel(!m_isController && !m_isTrackedHand);
+            }
+        }
 #endif
 
 #if VIU_OCULUSVR
@@ -370,15 +487,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return XRSettings.enabled && XRSettings.loadedDeviceName == "Oculus";
 #endif
 #pragma warning restore 0162
-
-            submodules.ActivateAllModules();
         }
 
         public override void OnActivated()
         {
             Debug.Log("OculusVRModule activated.");
 
-            submodules.DeactivateAllModules();
+            submodules.ActivateAllModules();
 
             m_systemHeadsetType = OVRPlugin.GetSystemHeadsetType();
             m_systemHeadsetName = m_systemHeadsetType.ToString();
@@ -394,6 +509,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         {
             OVRPlugin.SetTrackingOriginType(m_prevTrackingSpace);
             s_moduleInstance = null;
+
+            submodules.DeactivateAllModules();
         }
 
         public override void UpdateTrackingSpaceType()
@@ -605,6 +722,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
                                     else
                                     {
                                         currState.deviceModel = VRModuleDeviceModel.OculusQuest2ControllerRight;
+                                    }
+                                    currState.input2DType = VRModuleInput2DType.JoystickOnly;
+                                    break;
+                                case OVRSystemHeadset.Meta_Link_Quest_Pro:
+                                case OVRSystemHeadset.Meta_Quest_Pro:
+                                    if (node == OVRPlugin.Node.HandLeft)
+                                    {
+                                        currState.deviceModel = VRModuleDeviceModel.OculusTouchProLeft;
+                                    }
+                                    else
+                                    {
+                                        currState.deviceModel = VRModuleDeviceModel.OculusTouchProRight;
                                     }
                                     currState.input2DType = VRModuleInput2DType.JoystickOnly;
                                     break;

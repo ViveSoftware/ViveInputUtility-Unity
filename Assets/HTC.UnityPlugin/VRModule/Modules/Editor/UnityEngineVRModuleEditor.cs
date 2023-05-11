@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 using System;
 using HTC.UnityPlugin.Vive;
@@ -127,14 +127,14 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 reqTypeNames = new string[]
                 {
                     "UnityEditor.XR.OpenXR.OpenXRProjectValidation",
-                    "UnityEditor.XR.OpenXR.OpenXRProjectValidationWindow",
+                    "UnityEditor.XR.OpenXR.OpenXRProjectValidationRulesSetup",
                     "UnityEngine.XR.OpenXR.OpenXRSettings",
                     "UnityEngine.XR.OpenXR.Features.OpenXRFeature",
                 },
                 reqFileNames = new string[]
                 {
                     "OpenXRProjectValidation.cs",
-                    "OpenXRProjectValidationWindow.cs",
+                    "OpenXRProjectValidationRulesSetup.cs",
                     "OpenXRFeature.cs",
                 },
             });

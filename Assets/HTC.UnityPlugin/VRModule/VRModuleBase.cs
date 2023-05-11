@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -36,11 +36,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", REGEX_OPTIONS);
             private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", REGEX_OPTIONS);
-            private static readonly Regex s_focus3Rgx = new Regex("focus3", REGEX_OPTIONS);
+            private static readonly Regex s_focus3Rgx = new Regex("focus[\\s_\\-]*3", REGEX_OPTIONS);
             private static readonly Regex s_ver3Rgx = new Regex("^.*3.0.*$", REGEX_OPTIONS);
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus|quest).*$", REGEX_OPTIONS);
-            private static readonly Regex s_questRgx = new Regex("(quest)", REGEX_OPTIONS);
-            private static readonly Regex s_quest2Rgx = new Regex("(quest2|quest 2)", REGEX_OPTIONS);
+            private static readonly Regex s_questRgx = new Regex("quest", REGEX_OPTIONS);
+            private static readonly Regex s_quest2Rgx = new Regex("quest[\\s_\\-]*2", REGEX_OPTIONS);
             private static readonly Regex s_indexRgx = new Regex("^.*(index|knuckles).*$", REGEX_OPTIONS);
             private static readonly Regex s_knucklesRgx = new Regex("^.*(knu_ev1).*$", REGEX_OPTIONS);
             private static readonly Regex s_daydreamRgx = new Regex("^.*(daydream).*$", REGEX_OPTIONS);

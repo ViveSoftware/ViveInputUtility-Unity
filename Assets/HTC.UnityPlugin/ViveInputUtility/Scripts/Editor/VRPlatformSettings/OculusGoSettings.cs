@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.VRModuleManagement;
 using UnityEditor;
@@ -244,7 +244,7 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
-#if UNITY_5_5_OR_NEWER
+#if UNITY_5_5_OR_NEWER && !UNITY_2019_4_OR_NEWER
             Add(new VIUVersionCheck.RecommendedSetting<bool>()
             {
                 settingTitle = "Use Oculus Mobile recommended Quality Settings",
@@ -255,38 +255,39 @@ namespace HTC.UnityPlugin.Vive
                     settingObj.Update();
 
                     var qualitySettingsArray = settingObj.FindProperty("m_QualitySettings");
-                    for (int i = 0, imax = qualitySettingsArray.arraySize; i < imax; ++i)
-                    {
-                        // Simple(level 2) is a good one to start from, it should be the only level that is checked.
-                        var element = qualitySettingsArray.GetArrayElementAtIndex(i);
-                        var excludedArray = element.FindPropertyRelative("excludedTargetPlatforms");
+                    // try to apply on default, unchanged, lagecy quality settings only
+                    if (qualitySettingsArray.arraySize < 3) { return true; }
+                    var simpleQualitySetting = qualitySettingsArray.GetArrayElementAtIndex(2);
 
-                        var foundExcludeAndroidPlatform = false;
-                        for (int j = 0, jmax = excludedArray.arraySize; j < jmax; ++j)
-                        {
-                            if (excludedArray.GetArrayElementAtIndex(j).stringValue == "Android")
-                            {
-                                foundExcludeAndroidPlatform = true;
-                                break;
-                            }
-                        }
+                    var nameProp = simpleQualitySetting.FindPropertyRelative("name"); if (nameProp == null) { return true; }
+                    var simpleQualitySettingName = nameProp.stringValue;
+                    if (simpleQualitySettingName != "Simple" || simpleQualitySettingName != "Medium") { return true; }
 
-                        if (i == 2) { if (foundExcludeAndroidPlatform) { return false; } }
-                        else if (!foundExcludeAndroidPlatform) { return false; }
-                    }
-
-                    var lv2qualitySetting = qualitySettingsArray.GetArrayElementAtIndex(2);
-                    if (lv2qualitySetting.FindPropertyRelative("pixelLightCount").intValue > 1) { return false; }
-                    if (lv2qualitySetting.FindPropertyRelative("anisotropicTextures").intValue != (int)AnisotropicFiltering.Disable) { return false; }
-                    var antiAliasingLevel = lv2qualitySetting.FindPropertyRelative("antiAliasing").intValue; if (antiAliasingLevel > 4 || antiAliasingLevel < 2) { return false; }
-                    if (lv2qualitySetting.FindPropertyRelative("shadows").intValue >= (int)ShadowQuality.All) { return false; }
+                    var excludedPlatforms = simpleQualitySetting.FindPropertyRelative("excludedTargetPlatforms"); if (excludedPlatforms == null) { return true; }
+                    var pixelLightCount = simpleQualitySetting.FindPropertyRelative("pixelLightCount"); if (pixelLightCount == null) { return true; }
+                    var anisotropicTextures = simpleQualitySetting.FindPropertyRelative("anisotropicTextures"); if (anisotropicTextures == null) { return true; }
+                    var antiAliasing = simpleQualitySetting.FindPropertyRelative("antiAliasing"); if (antiAliasing == null) { return true; }
+                    var shadows = simpleQualitySetting.FindPropertyRelative("shadows"); if (shadows == null) { return true; }
+                    var vSyncCount = simpleQualitySetting.FindPropertyRelative("vSyncCount"); if (vSyncCount == null) { return true; }
 #if UNITY_2019_1_OR_NEWER
-                    if (lv2qualitySetting.FindPropertyRelative("skinWeights").intValue > 2) { return false; }
+                    var weights = simpleQualitySetting.FindPropertyRelative("skinWeights"); if (weights == null) { return true; }
 #else
-                    if (lv2qualitySetting.FindPropertyRelative("blendWeights").intValue > 2) { return false; }
+                    var weights = simpleQualitySetting.FindPropertyRelative("blendWeights"); if (weights == null) { return true; }
 #endif
-                    if (lv2qualitySetting.FindPropertyRelative("vSyncCount").intValue != 0) { return false; }
 
+                    for (int i = 0, imax = excludedPlatforms.arraySize; i < imax; ++i)
+                    {
+                        if (excludedPlatforms.GetArrayElementAtIndex(i).stringValue == "Android")
+                        {
+                            return false;
+                        }
+                    }
+                    if (pixelLightCount.intValue > 1) { return false; }
+                    if (anisotropicTextures.intValue != (int)AnisotropicFiltering.Disable) { return false; }
+                    if (antiAliasing.intValue > 4 || antiAliasing.intValue < 2) { return false; }
+                    if (shadows.intValue >= (int)ShadowQuality.All) { return false; }
+                    if (vSyncCount.intValue != 0) { return false; }
+                    if (weights.intValue > 2) { return false; }
                     return true;
                 },
                 setValueFunc = v =>
@@ -296,62 +297,34 @@ namespace HTC.UnityPlugin.Vive
                     var settingObj = GetQualitySettingsAsset();
                     settingObj.Update();
 
+                    // Simple(level 2) is a good one to start from, it should be the only level that is checked.
                     var qualitySettingsArray = settingObj.FindProperty("m_QualitySettings");
-                    for (int i = 0, imax = qualitySettingsArray.arraySize; i < imax; ++i)
-                    {
-                        // Simple(level 2) is a good one to start from, it should be the only level that is checked.
-                        var element = qualitySettingsArray.GetArrayElementAtIndex(i);
-                        var excludedArray = element.FindPropertyRelative("excludedTargetPlatforms");
-
-                        var excludeAndroidIndex = -1;
-                        for (int j = 0, jmax = excludedArray.arraySize; j < jmax; ++j)
-                        {
-                            if (excludedArray.GetArrayElementAtIndex(j).stringValue == "Android")
-                            {
-                                excludeAndroidIndex = j;
-                                break;
-                            }
-                        }
-
-                        if (i == 2)
-                        {
-                            if (excludeAndroidIndex >= 0)
-                            {
-                                excludedArray.DeleteArrayElementAtIndex(excludeAndroidIndex);
-                            }
-                        }
-                        else if (excludeAndroidIndex < 0)
-                        {
-                            excludedArray.arraySize += 1;
-                            excludedArray.GetArrayElementAtIndex(excludedArray.arraySize - 1).stringValue = "Android";
-                        }
-                    }
-
-                    var lv2qualitySetting = qualitySettingsArray.GetArrayElementAtIndex(2);
-
-                    var pixelLightCountProp = lv2qualitySetting.FindPropertyRelative("pixelLightCount");
-                    var pixelLightCount = pixelLightCountProp.intValue;
-                    if (pixelLightCount > 1) { pixelLightCountProp.intValue = 1; }
-                    else if (pixelLightCount < 0) { pixelLightCountProp.intValue = 0; }
-
-                    lv2qualitySetting.FindPropertyRelative("anisotropicTextures").intValue = (int)AnisotropicFiltering.Disable;
-
-                    var antiAliasingLevelProp = lv2qualitySetting.FindPropertyRelative("antiAliasing");
-                    var antiAliasingLevel = antiAliasingLevelProp.intValue;
-                    if (antiAliasingLevel != 2 || antiAliasingLevel != 4) { antiAliasingLevelProp.intValue = 4; }
-
-                    var shadowsProp = lv2qualitySetting.FindPropertyRelative("shadows");
-                    if (shadowsProp.intValue >= (int)ShadowQuality.All) { shadowsProp.intValue = (int)ShadowQuality.HardOnly; }
-
+                    var simpleQualitySetting = qualitySettingsArray.GetArrayElementAtIndex(2);
+                    var excludedPlatforms = simpleQualitySetting.FindPropertyRelative("excludedTargetPlatforms");
+                    var pixelLightCount = simpleQualitySetting.FindPropertyRelative("pixelLightCount");
+                    var anisotropicTextures = simpleQualitySetting.FindPropertyRelative("anisotropicTextures");
+                    var antiAliasing = simpleQualitySetting.FindPropertyRelative("antiAliasing");
+                    var shadows = simpleQualitySetting.FindPropertyRelative("shadows");
+                    var vSyncCount = simpleQualitySetting.FindPropertyRelative("vSyncCount");
 #if UNITY_2019_1_OR_NEWER
-                    var blendWeightsProp = lv2qualitySetting.FindPropertyRelative("skinWeights");
-                    if (blendWeightsProp.intValue > 2) { blendWeightsProp.intValue = 2; }
+                    var weights = simpleQualitySetting.FindPropertyRelative("skinWeights");
 #else
-                    var blendWeightsProp = lv2qualitySetting.FindPropertyRelative("blendWeights");
-                    if (blendWeightsProp.intValue > 2) { blendWeightsProp.intValue = 2; }
+                    var weights = simpleQualitySetting.FindPropertyRelative("blendWeights");
 #endif
 
-                    lv2qualitySetting.FindPropertyRelative("vSyncCount").intValue = 0;
+                    for (int i = 0, imax = excludedPlatforms.arraySize; i < imax; ++i)
+                    {
+                        if (excludedPlatforms.GetArrayElementAtIndex(i).stringValue == "Android")
+                        {
+                            excludedPlatforms.DeleteArrayElementAtIndex(i); break;
+                        }
+                    }
+                    pixelLightCount.intValue = 1;
+                    anisotropicTextures.intValue = (int)AnisotropicFiltering.Disable;
+                    if (antiAliasing.intValue != 2 || antiAliasing.intValue != 4) { antiAliasing.intValue = 4; }
+                    if (shadows.intValue >= (int)ShadowQuality.All) { shadows.intValue = (int)ShadowQuality.HardOnly; }
+                    vSyncCount.intValue = 0;
+                    if (weights.intValue > 2) { weights.intValue = 2; }
 
                     settingObj.ApplyModifiedProperties();
                 },
@@ -359,7 +332,7 @@ namespace HTC.UnityPlugin.Vive
             });
 #endif
 
-#if UNITY_5_6_OR_NEWER
+#if UNITY_5_6_OR_NEWER && !UNITY_2019_4_OR_NEWER
             Add(new VIUVersionCheck.RecommendedSetting<bool>()
             {
                 settingTitle = "Use Oculus Mobile recommended Graphics Tier Settings",
@@ -424,6 +397,13 @@ namespace HTC.UnityPlugin.Vive
 #else
             AndroidSdkVersions.AndroidApiLevel21;
 #endif
+        public static readonly Version oculusVRPlugin_warpperVersion =
+#if VIU_OCULUSVR
+            OVRPlugin.wrapperVersion;
+#else
+            new System.Version(0, 0, 0);
+#endif
+        public static readonly Version oculusVRPlugin_v39_warpperVersion = new Version(1, 71, 0);
 
         public static bool canSupportOculusGo
         {
@@ -684,6 +664,7 @@ namespace HTC.UnityPlugin.Vive
                         // Hand tracking support
                         const string enableHandTrackingTitle = "Enable Oculus Hand Tracking";
                         const string enableHandRenderModelTitle = "Enable Oculus Tracked Hand Render Model";
+
 #if VIU_OCULUSVR_20_0_OR_NEWER
                         {
                             var oldEnableHandTracking = VIUSettings.activateOculusVRModule && oculusProjectConfig.handTrackingSupport != OVRProjectConfig.HandTrackingSupport.ControllersOnly;
@@ -735,20 +716,28 @@ namespace HTC.UnityPlugin.Vive
                         }
 #endif
 
-#pragma warning disable 0162
                         // Controller Render Model
                         const string enableControllerRenderModelTitle = "Enable Oculus Controller Render Model";
                         const string enableControllerRenderModelSkeletonTitle = "Enable Hand Attached to Oculus Controller Render Model";
-                        if (OculusVRExtension.VIUOvrAvatar.SUPPORTED)
+
+                        if (OculusVRExtension.VIUOvrAvatar.SUPPORTED || oculusVRPlugin_warpperVersion >= oculusVRPlugin_v39_warpperVersion)
                         {
                             var oldValue = VIUSettings.activateOculusVRModule && VIUSettings.EnableOculusSDKControllerRenderModel;
                             var newValue = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_TOOLTIP), oldValue);
+
+                            if (!oldValue && newValue && !VRModule.isOculusVRAvatarSupported && FindControllerRenderModelPrefab() == null)
+                            {
+                                Debug.LogError("missing \"OVRControllerPrefab\"");
+                                newValue = false;
+                            }
+
                             if (newValue)
                             {
                                 if (!oldValue)
                                 {
                                     VIUSettings.activateOculusVRModule = true;
                                     VIUSettings.EnableOculusSDKControllerRenderModel = true;
+                                    VIUSettings.oculusVRControllerPrefab = FindControllerRenderModelPrefab();
                                 }
                             }
                             else
@@ -759,15 +748,17 @@ namespace HTC.UnityPlugin.Vive
                                 }
                             }
 
-                            if (newValue)
+                            if (newValue && VRModule.isOculusVRAvatarSupported)
                             {
                                 VIUSettings.EnableOculusSDKControllerRenderModelSkeleton = EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), VIUSettings.EnableOculusSDKControllerRenderModelSkeleton);
                             }
                             else
                             {
+                                var tooltip = VRModule.isOculusVRAvatarSupported ? VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP : "Currently only support lagacy OVR Avatar in Oculus Integration SDK v38 or before";
+
                                 var wasGUIEnabled = GUI.enabled;
                                 GUI.enabled = false;
-                                EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, VIUSettings.ENABLE_OCULUS_SDK_CONTROLLER_RENDER_MODEL_SKELETON_TOOLTIP), false);
+                                EditorGUILayout.ToggleLeft(new GUIContent(enableControllerRenderModelSkeletonTitle, tooltip), false);
                                 GUI.enabled = wasGUIEnabled;
                             }
                         }
@@ -788,7 +779,6 @@ namespace HTC.UnityPlugin.Vive
 
                             GUI.enabled = wasGUIEnabled;
                         }
-#pragma warning restore 0162
 
                         // Custom Android manifest
                         EditorGUILayout.BeginHorizontal();
@@ -826,10 +816,17 @@ namespace HTC.UnityPlugin.Vive
                     }
                     s_guiChanged |= EditorGUI.EndChangeCheck();
                 }
+
+                if (!support || !VIUSettings.EnableOculusSDKControllerRenderModel)
+                {
+                    VIUSettings.oculusVRControllerPrefab = null;
+                }
             }
 
             public void OnPreprocessBuild(BuildTarget target, string path)
             {
+                VIUSettings.oculusVRControllerPrefab = support && VIUSettings.EnableOculusSDKControllerRenderModel ? FindControllerRenderModelPrefab() : null;
+
                 if (!support) { return; }
 
                 if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
@@ -845,6 +842,8 @@ namespace HTC.UnityPlugin.Vive
 #if UNITY_2018_1_OR_NEWER
             public void OnPreprocessBuild(BuildReport report)
             {
+                VIUSettings.oculusVRControllerPrefab = support && VIUSettings.EnableOculusSDKControllerRenderModel ? FindControllerRenderModelPrefab() : null;
+
                 if (!support) { return; }
 
                 if (File.Exists(VIUSettings.oculusVRAndroidManifestPath))
@@ -872,6 +871,27 @@ namespace HTC.UnityPlugin.Vive
                     }
                 }
             }
+#endif
+#if UNITY_2020_3_OR_NEWER && VIU_OCULUSVR_20_0_OR_NEWER
+            private GameObject FindControllerRenderModelPrefab()
+            {
+                var results = AssetDatabase.FindAssets("OVRControllerPrefab t:Prefab");
+                if (results != null || results.Length > 0)
+                {
+                    foreach (var result in results)
+                    {
+                        var go = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(result));
+                        if (go != null && go.TryGetComponent<OVRControllerHelper>(out _))
+                        {
+                            VIUSettings.oculusVRControllerPrefab = go;
+                            return go;
+                        }
+                    }
+                }
+                return null;
+            }
+#else
+            private GameObject FindControllerRenderModelPrefab() { return null; }
 #endif
         }
     }

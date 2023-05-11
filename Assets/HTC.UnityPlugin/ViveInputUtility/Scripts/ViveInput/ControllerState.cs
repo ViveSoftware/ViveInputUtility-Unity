@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2022, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -87,6 +87,7 @@ namespace HTC.UnityPlugin.Vive
             private Action[][] listeners;
             private RoleValueEventListener[][] typeListeners;
 
+            // Should be the touch position when touchpad press/touch down
             private Vector2 padPressAxis;
             private Vector2 padTouchAxis;
 
@@ -318,8 +319,10 @@ namespace HTC.UnityPlugin.Vive
                 }
 
                 // record pad down axis values
-                if (padPress) { padPressAxis = padAxis; }
-                if (padTouch) { padTouchAxis = padAxis; }
+                var padWasPressed = EnumUtils.GetFlag(prevButtonPressed, (int)ControllerButton.Pad);
+                if (!padWasPressed && padPress) { padPressAxis = padAxis; }
+                var padWasTouched = EnumUtils.GetFlag(prevButtonPressed, (int)ControllerButton.PadTouch);
+                if (!padWasTouched && padTouch) { padTouchAxis = padAxis; }
 
                 // record press down time and click count
                 var timeNow = Time.unscaledTime;
@@ -485,12 +488,18 @@ namespace HTC.UnityPlugin.Vive
 
             public override Vector2 GetPadPressVector()
             {
-                return GetPress(ControllerButton.Pad) ? (GetPadAxis() - padPressAxis) : Vector2.zero;
+                var wasDown = EnumUtils.GetFlag(prevButtonPressed, (int)ControllerButton.Pad);
+                if (!wasDown) { return Vector2.zero; }
+                var isReleased = !EnumUtils.GetFlag(currButtonPressed, (int)ControllerButton.Pad);
+                return GetPadAxis(isReleased) - padPressAxis;
             }
 
             public override Vector2 GetPadTouchVector()
             {
-                return GetPress(ControllerButton.PadTouch) ? (GetPadAxis() - padTouchAxis) : Vector2.zero;
+                var wasDown = EnumUtils.GetFlag(prevButtonPressed, (int)ControllerButton.PadTouch);
+                if (!wasDown) { return Vector2.zero; }
+                var isReleased = !EnumUtils.GetFlag(currButtonPressed, (int)ControllerButton.PadTouch);
+                return GetPadAxis(isReleased) - padTouchAxis;
             }
 
             public override Vector2 GetScrollDelta(ScrollType scrollType, Vector2 scale, ControllerAxis xAxis = ControllerAxis.PadX, ControllerAxis yAxis = ControllerAxis.PadY)
