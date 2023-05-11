@@ -1,6 +1,171 @@
-﻿# Vive Input Utility for Unity - v1.12.0
+﻿# Vive Input Utility for Unity - v1.18.1
 Copyright (c) 2016-2023, HTC Corporation. All rights reserved.
 
+
+## Changes for v1.18.1:
+
+* Changes
+  - Update compatibility with com.unity.xr.openxr 1.4.2
+  - Update compatibility with Oculus Integration v50
+    - Handle removal of OVR Avatar
+    - Add Quest Pro & Touch Pro support
+  - Deprecate old Oculus graphics & quality recommended settings check on newer version
+
+* Bug Fixes
+  - Fix GetPadPressVector/GetPadTouchVector always return zero value
+  - Fix missing controller models after suspend/resume
+  - Fix Focus 3 controller not recoginzed in OpenXR mode
+
+
+## Changes for v1.17.0:
+
+* Changes
+  - Now support Focus 3 Tracker through [VBS](https://business.vive.com/us/support/vbs/category_howto/vive-business-streaming.html)
+  - Now button for Focus 3 Tracker is mapping to ControllerButton.ApplicationMenu instead of ControllerButton.A
+  - Remove Graphic Jobs recommended settings for Wave
+    - According to Unity document, Graphics Jobs only supported on certain environment(Vulkan) on Android.
+
+* Bug Fixes
+  - Fix Grabbable object with PoseFreezer calculating wrong pose when the object root is not at (0,0,0)
+  - Fix device status for WaveHandTracking doesn't reset correctly
+
+
+## Changes for v1.16.0:
+
+* Changes
+  - Add **Vive Wrist Tracker** support
+    - Requires latest Wave XR plugin (v4.3+)
+    - Able to work with ViveRole binding system
+  - More Oculus platform support
+    - Now able to recognize Quest 2 controllers (VRModuleDeviceModel.OculusQuest2ControllerLeft/Right)
+    - Add new setting options
+      - Enable/Disable Oculus Hand Tracking
+      - Enable/Disable Tracked Hand Render Model
+      - Enable/Disable Oculus Controller Render Model
+      - Enable/Disable Hand Attached to Oculus Controller Render Model
+
+* Bug fixes
+  - Fix HandRole doesn't map other controller role correctly
+  - Fix sometimes unable to enable/disable Wave HandTracking/WristTracker features in VIUSettings
+  - Fix Oculus SDK Render Model broken when switching back from tracked hand
+  - Fix compatibility with older Oculus SDK version
+
+
+## Changes for v1.15.0:
+
+* Changes
+  - New OpenXR support options in VIU Settings (experimental)
+    - OpenXR Desktop
+    - OpenXR Android for WaveXR
+    - OpenXR Android for Oculus
+  - Add Oculus Quest 2 controller input support
+
+* Known Issues
+  - Oculus SDK Render Model brakes when switch back from tracked hand
+
+
+## Changes for v1.14.2:
+
+* Changes
+  - Add compatibility with Vive Wave 4.3
+  - Add compatibility with Open XR Plugin
+    - Fix ambiguous PoseControl type
+  - Remove unused dropdown button for WMR settings
+
+* Bug Fixes
+  - Fix compile error when SteamVR installed and platform is Android
+  - Fix RenderModelHook unable to enable/disable custom/fallback render model in some cases
+
+
+## Changes for v1.14.1:
+
+* Changes
+  - Add Wave Hand Tracking support (Wave XR Plugin v4.1 or newer required)
+  - Add fallback model for ViveFlowPhoneController and ViveFocus3Controller
+
+
+## Changes for v1.14.0:
+
+* Changes
+  - Add ability to identify ViveFlowPhoneController
+  - Add plain fallback model for ViveFocus3Controller & ViveTracker3
+  - Add Input System support
+    - Required [Input System](https://docs.unity3d.com/Manual/com.unity.inputsystem.html) installed in project
+	- For example, now able to bind v3 position action from HandRole.RightHand device by setting binding path to
+	  - <VIUSyntheticDeviceLayoutHandRole>{RightHand}/position
+  - Add new role type "PrimaryHandRole"
+    - PrimaryHand maps first found controller/tracker/trackedhand accrodeing to which dominent hand
+	- API to control PrimaryHandRole dominant hand:
+      - ViveRole.DefaultPrimaryHandRoleHandler.DominantHand
+      - ViveRole.DefaultPrimaryHandRoleHandler.SetRightDominantAndRefresh()
+      - ViveRole.DefaultPrimaryHandRoleHandler.SetLeftDominantAndRefresh()
+      - ViveRole.DefaultPrimaryHandRoleHandler.SwapDominantHandAndRefresh()
+
+* Bug Fixes
+  - Fix LiteCoroutine DelayUpdateCall not working in some cases
+  - Fix RenderModelHook shaderOverride not working
+
+
+## Changes for v1.13.4:
+
+* Changes
+  - Add static API to retrieve pinch ray from Wave SDK
+    - WaveHandTrackingSubmodule.TryGetLeftPinchRay(out Vector3 origin, out Vector3 direction)
+    - WaveHandTrackingSubmodule.TryGetLeftPinchRay(out Vector3 origin, out Vector3 direction)
+    - Returns true if the pinch ray is currently valid, that is having valid tracking and the app got input focus
+  - Add 4 fingers curl & grip button values for Wave tracked hand device
+  - Change GestureIndexPinch button active threshold from 0.95 to 0.5 for Wave tracked hand device
+
+* Package Changes
+  - Now support Unity 2018.4 or newer due to the Asset Store publish restriction
+    - https://assetstore.unity.com/publishing/release-updates#accepted-unity-versions-TjfK
+  - Remove asmdef files from package archive
+
+
+## Changes for v1.13.2:
+
+* New Features
+  - Add support for Wave 4.1
+  - Add support for Vive Hand Tracking 0.10
+
+* Changes
+  - Now Grabbable able to be stretch around using 2 grabbers
+    - Requires enabling "multiple grabbers" option
+    - Able to scale if min/maxScaleOnStretch set to proper values (min < max)
+  - Optimize process creating Wave Render Model by reducing redundent instances
+
+* Bug Fixes
+  - Fix Grip axis returns joystick value on Oculus controller (Unity XR only)
+  - Fix ControllerRole doesn't map left hand device correctly
+  - Fix unable to get Grip/A/B/X/Y button values on Wave controllers (Wave 3.2 only)
+
+
+## Changes for v1.13.1:
+
+* New Features
+  - Add support for Wave 4.0
+  - New tracked hand rigs API (Experimental)
+  - New tooltip framework (Experimental)
+
+* Known Issue
+  - Latest Oculus SDK not compatible (controller not recognized)
+
+
+## Changes for v1.12.2:
+
+* New Features
+  - Add ControllerButtonMask to able to mask out multiple buttin input simultaneously
+```csharp
+// return true if right controller trigger or pad button pressed
+ViveInput.GetAnyPress(HandRole.RightHand, new ControllerButtonMask(ControllerButton.Trigger, ControllerButton.Pad))
+
+// return true if both right controller trigger and pad button pressed
+ViveInput.GetAllPress(HandRole.RightHand, new ControllerButtonMask(ControllerButton.Trigger, ControllerButton.Pad))
+```
+
+* Bug Fixes
+  - Fix error when Wave Essence RenderModel module is installed
+  - Fix teleport in wrong height for some device in example 6
 
 ## Changes for v1.12.0:
 
