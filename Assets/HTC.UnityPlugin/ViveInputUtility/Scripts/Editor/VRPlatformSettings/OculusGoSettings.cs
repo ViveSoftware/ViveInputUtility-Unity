@@ -244,7 +244,7 @@ namespace HTC.UnityPlugin.Vive
                 recommendedValue = true,
             });
 
-#if UNITY_5_5_OR_NEWER
+#if UNITY_5_5_OR_NEWER && !UNITY_2019_4_OR_NEWER
             Add(new VIUVersionCheck.RecommendedSetting<bool>()
             {
                 settingTitle = "Use Oculus Mobile recommended Quality Settings",
@@ -255,38 +255,39 @@ namespace HTC.UnityPlugin.Vive
                     settingObj.Update();
 
                     var qualitySettingsArray = settingObj.FindProperty("m_QualitySettings");
-                    for (int i = 0, imax = qualitySettingsArray.arraySize; i < imax; ++i)
-                    {
-                        // Simple(level 2) is a good one to start from, it should be the only level that is checked.
-                        var element = qualitySettingsArray.GetArrayElementAtIndex(i);
-                        var excludedArray = element.FindPropertyRelative("excludedTargetPlatforms");
+                    // try to apply on default, unchanged, lagecy quality settings only
+                    if (qualitySettingsArray.arraySize < 3) { return true; }
+                    var simpleQualitySetting = qualitySettingsArray.GetArrayElementAtIndex(2);
 
-                        var foundExcludeAndroidPlatform = false;
-                        for (int j = 0, jmax = excludedArray.arraySize; j < jmax; ++j)
-                        {
-                            if (excludedArray.GetArrayElementAtIndex(j).stringValue == "Android")
-                            {
-                                foundExcludeAndroidPlatform = true;
-                                break;
-                            }
-                        }
+                    var nameProp = simpleQualitySetting.FindPropertyRelative("name"); if (nameProp == null) { return true; }
+                    var simpleQualitySettingName = nameProp.stringValue;
+                    if (simpleQualitySettingName != "Simple" || simpleQualitySettingName != "Medium") { return true; }
 
-                        if (i == 2) { if (foundExcludeAndroidPlatform) { return false; } }
-                        else if (!foundExcludeAndroidPlatform) { return false; }
-                    }
-
-                    var lv2qualitySetting = qualitySettingsArray.GetArrayElementAtIndex(2);
-                    if (lv2qualitySetting.FindPropertyRelative("pixelLightCount").intValue > 1) { return false; }
-                    if (lv2qualitySetting.FindPropertyRelative("anisotropicTextures").intValue != (int)AnisotropicFiltering.Disable) { return false; }
-                    var antiAliasingLevel = lv2qualitySetting.FindPropertyRelative("antiAliasing").intValue; if (antiAliasingLevel > 4 || antiAliasingLevel < 2) { return false; }
-                    if (lv2qualitySetting.FindPropertyRelative("shadows").intValue >= (int)ShadowQuality.All) { return false; }
+                    var excludedPlatforms = simpleQualitySetting.FindPropertyRelative("excludedTargetPlatforms"); if (excludedPlatforms == null) { return true; }
+                    var pixelLightCount = simpleQualitySetting.FindPropertyRelative("pixelLightCount"); if (pixelLightCount == null) { return true; }
+                    var anisotropicTextures = simpleQualitySetting.FindPropertyRelative("anisotropicTextures"); if (anisotropicTextures == null) { return true; }
+                    var antiAliasing = simpleQualitySetting.FindPropertyRelative("antiAliasing"); if (antiAliasing == null) { return true; }
+                    var shadows = simpleQualitySetting.FindPropertyRelative("shadows"); if (shadows == null) { return true; }
+                    var vSyncCount = simpleQualitySetting.FindPropertyRelative("vSyncCount"); if (vSyncCount == null) { return true; }
 #if UNITY_2019_1_OR_NEWER
-                    if (lv2qualitySetting.FindPropertyRelative("skinWeights").intValue > 2) { return false; }
+                    var weights = simpleQualitySetting.FindPropertyRelative("skinWeights"); if (weights == null) { return true; }
 #else
-                    if (lv2qualitySetting.FindPropertyRelative("blendWeights").intValue > 2) { return false; }
+                    var weights = simpleQualitySetting.FindPropertyRelative("blendWeights"); if (weights == null) { return true; }
 #endif
-                    if (lv2qualitySetting.FindPropertyRelative("vSyncCount").intValue != 0) { return false; }
 
+                    for (int i = 0, imax = excludedPlatforms.arraySize; i < imax; ++i)
+                    {
+                        if (excludedPlatforms.GetArrayElementAtIndex(i).stringValue == "Android")
+                        {
+                            return false;
+                        }
+                    }
+                    if (pixelLightCount.intValue > 1) { return false; }
+                    if (anisotropicTextures.intValue != (int)AnisotropicFiltering.Disable) { return false; }
+                    if (antiAliasing.intValue > 4 || antiAliasing.intValue < 2) { return false; }
+                    if (shadows.intValue >= (int)ShadowQuality.All) { return false; }
+                    if (vSyncCount.intValue != 0) { return false; }
+                    if (weights.intValue > 2) { return false; }
                     return true;
                 },
                 setValueFunc = v =>
@@ -296,62 +297,34 @@ namespace HTC.UnityPlugin.Vive
                     var settingObj = GetQualitySettingsAsset();
                     settingObj.Update();
 
+                    // Simple(level 2) is a good one to start from, it should be the only level that is checked.
                     var qualitySettingsArray = settingObj.FindProperty("m_QualitySettings");
-                    for (int i = 0, imax = qualitySettingsArray.arraySize; i < imax; ++i)
-                    {
-                        // Simple(level 2) is a good one to start from, it should be the only level that is checked.
-                        var element = qualitySettingsArray.GetArrayElementAtIndex(i);
-                        var excludedArray = element.FindPropertyRelative("excludedTargetPlatforms");
-
-                        var excludeAndroidIndex = -1;
-                        for (int j = 0, jmax = excludedArray.arraySize; j < jmax; ++j)
-                        {
-                            if (excludedArray.GetArrayElementAtIndex(j).stringValue == "Android")
-                            {
-                                excludeAndroidIndex = j;
-                                break;
-                            }
-                        }
-
-                        if (i == 2)
-                        {
-                            if (excludeAndroidIndex >= 0)
-                            {
-                                excludedArray.DeleteArrayElementAtIndex(excludeAndroidIndex);
-                            }
-                        }
-                        else if (excludeAndroidIndex < 0)
-                        {
-                            excludedArray.arraySize += 1;
-                            excludedArray.GetArrayElementAtIndex(excludedArray.arraySize - 1).stringValue = "Android";
-                        }
-                    }
-
-                    var lv2qualitySetting = qualitySettingsArray.GetArrayElementAtIndex(2);
-
-                    var pixelLightCountProp = lv2qualitySetting.FindPropertyRelative("pixelLightCount");
-                    var pixelLightCount = pixelLightCountProp.intValue;
-                    if (pixelLightCount > 1) { pixelLightCountProp.intValue = 1; }
-                    else if (pixelLightCount < 0) { pixelLightCountProp.intValue = 0; }
-
-                    lv2qualitySetting.FindPropertyRelative("anisotropicTextures").intValue = (int)AnisotropicFiltering.Disable;
-
-                    var antiAliasingLevelProp = lv2qualitySetting.FindPropertyRelative("antiAliasing");
-                    var antiAliasingLevel = antiAliasingLevelProp.intValue;
-                    if (antiAliasingLevel != 2 || antiAliasingLevel != 4) { antiAliasingLevelProp.intValue = 4; }
-
-                    var shadowsProp = lv2qualitySetting.FindPropertyRelative("shadows");
-                    if (shadowsProp.intValue >= (int)ShadowQuality.All) { shadowsProp.intValue = (int)ShadowQuality.HardOnly; }
-
+                    var simpleQualitySetting = qualitySettingsArray.GetArrayElementAtIndex(2);
+                    var excludedPlatforms = simpleQualitySetting.FindPropertyRelative("excludedTargetPlatforms");
+                    var pixelLightCount = simpleQualitySetting.FindPropertyRelative("pixelLightCount");
+                    var anisotropicTextures = simpleQualitySetting.FindPropertyRelative("anisotropicTextures");
+                    var antiAliasing = simpleQualitySetting.FindPropertyRelative("antiAliasing");
+                    var shadows = simpleQualitySetting.FindPropertyRelative("shadows");
+                    var vSyncCount = simpleQualitySetting.FindPropertyRelative("vSyncCount");
 #if UNITY_2019_1_OR_NEWER
-                    var blendWeightsProp = lv2qualitySetting.FindPropertyRelative("skinWeights");
-                    if (blendWeightsProp.intValue > 2) { blendWeightsProp.intValue = 2; }
+                    var weights = simpleQualitySetting.FindPropertyRelative("skinWeights");
 #else
-                    var blendWeightsProp = lv2qualitySetting.FindPropertyRelative("blendWeights");
-                    if (blendWeightsProp.intValue > 2) { blendWeightsProp.intValue = 2; }
+                    var weights = simpleQualitySetting.FindPropertyRelative("blendWeights");
 #endif
 
-                    lv2qualitySetting.FindPropertyRelative("vSyncCount").intValue = 0;
+                    for (int i = 0, imax = excludedPlatforms.arraySize; i < imax; ++i)
+                    {
+                        if (excludedPlatforms.GetArrayElementAtIndex(i).stringValue == "Android")
+                        {
+                            excludedPlatforms.DeleteArrayElementAtIndex(i); break;
+                        }
+                    }
+                    pixelLightCount.intValue = 1;
+                    anisotropicTextures.intValue = (int)AnisotropicFiltering.Disable;
+                    if (antiAliasing.intValue != 2 || antiAliasing.intValue != 4) { antiAliasing.intValue = 4; }
+                    if (shadows.intValue >= (int)ShadowQuality.All) { shadows.intValue = (int)ShadowQuality.HardOnly; }
+                    vSyncCount.intValue = 0;
+                    if (weights.intValue > 2) { weights.intValue = 2; }
 
                     settingObj.ApplyModifiedProperties();
                 },
@@ -359,7 +332,7 @@ namespace HTC.UnityPlugin.Vive
             });
 #endif
 
-#if UNITY_5_6_OR_NEWER
+#if UNITY_5_6_OR_NEWER && !UNITY_2019_4_OR_NEWER
             Add(new VIUVersionCheck.RecommendedSetting<bool>()
             {
                 settingTitle = "Use Oculus Mobile recommended Graphics Tier Settings",
