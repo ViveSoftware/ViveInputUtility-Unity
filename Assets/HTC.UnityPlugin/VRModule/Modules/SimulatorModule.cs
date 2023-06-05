@@ -115,9 +115,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
-        public override uint GetRightControllerDeviceIndex() { return RIGHT_INDEX; }
+        public override uint GetRightControllerDeviceIndex() { return m_currStates != null && m_currStates[RIGHT_INDEX].isConnected ? RIGHT_INDEX : VRModule.INVALID_DEVICE_INDEX; }
 
-        public override uint GetLeftControllerDeviceIndex() { return LEFT_INDEX; }
+        public override uint GetLeftControllerDeviceIndex() { return m_currStates != null && m_currStates[LEFT_INDEX].isConnected ? LEFT_INDEX : VRModule.INVALID_DEVICE_INDEX; }
 
         public override void Update()
         {
