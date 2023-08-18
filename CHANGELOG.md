@@ -1,5 +1,12 @@
-﻿# Vive Input Utility for Unity - v1.18.1
+﻿# Vive Input Utility for Unity - v1.18.2
 Copyright (c) 2016-2023, HTC Corporation. All rights reserved.
+
+
+## Changes for v1.18.2:
+
+* Bug Fixes
+  - Fix Meta Pro controller input not handled when using latest Oculus plugin
+  - Fix unable to enable platform support in VIU Settings when using latest Unity XR Plugin Management
 
 
 ## Changes for v1.18.1:
