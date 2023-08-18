@@ -144,7 +144,7 @@ namespace HTC.UnityPlugin.Vive
                     if (!canSupport) { return false; }
 #if UNITY_2019_3_OR_NEWER
                     if (!VIUSettings.activateOculusVRModule && !VIUSettings.activateUnityXRModule) { return false; }
-                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_NAME, requirdPlatform)) { return false; }
+                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OculusVRModule.OCULUS_XR_LOADER_NAME, OculusVRModule.OCULUS_XR_LOADER_CLASS_NAME, requirdPlatform)) { return false; }
 #elif UNITY_5_5_OR_NEWER
                     if (!VIUSettings.activateOculusVRModule && !VIUSettings.activateUnityNativeVRModule) { return false; }
                     if (!OculusSDK.enabled) { return false; }

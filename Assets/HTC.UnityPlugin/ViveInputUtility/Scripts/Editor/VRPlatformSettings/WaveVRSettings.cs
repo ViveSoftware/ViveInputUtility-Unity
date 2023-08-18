@@ -127,7 +127,7 @@ namespace HTC.UnityPlugin.Vive
                     if (!VIUSettings.activateWaveVRModule) { return false; }
 
 #if VIU_XR_GENERAL_SETTINGS
-                    if (!(MockHMDSDK.enabled || XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_NAME, requirdPlatform)))
+                    if (!(MockHMDSDK.enabled || XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_NAME, UnityXRModule.WAVE_XR_LOADER_CLASS_NAME, requirdPlatform)))
                     {
                         return false;
                     }
@@ -453,7 +453,7 @@ namespace HTC.UnityPlugin.Vive
                 if (VIUProjectSettings.Instance.isInstallingWaveXRPlugin)
                 {
                     bool isPackageInstalled = PackageManagerHelper.IsPackageInList(WAVE_XR_PACKAGE_NAME);
-                    bool isLoaderEnabled = XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_NAME, BuildTargetGroup.Android);
+                    bool isLoaderEnabled = XRPluginManagementUtils.IsXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_NAME, UnityXRModule.WAVE_XR_LOADER_CLASS_NAME, BuildTargetGroup.Android);
                     if (isPackageInstalled && !isLoaderEnabled)
                     {
                         XRPluginManagementUtils.SetXRLoaderEnabled(UnityXRModule.WAVE_XR_LOADER_CLASS_NAME, BuildTargetGroup.Android, true);

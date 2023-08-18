@@ -19,7 +19,7 @@ namespace HTC.UnityPlugin.Vive
 {
     public static class XRPluginManagementUtils
     {
-        public static bool IsXRLoaderEnabled(string loaderName, BuildTargetGroup buildTargetGroup)
+        public static bool IsXRLoaderEnabled(string loaderName, string loaderClassName, BuildTargetGroup buildTargetGroup)
         {
 #if VIU_XR_GENERAL_SETTINGS
             XRGeneralSettings xrSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
@@ -35,7 +35,7 @@ namespace HTC.UnityPlugin.Vive
 
             foreach (XRLoader loader in xrSettings.AssignedSettings.loaders)
             {
-                if (loader.name == loaderName)
+                if (loader.name == loaderName || loader.name == loaderClassName)
                 {
                     return true;
                 }
@@ -44,7 +44,7 @@ namespace HTC.UnityPlugin.Vive
             return false;
         }
 
-        public static bool OnlyOneXRLoaderEnabled(string loaderName, BuildTargetGroup buildTargetGroup)
+        public static bool OnlyOneXRLoaderEnabled(string loaderName, string loaderClassName, BuildTargetGroup buildTargetGroup)
         {
 #if VIU_XR_GENERAL_SETTINGS
             XRGeneralSettings xrSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
@@ -59,7 +59,7 @@ namespace HTC.UnityPlugin.Vive
             }
 
             var loaders = xrSettings.AssignedSettings.loaders;
-            return loaders.Count == 1 && loaders[0].name == loaderName;
+            return loaders.Count == 1 && (loaders[0].name == loaderName || loaders[0].name == loaderClassName);
 #else
             return false;
 #endif

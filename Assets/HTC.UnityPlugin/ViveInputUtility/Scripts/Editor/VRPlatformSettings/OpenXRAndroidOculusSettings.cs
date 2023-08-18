@@ -79,7 +79,7 @@ namespace HTC.UnityPlugin.Vive
                     if (PackageManagerHelper.IsPackageInList(WAVE_XR_OPENXR_PACKAGE)) { return false; }
                     if (PackageManagerHelper.IsPackageInList(OCULUS_XR_PACKAGE_NAME)) { return false; }
                     if (!PackageManagerHelper.IsPackageInList(OPENXR_PLUGIN_PACKAGE_NAME)) { return false; }
-                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform)) { return false; }
+                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, OPENXR_PLUGIN_LOADER_TYPE, requirdPlatform)) { return false; }
                     return true;
                 }
             }
@@ -90,7 +90,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateUnityXRModule) { return false; }
-                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform)) { return false; }
+                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, OPENXR_PLUGIN_LOADER_TYPE, requirdPlatform)) { return false; }
                     if (IsOpenXRFeatureGroupEnabled(requirdPlatform, WAVE_XR_OPENXR_FEATURE_ID)) { return false; }
                     if (!IsOpenXRFeatureGroupEnabled(requirdPlatform, OCULUS_QUEST_OPENXR_FEATURE_ID)) { return false; }
                     return true;
@@ -204,7 +204,7 @@ namespace HTC.UnityPlugin.Vive
                             PackageManagerHelper.AddToPackageList(OPENXR_PLUGIN_PACKAGE_NAME);
                         }
                     }
-                    else if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform))
+                    else if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, OPENXR_PLUGIN_LOADER_TYPE, requirdPlatform))
                     {
                         GUI.enabled = false;
                         ShowToggle(new GUIContent(s_title), false, GUILayout.Width(toggleWidth));
