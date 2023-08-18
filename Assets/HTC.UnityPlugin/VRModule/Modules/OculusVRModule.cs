@@ -815,6 +815,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     case VRModuleDeviceModel.OculusTouchLeft:
                     case VRModuleDeviceModel.OculusQuestControllerLeft:
                     case VRModuleDeviceModel.OculusQuest2ControllerLeft:
+                    case VRModuleDeviceModel.OculusTouchProLeft:
                         {
                             var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.LTouch);
 
@@ -842,6 +843,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     case VRModuleDeviceModel.OculusTouchRight:
                     case VRModuleDeviceModel.OculusQuestControllerRight:
                     case VRModuleDeviceModel.OculusQuest2ControllerRight:
+                    case VRModuleDeviceModel.OculusTouchProRight:
                         {
                             var ctrlState = OVRPlugin.GetControllerState((uint)OVRPlugin.Controller.RTouch);
 
