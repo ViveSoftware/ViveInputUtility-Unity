@@ -31,7 +31,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
                     if (!VIUSettings.activateUnityXRModule) { return false; }
-                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform)) { return false; }
+                    if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, OPENXR_PLUGIN_LOADER_TYPE, requirdPlatform)) { return false; }
                     return true;
                 }
                 set
@@ -84,7 +84,7 @@ namespace HTC.UnityPlugin.Vive
                             PackageManagerHelper.AddToPackageList(OPENXR_PLUGIN_PACKAGE_NAME);
                         }
                     }
-                    else if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, requirdPlatform))
+                    else if (!XRPluginManagementUtils.IsXRLoaderEnabled(OPENXR_PLUGIN_LOADER_NAME, OPENXR_PLUGIN_LOADER_TYPE, requirdPlatform))
                     {
                         GUI.enabled = false;
                         ShowToggle(s_title, false, GUILayout.Width(toggleWidth));

@@ -406,7 +406,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (!canSupport) { return false; }
 #if UNITY_2019_3_OR_NEWER
-                    return (VIUSettings.activateSteamVRModule || VIUSettings.activateUnityXRModule) && XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, requirdPlatform);
+                    return (VIUSettings.activateSteamVRModule || VIUSettings.activateUnityXRModule) && XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, SteamVRModule.OPENVR_XR_LOADER_CLASS_NAME, requirdPlatform);
 #elif UNITY_5_5_OR_NEWER
                     return (VIUSettings.activateSteamVRModule || VIUSettings.activateUnityNativeVRModule) && OpenVRSDK.enabled;
 #elif UNITY_5_4_OR_NEWER
@@ -629,7 +629,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     bool isPackageInstalled = PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME) ||
                                               PackageManagerHelper.IsPackageInList(OPENVR_XR_PACKAGE_NAME_OLD);
-                    bool isLoaderEnabled = XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, BuildTargetGroup.Standalone);
+                    bool isLoaderEnabled = XRPluginManagementUtils.IsXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_NAME, SteamVRModule.OPENVR_XR_LOADER_CLASS_NAME, BuildTargetGroup.Standalone);
                     if (isPackageInstalled && !isLoaderEnabled)
                     {
                         XRPluginManagementUtils.SetXRLoaderEnabled(SteamVRModule.OPENVR_XR_LOADER_CLASS_NAME, BuildTargetGroup.Standalone, true);
