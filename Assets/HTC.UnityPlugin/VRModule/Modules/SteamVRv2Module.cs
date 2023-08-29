@@ -209,10 +209,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public override bool ShouldActiveModule()
         {
 #if UNITY_2019_3_OR_NEWER && VIU_XR_GENERAL_SETTINGS
-            return VIUSettings.activateSteamVRModule && (UnityXRModule.HasActiveLoader(OPENVR_XR_LOADER_NAME) ||
-                (XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR"));
+            return VIUSettings.activateSteamVRModule && (UnityXRModuleBase.HasActiveLoader(VRModuleKnownXRLoader.OpenVR) ||
+                (XRSettings.enabled && XRSettings.loadedDeviceName.Contains("OpenVR")));
 #elif UNITY_5_4_OR_NEWER
-            return VIUSettings.activateSteamVRModule && XRSettings.enabled && XRSettings.loadedDeviceName == "OpenVR";
+            return VIUSettings.activateSteamVRModule && XRSettings.enabled && XRSettings.loadedDeviceName.Contains("OpenVR");
 #else
             return VIUSettings.activateSteamVRModule && SteamVR.enabled;
 #endif

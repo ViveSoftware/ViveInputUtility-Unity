@@ -1045,7 +1045,7 @@ namespace HTC.UnityPlugin.Vive
 
         private static void ShowCheckRecommendedSettingsButton()
         {
-            if (VIUVersionCheck.notifiedSettingsCount <= 0) { return; }
+            if (VIUVersionCheck.notifiedSettingsCount == 0 && VIUVersionCheck.ignoredSettingsCount == 0) { return; }
 
             if (GUILayout.Button("View Recommended Settings", GUILayout.ExpandWidth(false)))
             {

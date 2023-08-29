@@ -1,5 +1,15 @@
-﻿# Vive Input Utility for Unity - v1.18.2
+﻿# Vive Input Utility for Unity - v1.18.3
 Copyright (c) 2016-2023, HTC Corporation. All rights reserved.
+
+
+## Changes for v1.18.3:
+
+* Changes & Fixes
+  - Fix unable to get controller button on OpenVR(SteamVR) platform
+    - Seems latest Unity XR Plugin chages behaviour causes not actvating SteamVRv2Module correctly
+  - Now recommanded settings button will show up in VIUSettings if there's ignored settings
+  - Fix ViveColliderEventCaster button not working in some cases
+  - Fix ControllerButton.BKeyTouch typo
 
 
 ## Changes for v1.18.2:
