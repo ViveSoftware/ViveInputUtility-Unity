@@ -309,7 +309,24 @@ namespace HTC.UnityPlugin.Vive
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEVR_HAND_TRACKING_CHECK && VIU_WAVEVR_HAND_TRACKING
                         {
-                            var supported = EditorPrefs.GetBool("Wave/HandTracking/EnableHandTracking", false) && VRModuleSettings.activateWaveHandTrackingSubmodule;
+#if VIU_WAVE_NATIVE_5_0_OR_NEWER
+                            Wave.XR.Settings.WaveXRSettings settings = Wave.XR.Settings.WaveXRSettings.GetInstance();
+                            if (settings != null)
+                            {
+                                var supported = settings.EnableNaturalHand && VRModuleSettings.activateWaveHandTrackingSubmodule;
+                                var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle), supported);
+                                if (supported != shouldSupport)
+                                {
+                                    settings.EnableNaturalHand = shouldSupport;
+                                    VRModuleSettings.activateWaveHandTrackingSubmodule = shouldSupport;
+                                    // can manually disable gesture data fetching by setting enableWaveHandGesture to false if needed
+                                    // so far the hardware/runtime will start gesture detaction whenever hand tracking detaction is started,
+                                    // disabling enableWaveHandGesture only save some data fetching time, it doesn't stop hardware/runtime gesture detaction
+                                    if (shouldSupport) { VRModuleSettings.enableWaveHandGesture = true; }
+                                }
+                            }
+#else
+                            var supported = EditorPrefs.GetBool("Wave/Hand Tracking/Enable Hand Tracking", false) && VRModuleSettings.activateWaveHandTrackingSubmodule;
                             var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveHandTrackingTitle), supported);
                             if (supported != shouldSupport)
                             {
@@ -320,6 +337,7 @@ namespace HTC.UnityPlugin.Vive
                                 // disabling enableWaveHandGesture only save some data fetching time, it doesn't stop hardware/runtime gesture detaction
                                 if (shouldSupport) { VRModuleSettings.enableWaveHandGesture = true; }
                             }
+#endif
                         }
 #elif UNITY_2018_1_OR_NEWER
                         GUI.enabled = false;
@@ -357,13 +375,27 @@ namespace HTC.UnityPlugin.Vive
                         EditorGUILayout.BeginHorizontal();
 #if VIU_WAVEVR_TRACKER_CHECK && VIU_WAVEVR_TRACKER
                         {
-                            var supported = EditorPrefs.GetBool("Wave/Tracker/EnableTracker", false) && VRModuleSettings.activateWaveTrackerSubmodule;
+#if VIU_WAVE_NATIVE_5_1_1_OR_NEWER
+                            Wave.XR.Settings.WaveXRSettings settings = Wave.XR.Settings.WaveXRSettings.GetInstance();
+                            if (settings != null)
+                            {
+                                var supported = settings.EnableTracker && VRModuleSettings.activateWaveTrackerSubmodule;
+                                var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle), supported);
+                                if (supported != shouldSupport)
+                                {
+                                    settings.EnableTracker = shouldSupport;
+                                    VRModuleSettings.activateWaveTrackerSubmodule = shouldSupport;
+                                }
+                            }
+#else
+                            var supported = EditorPrefs.GetBool("Wave/Tracker/Enable Tracker", false) && VRModuleSettings.activateWaveTrackerSubmodule;
                             var shouldSupport = EditorGUILayout.ToggleLeft(new GUIContent(enableWaveTrackerTitle), supported);
                             if (supported != shouldSupport)
                             {
                                 Wave.XR.BuildCheck.CheckIfTrackerEnabled.PerformAction(shouldSupport);
                                 VRModuleSettings.activateWaveTrackerSubmodule = shouldSupport;
                             }
+#endif
                         }
 #elif UNITY_2018_1_OR_NEWER
                         GUI.enabled = false;
