@@ -75,6 +75,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         ViveWristTracker,
         OculusTouchProLeft,
         OculusTouchProRight,
+        ViveUltimateTracker,
     }
 
     public enum VRModuleRawButton

@@ -250,6 +250,7 @@ namespace HTC.UnityPlugin.Vive
             OculusQuest2ControllerLeft = VRModuleDeviceModel.OculusQuest2ControllerLeft,
             OculusQuest2ControllerRight = VRModuleDeviceModel.OculusQuest2ControllerRight,
             ViveWristTracker = VRModuleDeviceModel.ViveWristTracker,
+            ViveUltimateTracker = VRModuleDeviceModel.ViveUltimateTracker,
         }
 
         [SerializeField]
