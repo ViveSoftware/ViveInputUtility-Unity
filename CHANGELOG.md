@@ -1,5 +1,5 @@
 ﻿# Vive Input Utility for Unity - v1.18.3
-Copyright (c) 2016-2023, HTC Corporation. All rights reserved.
+Copyright (c) 2016-2024, HTC Corporation. All rights reserved.
 
 
 ## Changes for v1.18.3:
