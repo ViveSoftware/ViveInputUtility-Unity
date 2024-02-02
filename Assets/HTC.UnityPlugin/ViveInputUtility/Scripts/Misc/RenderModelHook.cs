@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2024, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.VRModuleManagement;
@@ -250,6 +250,7 @@ namespace HTC.UnityPlugin.Vive
             OculusQuest2ControllerLeft = VRModuleDeviceModel.OculusQuest2ControllerLeft,
             OculusQuest2ControllerRight = VRModuleDeviceModel.OculusQuest2ControllerRight,
             ViveWristTracker = VRModuleDeviceModel.ViveWristTracker,
+            ViveUltimateTracker = VRModuleDeviceModel.ViveUltimateTracker,
         }
 
         [SerializeField]

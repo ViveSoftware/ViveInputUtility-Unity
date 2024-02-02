@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2024, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using HTC.UnityPlugin.Vive;
@@ -79,7 +79,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #endif
                             GameObject controllerObj = new GameObject("Controller");
                             controllerObj.transform.SetParent(m_modelObj.transform, false);
-                            controllerObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
+                            var rm = controllerObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
+                            rm.WhichHand = XR_Hand.Dominant;
+#if VIU_WAVE_ESSENCE_5_4_R8_OR_NEWER
+                            rm.useTextureInProject = true;
+#endif
                             controllerObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
 #elif VIU_WAVEXR_ESSENCE_RENDERMODEL
                             m_modelObj.AddComponent<Wave.Essence.Controller.RenderModel>();
@@ -107,6 +111,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             controllerObj.transform.SetParent(m_modelObj.transform, false);
                             var rm = controllerObj.AddComponent<Wave.Essence.Controller.Model.RenderModel>();
                             rm.WhichHand = XR_Hand.NonDominant;
+#if VIU_WAVE_ESSENCE_5_4_R8_OR_NEWER
+                            rm.useTextureInProject = true;
+#endif
                             var be = controllerObj.AddComponent<Wave.Essence.Controller.Model.ButtonEffect>();
                             be.HandType = XR_Hand.NonDominant;
 #elif VIU_WAVEXR_ESSENCE_RENDERMODEL

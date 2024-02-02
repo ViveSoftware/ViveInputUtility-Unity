@@ -30,6 +30,17 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.htc.upm.wave.native",
+            "expression": "5.0.0",
+            "define": "VIU_WAVE_NATIVE_5_0_OR_NEWER"
+        },
+        {
+            "name": "com.htc.upm.wave.native",
+            "expression": "5.1.1",
+            "define": "VIU_WAVE_NATIVE_5_1_1_OR_NEWER"
+        }
+    ],
     "noEngineReferences": false
 }

@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2024, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -75,6 +75,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         ViveWristTracker,
         OculusTouchProLeft,
         OculusTouchProRight,
+        ViveUltimateTracker,
     }
 
     public enum VRModuleRawButton

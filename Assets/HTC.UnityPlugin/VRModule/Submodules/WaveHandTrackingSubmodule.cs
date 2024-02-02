@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2024, HTC Corporation. All rights reserved. ===========
 
 using UnityEngine;
 using System;
@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 
 #if VIU_WAVEVR_HAND_TRACKING
 using Wave.Native;
+using Wave.XR.Function;
 #endif
 
 namespace HTC.UnityPlugin.VRModuleManagement
@@ -47,6 +48,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private static WVR_HandModelType showElectronicHandWithController =
             VRModuleSettings.showWaveElectronicHandWithController ?
             WVR_HandModelType.WVR_HandModelType_WithController : WVR_HandModelType.WVR_HandModelType_WithoutController;
+
+#if VIU_WAVE_NATIVE_4_2_OR_NEWER
+        private delegate void ConvertHandTrackingDataToUnityDelegate(ref WVR_HandJointData_t src, ref HandJointData26 dest);
+        private static ConvertHandTrackingDataToUnityDelegate ConvertHandTrackingDataToUnity = null;
+#endif
 
         public override bool ShouldActiveModule() { return VRModuleSettings.activateWaveHandTrackingSubmodule; }
 
@@ -173,7 +179,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Coordinate.GetVectorFromGL(pinch.pinch.origin, out origin);
             Coordinate.GetVectorFromGL(pinch.pinch.direction, out direction);
 
-            return pinch.state.type != WVR_HandPoseType.WVR_HandPoseType_Invalid;
+            return pinch.state.type == WVR_HandPoseType.WVR_HandPoseType_Pinch;
         }
 
         public static bool TryGetRightPinchRay(out Vector3 origin, out Vector3 direction)
@@ -190,7 +196,43 @@ namespace HTC.UnityPlugin.VRModuleManagement
             Coordinate.GetVectorFromGL(pinch.pinch.origin, out origin);
             Coordinate.GetVectorFromGL(pinch.pinch.direction, out direction);
 
-            return pinch.state.type != WVR_HandPoseType.WVR_HandPoseType_Invalid;
+            return pinch.state.type == WVR_HandPoseType.WVR_HandPoseType_Pinch;
+        }
+
+        public static bool TryGetLeftHandScale(out Vector3 scale)
+        {
+            if (!trackingActivator.isLeftValid)
+            {
+                scale = Vector3.one;
+
+                return false;
+            }
+
+            var scaleGL = trackingActivator.getLeftHandData.scale;
+
+            scale.x = scaleGL.v0;
+            scale.y = scaleGL.v1;
+            scale.z = scaleGL.v2;
+
+            return true;
+        }
+
+        public static bool TryGetRightHandScale(out Vector3 scale)
+        {
+            if (!trackingActivator.isRightValid)
+            {
+                scale = Vector3.one;
+
+                return false;
+            }
+
+            var scaleGL = trackingActivator.getRightHandData.scale;
+
+            scale.x = scaleGL.v0;
+            scale.y = scaleGL.v1;
+            scale.z = scaleGL.v2;
+
+            return true;
         }
 
         private enum FeatureActivity
@@ -346,6 +388,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
             private static WVR_Pose_t[] s_NaturalHandJointsPoseLeft;
             private static WVR_HandJointData_t m_NaturalHandJointDataRight = new WVR_HandJointData_t();
             private static WVR_Pose_t[] s_NaturalHandJointsPoseRight;
+#if VIU_WAVE_NATIVE_4_2_OR_NEWER
+            private static HandJointData26 jointData26 = new HandJointData26();
+#endif
             private static int[] intJointMappingArray;
             private static byte[] jointValidFlagArrayBytes;
             private static uint jointCount;
@@ -412,6 +457,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
             {
                 return () =>
                 {
+#if VIU_WAVE_NATIVE_4_2_OR_NEWER
+                    var ptr = FunctionsHelper.GetFuncPtr("ConvertHandTrackingDataToUnity");
+                    if (ptr != IntPtr.Zero)
+                    {
+                        ConvertHandTrackingDataToUnity = Marshal.GetDelegateForFunctionPointer<ConvertHandTrackingDataToUnityDelegate>(ptr);
+                    }
+                    else
+                    {
+                        ConvertHandTrackingDataToUnity = null;
+                    }
+#endif
+
                     var result = Interop.WVR_GetHandJointCount(preferredTrackerType, ref jointCount);
                     if (result != WVR_Result.WVR_Success) return result;
 
@@ -423,18 +480,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         ref s_NaturalHandJointsPoseLeft,
                         ref s_NaturalHandJointsPoseRight,
                         jointCount);
-                    var trackerInfoResult = Interop.WVR_GetHandTrackerInfo(preferredTrackerType, ref trackerInfo);
-                    var hasTrackerInfo = ExtractHandTrackerInfo(trackerInfo, ref s_NaturalHandJoints, ref s_NaturalHandJointsFlag);
-                    //if (hasTrackerInfo)
-                    //{
-                    //    for (int i = 0; i < trackerInfo.jointCount; i++)
-                    //    {
-                    //        Debug.Log("GetHandTrackerInfo() "
-                    //            + "joint count: " + trackerInfo.jointCount
-                    //            + ", s_NaturalHandJoints[" + i + "] = " + s_NaturalHandJoints[i]
-                    //            + ", s_NaturalHandJointsFlag[" + i + "] = " + s_NaturalHandJointsFlag[i]);
-                    //    }
-                    //}
+                    var trackerInfoResult = Interop.WVR_GetHandTrackerInfo(preferredTrackerType, ref trackerInfo) == WVR_Result.WVR_Success ? true : false;
+                    if (trackerInfoResult)
+                    {
+                        var hasTrackerInfo = ExtractHandTrackerInfo(trackerInfo, ref s_NaturalHandJoints, ref s_NaturalHandJointsFlag);
+                        //if (hasTrackerInfo)
+                        //{
+                        //    for (int i = 0; i < trackerInfo.jointCount; i++)
+                        //    {
+                        //        Debug.Log("GetHandTrackerInfo() "
+                        //            + "joint count: " + trackerInfo.jointCount
+                        //            + ", s_NaturalHandJoints[" + i + "] = " + s_NaturalHandJoints[i]
+                        //            + ", s_NaturalHandJointsFlag[" + i + "] = " + s_NaturalHandJointsFlag[i]);
+                        //    }
+                        //}
+                    }
+
                     return default(WVR_Result);
                 };
             }
@@ -472,6 +533,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
             public WVR_HandPoseState_t getLeftPinchData { get { return pinchData.left; } }
 
             public WVR_HandPoseState_t getRightPinchData { get { return pinchData.right; } }
+
+            public WVR_HandJointData_t getLeftHandData { get { return trackingData.left; } }
+
+            public WVR_HandJointData_t getRightHandData { get { return trackingData.right; } }
 
             public void UpdateJoints(IVRModuleDeviceStateRW state, bool isLeft)
             {
@@ -576,14 +641,15 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 handTrackerData.right = handJointDataRight;
             }
 
+            private static int size_of_wvr_pose_t = Marshal.SizeOf<WVR_Pose_t>();
+
             private static void InitializeHandJointData(ref WVR_HandJointData_t handJointData, ref WVR_Pose_t[] jointsPose, uint count)
             {
                 handJointData.isValidPose = false;
                 handJointData.confidence = 0;
                 handJointData.jointCount = count;
 
-                WVR_Pose_t wvr_pose_type = default(WVR_Pose_t);
-                handJointData.joints = Marshal.AllocHGlobal(Marshal.SizeOf(wvr_pose_type) * (int)count);
+                handJointData.joints = Marshal.AllocHGlobal(size_of_wvr_pose_t * (int)count);
 
                 jointsPose = new WVR_Pose_t[count];
 
@@ -597,7 +663,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 {
                     IntPtr wvr_pose_ptr = new IntPtr(offset);
                     Marshal.StructureToPtr(jointsPose[i], wvr_pose_ptr, false);
-                    offset += Marshal.SizeOf(wvr_pose_type);
+                    offset += size_of_wvr_pose_t;
                 }
             }
 
@@ -657,6 +723,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             private static bool ExtractHandTrackerData(WVR_HandTrackingData_t handTrackerData, ref WVR_Pose_t[] handJointsPoseLeft, ref WVR_Pose_t[] handJointsPoseRight)
             {
+#if VIU_WAVE_NATIVE_4_2_OR_NEWER
+                if (handTrackerData.left.jointCount == 26 &&
+                handTrackerData.right.jointCount == 26 &&
+                handJointsPoseLeft.Length == 26 &&
+                handJointsPoseRight.Length == 26 &&
+                ConvertHandTrackingDataToUnity != null)
+                {
+                    ExtractHandJointData2(ref handTrackerData.left, ref handJointsPoseLeft);
+                    ExtractHandJointData2(ref handTrackerData.right, ref handJointsPoseRight);
+                    return true;
+                }
+#endif
+
                 if (!ExtractHandJointData(handTrackerData.left, ref handJointsPoseLeft))
                     return false;
                 if (!ExtractHandJointData(handTrackerData.right, ref handJointsPoseRight))
@@ -680,8 +759,6 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     jointsPose = new WVR_Pose_t[handJointData.jointCount];
                 }
 
-                WVR_Pose_t wvr_pose_type = default(WVR_Pose_t);
-
                 int offset = 0;
                 for (int i = 0; i < jointsPose.Length; i++)
                 {
@@ -690,11 +767,45 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     else
                         jointsPose[i] = (WVR_Pose_t)Marshal.PtrToStructure(new IntPtr(handJointData.joints.ToInt64() + offset), typeof(WVR_Pose_t));
 
-                    offset += Marshal.SizeOf(wvr_pose_type);
+                    offset += size_of_wvr_pose_t;
                 }
 
                 return true;
             }
+
+#if VIU_WAVE_NATIVE_4_2_OR_NEWER
+            private static void ExtractHandJointData2(ref WVR_HandJointData_t jd, ref WVR_Pose_t[] poses)
+            {
+                ConvertHandTrackingDataToUnity(ref jd, ref jointData26);
+
+                poses[0] = jointData26.j00;
+                poses[1] = jointData26.j01;
+                poses[2] = jointData26.j02;
+                poses[3] = jointData26.j03;
+                poses[4] = jointData26.j04;
+                poses[5] = jointData26.j05;
+                poses[6] = jointData26.j06;
+                poses[7] = jointData26.j07;
+                poses[8] = jointData26.j08;
+                poses[9] = jointData26.j09;
+                poses[10] = jointData26.j10;
+                poses[11] = jointData26.j11;
+                poses[12] = jointData26.j12;
+                poses[13] = jointData26.j13;
+                poses[14] = jointData26.j14;
+                poses[15] = jointData26.j15;
+                poses[16] = jointData26.j16;
+                poses[17] = jointData26.j17;
+                poses[18] = jointData26.j18;
+                poses[19] = jointData26.j19;
+                poses[20] = jointData26.j20;
+                poses[21] = jointData26.j21;
+                poses[22] = jointData26.j22;
+                poses[23] = jointData26.j23;
+                poses[24] = jointData26.j24;
+                poses[25] = jointData26.j25;
+            }
+#endif
         }
 
         private class GestureActivator

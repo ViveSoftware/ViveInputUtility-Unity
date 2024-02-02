@@ -1,4 +1,4 @@
-﻿//========= Copyright 2016-2023, HTC Corporation. All rights reserved. ===========
+﻿//========= Copyright 2016-2024, HTC Corporation. All rights reserved. ===========
 
 using HTC.UnityPlugin.Utility;
 using System;
@@ -36,6 +36,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             private static readonly Regex s_viveRgx = new Regex("^.*(vive|htc).*$", REGEX_OPTIONS);
             private static readonly Regex s_viveCosmosRgx = new Regex("^.*(cosmos).*$", REGEX_OPTIONS);
+            private static readonly Regex s_viveUltRgx = new Regex("^.*ultimate.*$", REGEX_OPTIONS);
             private static readonly Regex s_focus3Rgx = new Regex("focus[\\s_\\-]*3", REGEX_OPTIONS);
             private static readonly Regex s_ver3Rgx = new Regex("^.*3.0.*$", REGEX_OPTIONS);
             private static readonly Regex s_oculusRgx = new Regex("^.*(oculus|quest).*$", REGEX_OPTIONS);
@@ -71,7 +72,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 // WVR_CR_Right_001
                 new WVRCtrlProfile { reg = new Regex("cr.+right", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveFocus3ControllerRight, input2D = VRModuleInput2DType.JoystickOnly },
                 // Wave Tracker0 HTC-211012-Tracker0, Wave Tracker1 HTC-211012-Tracker1
-                new WVRCtrlProfile { reg = new Regex("^.*(tracker).*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveWristTracker, input2D = VRModuleInput2DType.None },
+                new WVRCtrlProfile { reg = new Regex("^.*(tracker[0|1]).*$", REGEX_OPTIONS), model = VRModuleDeviceModel.ViveWristTracker, input2D = VRModuleInput2DType.None },
             };
 
             public bool isActivated { get; private set; }
@@ -214,7 +215,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             }
                             return;
                         case VRModuleDeviceClass.GenericTracker:
-                            if (s_ver3Rgx.IsMatch(deviceState.modelNumber))
+                            if (s_viveUltRgx.IsMatch(deviceState.renderModelName))
+                            {
+                                deviceState.deviceModel = VRModuleDeviceModel.ViveUltimateTracker;
+                            }
+                            else if (s_ver3Rgx.IsMatch(deviceState.modelNumber))
                             {
                                 deviceState.deviceModel = VRModuleDeviceModel.ViveTracker3;
                             }

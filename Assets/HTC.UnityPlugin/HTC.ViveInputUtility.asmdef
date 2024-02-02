@@ -1,5 +1,6 @@
 {
     "name": "HTC.ViveInputUtility",
+    "rootNamespace": "",
     "references": [
         "Unity.XR.Management",
         "SteamVR",
@@ -25,6 +26,17 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.htc.upm.wave.native",
+            "expression": "4.2.0",
+            "define": "VIU_WAVE_NATIVE_4_2_OR_NEWER"
+        },
+        {
+            "name": "com.htc.upm.wave.essence",
+            "expression": "5.4.0",
+            "define": "VIU_WAVE_ESSENCE_5_4_OR_NEWER"
+        }
+    ],
     "noEngineReferences": false
 }
