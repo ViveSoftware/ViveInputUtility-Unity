@@ -1,5 +1,14 @@
-﻿# Vive Input Utility for Unity - v1.18.3
+﻿# Vive Input Utility for Unity - v1.19.0
 Copyright (c) 2016-2024, HTC Corporation. All rights reserved.
+
+
+## Changes for v1.19.0:
+
+* Changes
+  - Add support for latest Wave XR plugin
+  - Add support for Vive Ultimate Tracker
+    - Requires latest Wave XR plugin (AIO) or SteamVR Plugin (PC)
+  - Add enum value VRModuleDeviceModel.ViveUltimateTracker
 
 
 ## Changes for v1.18.3:
