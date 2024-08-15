@@ -116,7 +116,7 @@ namespace HTC.UnityPlugin.Vive
 
             if (!(eventData is ViveColliderPadAxisEventData)) { return false; }
 
-            return (eventData as ViveColliderTriggerAxisEventData).viveRole.IsRole(hand);
+            return (eventData as ViveColliderPadAxisEventData).viveRole.IsRole(hand);
         }
 
         public static bool IsVivePadAxisEx<TRole>(this ColliderAxisEventData eventData, TRole role)
@@ -125,7 +125,7 @@ namespace HTC.UnityPlugin.Vive
 
             if (!(eventData is ViveColliderPadAxisEventData)) { return false; }
 
-            return (eventData as ViveColliderTriggerAxisEventData).viveRole.IsRole(role);
+            return (eventData as ViveColliderPadAxisEventData).viveRole.IsRole(role);
         }
 
         public static bool TryGetVivePadAxisEventData(this ColliderAxisEventData eventData, out ViveColliderPadAxisEventData viveEventData)

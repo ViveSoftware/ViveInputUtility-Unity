@@ -183,6 +183,8 @@ namespace HTC.UnityPlugin.Vive
 
                 for (int i = 0; i < roleEnums.Length; ++i)
                 {
+                    if (roleEnums[i] == null) continue;
+
                     var roleValue = ToRoleValue(roleEnums[i]);
 
                     m_nameTable.Add(GetNameByElementIndex(i), roleEnums[i]);
