@@ -67,6 +67,7 @@ namespace HTC.UnityPlugin.Vive
                 m_info = EnumUtils.GetDisplayInfo(roleEnumType);
 
                 var attrs = roleEnumType.GetCustomAttributes(typeof(ViveRoleEnumAttribute), false) as ViveRoleEnumAttribute[];
+                if (attrs == null) return;
                 m_invalidRoleValue = attrs[0].InvalidRoleValue;
 
                 m_minValidRoleValue = int.MaxValue;
@@ -172,6 +173,7 @@ namespace HTC.UnityPlugin.Vive
             {
                 m_info = GetInfo(typeof(TRole));
                 var roleEnums = m_info.RoleValues as TRole[];
+                if (roleEnums == null) { return; }
 
                 m_nameTable = new IndexedTable<string, TRole>(roleEnums.Length);
                 m_roles = new TRole[ValidRoleLength];
@@ -183,8 +185,6 @@ namespace HTC.UnityPlugin.Vive
 
                 for (int i = 0; i < roleEnums.Length; ++i)
                 {
-                    if (roleEnums[i] == null) continue;
-
                     var roleValue = ToRoleValue(roleEnums[i]);
 
                     m_nameTable.Add(GetNameByElementIndex(i), roleEnums[i]);
@@ -352,13 +352,14 @@ namespace HTC.UnityPlugin.Vive
             }
 
             var attrs = roleEnumType.GetCustomAttributes(typeof(ViveRoleEnumAttribute), false) as ViveRoleEnumAttribute[];
-            if (attrs.Length <= 0)
+            if (attrs == null || attrs.Length <= 0)
             {
                 return ViveRoleEnumValidateResult.ViveRoleEnumAttributeNotFound;
             }
 
             var invalidRoleValue = attrs[0].InvalidRoleValue;
             var values = Enum.GetValues(roleEnumType) as int[];
+            if (values == null) return ViveRoleEnumValidateResult.IsNotEnumType;
             var invalidRoleFound = false;
             foreach (var value in values)
             {
