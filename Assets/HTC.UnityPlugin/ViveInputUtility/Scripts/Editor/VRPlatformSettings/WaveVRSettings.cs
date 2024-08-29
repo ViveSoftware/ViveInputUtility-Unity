@@ -557,10 +557,10 @@ namespace HTC.UnityPlugin.Vive
                 {
                     var regScopes = reg.scopes;
                     if (regScopes == null || regScopes.Count == 0) { continue; }
-                    allScopes.AddRange(regScopes);
+                    if (allScopes != null) allScopes.AddRange(regScopes);
                 }
 
-                if (allScopes.Count > 0)
+                if (allScopes != null && allScopes.Count > 0)
                 {
                     foreach (var scope in scopes)
                     {

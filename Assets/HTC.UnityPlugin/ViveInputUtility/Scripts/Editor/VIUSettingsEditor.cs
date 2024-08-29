@@ -427,9 +427,8 @@ namespace HTC.UnityPlugin.Vive
                         case StatusCode.Failure:
                             if (!s_wasRemoved)
                             {
-                                var request = m_removeRequest;
-                                m_removeRequest = null;
                                 Debug.LogError("Something wrong when removing package from list. error:" + m_removeRequest.Error.errorCode + "(" + m_removeRequest.Error.message + ")");
+                                m_removeRequest = null;
                             }
                             break;
                         case StatusCode.Success:

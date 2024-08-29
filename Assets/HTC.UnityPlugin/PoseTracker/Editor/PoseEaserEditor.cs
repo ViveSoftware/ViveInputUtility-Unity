@@ -55,7 +55,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.easePositionX = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionX);
+            if (script != null) script.easePositionX = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionX);
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleLabelWidth;
@@ -63,7 +63,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.easePositionY = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionY);
+            if (script != null) script.easePositionY = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionY);
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleLabelWidth;
@@ -71,7 +71,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.easePositionZ = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionZ);
+            if (script != null) script.easePositionZ = EditorGUI.ToggleLeft(layoutRect, "", script.easePositionZ);
             layoutRect.x += layoutRect.width;
 
             // ease rotation
@@ -86,7 +86,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.easeRotationX = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationX);
+            if (script != null) script.easeRotationX = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationX);
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleLabelWidth;
@@ -94,7 +94,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.easeRotationY = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationY);
+            if (script != null) script.easeRotationY = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationY);
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleLabelWidth;
@@ -102,7 +102,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.easeRotationZ = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationZ);
+            if (script != null) script.easeRotationZ = EditorGUI.ToggleLeft(layoutRect, "", script.easeRotationZ);
             layoutRect.x += layoutRect.width;
 
             if (EditorGUI.EndChangeCheck())

@@ -32,12 +32,13 @@ namespace HTC.UnityPlugin.Utility
                 else
                 {
                     var target = GetTargetObjectOfProperty(property) as EnumArrayBase;
-                    EditorGUI.LabelField(position, label, new GUIContent(target.ElementType.Name + " cannot be serialized"));
+                    if (target != null) EditorGUI.LabelField(position, label, new GUIContent(target.ElementType.Name + " cannot be serialized"));
                 }
             }
             else
             {
                 var target = GetTargetObjectOfProperty(property) as EnumArrayBase;
+                if (target == null) return;
                 position.height = EditorGUIUtility.singleLineHeight;
 
                 const float btnPadding = 2f;
@@ -111,7 +112,7 @@ namespace HTC.UnityPlugin.Utility
                 var target = GetTargetObjectOfProperty(property) as EnumArrayBase;
                 for (int i = 0, imax = Mathf.Min(arrayLen, target.Length); i < imax; ++i)
                 {
-                    if (target.IsValidIndex(i + target.MinInt))
+                    if (target != null && target.IsValidIndex(i + target.MinInt))
                     {
                         result += verticalSpacing + EditorGUI.GetPropertyHeight(arrayProp.GetArrayElementAtIndex(i), GUIContent.none, true);
                     }

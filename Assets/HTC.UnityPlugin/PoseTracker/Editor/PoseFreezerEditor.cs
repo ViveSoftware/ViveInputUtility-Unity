@@ -52,7 +52,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.freezePositionX = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionX);
+            if (script != null) script.freezePositionX = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionX);
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleLabelWidth;
@@ -60,7 +60,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.freezePositionY = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionY);
+            if (script != null) script.freezePositionY = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionY);
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleLabelWidth;
@@ -68,7 +68,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.freezePositionZ = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionZ);
+            if (script != null) script.freezePositionZ = EditorGUI.ToggleLeft(layoutRect, "", script.freezePositionZ);
             layoutRect.x += layoutRect.width;
 
             // freeze rotation
@@ -83,7 +83,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.freezeRotationX = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationX);
+            if (script != null) script.freezeRotationX = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationX);
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleLabelWidth;
@@ -91,7 +91,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.freezeRotationY = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationY);
+            if (script != null) script.freezeRotationY = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationY);
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleLabelWidth;
@@ -99,7 +99,7 @@ namespace HTC.UnityPlugin.PoseTracker
             layoutRect.x += layoutRect.width;
 
             layoutRect.width = toggleFieldWidth;
-            script.freezeRotationZ = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationZ);
+            if (script != null) script.freezeRotationZ = EditorGUI.ToggleLeft(layoutRect, "", script.freezeRotationZ);
             layoutRect.x += layoutRect.width;
 
             if (EditorGUI.EndChangeCheck())
