@@ -246,7 +246,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var activeSubsys = ListPool<XRInputSubsystem>.Get();
             try
             {
+#if UNITY_6000_0_OR_NEWER
+                SubsystemManager.GetSubsystems(activeSubsys);
+#else
                 SubsystemManager.GetInstances(activeSubsys);
+#endif
                 if (activeSubsys.Count == 0)
                 {
                     Debug.LogWarning("No XRInputSubsystem detected.");
@@ -257,7 +261,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     {
                         if (!subsys.running) { continue; }
 
+#if UNITY_6000_0_OR_NEWER
+                        var subsysName = subsys.subsystemDescriptor.id;
+#else
                         var subsysName = subsys.SubsystemDescriptor.id;
+#endif
                         if (string.IsNullOrEmpty(subsysName)) { continue; }
 
                         foreach (var profile in inputSubsystemProfiles)

@@ -158,14 +158,11 @@ namespace HTC.UnityPlugin.Utility
         public static void SetRigidbodyVelocity(Rigidbody rigidbody, Vector3 from, Vector3 to, float duration)
         {
             var diffPos = to - from;
-            if (Mathf.Approximately(diffPos.sqrMagnitude, 0f))
-            {
-                rigidbody.velocity = Vector3.zero;
-            }
-            else
-            {
-                rigidbody.velocity = diffPos / duration;
-            }
+#if UNITY_6000_0_OR_NEWER
+            rigidbody.linearVelocity = Mathf.Approximately(diffPos.sqrMagnitude, 0f) ? Vector3.zero : (diffPos / duration);
+#else
+            rigidbody.velocity = Mathf.Approximately(diffPos.sqrMagnitude, 0f) ? Vector3.zero : (diffPos / duration);
+#endif
         }
 
         // proper folloing duration is larger then 0.02 second, depends on the update rate

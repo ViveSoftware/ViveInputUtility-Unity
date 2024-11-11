@@ -15,6 +15,8 @@ using Assembly = System.Reflection.Assembly;
 #if UNITY_2018_1_OR_NEWER
 using UnityEditor.PackageManager;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
+using UnityEditor.Build;
+
 #endif
 
 #if UNITY_2017_3_OR_NEWER
@@ -533,12 +535,20 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
         private static List<string> GetDefineSymbols()
         {
+#if UNITY_6000_0_OR_NEWER
+            return new List<string>(PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget))).Split(';'));
+#else
             return new List<string>(PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget)).Split(';'));
+#endif
         }
 
         private static void SetDefineSymbols(List<string> symbols)
         {
+#if UNITY_6000_0_OR_NEWER
+            PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget)), string.Join(";", symbols.ToArray()));
+#else
             PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), string.Join(";", symbols.ToArray()));
+#endif
         }
 
         private static bool IsReferenced(Assembly assembly)

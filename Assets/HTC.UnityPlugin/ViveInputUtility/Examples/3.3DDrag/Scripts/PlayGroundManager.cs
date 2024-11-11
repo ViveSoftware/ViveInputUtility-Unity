@@ -35,7 +35,11 @@ public class PlayGroundManager : MonoBehaviour
                 var rb = dt.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
+#if UNITY_6000_0_OR_NEWER
+                    rb.linearVelocity = Vector3.zero;
+#else
                     rb.velocity = Vector3.zero;
+#endif
                     rb.angularVelocity = Vector3.zero;
                 }
             }

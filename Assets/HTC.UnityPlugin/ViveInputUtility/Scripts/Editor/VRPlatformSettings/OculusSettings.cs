@@ -33,7 +33,10 @@ namespace HTC.UnityPlugin.Vive
             {
                 settingTitle = "Multithreaded Rendering",
                 skipCheckFunc = () => !VIUSettingsEditor.supportOculusGo,
-#if UNITY_2017_2_OR_NEWER
+#if UNITY_6000_0_OR_NEWER
+                currentValueFunc = () => PlayerSettings.GetMobileMTRendering(UnityEditor.Build.NamedBuildTarget.Android),
+                setValueFunc = v => PlayerSettings.SetMobileMTRendering(UnityEditor.Build.NamedBuildTarget.Android, v),
+#elif UNITY_2017_2_OR_NEWER
                 currentValueFunc = () => PlayerSettings.GetMobileMTRendering(BuildTargetGroup.Android),
                 setValueFunc = v => PlayerSettings.SetMobileMTRendering(BuildTargetGroup.Android, v),
 #else

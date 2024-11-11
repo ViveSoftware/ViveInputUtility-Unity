@@ -20,7 +20,11 @@ namespace HTC.UnityPlugin.Pointer3D
         {
             if (m_Canvas == null)
             {
+#if UNITY_6000_0_OR_NEWER
+                m_Canvas = FindFirstObjectByType<Canvas>();
+#else
                 m_Canvas = FindObjectOfType<Canvas>();
+#endif
             }
         }
 #endif

@@ -392,7 +392,9 @@ namespace HTC.UnityPlugin.Vive
         public const string URL_OCULUS_VR_PLUGIN = "https://assetstore.unity.com/packages/slug/82022?";
         private const string OCULUS_ANDROID_PACKAGE_NAME = "com.unity.xr.oculus.android";
         public const AndroidSdkVersions MIN_SUPPORTED_ANDROID_SDK_VERSION =
-#if UNITY_2020_1_OR_NEWER
+#if UNITY_6000_0_OR_NEWER
+            AndroidSdkVersions.AndroidApiLevel23;
+#elif UNITY_2020_1_OR_NEWER
             AndroidSdkVersions.AndroidApiLevel22;
 #else
             AndroidSdkVersions.AndroidApiLevel21;

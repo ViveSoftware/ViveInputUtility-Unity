@@ -755,7 +755,9 @@ namespace HTC.UnityPlugin.Vive
                 //    EditorGUILayout.HelpBox("AndroidNdkRoot is empty. Setup at Edit -> Preferences... -> External Tools -> Android SDK", MessageType.Warning);
                 //}
 
-#if UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
+#if UNITY_6000_0_OR_NEWER
+                if (PlayerSettings.GetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android).Equals("com.Company.ProductName"))
+#elif UNITY_5_6_OR_NEWER && !UNITY_5_6_0 && !UNITY_5_6_1 && !UNITY_5_6_2
                 if (PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android).Equals("com.Company.ProductName"))
 #else
                 if (PlayerSettings.bundleIdentifier.Equals("com.Company.ProductName"))

@@ -38,7 +38,11 @@ namespace HTC.UnityPlugin.Utility
 
                 if (!Application.isPlaying || s_isApplicationQuitting) { return; }
 
+#if UNITY_6000_0_OR_NEWER
+                var instances = FindObjectsByType<T>(FindObjectsSortMode.None);
+#else
                 var instances = FindObjectsOfType<T>();
+#endif
                 if (instances.Length > 0)
                 {
                     s_instance = instances[0];

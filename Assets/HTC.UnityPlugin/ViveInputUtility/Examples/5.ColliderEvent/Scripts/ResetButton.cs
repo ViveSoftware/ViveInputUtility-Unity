@@ -81,7 +81,11 @@ public class ResetButton : MonoBehaviour
             {
                 rigid.MovePosition(storedPoses[i].pos);
                 rigid.MoveRotation(storedPoses[i].rot);
+#if UNITY_6000_0_OR_NEWER
+                rigid.linearVelocity = Vector3.zero;
+#else
                 rigid.velocity = Vector3.zero;
+#endif
                 //rigid.angularVelocity = Vector3.zero;
             }
             else
