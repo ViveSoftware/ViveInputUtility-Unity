@@ -40,7 +40,22 @@ namespace HTC.UnityPlugin.Vive
 
             Refresh();
         }
+        private static int CompareDevice(IVRModuleDeviceState a, IVRModuleDeviceState b)
+        {
+            var c = a.isPoseValid.CompareTo(b.isPoseValid);
+            if (c != 0) { return -c; }
 
+            foreach (var j in JointEnumArray.StaticEnums)
+            {
+                c = a.readOnlyHandJoints[j].isValid.CompareTo(b.readOnlyHandJoints[j].isValid);
+                if (c != 0) { return -c; }
+            }
+
+            return a.deviceIndex.CompareTo(b.deviceIndex);
+        }
+
+        private List<IVRModuleDeviceState> rightTrackedHandDevices = new List<IVRModuleDeviceState>();
+        private List<IVRModuleDeviceState> leftTrackedHandDevices = new List<IVRModuleDeviceState>();
         public void Refresh()
         {
             // find tracked right/left hand index
@@ -48,22 +63,36 @@ namespace HTC.UnityPlugin.Vive
             var rightIndex = VRModule.INVALID_DEVICE_INDEX;
             var leftIndex = VRModule.INVALID_DEVICE_INDEX;
 
+            // find proper left/right tracked hand
             for (uint deviceIndex = 0u; deviceIndex < deviceCount; ++deviceIndex)
             {
                 var deviceState = VRModule.GetDeviceState(deviceIndex);
-                if (deviceState.isConnected && deviceState.deviceClass == VRModuleDeviceClass.TrackedHand)
+                if (deviceState.isConnected == false) { continue; }
+                if (deviceState.deviceClass != VRModuleDeviceClass.TrackedHand) { continue; }
+                if (deviceState.deviceModel.IsRight())
                 {
-                    if (deviceState.deviceModel.IsRight())
-                    {
-                        rightIndex = deviceIndex;
-                    }
-                    else if (deviceState.deviceModel.IsLeft())
-                    {
-                        leftIndex = deviceIndex;
-                    }
+                    rightTrackedHandDevices.Add(deviceState);
+                }
+                else if (deviceState.deviceModel.IsLeft())
+                {
+                    leftTrackedHandDevices.Add(deviceState);
                 }
             }
 
+            if (rightTrackedHandDevices.Count != 0)
+            {
+                if (rightTrackedHandDevices.Count != 1) { rightTrackedHandDevices.Sort(CompareDevice); }
+                rightIndex = rightTrackedHandDevices[0].deviceIndex;
+            }
+            if (leftTrackedHandDevices.Count != 0)
+            {
+                if (leftTrackedHandDevices.Count != 1) { leftTrackedHandDevices.Sort(CompareDevice); }
+                leftIndex = leftTrackedHandDevices[0].deviceIndex;
+            }
+
+            rightTrackedHandDevices.Clear();
+            leftTrackedHandDevices.Clear();
+            
             if (!RoleMap.IsRoleMapped(TrackedHandRole.RightHand))
             {
                 if (rightIndex < deviceCount)

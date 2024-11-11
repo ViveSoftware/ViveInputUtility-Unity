@@ -449,6 +449,10 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                 }
 
+                public int ModuleCount { get { return modules.Count; } }
+
+                public SubmoduleBase this[int i] { get { return modules[i]; } }
+
                 public void AddModule(SubmoduleBase module, params SubmoduleBase[] modules)
                 {
                     if (module != null) { this.modules.Add(module); }
