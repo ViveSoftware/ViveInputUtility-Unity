@@ -96,6 +96,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             }
         }
 
+        private static string shortIdx(uint i) { return i == INVALID_DEVICE_INDEX ? "X" : i.ToString(); }
+
         public static void InitializePaths()
         {
             if (s_pathInitialized) { return; }
@@ -402,6 +404,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                             {
                                 currState.Reset();
                             }
+
+                            if (prevState.isConnected)
+                            {
+                                Debug.LogFormat("[SteamVRv2Module] OpenVR device disconnected: [{0}] i={1}", prevState.deviceIndex, i);
+                            }
                         }
                     }
                     else
@@ -419,13 +426,16 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                         if (!prevState.isConnected)
                         {
+                            var vrDeviceClass = vrSystem.GetTrackedDeviceClass(i);
                             currState.isConnected = true;
-                            currState.deviceClass = ToVRModuleDeviceClass(vrSystem.GetTrackedDeviceClass(i));
+                            currState.deviceClass = ToVRModuleDeviceClass(vrDeviceClass);
                             currState.serialNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_SerialNumber_String);
                             currState.modelNumber = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_ModelNumber_String);
                             currState.renderModelName = QueryDeviceStringProperty(vrSystem, i, ETrackedDeviceProperty.Prop_RenderModelName_String);
 
                             SetupKnownDeviceModel(currState);
+
+                            Debug.LogFormat("[SteamVRv2Module] OpenVR device connected: [{0}] i={1} cl={2}", currState.deviceIndex, i, vrDeviceClass);
                         }
 
                         // update device status
@@ -445,6 +455,23 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             m_submodules.UpdateAllModulesActivity();
             m_submodules.UpdateModulesDeviceConnectionAndPoses();
+
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
+            {
+                if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
+                if (prevState.isConnected != currState.isConnected)
+                {
+                    var isDisconnect = prevState.isConnected;
+                    var readState = isDisconnect ? prevState : (IVRModuleDeviceState)currState;
+                    Debug.LogFormat("[SteamVRv2Module] device {0}connected: [{1}] sn=\"{5}\" cl={2} md={3} mn=\"{4}\"",
+                        isDisconnect ? "dis" : "",
+                        readState.deviceIndex,
+                        readState.deviceClass,
+                        readState.deviceModel,
+                        readState.modelNumber,
+                        readState.serialNumber);
+                }
+            }
 
             // process hand role
             bool roleChanged = false;
@@ -469,8 +496,13 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             var moduleRight = m_openvrRightIndex != INVALID_DEVICE_INDEX ? m_openvrRightIndex : m_submodules.GetFirstRightHandedIndex();
             var moduleLeft = m_openvrLeftIndex != INVALID_DEVICE_INDEX ? m_openvrLeftIndex : m_submodules.GetFirstLeftHandedIndex();
-            roleChanged |= ChangeProp.Set(ref m_moduleRightIndex, moduleRight);
-            roleChanged |= ChangeProp.Set(ref m_moduleLeftIndex, moduleLeft);
+            if ((m_moduleRightIndex != moduleRight) | (m_moduleLeftIndex != moduleLeft))
+            {
+                Debug.Log("[SteamVRv2Module] role changed: [" + shortIdx(m_moduleLeftIndex) + "=>" + shortIdx(moduleLeft) + "]L [" + shortIdx(m_moduleRightIndex) + "=>" + shortIdx(moduleRight) + "]R");
+                m_moduleRightIndex = moduleRight;
+                m_moduleLeftIndex = moduleLeft;
+                roleChanged = true;
+            }
 
             UpdateHandJoints(m_openvrLeftIndex, skeletonActionHandleLeft, true);
             UpdateHandJoints(m_openvrRightIndex, skeletonActionHandleRight, false);

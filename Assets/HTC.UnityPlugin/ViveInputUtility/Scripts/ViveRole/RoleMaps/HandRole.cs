@@ -174,7 +174,7 @@ namespace HTC.UnityPlugin.Vive
                 {
                     if (i == rightIndex || i == leftIndex) { continue; }
                     var state = VRModule.GetCurrentDeviceState(i);
-                    if (!state.isConnected || !state.isPoseValid || state.deviceClass != VRModuleDeviceClass.Controller) { continue; }
+                    if (!state.isConnected || state.deviceClass != VRModuleDeviceClass.Controller) { continue; }
                     if (RoleMap.IsDeviceBound(state.serialNumber)) { continue; }
                     m_sortedDeviceList.Add(i);
                 }

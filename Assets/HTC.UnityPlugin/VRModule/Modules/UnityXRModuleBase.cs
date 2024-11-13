@@ -128,6 +128,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
             return a.ds.deviceIndex.CompareTo(b.ds.deviceIndex);
         }
 
+        private static string shortIdx(uint i) { return i == INVALID_DEVICE_INDEX ? "X" : i.ToString(); }
+
         private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection(
             new ViveHandTrackingSubmodule(),
             new WaveHandTrackingSubmodule(),
@@ -202,6 +204,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
             foreach (var device in connectedDevices)
             {
+                if (!device.isValid) { continue; }
                 if (!indexMap.TryGetIndex(device, out deviceIndex))
                 {
                     string deviceName;
@@ -220,6 +223,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceName = device.name;
                     }
 
+                    // will not identify tracked hand here, currently all tracked hand should created by submodule
                     currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
                     currState.serialNumber = deviceName + " " + device.serialNumber + " " + (int)device.characteristics;
                     currState.modelNumber = deviceName + " (" + device.characteristics + ")";
@@ -227,13 +231,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     SetupKnownDeviceModel(currState);
 
-                    Debug.LogFormat("[UnityXRModule] Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})",
+                    Debug.LogFormat("[UnityXRModule] found new InputDevice: [{0}] nm=\"{2}\" sn=\"{1}\" ch=({4}) mf=\"{3}\"",
                         currState.deviceIndex,
-                        currState.deviceClass,
-                        currState.deviceModel,
-                        currState.modelNumber,
-                        currState.serialNumber,
+                        device.serialNumber,
                         device.name,
+                        device.manufacturer,
                         device.characteristics);
 
                     UpdateNewConnectedInputDevice(currState, device);
@@ -243,11 +245,9 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     EnsureValidDeviceState(deviceIndex, out prevState, out currState);
                 }
 
-                currState.isConnected = true;
                 // update device Poses
+                currState.isConnected = true;
                 currState.isPoseValid = GetDeviceFeatureValueOrDefault(device, CommonUsages.isTracked);
-                if ((device.characteristics & InputDeviceCharacteristics.Right) != 0u) { rightIndice.Add(new RoleIdx(currState)); }
-                else if ((device.characteristics & InputDeviceCharacteristics.Left) != 0u) { leftIndice.Add(new RoleIdx(currState)); }
 
                 if (VIUSettings.preferUnityXRPointerPose)
                 {
@@ -267,11 +267,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 currDeviceConnected[deviceIndex] = true;
                 if (currMaxConnectedIndex < (int)deviceIndex) { currMaxConnectedIndex = (int)deviceIndex; }
 
+                if (currState.deviceClass != VRModuleDeviceClass.Invalid)
+                {
+                    if ((device.characteristics & InputDeviceCharacteristics.Right) != 0u) { rightIndice.Add(new RoleIdx(currState)); }
+                    else if ((device.characteristics & InputDeviceCharacteristics.Left) != 0u) { leftIndice.Add(new RoleIdx(currState)); }
+                }
+
                 // TODO: update hand skeleton pose
             }
 
             // unmap index for disconnected device state
-            for (uint i = 0u, imax = (uint)(prevMaxConnectedIndex + 1); i < imax; ++i)
+            for (uint i = 0u, imax = (uint)prevMaxConnectedIndex; i <= imax; ++i)
             {
                 if (prevDeviceConnected[i] && !currDeviceConnected[i])
                 {
@@ -281,7 +287,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                     else
                     {
-                        Debug.LogWarning("[UnityXRModule] Device disconnected: [" + i + "] already unmapped");
+                        Debug.LogWarning("[UnityXRModule] unmap failed: [" + i + "] already unmapped");
                     }
 
                     if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
@@ -290,19 +296,30 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     }
                     else
                     {
-                        Debug.LogWarning("[UnityXRModule] Device disconnected: [" + i + "] already been reset");
+                        Debug.LogWarning("[UnityXRModule] reset state failed: [" + i + "] already been reset");
                     }
-
-                    Debug.LogFormat("[UnityXRModule] Device disconnected: {0} / {1} / {2} / {3} / {4}",
-                        prevState.deviceIndex,
-                        prevState.deviceClass,
-                        prevState.deviceModel,
-                        prevState.modelNumber,
-                        prevState.serialNumber);
                 }
             }
 
             submodules.UpdateModulesDeviceConnectionAndPoses();
+
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
+            {
+                if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
+                if (prevState.isConnected != currState.isConnected)
+                {
+                    var isDisconnect = prevState.isConnected;
+                    var readState = isDisconnect ? prevState : (IVRModuleDeviceState)currState;
+                    Debug.LogFormat("[UnityXRModule] device {0}connected: [{1}] sn=\"{5}\" cl={2} md={3} mn=\"{4}\"",
+                        isDisconnect ? "dis" : "",
+                        readState.deviceIndex,
+                        readState.deviceClass,
+                        readState.deviceModel,
+                        readState.modelNumber,
+                        readState.serialNumber);
+                }
+            }
+
             for (int i = 0, imax = submodules.ModuleCount; i < imax; ++i)
             {
                 if (!submodules[i].isActivated) { continue; }
@@ -329,8 +346,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 if (leftIndice.Count != 1) { leftIndice.Sort(CompareRoleIdx); }
                 newLeftIndex = leftIndice[0].index;
             }
-            if (ChangeProp.Set(ref moduleRightIndex, newRightIndex) | ChangeProp.Set(ref moduleLeftIndex, newLeftIndex))
+            if ((moduleRightIndex != newRightIndex) | (moduleLeftIndex != newLeftIndex))
             {
+                Debug.Log("[UnityXRModule] role changed: [" + shortIdx(moduleLeftIndex) + "=>" + shortIdx(newLeftIndex) + "]L [" + shortIdx(moduleRightIndex) + "=>" + shortIdx(newRightIndex) + "]R");
+                moduleRightIndex = newRightIndex;
+                moduleLeftIndex = newLeftIndex;
                 InvokeControllerRoleChangedEvent();
             }
 
@@ -395,10 +415,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return VRModuleDeviceClass.GenericTracker;
             }
 
-            if ((characteristics & InputDeviceCharacteristics.HandTracking) != 0)
-            {
-                return VRModuleDeviceClass.TrackedHand;
-            }
+            // will not identify tracked hand here, currently all tracked hand should created by submodule
 
             return VRModuleDeviceClass.Invalid;
         }
