@@ -28,20 +28,42 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
                 m_ovrSkeleton = gameObject.AddComponent<OVRSkeleton>();
                 UpdateOvrSkeleton();
 
-                FieldInfo updateRootScaleField = m_ovrSkeleton.GetType().GetField("_updateRootScale", BindingFlags.NonPublic | BindingFlags.Instance);
-                updateRootScaleField.SetValue(m_ovrSkeleton, true);
+                var dataProviderField = typeof(OVRSkeleton).GetField("_dataProvider", BindingFlags.NonPublic | BindingFlags.Instance);
+                var searchDataProviderMethod = typeof(OVRSkeleton).GetMethod("SearchSkeletonDataProvider", BindingFlags.NonPublic | BindingFlags.Instance);
+                var updateRootScaleField = typeof(OVRSkeleton).GetField("_updateRootScale", BindingFlags.NonPublic | BindingFlags.Instance);
+                var updateRootPoseField = typeof(OVRSkeleton).GetField("_updateRootPose", BindingFlags.NonPublic | BindingFlags.Instance);
+                var skeletonInitializeMethod = typeof(OVRSkeleton).GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
 
-                FieldInfo updateRootPoseField = m_ovrSkeleton.GetType().GetField("_updateRootPose", BindingFlags.NonPublic | BindingFlags.Instance);
-                updateRootPoseField.SetValue(m_ovrSkeleton, false);
+                if (dataProviderField != null && searchDataProviderMethod != null)
+                {
+                    dataProviderField.SetValue(m_ovrSkeleton, searchDataProviderMethod.Invoke(m_ovrSkeleton, new object[] { }));
+                }
 
-                MethodInfo skeletonInitializeMethod = m_ovrSkeleton.GetType().GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
-                skeletonInitializeMethod.Invoke(m_ovrSkeleton, new object[] { });
+                if (updateRootScaleField != null)
+                {
+                    updateRootScaleField.SetValue(m_ovrSkeleton, true);
+                }
+
+                if (updateRootPoseField != null)
+                {
+                    updateRootPoseField.SetValue(m_ovrSkeleton, false);
+                }
+
+                if (skeletonInitializeMethod != null)
+                {
+                    skeletonInitializeMethod.Invoke(m_ovrSkeleton, new object[] { });
+                }
+
 
                 m_ovrMesh = gameObject.AddComponent<OVRMesh>();
                 UpdateOvrMesh();
 
-                MethodInfo meshInitializeMethod = m_ovrMesh.GetType().GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
-                meshInitializeMethod.Invoke(m_ovrMesh, new object[] { m_isLeftHand ? OVRMesh.MeshType.HandLeft : OVRMesh.MeshType.HandRight });
+                var meshInitializeMethod = typeof(OVRMesh).GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if (meshInitializeMethod != null)
+                {
+                    meshInitializeMethod.Invoke(m_ovrMesh, new object[] { m_isLeftHand ? OVRMesh.MeshType.HandLeft : OVRMesh.MeshType.HandRight });
+                }
 
                 gameObject.AddComponent<OVRMeshRenderer>();
 
@@ -72,42 +94,42 @@ namespace HTC.UnityPlugin.Vive.OculusVRExtension
             UpdateOvrMesh();
         }
 
+        private static FieldInfo OVRHand_HandType_Field = typeof(OVRHand).GetField("HandType", BindingFlags.NonPublic | BindingFlags.Instance);
         private void UpdateOvrHand()
         {
-            try
+            if (OVRHand_HandType_Field != null)
             {
-                FieldInfo handTypeField = m_ovrHand.GetType().GetField("HandType", BindingFlags.NonPublic | BindingFlags.Instance);
-                handTypeField.SetValue(m_ovrHand, m_isLeftHand ? OVRHand.Hand.HandLeft : OVRHand.Hand.HandRight);
+                OVRHand_HandType_Field.SetValue(m_ovrHand, m_isLeftHand ? OVRHand.Hand.HandLeft : OVRHand.Hand.HandRight);
             }
-            catch (Exception e)
+            else
             {
-                Debug.LogError("Failed to update OVRHand: " + e);
+                Debug.LogError("Failed to update OVRHand: OVRHand_HandType_Field not found");
             }
         }
 
+        private static FieldInfo OVRSkeleton_skeletonType_Field = typeof(OVRSkeleton).GetField("_skeletonType", BindingFlags.NonPublic | BindingFlags.Instance);
         private void UpdateOvrSkeleton()
         {
-            try
+            if (OVRSkeleton_skeletonType_Field != null)
             {
-                FieldInfo skeletonTypeField = m_ovrSkeleton.GetType().GetField("_skeletonType", BindingFlags.NonPublic | BindingFlags.Instance);
-                skeletonTypeField.SetValue(m_ovrSkeleton, m_isLeftHand ? OVRSkeleton.SkeletonType.HandLeft : OVRSkeleton.SkeletonType.HandRight);
+                OVRSkeleton_skeletonType_Field.SetValue(m_ovrSkeleton, m_isLeftHand ? OVRSkeleton.SkeletonType.HandLeft : OVRSkeleton.SkeletonType.HandRight);
             }
-            catch (Exception e)
+            else
             {
-                Debug.LogError("Failed to update OVRHand: " + e);
+                Debug.LogError("Failed to update OvrSkeleton: OVRSkeleton_skeletonType_Field not found");
             }
         }
 
+        private static FieldInfo OVRMesh_meshType_Field = typeof(OVRMesh).GetField("_meshType", BindingFlags.NonPublic | BindingFlags.Instance);
         private void UpdateOvrMesh()
         {
-            try
+            if (OVRMesh_meshType_Field != null)
             {
-                FieldInfo meshTypeField = m_ovrMesh.GetType().GetField("_meshType", BindingFlags.NonPublic | BindingFlags.Instance);
-                meshTypeField.SetValue(m_ovrMesh, m_isLeftHand ? OVRMesh.MeshType.HandLeft : OVRMesh.MeshType.HandRight);
+                OVRMesh_meshType_Field.SetValue(m_ovrMesh, m_isLeftHand ? OVRMesh.MeshType.HandLeft : OVRMesh.MeshType.HandRight);
             }
-            catch (Exception e)
+            else
             {
-                Debug.LogError("Failed to update OVRHand: " + e);
+                Debug.LogError("Failed to update OvrMesh: OVRMesh_meshType_Field not found");
             }
         }
 #else

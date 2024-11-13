@@ -473,10 +473,19 @@ namespace HTC.UnityPlugin.Vive
                     var path = Path.GetDirectoryName(AssetDatabase.GetAssetPath(monoScript));
                     var fullPath = Path.GetFullPath((path.Substring(0, path.Length - "Scripts".Length) + "Editor/AndroidManifest.OVRSubmission.xml").Replace("\\", "/"));
 
-                    return fullPath.Substring(fullPath.IndexOf("Assets"), fullPath.Length - fullPath.IndexOf("Assets"));
-#else
-                    return string.Empty;
+                    var assetsFolderIndex = fullPath.IndexOf("Assets");
+                    if (assetsFolderIndex >= 0)
+                    {
+                        return fullPath.Substring(assetsFolderIndex, fullPath.Length - assetsFolderIndex);
+                    }
+
+                    var packagesFolderIndex = fullPath.IndexOf("Packages");
+                    if (packagesFolderIndex >= 0)
+                    {
+                        return fullPath.Substring(packagesFolderIndex, fullPath.Length - packagesFolderIndex);
+                    }
 #endif
+                    return string.Empty;
                 }
             }
 
