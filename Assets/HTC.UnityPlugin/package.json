@@ -1,6 +1,6 @@
 {
   "name": "com.htc.upm.vive-input-utility",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "displayName": "VIVE Input Utility",
   "description": "The VIVE Input Utility (VIU) is a toolkit for developing VR experiences in Unity, especially with the VIVE/VIVE Pro but also targeting many platforms from a common code base including Oculus Rift, Rift S Go, Quest, Google Daydream, VIVE Wave SDK (e.g. VIVE Focus standalone) and additional VR platforms as supported by Unity such as Microsoft's 'Mixed Reality' VR headsets and more.\n\nCompatible with SteamVR 2.4.0+ and Oculus Integration 16.0+.\n\nView license:\nhttps://github.com/ViveSoftware/ViveInputUtility-Unity/blob/develop/LICENSE.md",
   "keywords": [
@@ -25,6 +25,9 @@
     "url": "https://github.com/ViveSoftware/ViveInputUtility-Unity.git"
   },
   "documentationUrl": "https://github.com/ViveSoftware/ViveInputUtility-Unity/wiki",
+  "dependencies": {
+    "com.unity.ugui": "1.0.0"
+  },
   "samples": [
     {
       "displayName": "0. Tutorial",
