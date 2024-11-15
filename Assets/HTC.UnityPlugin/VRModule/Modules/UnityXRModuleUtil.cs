@@ -161,7 +161,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
         public static bool HasActiveLoader(VRModuleKnownXRLoader knownLoader)
         {
             string activeLoaderName;
-            return TryGetActiveLoaderName(out activeLoaderName) && knownLoader == ToKnownXRLoader(activeLoaderName);
+            return TryGetActiveLoaderName(out activeLoaderName) && (knownLoader == ToKnownXRLoader(activeLoaderName));
         }
 
         public static VRModuleKnownXRLoader GetKnownActiveLoader()
@@ -178,14 +178,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var loaderName = loader.name;
             if (string.IsNullOrEmpty(loaderName)) { return VRModuleKnownXRLoader.Unknown; }
 
-            foreach (var profile in loaderProfiles)
-            {
-                if (string.IsNullOrEmpty(profile.fixedName) || profile.fixedName != loaderName) { continue; }
-                if (profile.matchNameRgx == null || !profile.matchNameRgx.IsMatch(loaderName)) { continue; }
-                return profile.loader;
-            }
-
-            return VRModuleKnownXRLoader.Unknown;
+            return ToKnownXRLoader(loaderName);
         }
 
         public static VRModuleKnownXRLoader ToKnownXRLoader(string loaderName)
