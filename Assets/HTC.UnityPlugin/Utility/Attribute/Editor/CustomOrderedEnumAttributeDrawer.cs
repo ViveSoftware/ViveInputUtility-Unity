@@ -23,7 +23,7 @@ namespace HTC.UnityPlugin.Utility
             Type displayedEnumType = null;
             if (property.propertyType == SerializedPropertyType.Enum)
             {
-                if (attr.overrideEnumType != null && attr.overrideEnumType.IsEnum)
+                if (attr != null && attr.overrideEnumType != null && attr.overrideEnumType.IsEnum)
                 {
                     displayedEnumType = attr.overrideEnumType;
                 }
@@ -34,7 +34,7 @@ namespace HTC.UnityPlugin.Utility
             }
             else if (property.propertyType == SerializedPropertyType.Integer)
             {
-                if (attr.overrideEnumType != null && attr.overrideEnumType.IsEnum)
+                if (attr != null && attr.overrideEnumType != null && attr.overrideEnumType.IsEnum)
                 {
                     displayedEnumType = attr.overrideEnumType;
                 }

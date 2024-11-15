@@ -392,7 +392,9 @@ namespace HTC.UnityPlugin.Vive
         public const string URL_OCULUS_VR_PLUGIN = "https://assetstore.unity.com/packages/slug/82022?";
         private const string OCULUS_ANDROID_PACKAGE_NAME = "com.unity.xr.oculus.android";
         public const AndroidSdkVersions MIN_SUPPORTED_ANDROID_SDK_VERSION =
-#if UNITY_2020_1_OR_NEWER
+#if UNITY_6000_0_OR_NEWER
+            AndroidSdkVersions.AndroidApiLevel23;
+#elif UNITY_2020_1_OR_NEWER
             AndroidSdkVersions.AndroidApiLevel22;
 #else
             AndroidSdkVersions.AndroidApiLevel21;
@@ -471,10 +473,19 @@ namespace HTC.UnityPlugin.Vive
                     var path = Path.GetDirectoryName(AssetDatabase.GetAssetPath(monoScript));
                     var fullPath = Path.GetFullPath((path.Substring(0, path.Length - "Scripts".Length) + "Editor/AndroidManifest.OVRSubmission.xml").Replace("\\", "/"));
 
-                    return fullPath.Substring(fullPath.IndexOf("Assets"), fullPath.Length - fullPath.IndexOf("Assets"));
-#else
-                    return string.Empty;
+                    var assetsFolderIndex = fullPath.IndexOf("Assets");
+                    if (assetsFolderIndex >= 0)
+                    {
+                        return fullPath.Substring(assetsFolderIndex, fullPath.Length - assetsFolderIndex);
+                    }
+
+                    var packagesFolderIndex = fullPath.IndexOf("Packages");
+                    if (packagesFolderIndex >= 0)
+                    {
+                        return fullPath.Substring(packagesFolderIndex, fullPath.Length - packagesFolderIndex);
+                    }
 #endif
+                    return string.Empty;
                 }
             }
 

@@ -1,6 +1,23 @@
-﻿# Vive Input Utility for Unity - v1.19.0
+﻿# Vive Input Utility for Unity - v1.20.0
 Copyright (c) 2016-2024, HTC Corporation. All rights reserved.
 
+
+## Changes for v1.20.0:
+
+* Changes
+  - Add support for Unity 6
+    - Fix compile errors & warnnings
+  - Add support for VIVE OpenXR Unity SDK
+    - Now support hand tracking thru Unity XR Hand
+      - Goto PackageManager > install "XR Hands" (com.unity.xr.hands)
+      - Goto ProjectSettings > XR Plug-in Management > OpenXR > Enabled Interaction Profiles > add "VIVE XR Hand Interaction"
+      - Goto ProjectSettings > XR Plug-in Management > OpenXR > OpenXR Feature Groups > enable "Hand Tracking Subsystem"
+      - Tracked hand will identify as VRModuleDeviceModel.UnityXRHandRight/Left
+  - Add support for latest Wave XR plugin
+    - Fix selecting wrong left/right device in some cases
+  - Add support for latest Oculus plugin
+    - Fix tracked hand model not working
+  
 
 ## Changes for v1.19.0:
 

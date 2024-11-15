@@ -75,7 +75,7 @@ public class DragImage : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             }
 
             Vector3 globalMousePos;
-            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(plane, eventData.position, eventData.pressEventCamera, out globalMousePos))
+            if (plane != null && RectTransformUtility.ScreenPointToWorldPointInRectangle(plane, eventData.position, eventData.pressEventCamera, out globalMousePos))
             {
                 rectTransform.position = globalMousePos;
                 rectTransform.rotation = plane.rotation;

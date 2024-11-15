@@ -76,6 +76,8 @@ namespace HTC.UnityPlugin.VRModuleManagement
         OculusTouchProLeft,
         OculusTouchProRight,
         ViveUltimateTracker,
+        UnityXRHandLeft,
+        UnityXRHandRight,
     }
 
     public enum VRModuleRawButton
@@ -451,6 +453,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.OculusTrackedHandRight:
                 case VRModuleDeviceModel.ViveFocus3ControllerRight:
                 case VRModuleDeviceModel.OculusTouchProRight:
+                case VRModuleDeviceModel.UnityXRHandRight:
                     return true;
                 default:
                     return false;
@@ -474,6 +477,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 case VRModuleDeviceModel.OculusTrackedHandLeft:
                 case VRModuleDeviceModel.ViveFocus3ControllerLeft:
                 case VRModuleDeviceModel.OculusTouchProLeft:
+                case VRModuleDeviceModel.UnityXRHandLeft:
                     return true;
                 default:
                     return false;

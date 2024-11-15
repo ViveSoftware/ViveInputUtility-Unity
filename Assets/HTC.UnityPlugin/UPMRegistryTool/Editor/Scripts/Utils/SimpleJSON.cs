@@ -567,7 +567,7 @@ namespace HTC.UnityPlugin.UPMRegistryTool.Editor.Utils.SimpleJSON
 
                         stack.Pop();
                         if (Token.Length > 0 || TokenIsQuoted)
-                            ctx.Add(TokenName, ParseElement(Token.ToString(), TokenIsQuoted));
+                            if (ctx != null) ctx.Add(TokenName, ParseElement(Token.ToString(), TokenIsQuoted));
                         TokenIsQuoted = false;
                         TokenName = "";
                         Token.Length = 0;
@@ -598,7 +598,7 @@ namespace HTC.UnityPlugin.UPMRegistryTool.Editor.Utils.SimpleJSON
                             break;
                         }
                         if (Token.Length > 0 || TokenIsQuoted)
-                            ctx.Add(TokenName, ParseElement(Token.ToString(), TokenIsQuoted));
+                            if (ctx != null) ctx.Add(TokenName, ParseElement(Token.ToString(), TokenIsQuoted));
                         TokenIsQuoted = false;
                         TokenName = "";
                         Token.Length = 0;

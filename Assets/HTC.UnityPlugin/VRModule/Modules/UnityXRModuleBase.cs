@@ -2,6 +2,7 @@
 
 #pragma warning disable 0649
 using HTC.UnityPlugin.Utility;
+using HTC.UnityPlugin.Vive;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -78,23 +79,75 @@ namespace HTC.UnityPlugin.VRModuleManagement
         private VRModuleKnownXRLoader knownActiveLoader;
         private VRModuleKnownXRInputSubsystem knownActiveInputSubsystem;
         private IndexMap indexMap = new IndexMap();
-        private uint uxrRightIndex = INVALID_DEVICE_INDEX;
-        private uint uxrLeftIndex = INVALID_DEVICE_INDEX;
         private uint moduleRightIndex = INVALID_DEVICE_INDEX;
         private uint moduleLeftIndex = INVALID_DEVICE_INDEX;
+
+        private enum RolePriority
+        {
+            Controller,
+            TrackedHand,
+            Tracker,
+            Other,
+        }
+        private struct RoleIdx
+        {
+            public IVRModuleDeviceStateRW ds;
+            public RolePriority pri;
+            public uint index { get { return ds.deviceIndex; } }
+            public RoleIdx(IVRModuleDeviceStateRW deviceState)
+            {
+                ds = deviceState;
+                switch (deviceState.deviceClass)
+                {
+                    case VRModuleDeviceClass.Controller: pri = RolePriority.Controller; break;
+                    case VRModuleDeviceClass.TrackedHand: pri = RolePriority.TrackedHand; break;
+                    case VRModuleDeviceClass.GenericTracker: pri = RolePriority.Tracker; break;
+                    default: pri = RolePriority.Other; break;
+                }
+            }
+        }
+        private List<RoleIdx> rightIndice = new List<RoleIdx>();
+        private List<RoleIdx> leftIndice = new List<RoleIdx>();
+        private static int CompareRoleIdx(RoleIdx a, RoleIdx b)
+        {
+            var c = a.ds.isPoseValid.CompareTo(b.ds.isPoseValid);
+            if (c != 0) { return -c; }
+
+            c = a.pri - b.pri;
+            if (c != 0) { return c; }
+
+            if (a.pri == RolePriority.TrackedHand)
+            {
+                foreach (var j in JointEnumArray.StaticEnums)
+                {
+                    c = a.ds.handJoints[j].isValid.CompareTo(b.ds.handJoints[j].isValid);
+                    if (c != 0) { return -c; }
+                }
+            }
+
+            return a.ds.deviceIndex.CompareTo(b.ds.deviceIndex);
+        }
+
+        private static string shortIdx(uint i) { return i == INVALID_DEVICE_INDEX ? "X" : i.ToString(); }
+
         private VRModule.SubmoduleBase.Collection submodules = new VRModule.SubmoduleBase.Collection(
-            new ViveHandTrackingSubmodule(),
-            new WaveHandTrackingSubmodule(),
-            new WaveTrackerSubmodule()
+            new ViveHandTrackingSubmodule()
+            , new WaveHandTrackingSubmodule()
+            , new WaveTrackerSubmodule()
+            , new UnityXRHandSubmodule()
             );
 
         private bool[] prevDeviceConnected = new bool[VRModule.MAX_DEVICE_COUNT];
         private bool[] currDeviceConnected = new bool[VRModule.MAX_DEVICE_COUNT];
+        private int prevMaxConnectedIndex = -1;
+        private int currMaxConnectedIndex = -1;
         private void FlushDeviceConnectedState()
         {
             var temp = prevDeviceConnected;
             prevDeviceConnected = currDeviceConnected;
             currDeviceConnected = temp;
+            prevMaxConnectedIndex = currMaxConnectedIndex;
+            currMaxConnectedIndex = -1;
             Array.Clear(currDeviceConnected, 0, (int)VRModule.MAX_DEVICE_COUNT);
         }
 
@@ -108,11 +161,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
             EnsureDeviceStateLength(8);
             UpdateTrackingSpaceType();
             submodules.ActivateAllModules();
-            Debug.Log("Activated XRLoader Name: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
+            Debug.Log("[UnityXRModule] OnActivated XRLoader Name: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
         }
 
         public override void OnDeactivated()
         {
+            Debug.Log("[UnityXRModule] OnDeactivated");
             submodules.DeactivateAllModules();
             indexMap.Clear();
         }
@@ -144,15 +198,18 @@ namespace HTC.UnityPlugin.VRModuleManagement
             uint deviceIndex;
 
             FlushDeviceState();
+            FlushDeviceConnectedState();
+            rightIndice.Clear();
+            leftIndice.Clear();
 
             InputDevices.GetDevices(connectedDevices);
 
             foreach (var device in connectedDevices)
             {
+                if (!device.isValid) { continue; }
                 if (!indexMap.TryGetIndex(device, out deviceIndex))
                 {
                     string deviceName;
-
                     if (indexMap.TryMapAsHMD(device))
                     {
                         deviceIndex = VRModule.HMD_DEVICE_INDEX;
@@ -167,6 +224,7 @@ namespace HTC.UnityPlugin.VRModuleManagement
                         deviceName = device.name;
                     }
 
+                    // will not identify tracked hand here, currently all tracked hand should created by submodule
                     currState.deviceClass = GetDeviceClass(device.name, device.characteristics);
                     currState.serialNumber = deviceName + " " + device.serialNumber + " " + (int)device.characteristics;
                     currState.modelNumber = deviceName + " (" + device.characteristics + ")";
@@ -174,23 +232,12 @@ namespace HTC.UnityPlugin.VRModuleManagement
 
                     SetupKnownDeviceModel(currState);
 
-                    Debug.LogFormat("Device connected: {0} / {1} / {2} / {3} / {4} / {5} ({6})",
+                    Debug.LogFormat("[UnityXRModule] found new InputDevice: [{0}] nm=\"{2}\" sn=\"{1}\" ch=({4}) mf=\"{3}\"",
                         currState.deviceIndex,
-                        currState.deviceClass,
-                        currState.deviceModel,
-                        currState.modelNumber,
-                        currState.serialNumber,
+                        device.serialNumber,
                         device.name,
+                        device.manufacturer,
                         device.characteristics);
-
-                    if ((device.characteristics & InputDeviceCharacteristics.Right) > 0u)
-                    {
-                        uxrRightIndex = deviceIndex;
-                    }
-                    else if ((device.characteristics & InputDeviceCharacteristics.Left) > 0u)
-                    {
-                        uxrLeftIndex = deviceIndex;
-                    }
 
                     UpdateNewConnectedInputDevice(currState, device);
                 }
@@ -199,10 +246,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                     EnsureValidDeviceState(deviceIndex, out prevState, out currState);
                 }
 
-                currState.isConnected = true;
                 // update device Poses
+                currState.isConnected = true;
                 currState.isPoseValid = GetDeviceFeatureValueOrDefault(device, CommonUsages.isTracked);
-                if (Vive.VIUSettings.preferUnityXRPointerPose)
+
+                if (VIUSettings.preferUnityXRPointerPose)
                 {
                     currState.position = GetDeviceFeatureValueOrDefault(device, pointerPositionFeature, CommonUsages.devicePosition);
                     currState.rotation = GetDeviceFeatureValueOrDefault(device, pointerRotationFeature, CommonUsages.deviceRotation);
@@ -218,51 +266,93 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 }
 
                 currDeviceConnected[deviceIndex] = true;
+                if (currMaxConnectedIndex < (int)deviceIndex) { currMaxConnectedIndex = (int)deviceIndex; }
 
+                if (currState.deviceClass != VRModuleDeviceClass.Invalid)
+                {
+                    if ((device.characteristics & InputDeviceCharacteristics.Right) != 0u) { rightIndice.Add(new RoleIdx(currState)); }
+                    else if ((device.characteristics & InputDeviceCharacteristics.Left) != 0u) { leftIndice.Add(new RoleIdx(currState)); }
+                }
                 // TODO: update hand skeleton pose
             }
 
             // unmap index for disconnected device state
-            for (uint i = 0u, imax = VRModule.MAX_DEVICE_COUNT; i < imax; ++i)
+            for (int i = 0, imax = prevMaxConnectedIndex; i <= imax; ++i)
             {
                 if (prevDeviceConnected[i] && !currDeviceConnected[i])
                 {
-                    if (indexMap.IsMapped(i))
+                    if (indexMap.IsMapped((uint)i))
                     {
-                        indexMap.UnmapByIndex(i);
+                        indexMap.UnmapByIndex((uint)i);
+                        //Debug.Log("[UnityXRModule] unmap [" + i + "]");
                     }
                     else
                     {
-                        Debug.LogWarning("[UnityXRModule] Disconnected device[" + i + "] already unmapped");
+                        Debug.LogWarning("[UnityXRModule] unmap failed: [" + i + "] already unmapped");
                     }
 
-                    if (TryGetValidDeviceState(i, out prevState, out currState) && currState.isConnected)
+                    if (TryGetValidDeviceState((uint)i, out prevState, out currState) && currState.isConnected)
                     {
                         currState.Reset();
-                        if (uxrRightIndex == i) { uxrRightIndex = INVALID_DEVICE_INDEX; }
-                        if (uxrLeftIndex == i) { uxrLeftIndex = INVALID_DEVICE_INDEX; }
+                        //Debug.Log("[UnityXRModule] reset [" + i + "]");
                     }
                     else
                     {
-                        Debug.LogWarning("[UnityXRModule] Disconnected device[" + i + "] already been reset");
+                        Debug.LogWarning("[UnityXRModule] reset state failed: [" + i + "] already been reset");
                     }
                 }
             }
 
-            FlushDeviceConnectedState();
-
             submodules.UpdateModulesDeviceConnectionAndPoses();
 
-            // process hand role
-            var subRightIndex = submodules.GetFirstRightHandedIndex();
-            var currentRight = (subRightIndex == INVALID_DEVICE_INDEX || (TryGetValidDeviceState(uxrRightIndex, out prevState, out currState) && currState.isPoseValid && currState.deviceClass == VRModuleDeviceClass.Controller)) ? uxrRightIndex : subRightIndex;
-            var subLeftIndex = submodules.GetFirstLeftHandedIndex();
-            var currentLeft = (subLeftIndex == INVALID_DEVICE_INDEX || (TryGetValidDeviceState(uxrLeftIndex, out prevState, out currState) && currState.isPoseValid && currState.deviceClass == VRModuleDeviceClass.Controller)) ? uxrLeftIndex : subLeftIndex;
-            var roleChanged = ChangeProp.Set(ref moduleRightIndex, currentRight);
-            roleChanged |= ChangeProp.Set(ref moduleLeftIndex, currentLeft);
-
-            if (roleChanged)
+            for (uint i = 0u, imax = GetDeviceStateLength(); i < imax; ++i)
             {
+                if (!TryGetValidDeviceState(i, out prevState, out currState)) { continue; }
+                if (prevState.isConnected != currState.isConnected)
+                {
+                    var isDisconnect = prevState.isConnected;
+                    var readState = isDisconnect ? prevState : (IVRModuleDeviceState)currState;
+                    Debug.LogFormat("[UnityXRModule] device {0}connected: [{1}] sn=\"{5}\" cl={2} md={3} mn=\"{4}\"",
+                        isDisconnect ? "dis" : "",
+                        readState.deviceIndex,
+                        readState.deviceClass,
+                        readState.deviceModel,
+                        readState.modelNumber,
+                        readState.serialNumber);
+                }
+            }
+
+            for (int i = 0, imax = submodules.ModuleCount; i < imax; ++i)
+            {
+                if (!submodules[i].isActivated) { continue; }
+                if (TryGetValidDeviceState(submodules[i].GetRightHandedIndex(), out prevState, out currState) && currState.isConnected)
+                {
+                    rightIndice.Add(new RoleIdx(currState));
+                }
+                if (TryGetValidDeviceState(submodules[i].GetLeftHandedIndex(), out prevState, out currState) && currState.isConnected)
+                {
+                    leftIndice.Add(new RoleIdx(currState));
+                }
+            }
+
+            // process hand role
+            var newRightIndex = INVALID_DEVICE_INDEX;
+            if (rightIndice.Count != 0)
+            {
+                if (rightIndice.Count != 1) { rightIndice.Sort(CompareRoleIdx); }
+                newRightIndex = rightIndice[0].index;
+            }
+            var newLeftIndex = INVALID_DEVICE_INDEX;
+            if (leftIndice.Count != 0)
+            {
+                if (leftIndice.Count != 1) { leftIndice.Sort(CompareRoleIdx); }
+                newLeftIndex = leftIndice[0].index;
+            }
+            if ((moduleRightIndex != newRightIndex) | (moduleLeftIndex != newLeftIndex))
+            {
+                Debug.Log("[UnityXRModule] role changed: [" + shortIdx(moduleLeftIndex) + "=>" + shortIdx(newLeftIndex) + "]L [" + shortIdx(moduleRightIndex) + "=>" + shortIdx(newRightIndex) + "]R");
+                moduleRightIndex = newRightIndex;
+                moduleLeftIndex = newLeftIndex;
                 InvokeControllerRoleChangedEvent();
             }
 
@@ -322,10 +412,17 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 return VRModuleDeviceClass.TrackingReference;
             }
 
+            if ((characteristics & InputDeviceCharacteristics.HandTracking) != 0)
+            {
+                return VRModuleDeviceClass.Invalid;
+            }
+
             if ((characteristics & InputDeviceCharacteristics.TrackedDevice) != 0)
             {
                 return VRModuleDeviceClass.GenericTracker;
             }
+
+            // will not identify tracked hand here, currently all tracked hand should created by submodule
 
             return VRModuleDeviceClass.Invalid;
         }
@@ -335,13 +432,22 @@ namespace HTC.UnityPlugin.VRModuleManagement
             var activeSubsys = ListPool<XRInputSubsystem>.Get();
             try
             {
+#if UNITY_6000_0_OR_NEWER
+                SubsystemManager.GetSubsystems(activeSubsys);
+#else
                 SubsystemManager.GetInstances(activeSubsys);
+#endif
                 foreach (var subsys in activeSubsys)
                 {
                     if (!subsys.running) { continue; }
                     if (!subsys.TrySetTrackingOriginMode(value))
                     {
-                        Debug.LogWarning("Failed to set TrackingOriginModeFlags(" + value + ") to XRInputSubsystem: " + subsys.SubsystemDescriptor.id);
+#if UNITY_6000_0_OR_NEWER
+                        var subsysId = subsys.subsystemDescriptor.id;
+#else
+                        var subsysId = subsys.SubsystemDescriptor.id;
+#endif
+                        Debug.LogWarning("Failed to set TrackingOriginModeFlags(" + value + ") to XRInputSubsystem: " + subsysId);
                     }
                 }
             }
@@ -425,7 +531,11 @@ namespace HTC.UnityPlugin.VRModuleManagement
                 var displaySystems = ListPool<XRDisplaySubsystem>.Get();
                 try
                 {
+#if UNITY_6000_0_OR_NEWER
+                    SubsystemManager.GetSubsystems(displaySystems);
+#else
                     SubsystemManager.GetInstances(displaySystems);
+#endif
 
                     var minRefreshRate = float.MaxValue;
                     foreach (XRDisplaySubsystem system in displaySystems)

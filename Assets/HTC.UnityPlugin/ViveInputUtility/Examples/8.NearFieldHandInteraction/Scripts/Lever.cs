@@ -9,7 +9,7 @@ namespace HTC.UnityPlugin.Vive
 {
     public class Lever : MonoBehaviour
     {
-        [Serializable] public class MoveEvent : UnityEvent<Transform> {}
+        [Serializable] public class MoveEvent : UnityEvent<Transform> { }
 
         public MoveEvent moved;
 
@@ -42,7 +42,11 @@ namespace HTC.UnityPlugin.Vive
             // Lock velocity
             if (m_rigidbody)
             {
+#if UNITY_6000_0_OR_NEWER
+                m_rigidbody.linearVelocity = Vector3.zero;
+#else
                 m_rigidbody.velocity = Vector3.zero;
+#endif
             }
         }
 

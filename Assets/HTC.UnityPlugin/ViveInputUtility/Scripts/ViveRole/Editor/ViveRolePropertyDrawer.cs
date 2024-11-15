@@ -154,7 +154,7 @@ namespace HTC.UnityPlugin.Vive
                     roleType = ViveRoleEnum.ValidViveRoleTable.GetValueByIndex(newRoleTypeIndex);
                     roleTypeInfo = ViveRoleEnum.GetInfo(roleType);
 
-                    target.SetTypeDirty();
+                    if (target != null) target.SetTypeDirty();
                 }
 
                 if (newRoleValueIndex != roleValueIndex)
@@ -162,7 +162,7 @@ namespace HTC.UnityPlugin.Vive
                     roleValueNameProp.stringValue = roleTypeInfo.GetNameByElementIndex(newRoleValueIndex);
                     roleValueIntProp.intValue = roleTypeInfo.GetRoleValueByElementIndex(newRoleValueIndex);
 
-                    target.SetValueDirty();
+                    if (target != null) target.SetValueDirty();
                 }
 
                 EditorApplication.delayCall += target.Update;

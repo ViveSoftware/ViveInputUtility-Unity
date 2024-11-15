@@ -38,7 +38,10 @@ namespace HTC.UnityPlugin.Vive
             {
                 settingTitle = "Multithreaded Rendering",
                 skipCheckFunc = () => !VIUSettingsEditor.supportWaveVR,
-#if UNITY_2017_2_OR_NEWER
+#if UNITY_6000_0_OR_NEWER
+                currentValueFunc = () => PlayerSettings.GetMobileMTRendering(NamedBuildTarget.Android),
+                setValueFunc = v => PlayerSettings.SetMobileMTRendering(NamedBuildTarget.Android, v),
+#elif UNITY_2017_2_OR_NEWER
                 currentValueFunc = () => PlayerSettings.GetMobileMTRendering(BuildTargetGroup.Android),
                 setValueFunc = v => PlayerSettings.SetMobileMTRendering(BuildTargetGroup.Android, v),
 #else
@@ -557,10 +560,10 @@ namespace HTC.UnityPlugin.Vive
                 {
                     var regScopes = reg.scopes;
                     if (regScopes == null || regScopes.Count == 0) { continue; }
-                    allScopes.AddRange(regScopes);
+                    if (allScopes != null) allScopes.AddRange(regScopes);
                 }
 
-                if (allScopes.Count > 0)
+                if (allScopes != null && allScopes.Count > 0)
                 {
                     foreach (var scope in scopes)
                     {

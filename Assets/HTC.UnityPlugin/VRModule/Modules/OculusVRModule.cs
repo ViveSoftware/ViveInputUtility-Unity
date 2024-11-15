@@ -474,12 +474,19 @@ namespace HTC.UnityPlugin.VRModuleManagement
 #endif
         }
 
+        private static string s_loaderNameCache;
+        private static VRModuleKnownXRLoader s_knownLoaderCache;
         public override bool ShouldActiveModule()
         {
             if (!VIUSettings.activateOculusVRModule) { return false; }
 #pragma warning disable 0162
 #if VIU_XR_GENERAL_SETTINGS
-            return UnityXRModuleBase.HasActiveLoader(OCULUS_XR_LOADER_NAME);
+            if (!UnityXRModuleBase.TryGetActiveLoaderName(out var loaderName)) { return false; }
+            if (s_loaderNameCache != loaderName) { 
+                s_loaderNameCache = loaderName;
+                s_knownLoaderCache = UnityXRModuleBase.ToKnownXRLoader(loaderName);
+            }
+            return s_knownLoaderCache == VRModuleKnownXRLoader.Oculus;
 #endif
 #if UNITY_2019_3_OR_NEWER
             return false;

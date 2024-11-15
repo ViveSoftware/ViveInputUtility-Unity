@@ -281,7 +281,11 @@ namespace HTC.UnityPlugin.Vive
                 if (!m_steamVRFadeInitialized)
                 {
                     // add SteamVR_Fade to the last rendered stereo camera
+#if UNITY_6000_0_OR_NEWER
+                    var fadeScripts = FindObjectsByType<SteamVR_Fade>(FindObjectsSortMode.None);
+#else
                     var fadeScripts = FindObjectsOfType<SteamVR_Fade>();
+#endif
                     if (fadeScripts == null || fadeScripts.Length <= 0)
                     {
                         var topCam = SteamVR_Render.Top();

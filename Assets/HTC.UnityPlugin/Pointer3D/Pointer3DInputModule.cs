@@ -87,7 +87,11 @@ namespace HTC.UnityPlugin.Pointer3D
         {
             if (Active || isApplicationQuitting) { return; }
 
+#if UNITY_6000_0_OR_NEWER
+            var instances = FindObjectsByType<Pointer3DInputModule>(FindObjectsSortMode.None);
+#else
             var instances = FindObjectsOfType<Pointer3DInputModule>();
+#endif
             if (instances.Length > 0)
             {
                 instance = instances[0];
@@ -99,7 +103,11 @@ namespace HTC.UnityPlugin.Pointer3D
                 EventSystem eventSystem = EventSystem.current;
                 if (eventSystem == null)
                 {
+#if UNITY_6000_0_OR_NEWER
+                    eventSystem = FindFirstObjectByType<EventSystem>();
+#else
                     eventSystem = FindObjectOfType<EventSystem>();
+#endif
                 }
                 if (eventSystem == null)
                 {

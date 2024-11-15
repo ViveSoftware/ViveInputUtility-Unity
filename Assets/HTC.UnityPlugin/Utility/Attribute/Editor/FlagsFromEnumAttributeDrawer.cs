@@ -27,13 +27,15 @@ namespace HTC.UnityPlugin.Utility
         {
             var ffeAttribute = attribute as FlagsFromEnumAttribute;
 
-            if (ffeAttribute.EnumType == null || !ffeAttribute.EnumType.IsEnum)
+            if (ffeAttribute != null && (ffeAttribute.EnumType == null || !ffeAttribute.EnumType.IsEnum))
             {
                 info = null;
                 return false;
             }
 
-            info = EnumUtils.GetDisplayInfo(ffeAttribute.EnumType);
+            if (ffeAttribute != null) info = EnumUtils.GetDisplayInfo(ffeAttribute.EnumType);
+            else info = null;
+
             return info != null;
         }
 

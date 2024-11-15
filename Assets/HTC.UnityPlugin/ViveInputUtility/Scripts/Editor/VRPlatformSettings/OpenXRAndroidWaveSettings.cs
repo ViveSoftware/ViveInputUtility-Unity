@@ -52,7 +52,7 @@ namespace HTC.UnityPlugin.Vive
 
     public static partial class VIUSettingsEditor
     {
-        public const string WAVE_XR_OPENXR_PACKAGE = "com.htc.upm.wave.openxr";
+        public const string WAVE_XR_OPENXR_PACKAGE = "com.htc.upm.vive.openxr";
         public const string WAVE_XR_OPENXR_FEATURE_ID = "com.unity.openxr.feature.vivefocus3";
 
         public static bool canSupportOpenXRAndroidWave
@@ -110,7 +110,7 @@ namespace HTC.UnityPlugin.Vive
                 }
             }
 
-            private static GUIContent s_title = new GUIContent("OpenXR Android for WaveXR (Experimental)", "VIVE Focus 3");
+            private static GUIContent s_title = new GUIContent("OpenXR Android for VIVE (Experimental)", "VIVE Focus Vision");
             public override void OnPreferenceGUI()
             {
                 const float toggleWidth = 263f;

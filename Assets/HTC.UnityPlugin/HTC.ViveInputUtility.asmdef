@@ -17,7 +17,8 @@
         "Wave.Essence.Controller.Model",
         "Unity.InputSystem",
         "Unity.XR.OpenXR",
-        "Wave.XRSDK"
+        "Wave.XRSDK",
+        "Unity.XR.Hands"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -36,6 +37,11 @@
             "name": "com.htc.upm.wave.essence",
             "expression": "5.4.0",
             "define": "VIU_WAVE_ESSENCE_5_4_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "",
+            "define": "VIU_UNITY_XR_HAND"
         }
     ],
     "noEngineReferences": false

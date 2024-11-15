@@ -35,17 +35,17 @@ namespace HTC.UnityPlugin.Vive
 
             var dirtyCompCount = 0;
             if (s_comps == null) { s_comps = new List<IViveRoleComponent>(); }
-            setter.GetComponentsInChildren(s_comps);
+            if (setter != null) setter.GetComponentsInChildren(s_comps);
             for (var i = s_comps.Count - 1; i >= 0; --i)
             {
-                if (s_comps[i].viveRole != setter.viveRole)
+                if (setter != null && s_comps[i].viveRole != setter.viveRole)
                 {
                     ++dirtyCompCount;
                 }
             }
             s_comps.Clear();
 
-            if (dirtyCompCount > 0 && GUILayout.Button("Refresh(" + dirtyCompCount + ")"))
+            if (setter != null && dirtyCompCount > 0 && GUILayout.Button("Refresh(" + dirtyCompCount + ")"))
             {
                 setter.UpdateChildrenViveRole();
                 serializedObject.Update();
