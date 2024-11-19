@@ -1,8 +1,8 @@
-﻿# Vive Input Utility for Unity - v1.20.0
+﻿# Vive Input Utility for Unity - v1.20.1
 Copyright (c) 2016-2024, HTC Corporation. All rights reserved.
 
 
-## Changes for v1.20.0:
+## Changes for v1.20.1:
 
 * Changes
   - Add support for Unity 6
@@ -17,6 +17,9 @@ Copyright (c) 2016-2024, HTC Corporation. All rights reserved.
     - Fix selecting wrong left/right device in some cases
   - Add support for latest Oculus plugin
     - Fix tracked hand model not working
+
+* Bug Fix
+  - Fix grabber(ColliderEventCaster) emitting incorrect button
   
 
 ## Changes for v1.19.0:
