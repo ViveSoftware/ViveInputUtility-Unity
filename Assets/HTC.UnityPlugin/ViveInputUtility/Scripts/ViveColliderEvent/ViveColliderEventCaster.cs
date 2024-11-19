@@ -46,20 +46,20 @@ namespace HTC.UnityPlugin.Vive
         {
             EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonTrigger, false);
             EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonPadOrStick, false);
-            EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonFunctionKey, false);
             EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonGripOrHandTrigger, false);
+            EnumUtils.SetFlag(ref m_additionalButtons, (int)m_buttonFunctionKey, false);
         }
 
         protected virtual void Start()
         {
             buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonTrigger, ColliderButtonEventData.InputButton.Trigger));
             if (m_buttonPadOrStick != ControllerButton.None) { buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonPadOrStick, ColliderButtonEventData.InputButton.PadOrStick)); }
-            if (m_buttonGripOrHandTrigger != ControllerButton.None) { buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonFunctionKey, ColliderButtonEventData.InputButton.FunctionKey)); }
-            if (m_buttonFunctionKey != ControllerButton.None) { buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonGripOrHandTrigger, ColliderButtonEventData.InputButton.GripOrHandTrigger)); }
+            if (m_buttonGripOrHandTrigger != ControllerButton.None) { buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonGripOrHandTrigger, ColliderButtonEventData.InputButton.GripOrHandTrigger)); }
+            if (m_buttonFunctionKey != ControllerButton.None) { buttonEventDataList.Add(new ViveColliderButtonEventData(this, m_buttonFunctionKey, ColliderButtonEventData.InputButton.FunctionKey)); }
 
             FilterOutAssignedButton();
 
-            var eventBtn = ColliderButtonEventData.InputButton.GripOrHandTrigger + 1;
+            var eventBtn = ColliderButtonEventData.InputButton.FunctionKey + 1;
             var addBtns = m_additionalButtons;
             for (ControllerButton btn = 0; addBtns > 0u; ++btn, addBtns >>= 1)
             {
