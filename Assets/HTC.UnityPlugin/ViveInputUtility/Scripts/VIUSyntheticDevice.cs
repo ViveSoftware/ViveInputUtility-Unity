@@ -209,14 +209,19 @@ namespace HTC.UnityPlugin.Vive
 
             private VIUSyntheticDevice AddDevice(ViveRole.IMap map, int roleValue)
             {
-                VIUSyntheticDevice device;
                 try
                 {
-                    device = InputSystem.AddDevice(new InputDeviceDescription()
+                    var device = InputSystem.AddDevice(new InputDeviceDescription()
                     {
                         interfaceName = layoutName,
                         manufacturer = "HTC ViveSoftware",
                     }) as VIUSyntheticDevice;
+                    
+                    if (device == null)
+                    {
+                        Debug.LogError("[VIUSyntheticDevice] InputSystem.AddDevice(InputDeviceDescription) failed!");
+                        return null;
+                    }
 
                     InputSystem.AddDeviceUsage(device, map.RoleValueInfo.GetNameByRoleValue(roleValue));
                     if (leftRgx.IsMatch(layoutName))
@@ -227,14 +232,15 @@ namespace HTC.UnityPlugin.Vive
                     {
                         InputSystem.AddDeviceUsage(device, CommonUsages.RightHand);
                     }
+
+                    device.ctrlState = ViveInput.GetState(map.RoleValueInfo.RoleEnumType, roleValue);
+                    return device;
                 }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
                     return null;
                 }
-                device.ctrlState = ViveInput.GetState(map.RoleValueInfo.RoleEnumType, roleValue);
-                return device;
             }
 
             private static void ResumeDevice(InputDevice device)
